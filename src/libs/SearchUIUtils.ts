@@ -84,6 +84,7 @@ import {
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -681,6 +682,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
+
+    const transaction = isTransaction ? data[key] : undefined;
+    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -690,7 +696,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
-    const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
@@ -1287,7 +1292,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
                     getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
                         return queryString;
                     },
                 },
@@ -1364,6 +1369,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         };
 
         if (showSubmitSuggestion) {
+            const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1372,39 +1378,41 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: [
-                        {
-                            success: true,
-                            buttonText: 'report.newReport.createReport',
-                            buttonAction: () => {
-                                interceptAnonymousUser(() => {
-                                    const activePolicy = getActivePolicy();
-                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                    buttons:
+                        groupPoliciesWithChatEnabled.length > 0
+                            ? [
+                                  {
+                                      success: true,
+                                      buttonText: 'report.newReport.createReport',
+                                      buttonAction: () => {
+                                          interceptAnonymousUser(() => {
+                                              const activePolicy = getActivePolicy();
+                                              const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
 
-                                    let workspaceIDForReportCreation: string | undefined;
+                                              let workspaceIDForReportCreation: string | undefined;
 
-                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                        workspaceIDForReportCreation = activePolicy.id;
-                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                    }
+                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                                  workspaceIDForReportCreation = activePolicy.id;
+                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                              }
 
-                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                        });
-                                        return;
-                                    }
+                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  });
+                                                  return;
+                                              }
 
-                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                });
-                            },
-                        },
-                    ],
+                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                          });
+                                      },
+                                  },
+                              ]
+                            : [],
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
@@ -1638,8 +1646,7 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
