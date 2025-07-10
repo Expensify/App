@@ -292,7 +292,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             return (
                 <Text>
                     {prompt}
-                    <TextLink href=""> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
                 </Text>
             );
         }
