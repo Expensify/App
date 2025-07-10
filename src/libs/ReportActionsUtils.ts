@@ -2884,6 +2884,22 @@ function getCardIssuedMessage({
     }
 }
 
+function getRoomChangeLogMessage(reportAction: ReportAction) {
+    if (
+        !isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) &&
+        !isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM)
+    ) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
+    const actionText = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM)
+        ? translateLocal('workspace.invite.invited')
+        : translateLocal('workspace.invite.removed');
+    const userText = (targetAccountIDs.length === 1 ? translateLocal('common.member') : translateLocal('common.members')).toLowerCase();
+    return `${actionText} ${targetAccountIDs.length} ${userText}`;
+}
+
 function getReportActionsLength() {
     return Object.keys(allReportActions ?? {}).length;
 }
@@ -3102,6 +3118,7 @@ export {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
+    getRoomChangeLogMessage,
     getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
