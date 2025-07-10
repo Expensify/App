@@ -10,6 +10,7 @@ import {
     getPolicyName,
     getReportActionActorAccountID,
     getWorkspaceIcon,
+    isDM,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom,
@@ -265,7 +266,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
     const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1;
+    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1 && isDM(report);
     const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
 
     const reportPreviewSenderID = areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;
