@@ -12,8 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/Transaction';
+import Navigation from '@libs/Navigation/Navigation';
+import {shouldNavigateToMergeReceipt} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {MergeTransaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -32,6 +35,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const eligibleTransactions = mergeTransaction?.eligibleTransactions;
 
     useEffect(() => {
         getTransactionsForMerging(transactionID);
@@ -40,7 +44,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const sections = useMemo(() => {
         return [
             {
-                data: (mergeTransaction?.eligibleTransactions ?? []).map((eligibleTransaction) => ({
+                data: (eligibleTransactions ?? []).map((eligibleTransaction) => ({
                     ...eligibleTransaction,
                     keyForList: eligibleTransaction.transactionID,
                     isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
@@ -49,7 +53,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 shouldShow: true,
             },
         ];
-    }, [mergeTransaction]);
+    }, [eligibleTransactions, mergeTransaction]);
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
@@ -80,7 +84,25 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         );
     }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
 
-    if (mergeTransaction?.eligibleTransactions?.length === 0) {
+    const handleConfirm = useCallback(() => {
+        const targetTransaction = eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction?.targetTransactionID);
+        const sourceTransaction = eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction?.sourceTransactionID);
+        if (!sourceTransaction || !targetTransaction) {
+            return;
+        }
+
+        if (shouldNavigateToMergeReceipt([targetTransaction, sourceTransaction])) {
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
+        } else {
+            const mergedReceiptID = sourceTransaction?.receipt?.receiptID ?? targetTransaction?.receipt?.receiptID;
+            setMergeTransactionKey(transactionID, {
+                receiptID: mergedReceiptID,
+            });
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
+        }
+    }, [eligibleTransactions, mergeTransaction, transactionID]);
+
+    if (eligibleTransactions?.length === 0) {
         return (
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
@@ -108,7 +130,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             LoadingPlaceholderComponent={MergeExpensesSkeleton}
             fixedNumItemsForLoader={3}
             headerContent={headerContent}
-            onConfirm={console.log}
+            onConfirm={handleConfirm}
         />
     );
 }

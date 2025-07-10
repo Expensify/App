@@ -34,7 +34,7 @@ type MergeTransaction = {
     billable: boolean;
 
     /** The receiptID we want to keep */
-    receiptID: string;
+    receiptID: number;
 };
 
 export default MergeTransaction;
