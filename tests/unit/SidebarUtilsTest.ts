@@ -1088,7 +1088,7 @@ describe('SidebarUtils', () => {
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 member`);
+                expect(result?.alternateText).toBe(`You: invited 1 member`);
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {
