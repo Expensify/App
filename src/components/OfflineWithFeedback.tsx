@@ -109,8 +109,7 @@ function OfflineWithFeedback({
     const applyStrikeThrough = useCallback(
         (childrenProp: React.ReactNode): React.ReactNode => {
             const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
-                console.log('applyStrikeThrough', child);
-                if (!React.isValidElement(child)) {
+                if (!React.isValidElement(child) || child.type === ImageSVG) {
                     return child;
                 }
 
@@ -120,13 +119,9 @@ function OfflineWithFeedback({
                     style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
 
-                console.log('props', props);
-
                 if (childProps.children) {
                     props.children = applyStrikeThrough(childProps.children);
                 }
-
-                console.log('cloneElement');
 
                 return React.cloneElement(child, props);
             });
