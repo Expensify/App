@@ -547,6 +547,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      */
     getItemHeight?: (item: TItem) => number;
 
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
