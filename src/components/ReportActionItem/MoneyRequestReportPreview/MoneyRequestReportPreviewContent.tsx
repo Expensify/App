@@ -38,7 +38,6 @@ import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
-    getBankAccountRoute,
     getDisplayNameForParticipant,
     getInvoicePayerName,
     getMoneyReportPreviewName,

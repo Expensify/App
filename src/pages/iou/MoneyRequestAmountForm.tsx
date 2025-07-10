@@ -22,7 +22,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report, SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';

@@ -516,7 +516,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            chatReport={undefined}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}
