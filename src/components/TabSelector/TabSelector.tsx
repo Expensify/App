@@ -22,6 +22,12 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
+
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
 type IconTitleAndTestID = {
@@ -53,7 +59,16 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
     }
 }
 
-function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged, shouldShowLabelWhenInactive = true}: TabSelectorProps) {
+function TabSelector({
+    state,
+    navigation,
+    onTabPress = () => {},
+    position,
+    onFocusTrapContainerElementChanged,
+    shouldShowLabelWhenInactive = true,
+    shouldShowProductTrainingTooltip = false,
+    renderProductTrainingTooltip,
+}: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -91,7 +106,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
 
                         if (!event.defaultPrevented) {
                             // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                            navigation.navigate({key: route.key, merge: true});
+                            navigation.navigate(route.name, {key: route.key, merge: true});
                         }
 
                         onTabPress(route.name);
@@ -109,6 +124,8 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             isActive={isActive}
                             testID={testID}
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                            shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
+                            renderProductTrainingTooltip={renderProductTrainingTooltip}
                         />
                     );
                 })}

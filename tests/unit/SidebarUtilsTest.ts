@@ -4,22 +4,23 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
-import {getReportActionMessageText} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {getAllReportErrors} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
+import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('SidebarUtils', () => {
     beforeAll(() => {
@@ -27,7 +28,9 @@ describe('SidebarUtils', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        IntlStore.load(CONST.LOCALES.EN);
         initOnyxDerivedValues();
+        return waitForBatchedUpdates();
     });
 
     afterAll(async () => {
@@ -91,12 +94,13 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
 
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
+                    chatReportR14932,
                     MOCK_REPORT_ACTIONS,
                     false,
                     {},
@@ -126,6 +130,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
+                    chatReportR14932,
                     MOCK_REPORT_ACTIONS,
                     false,
                     reportErrors,
@@ -145,11 +150,12 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
+                    chatReportR14932,
                     MOCK_REPORT_ACTIONS,
                     true,
                     {},
@@ -186,12 +192,13 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
+                    chatReportR14932,
                     MOCK_REPORT_ACTIONS,
                     false,
                     reportErrors,
@@ -216,11 +223,12 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
+                    chatReportR14932,
                     MOCK_REPORT_ACTIONS,
                     false,
                     reportErrors,
@@ -258,11 +266,12 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
+                    chatReportR14932,
                     MOCK_REPORT_ACTIONS,
                     false,
                     reportErrors,
@@ -282,10 +291,11 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 {},
@@ -312,7 +322,6 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
-                preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -322,7 +331,6 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
-                preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -367,10 +375,11 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 {},
@@ -439,10 +448,11 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 {},
@@ -512,6 +522,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 {},
@@ -539,6 +550,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 reportErrors,
@@ -559,7 +571,16 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
+            const result = SidebarUtils.shouldShowRedBrickRoad(
+                MOCK_REPORT,
+                chatReportR14932,
+                MOCK_REPORT_ACTIONS,
+                true,
+                {},
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived.current,
+            );
 
             expect(result).toBe(true);
         });
@@ -592,6 +613,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 reportErrors,
@@ -619,6 +641,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
+                chatReportR14932,
                 MOCK_REPORT_ACTIONS,
                 false,
                 reportErrors,
@@ -639,7 +662,16 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
+            const result = SidebarUtils.shouldShowRedBrickRoad(
+                MOCK_REPORT,
+                chatReportR14932,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived.current,
+            );
 
             expect(result).toBe(false);
         });
@@ -659,9 +691,18 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            // Simulate how components determind if a report is archived by using this hook
+            // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
+            const result = SidebarUtils.shouldShowRedBrickRoad(
+                MOCK_REPORT,
+                chatReportR14932,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived.current,
+            );
 
             expect(result).toBe(false);
         });
@@ -737,9 +778,9 @@ describe('SidebarUtils', () => {
         });
     });
 
-    describe('getOptionsData', () => {
-        it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
-            // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
+    describe('getOptionData', () => {
+        it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
+            // When a report has last action of POLICY_CHANGE_LOG.LEAVE_ROOM type
             const report: Report = {
                 ...createRandomReport(4),
                 chatType: 'policyAdmins',
@@ -785,7 +826,6 @@ describe('SidebarUtils', () => {
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
-                preferredLocale: CONST.LOCALES.EN,
                 oneTransactionThreadReport: undefined,
             });
 
@@ -843,7 +883,6 @@ describe('SidebarUtils', () => {
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
-                preferredLocale: CONST.LOCALES.EN,
                 oneTransactionThreadReport: undefined,
             });
 
@@ -857,7 +896,6 @@ describe('SidebarUtils', () => {
                 await waitForBatchedUpdates();
             });
             it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -882,7 +920,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -892,7 +929,6 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
             it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -917,7 +953,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: LHNTestUtils.fakePersonalDetails,
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -927,7 +962,6 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
             it('The text should not contain the policy name at prefix if we only have a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -949,7 +983,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -959,7 +992,6 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -985,7 +1017,6 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
-                    preferredLocale,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -994,8 +1025,8 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
             });
-            it('returns the last action message as an alternate text if the action is INVITETOROOM type', async () => {
-                // When a report has last action of INVITETOROOM type
+            it('returns the last action message as an alternate text if the action is INVITE_TO_ROOM type', async () => {
+                // When a report has last action of INVITE_TO_ROOM type
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -1053,7 +1084,6 @@ describe('SidebarUtils', () => {
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
-                    preferredLocale: CONST.LOCALES.EN,
                     oneTransactionThreadReport: undefined,
                 });
 
@@ -1095,7 +1125,70 @@ describe('SidebarUtils', () => {
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
-                    preferredLocale: CONST.LOCALES.EN,
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+            });
+
+            it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
+                const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
+
+                iouReportR14932.reportID = '5';
+                chatReportR14932.reportID = '6';
+                iouReportR14932.lastActorAccountID = undefined;
+
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: 'policyExpenseChat',
+                    pendingAction: null,
+                    isOwnPolicyExpenseChat: true,
+                    parentReportID: iouReportR14932.reportID,
+                    parentReportActionID: mockIOUAction.reportActionID,
+                    lastActorAccountID: undefined,
+                };
+
+                const linkedCreateAction: ReportAction = {
+                    ...mockIOUAction,
+                    originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+                    childReportID: report.reportID,
+                    reportActionID: '3',
+                };
+
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'test action',
+                            text: 'test action',
+                        },
+                    ],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
+
+                    created: DateUtils.getDBTime(),
+                    lastModified: DateUtils.getDBTime(),
+                    shouldShow: true,
+                    pendingAction: null,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: undefined,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[lastAction.reportActionID]: lastAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
+
+                const result = SidebarUtils.getOptionData({
+                    report: iouReportR14932,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                 });
 

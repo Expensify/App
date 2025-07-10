@@ -17,12 +17,15 @@ import {
     getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
+    optionsOrderBy,
     orderOptions,
     orderWorkspaceOptions,
+    recentReportComparator,
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
@@ -43,6 +46,10 @@ jest.mock('@react-native-community/geolocation', () => ({
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 describe('OptionsListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -318,7 +325,7 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_SELFDM: OnyxCollection<Report> = {
+    const REPORTS_WITH_SELF_DM: OnyxCollection<Report> = {
         16: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
@@ -518,13 +525,13 @@ describe('OptionsListUtils', () => {
         },
         {
             reportID: '9',
-            text: 'Asana Task Workspace',
+            text: 'Adana Task Workspace',
             policyID: '99',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '10',
-            text: 'Asana Project Management',
+            text: 'Adana Project Management',
             policyID: '1010',
             isPolicyExpenseChat: true,
         },
@@ -797,6 +804,98 @@ describe('OptionsListUtils', () => {
             // Then the result should include the admin room
             expect(adminRoomOption).toBeDefined();
         });
+
+        it('should include brickRoadIndicator if showRBR is true', () => {
+            const reportID = '1455140530846319';
+            const workspaceChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    participants: {1: {notificationPreference: 'always'}},
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+            const results = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                {
+                    includeMultipleParticipantReports: true,
+                    showRBR: true,
+                },
+            );
+            expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should not include brickRoadIndicator if showRBR is false', () => {
+            const reportID = '1455140530846319';
+            const workspaceChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    participants: {1: {notificationPreference: 'always'}},
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+            const results = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                {
+                    includeMultipleParticipantReports: true,
+                    showRBR: false,
+                },
+            );
+            expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
+        });
     });
 
     describe('getValidOptions() for chat room', () => {
@@ -1060,6 +1159,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
+            // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
             const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
@@ -1101,12 +1201,12 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.login).toBe(searchText);
         });
 
-        it('should prioritize options with matching display name over chatrooms', () => {
+        it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
-            // Given a set of options with chatrooms
-            const OPTIONS_WITH_CHATROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
+            // Given a set of options with chat rooms
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_CHATROOMS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_CHAT_ROOMS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText);
 
@@ -1142,7 +1242,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
 
-        it('should not return any results if the search value is on an exluded logins list', () => {
+        it('should not return any results if the search value is on an excluded logins list', () => {
             const searchText = 'admin@expensify.com';
             // Given a set of options with excluded logins list
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
@@ -1488,10 +1588,10 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELFDM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELFDM);
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
-            const options = getSearchOptions(OPTIONS_WITH_SELFDM, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm);
 
@@ -1552,6 +1652,7 @@ describe('OptionsListUtils', () => {
                         // When we call createOptionList again
                         const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
                         // Then the returned reports should change to Spanish
+                        // cspell:disable-next-line
                         expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
                     })
             );
@@ -1768,14 +1869,68 @@ describe('OptionsListUtils', () => {
     describe('filterReports()', () => {
         it('should match a user with an accented name when searching using non-accented characters', () => {
             // Given a report with accented characters in the text property
+            // cspell:disable-next-line
             const reports = [{text: "Álex Timón D'artagnan Zo-e"} as OptionData];
             // Given a search term with non-accented characters
+            // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
             // When we call filterReports with the report and search terms
             const filteredReports = filterReports(reports, searchTerms);
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
+        });
+    });
+
+    describe('getMostRecentOptions()', () => {
+        it('returns the most recent options up to the specified limit', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+                {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, 2, comparator);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('4');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('2');
+        });
+
+        it('returns all options if limit is greater than options length', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, 5, comparator);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('2');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('1');
+        });
+
+        it('returns empty array if options is empty', () => {
+            const result = optionsOrderBy([], 3, recentReportComparator);
+            expect(result).toEqual([]);
+        });
+
+        it('applies filter function if provided', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z', isPinned: true} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z', isPinned: false} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, 2, comparator, (option) => option.isPinned);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('1');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('3');
         });
     });
 });

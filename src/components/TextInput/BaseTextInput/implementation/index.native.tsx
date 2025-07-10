@@ -43,6 +43,7 @@ function BaseTextInput(
         iconLeft = null,
         icon = null,
         textInputContainerStyles,
+        shouldApplyPaddingToContainer = true,
         touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
@@ -88,7 +89,7 @@ function BaseTextInput(
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -111,6 +112,7 @@ function BaseTextInput(
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const hasLabel = !!label?.length;
 
     useHtmlPaste(input, undefined, isMarkdownEnabled);
 
@@ -188,11 +190,11 @@ function BaseTextInput(
             const heightToFitEmojis = 1;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) =>
-                !multiline ? layout.height + heightToFitEmojis - (styles.textInputContainer.padding + styles.textInputContainer.borderWidth * 2) : prevHeight,
-            );
+            const borderWidth = styles.textInputContainer.borderWidth * 2;
+            const labelPadding = hasLabel ? styles.textInputContainer.padding : 0;
+            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis - (labelPadding + borderWidth) : prevHeight));
         },
-        [autoGrowHeight, multiline, styles.textInputContainer],
+        [autoGrowHeight, multiline, styles.textInputContainer, hasLabel],
     );
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
@@ -252,8 +254,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
-    const shouldAddPaddingBottom = autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge;
-    const hasLabel = !!label?.length;
+    const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -261,15 +262,16 @@ function BaseTextInput(
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
+        !hasLabel && styles.pt0,
         textInputContainerStyles,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + styles.textInputContainer.padding * 2),
+        !shouldApplyPaddingToContainer && styles.p0,
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
         autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && styles.textInputDisabledContainer,
-        !hasLabel && styles.pt0,
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
@@ -321,10 +323,18 @@ function BaseTextInput(
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
                                     for={inputProps.nativeID}
+                                    isMultiline={isMultiline}
                                 />
                             </>
                         ) : null}
-                        <View style={[styles.textInputAndIconContainer(isMarkdownEnabled), isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        <View
+                            style={[
+                                styles.textInputAndIconContainer(isMarkdownEnabled),
+                                {flex: 1},
+                                isMultiline && hasLabel && styles.textInputMultilineContainer,
+                                styles.pointerEventsBoxNone,
+                            ]}
+                        >
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
@@ -421,6 +431,7 @@ function BaseTextInput(
                             )}
                             {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
@@ -431,12 +442,18 @@ function BaseTextInput(
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt2, styles.ml1, styles.justifyContentStart, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        styles.ml1,
+                                        styles.justifyContentStart,
+                                        loadingSpinnerStyle,
+                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
+                                    ]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={[styles.flex1, styles.textInputIconContainer]}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
@@ -450,7 +467,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}

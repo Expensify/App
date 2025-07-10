@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useContext, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
@@ -11,6 +10,9 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -36,8 +38,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(report?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
@@ -92,7 +96,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             linkStyle = [
                 styles.link,
                 {
-                    fontSize: styles.formError.fontSize,
+                    fontSize: HTMLEngineUtils.getFontSizeOfRBRChild(tnode),
                     textDecorationLine: 'underline',
                 },
             ];

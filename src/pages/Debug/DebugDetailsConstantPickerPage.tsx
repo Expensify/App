@@ -29,7 +29,7 @@ function DebugDetailsConstantPickerPage({
     const styles = useThemeStyles();
     const onSubmit = useCallback(
         (item: ListItem) => {
-            const value = item.text === fieldValue ? '' : item.text ?? '';
+            const value = item.text === fieldValue ? '' : (item.text ?? '');
             // Check the navigation state and "backTo" parameter to decide navigation behavior
             if (navigation.getState().routes.length === 1 && !backTo) {
                 // If there is only one route and "backTo" is empty, go back in navigation

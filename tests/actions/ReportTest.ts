@@ -5,6 +5,7 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -19,8 +20,9 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -51,7 +53,6 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
@@ -264,7 +265,6 @@ describe('actions/Report', () => {
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
-        jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
         let report: OnyxEntry<OnyxTypes.Report>;
@@ -342,7 +342,6 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
 
                 // When the user visits the report
-                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
                 Report.readNewestAction(REPORT_ID);
@@ -358,7 +357,6 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                jest.advanceTimersByTime(10);
                 Report.markCommentAsUnread(REPORT_ID, reportActions['1']);
                 return waitForBatchedUpdates();
             })
@@ -369,7 +367,7 @@ describe('actions/Report', () => {
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
-                jest.advanceTimersByTime(10);
+
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForBatchedUpdates();
@@ -382,7 +380,6 @@ describe('actions/Report', () => {
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
-                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 2');
                 return waitForBatchedUpdates();
@@ -394,7 +391,6 @@ describe('actions/Report', () => {
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
-                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForBatchedUpdates();
@@ -415,7 +411,6 @@ describe('actions/Report', () => {
                     created: DateUtils.getDBTime(Date.now() - 3),
                 };
 
-                jest.advanceTimersByTime(10);
                 const optimisticReportActions: OnyxUpdate = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -442,7 +437,7 @@ describe('actions/Report', () => {
                         },
                     },
                 };
-                jest.advanceTimersByTime(10);
+
                 reportActionCreatedDate = DateUtils.getDBTime();
 
                 const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
@@ -705,7 +700,7 @@ describe('actions/Report', () => {
                 reportAction = Object.values(reportActions).at(0);
 
                 if (reportAction) {
-                    // Add the same reaction to the same report action with a different skintone
+                    // Add the same reaction to the same report action with a different skin tone
                     Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
@@ -732,7 +727,7 @@ describe('actions/Report', () => {
                         const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                         expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                        // Expect two different skintone reactions
+                        // Expect two different skin tone reactions
                         const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji?.users[TEST_USER_ACCOUNT_ID].skinTones;
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
@@ -990,7 +985,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
-    it('should send DeleteComment request after AddComment is rollbacked', async () => {
+    it('should send DeleteComment request after AddComment is rollback', async () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
@@ -1544,6 +1539,7 @@ describe('actions/Report', () => {
             });
         });
         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
+        expect(reportPreviewAction?.actorAccountID).toBe(accountID);
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -1552,9 +1548,10 @@ describe('actions/Report', () => {
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
+                    const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     // assert correctness of crucial onyx data
                     expect(createdReport?.reportID).toBe(reportID);
+                    expect(parentPolicyExpenseChat?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
                     expect(createdReport?.total).toBe(0);
                     expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
 
@@ -1590,10 +1587,11 @@ describe('actions/Report', () => {
             const adminsChatReportID = '7957055873634067';
             const onboardingPolicyID = 'A70D00C752416807';
             const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
 
             Report.completeOnboarding({
                 engagementChoice,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+                onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID,
                 onboardingPolicyID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
@@ -1616,6 +1614,50 @@ describe('actions/Report', () => {
             Object.values(reportActions ?? {}).forEach((action) => {
                 expect(action.isOptimisticAction).toBeFalsy();
             });
+        });
+    });
+
+    describe('markAllMessagesAsRead', () => {
+        it('should mark all unread reports as read', async () => {
+            // Given a collection of 10 unread and read reports, where even-index report is unread
+            const currentTime = DateUtils.getDBTime();
+            const reportCollections: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, OnyxTypes.Report> = createCollection<OnyxTypes.Report>(
+                (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+                (index) => {
+                    if (index % 2 === 0) {
+                        return {
+                            ...createRandomReport(index),
+                            lastMessageText: 'test',
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
+                            lastVisibleActionCreated: currentTime,
+                        };
+                    }
+                    return createRandomReport(index);
+                },
+                10,
+            );
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
+
+            // When mark all reports as read
+            Report.markAllMessagesAsRead();
+
+            await waitForBatchedUpdates();
+
+            // Then all report should be read
+            const isUnreadCollection = await Promise.all(
+                Object.values(reportCollections).map((report) => {
+                    return new Promise<boolean>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                            callback: (reportVal) => {
+                                Onyx.disconnect(connection);
+                                resolve(ReportUtils.isUnread(reportVal, undefined));
+                            },
+                        });
+                    });
+                }),
+            );
+            expect(isUnreadCollection.some(Boolean)).toBe(false);
         });
     });
 
@@ -1649,6 +1691,67 @@ describe('actions/Report', () => {
                 callback: (val) => (updateReport = val),
             });
             expect(updateReport?.description).toBe('<h1>test</h1>');
+            mockFetch.mockReset();
+        });
+    });
+
+    describe('deleteAppReport', () => {
+        it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
+            // Given an expense report with CREATE, TRACK, and PAY of IOU actions
+            const reportID = '1';
+            const firstIOUAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const secondIOUAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            const payAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // When deleting the expense report
+            Report.deleteAppReport(reportID);
+            await waitForBatchedUpdates();
+
+            // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
+            const selfDMReportID = ReportUtils.findSelfDMReportID();
+            const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            // The length is 3 to include the CREATED action
+            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
     });
 });

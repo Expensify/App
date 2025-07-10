@@ -61,6 +61,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
+        textInputStyle,
         textInputHint,
         textInputMaxLength,
         inputMode = CONST.INPUT_MODE.TEXT,
@@ -74,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        footerContentAbovePagination,
         listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
@@ -136,6 +138,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleContainerStyles,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
+        shouldClearInputOnSelect = true,
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
         fixedNumItemsForLoader,
@@ -144,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        canShowProductTrainingTooltip,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -187,6 +191,10 @@ function BaseSelectionList<TItem extends ListItem>(
         [isSelected, selectedItems, canSelectMultiple],
     );
 
+    const canShowProductTrainingTooltipMemo = useMemo(() => {
+        return canShowProductTrainingTooltip && isFocused;
+    }, [canShowProductTrainingTooltip, isFocused]);
+
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -205,6 +213,8 @@ function BaseSelectionList<TItem extends ListItem>(
         // need to account that the list might have some extra content above it
         let offset = customListHeader ? customListHeaderHeight : 0;
         const itemLayouts = [{length: 0, offset}];
+
+        const selectedOptions: TItem[] = [];
 
         sections.forEach((section, sectionIndex) => {
             const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
@@ -234,6 +244,10 @@ function BaseSelectionList<TItem extends ListItem>(
                 const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
+
+                if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
+                    selectedOptions.push(item);
+                }
             });
 
             // We're not rendering any section footer, but we need to push to the array
@@ -245,7 +259,7 @@ function BaseSelectionList<TItem extends ListItem>(
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
 
-        if (selectedItems.length > 1 && !canSelectMultiple) {
+        if (selectedOptions.length > 1 && !canSelectMultiple) {
             Log.alert(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
@@ -254,13 +268,14 @@ function BaseSelectionList<TItem extends ListItem>(
 
         return {
             allOptions,
+            selectedOptions,
             disabledOptionsIndexes,
             disabledArrowKeyOptionsIndexes,
             itemLayouts,
-            allSelected: selectedItems.length > 0 && selectedItems.length === totalSelectable,
-            someSelected: selectedItems.length > 0 && selectedItems.length < totalSelectable,
+            allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
+            someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
-    }, [customListHeader, customListHeaderHeight, sections, selectedItems.length, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -391,8 +406,12 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
+        if (!shouldClearInputOnSelect) {
+            return;
+        }
+
         onChangeText?.('');
-    }, [onChangeText]);
+    }, [onChangeText, shouldClearInputOnSelect]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -604,6 +623,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
+                    canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                 />
             </View>
         );
@@ -634,7 +654,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const renderInput = () => {
         return (
-            <View style={[styles.ph5, styles.pb3]}>
+            <View style={[styles.ph5, styles.pb3, textInputStyle]}>
                 <TextInput
                     onKeyPress={textInputKeyPress}
                     ref={(element) => {
@@ -736,33 +756,36 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
-    const prevSelectedOptionsLength = usePrevious(selectedItems.length);
+    const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
-            (prevTextInputValue === textInputValue && selectedItems.length === prevSelectedOptionsLength) ||
+            (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
             flattenedSections.allOptions.length === 0 ||
-            (selectedItems.length !== prevSelectedOptionsLength && shouldUpdateFocusedIndex)
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && shouldUpdateFocusedIndex)
         ) {
             return;
         }
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
         const newSelectedIndex =
-            (isEmpty(prevTextInputValue) && textInputValue === '') || (selectedItems.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
+            (isEmpty(prevTextInputValue) && textInputValue === '') ||
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
                 ? -1
                 : 0;
 
         // Reset the current page to 1 when the user types something
-        setCurrentPage(1);
+        if (prevTextInputValue !== textInputValue) {
+            setCurrentPage(1);
+        }
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
         canSelectMultiple,
         flattenedSections.allOptions.length,
-        selectedItems.length,
+        flattenedSections.selectedOptions.length,
         prevTextInputValue,
         textInputValue,
         updateAndScrollToFocusedIndex,
@@ -928,7 +951,12 @@ function BaseSelectionList<TItem extends ListItem>(
                             )
                         }
                         scrollEnabled={scrollEnabled}
-                        ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                        ListFooterComponent={
+                            <>
+                                {footerContentAbovePagination}
+                                {listFooterContent ?? ShowMoreButtonInstance}
+                            </>
+                        }
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

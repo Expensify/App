@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -20,6 +20,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
@@ -175,10 +176,14 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         title: prohibitedExpenses,
         descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
         action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+        pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
 
     return (
         <Section
@@ -232,6 +237,21 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
                         </TextLink>
                         .
+                    </Text>
+                </View>
+                <View style={[styles.mt3]}>
+                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
+                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
+                            <Switch
+                                isOn={isAttendeeTrackingEnabled}
+                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
                     </Text>
                 </View>
             </View>

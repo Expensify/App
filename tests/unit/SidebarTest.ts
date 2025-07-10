@@ -17,7 +17,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/components/Icon/Expensicons');
 jest.mock('@src/hooks/useRootNavigationState');
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';
@@ -35,6 +34,7 @@ describe('Sidebar', () => {
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         // Initialize the network key for OfflineWithFeedback
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
     });
