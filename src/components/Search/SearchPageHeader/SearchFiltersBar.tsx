@@ -331,8 +331,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const shouldDisplayGroupByFilter = isDevelopment;
         // s77rt remove DEV lock
         const shouldDisplayFeedFilter = isDevelopment && feedOptions.length > 1;
-        // s77rt remove DEV lock
-        const shouldDisplayPostedFilter = isDevelopment && groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
+        const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
 
         const filterList = [
             {
