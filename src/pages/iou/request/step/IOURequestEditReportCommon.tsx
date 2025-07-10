@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -8,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOutstandingReportsForUser, getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -17,7 +17,7 @@ import type {Report} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -40,7 +40,7 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
-    selectReport: (item: ReportListItem) => void;
+    selectReport: (item: TransactionGroupListItem) => void;
 };
 
 function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
@@ -70,7 +70,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
         [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
     );
 
-    const reportOptions: ReportListItem[] = useMemo(() => {
+    const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }

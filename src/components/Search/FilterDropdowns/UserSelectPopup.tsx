@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -10,9 +9,11 @@ import UserSelectionListItem from '@components/SelectionList/Search/UserSelectio
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -43,13 +44,14 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
+    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
-        return value.reduce<OptionData[]>((acc, accountID) => {
-            const participant = personalDetails?.[accountID];
+        return value.reduce<OptionData[]>((acc, id) => {
+            const participant = personalDetails?.[id];
             if (!participant) {
                 return acc;
             }
@@ -98,17 +100,17 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                     return 1;
                 }
                 // Put the current user at the top of the list
-                if (a.accountID === session?.accountID) {
+                if (a.accountID === accountID) {
                     return -1;
                 }
-                if (b.accountID === session?.accountID) {
+                if (b.accountID === accountID) {
                     return 1;
                 }
                 return 0;
             });
 
         return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -173,7 +175,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             <SelectionList
                 ref={selectionListRef}
                 canSelectMultiple
-                textInputAutoFocus
+                textInputAutoFocus={shouldFocusInputOnScreenFocus}
                 headerMessage={headerMessage}
                 sections={sections}
                 ListItem={UserSelectionListItem}
