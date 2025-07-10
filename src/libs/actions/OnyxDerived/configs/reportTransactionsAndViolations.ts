@@ -57,8 +57,8 @@ export default createOnyxDerivedValueConfig({
             }
 
             const transactionID = transaction.transactionID;
-            const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
             const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
+            const transactionViolations = violations?.[violationKey];
             const previousTransactionViolations = previousViolations?.[violationKey];
 
             const violationInSourceValues = transactionViolationsUpdates?.[violationKey];
