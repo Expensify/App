@@ -1879,14 +1879,12 @@ function pushTransactionViolationsOnyxData(
 
     // Iterate through all reports to find transactions that need optimistic violations
     reports.forEach((report) => {
-        if (!report?.reportID) {
+        // Skipping invoice report because they do not have category or tag violations
+        if (!report?.reportID || isInvoiceReport(report)) {
             return;
         }
 
-        const isInvoice = isInvoiceReport(report);
-        const transactions = getReportTransactions(report.reportID) ?? [];
-
-        transactions.forEach((transaction) => {
+        getReportTransactions(report.reportID).forEach((transaction) => {
             const transactionID = transaction?.transactionID;
             if (!transactionID || processedTransactionIDs.has(transactionID)) {
                 return;
@@ -1903,7 +1901,7 @@ function pushTransactionViolationsOnyxData(
                 optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
-                isInvoice,
+                false,
             );
 
             if (optimisticViolations) {
