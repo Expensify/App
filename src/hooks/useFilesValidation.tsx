@@ -8,7 +8,15 @@ import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {getFileValidationErrorText, isHeicOrHeifImage, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {
+    getFileValidationErrorText,
+    isHeicOrHeifImage,
+    normalizeFileObject,
+    resizeImageIfNeeded,
+    splitExtensionFromFileName,
+    validateAttachment,
+    validateImageForCorruption,
+} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import CONST from '@src/CONST';
 import useLocalize from './useLocalize';
@@ -19,7 +27,7 @@ type ErrorObject = {
     fileExtension?: string;
 };
 
-function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void) {
+function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = true) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -41,9 +49,9 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
         setIsLoaderVisible(false);
+        setValidFilesToUpload([]);
         setIsValidatingMultipleFiles(false);
         setFileError(null);
-        setValidFilesToUpload([]);
         setInvalidFileExtension('');
         setErrorQueue([]);
         setCurrentErrorIndex(0);
@@ -66,19 +74,21 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     };
 
     const isValidFile = (originalFile: FileObject, isCheckingMultipleFiles?: boolean) => {
-        return validateImageForCorruption(originalFile)
-            .then(() => {
-                const error = validateAttachment(originalFile, isCheckingMultipleFiles, true);
-                if (error) {
-                    const errorData = {
-                        error,
-                        fileExtension: error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE ? splitExtensionFromFileName(originalFile.name ?? '').fileExtension : undefined,
-                    };
-                    collectedErrors.current.push(errorData);
-                    return false;
-                }
-                return true;
-            })
+        return normalizeFileObject(originalFile)
+            .then((normalizedFile) =>
+                validateImageForCorruption(normalizedFile).then(() => {
+                    const error = validateAttachment(normalizedFile, isCheckingMultipleFiles, isValidatingReceipts);
+                    if (error) {
+                        const errorData = {
+                            error,
+                            fileExtension: error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE ? splitExtensionFromFileName(normalizedFile.name ?? '').fileExtension : undefined,
+                        };
+                        collectedErrors.current.push(errorData);
+                        return false;
+                    }
+                    return true;
+                }),
+            )
             .catch(() => {
                 collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
                 return false;
@@ -230,8 +240,18 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         }
 
-        proceedWithFilesAction(validFilesToUpload);
-        hideModalAndReset();
+        // If we're validating attachments we need to use InteractionManager to ensure
+        // the error modal is dismissed before opening the attachment modal
+        if (!isValidatingReceipts && fileError) {
+            setIsErrorModalVisible(false);
+            InteractionManager.runAfterInteractions(() => {
+                proceedWithFilesAction(validFilesToUpload);
+                resetValidationState();
+            });
+        } else {
+            proceedWithFilesAction(validFilesToUpload);
+            hideModalAndReset();
+        }
     };
 
     const PDFValidationComponent = pdfFilesToRender.length
@@ -247,7 +267,11 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                   }}
                   onPassword={() => {
                       validatedPDFs.current = [...(validatedPDFs.current ?? []), file];
-                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
+                      if (isValidatingReceipts) {
+                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
+                      } else {
+                          validFiles.current = [...(validFiles.current ?? []), file];
+                      }
                       checkIfAllValidatedAndProceed();
                   }}
                   onLoadError={() => {
