@@ -130,6 +130,7 @@ const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+    WORKSPACE: 'workspace',
 } as const;
 
 const onboardingCompanySize = {
