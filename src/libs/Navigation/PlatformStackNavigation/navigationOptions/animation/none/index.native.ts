@@ -1,8 +1,7 @@
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {InternalPlatformAnimations} from '..';
-import type NoneTransitionNavigationOptions from './types';
 
-const none: NoneTransitionNavigationOptions = {
+const none = {
     animation: InternalPlatformAnimations.NONE,
     gestureEnabled: false,
 } satisfies NativeStackNavigationOptions;
