@@ -34,7 +34,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import openTravelDotLink from '@libs/openTravelDotLink';
+import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
@@ -498,7 +498,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             {
                 icon: Expensicons.Suitcase,
                 text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
             },
         ],
