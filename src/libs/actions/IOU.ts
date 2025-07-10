@@ -147,6 +147,7 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasReportBeenReopened,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -9248,16 +9249,22 @@ function canSubmitReport(
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
-    return (
-        transactions.length > 0 &&
+    const baseCanSubmit =
         isOpenExpenseReport &&
-        isManualSubmitEnabled &&
-        !isReportArchived &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
-        (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
-    );
+        !isReportArchived &&
+        transactions.length > 0;
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
+    const hasBeenReopened = hasReportBeenReopened(reportActions);
+
+    if (baseCanSubmit && hasBeenReopened) {
+        return true;
+    }
+
+    return baseCanSubmit && isManualSubmitEnabled;
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
