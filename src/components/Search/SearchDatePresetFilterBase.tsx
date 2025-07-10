@@ -5,6 +5,8 @@ import MenuItem from '@components/MenuItem';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
@@ -58,7 +60,9 @@ type SearchDatePresetFilterBaseProps = {
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
 function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, shouldShowHorizontalRule = false, ref}: SearchDatePresetFilterBaseProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
@@ -159,7 +163,7 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
             {shouldShowHorizontalRule && (
                 <SpacerView
                     shouldShow
-                    style={[styles.horizontalRule, styles.mh3]}
+                    style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                 />
             )}
             <MenuItem
