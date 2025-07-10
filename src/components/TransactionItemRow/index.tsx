@@ -31,6 +31,7 @@ import {
     isMerchantMissing,
     isScanning,
     isTransactionPendingDelete,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -185,7 +186,8 @@ function TransactionItemRow({
 
     const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
     const missingFieldError = useMemo(() => {
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem);
+        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -197,6 +199,8 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing) {
                 error = translate('iou.missingMerchant');
+            } else if (isCustomUnitOutOfPolicy) {
+                error = translate('violations.customUnitOutOfPolicy');
             }
             return error;
         }
