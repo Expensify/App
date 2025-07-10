@@ -21,7 +21,7 @@
 - Reason: App crashes when the path contains emoji
 - Upstream PR/issue: https://www.github.com/react-navigation/react-navigation/pull/12679
 - E/App issue: [#65709](https://github.com/Expensify/App/issues/65709)
-- PR Introducing Patch: N/A
+- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/65836)
 - PR Updating Patch: N/A
 
 ### [@react-navigation+native-stack+7.3.14+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.3.14+001+added-interaction-manager-integration.patch)
