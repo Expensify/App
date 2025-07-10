@@ -725,7 +725,7 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
         const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
-        return cardFeedsForDisplay[filterValue as OnyxTypes.CompanyCardFeed]?.name ?? filterValue;
+        return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${filterValue}`]?.name ?? filterValue;
