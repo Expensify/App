@@ -1153,8 +1153,7 @@ const translations = {
         automaticallyForwarded: `approvato tramite <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: `approvato`,
         rejectedThisReport: 'ha respinto questo rapporto',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `ha iniziato a saldare. Il pagamento è in sospeso fino a quando ${submitterDisplayName} non aggiunge un conto bancario.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `ha avviato il pagamento, ma è in attesa che ${submitterDisplayName} aggiunga un conto bancario.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} ha annullato il pagamento`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha attivato il loro Expensify Wallet entro 30 giorni`,
@@ -1541,6 +1540,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Aiuto',
+        whatIsNew: 'Novità',
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
@@ -5996,7 +5996,7 @@ const translations = {
         groupBy: 'Gruppo per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
-            emptyStateSubtitle: 'Puoi aggiungere spese a questo rapporto utilizzando il pulsante sopra.',
+            emptyStateSubtitle: 'Puoi aggiungere spese a questo report\n utilizzando il pulsante in basso o l\'opzione "Aggiungi spesa" nel menu Altro sopra.',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
@@ -6273,8 +6273,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
@@ -6349,7 +6350,7 @@ const translations = {
         shipNewCardButton: 'Spedisci nuova carta',
         addressError: 'Indirizzo richiesto',
         successTitle: 'La tua nuova carta è in arrivo!',
-        successDescription: "Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, la tua carta virtuale è pronta all'uso.",
+        successDescription: 'Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, puoi utilizzare una carta virtuale.',
         reasonError: 'Il motivo è obbligatorio',
     },
     eReceipt: {

@@ -602,10 +602,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${
-                participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''
-            }` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean, backTo?: string) =>
+            getUrlWithBackToParam(
+                `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}`,
+                backTo,
+            ),
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?/:backToReport?',
@@ -905,7 +906,7 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/scan/${backToReport ?? ''}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
-        route: ':action/:iouType/start/:transactionID/:reportID/per-diem/:backToReport?',
+        route: 'per-diem/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
