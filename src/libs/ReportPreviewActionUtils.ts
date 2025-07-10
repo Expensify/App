@@ -68,7 +68,7 @@ function canSubmit(
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
-    
+
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
