@@ -186,17 +186,38 @@ function BaseSelectionList<TItem extends ListItem>(
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     const isItemSelected = useCallback(
-        (item: TItem) => {
-            if (item.isSelected !== undefined) {
-                return item.isSelected;
-            }
-            if (isSelected) {
-                return isSelected(item);
-            }
-            return selectedItems.includes(item.keyForList ?? '');
-        },
-        [isSelected, selectedItems],
+        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
+        [isSelected, selectedItems, canSelectMultiple],
     );
+
+    // Calculate initial page count so selected item is loaded
+    const initialPageCount = useMemo(() => {
+        if (canSelectMultiple || sections.length === 0) {
+            return 1;
+        }
+
+        let currentIndex = 0;
+        for (const section of sections) {
+            if (section.data) {
+                for (const item of section.data) {
+                    if (isItemSelected(item)) {
+                        return Math.floor(currentIndex / CONST.MAX_SELECTION_LIST_PAGE_LENGTH) + 1;
+                    }
+                    currentIndex++;
+                }
+            }
+        }
+
+        return 1;
+    }, [sections, canSelectMultiple, isItemSelected]);
+
+    useEffect(() => {
+        if (initialPageCount < 1) {
+            return;
+        }
+
+        setCurrentPage(initialPageCount);
+    }, [initialPageCount]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
@@ -225,20 +246,12 @@ function BaseSelectionList<TItem extends ListItem>(
             offset += sectionHeaderHeight;
 
             section.data?.forEach((item, optionIndex) => {
-                // Add item to the general flattened array. Selected items should be in front of the array.
-                if (isItemSelected(item) && !canSelectMultiple) {
-                    allOptions.unshift({
-                        ...item,
-                        sectionIndex,
-                        index: 0,
-                    });
-                } else {
-                    allOptions.push({
-                        ...item,
-                        sectionIndex,
-                        index: optionIndex,
-                    });
-                }
+                // Add item to the general flattened array
+                allOptions.push({
+                    ...item,
+                    sectionIndex,
+                    index: optionIndex,
+                });
 
                 // If disabled, add to the disabled indexes array
                 const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
@@ -292,34 +305,12 @@ function BaseSelectionList<TItem extends ListItem>(
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
-                if (isEmpty(section.data) || remainingOptionsLimit <= 0) {
-                    return {
-                        ...section,
-                        data: [],
-                    };
-                }
-
-                let sectionData = section.data;
-                if (!canSelectMultiple) {
-                    const sectionSelectedItems: TItem[] = [];
-                    const sectionUnselectedItems: TItem[] = [];
-                    section.data.forEach((item) => {
-                        if (isItemSelected(item)) {
-                            sectionSelectedItems.push(item);
-                        } else {
-                            sectionUnselectedItems.push(item);
-                        }
-                    });
-
-                    sectionData = [...sectionSelectedItems, ...sectionUnselectedItems];
-                }
-
-                const slicedData = sectionData.slice(0, remainingOptionsLimit);
-                remainingOptionsLimit -= slicedData.length;
+                const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
+                remainingOptionsLimit -= data.length;
 
                 return {
                     ...section,
-                    data: slicedData,
+                    data,
                 };
             }),
         );
