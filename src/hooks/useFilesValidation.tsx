@@ -297,7 +297,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             );
         }
         return prompt;
-    }, [fileError, invalidFileExtension, translate]);
+    }, [fileError, invalidFileExtension, isValidatingReceipts, translate]);
 
     const ErrorModal = (
         <ConfirmModal
