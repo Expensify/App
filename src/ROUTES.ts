@@ -1886,8 +1886,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/billable` as const,
     },
     RULES_REIMBURSABLE_DEFAULT: {
-        route: 'settings/workspaces/:policyID/rules/reimbursable',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/reimbursable` as const,
+        route: 'workspaces/:policyID/rules/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/reimbursable` as const,
     },
     RULES_PROHIBITED_DEFAULT: {
         route: 'workspaces/:policyID/rules/prohibited',
