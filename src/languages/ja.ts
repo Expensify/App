@@ -1156,7 +1156,7 @@ const translations = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認済み`,
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを拒否しました',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `精算を開始しました。${submitterDisplayName} が銀行口座を追加するまで、支払いは保留されます。`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}が支払いをキャンセルしました`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
@@ -1540,6 +1540,7 @@ const translations = {
             phrase4: 'プライバシー',
         },
         help: '助けて',
+        whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
@@ -5913,6 +5914,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最後の声明',
                 },
             },
             status: 'ステータス',
@@ -5956,7 +5958,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、\n 下のボタンを使用するか、上の「その他」メニューから「経費を追加」を選択してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',

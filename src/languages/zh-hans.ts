@@ -1144,7 +1144,7 @@ const translations = {
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         forwarded: `批准`,
         rejectedThisReport: '拒绝了此报告',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `开始结算。在${submitterDisplayName}添加银行账户之前，付款将被搁置。`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}取消了付款`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `取消了${amount}付款，因为${submitterDisplayName}在30天内未启用他们的Expensify Wallet。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
@@ -1525,6 +1525,7 @@ const translations = {
             phrase4: '隐私',
         },
         help: '帮助',
+        whatIsNew: '新内容',
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
@@ -5839,6 +5840,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从未',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最后发言',
                 },
             },
             status: '状态',
@@ -5882,7 +5884,7 @@ const translations = {
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用上面的按钮将费用添加到此报告中。',
+            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
         },
         noCategory: '无类别',
         noTag: '无标签',
@@ -6227,7 +6229,7 @@ const translations = {
         addressError: '地址是必需的',
         reasonError: '原因是必需的',
         successTitle: '您的卡片正在路上！',
-        successDescription: '几天后到达时，您需要激活它。在此期间，您的虚拟卡已准备好使用。',
+        successDescription: '几天后到达时，您需要激活它。在此期间，您可以使用虚拟卡。',
     },
     eReceipt: {
         guaranteed: '保证电子收据',
