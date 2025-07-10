@@ -168,8 +168,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                 style={{marginTop: viewportOffsetTop}}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.inviteMessage.confirmDetails')}
-                    subtitle={policyName}
+                    title={isFromApprovalWorkflow ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails')}
+                    subtitle={isFromApprovalWorkflow ? undefined : policyName}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
@@ -197,6 +197,11 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                         </PressableWithoutFeedback>
                     }
                 >
+                    {!!isFromApprovalWorkflow && (
+                        <View style={[styles.mb4]}>
+                            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('workspace.invite.invitePeople')}</Text>
+                        </View>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <MultipleAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
