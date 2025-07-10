@@ -54,6 +54,8 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
   ACTION_NAME=$(basename "$ACTION" .ts)
 
+   OUTPUT_FILE="$ACTION_DIR/index.js"
+  echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
   if ! wait "${ASYNC_BUILDS[$i]}"; then
     echo "❌ $ACTION_NAME failed to build: $ACTION_DIR/index.js"
   fi
