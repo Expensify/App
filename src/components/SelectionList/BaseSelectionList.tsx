@@ -147,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        canShowProductTrainingTooltip,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -189,6 +190,10 @@ function BaseSelectionList<TItem extends ListItem>(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
+
+    const canShowProductTrainingTooltipMemo = useMemo(() => {
+        return canShowProductTrainingTooltip && isFocused;
+    }, [canShowProductTrainingTooltip, isFocused]);
 
     // Calculate initial page count so selected item is loaded
     const initialPageCount = useMemo(() => {
@@ -647,6 +652,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
+                    canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                 />
             </View>
         );
@@ -800,9 +806,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 : 0;
 
         // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
+        setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
