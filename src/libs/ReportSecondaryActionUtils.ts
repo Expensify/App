@@ -224,11 +224,7 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === getCurrentUserAccountID();
 
-    if (isReportSettled || isPaymentProcessing) {
-        return false;
-    }
-
-    if (!isExpenseReport || !isReportApproved) {
+    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
         return false;
     }
 
