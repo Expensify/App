@@ -99,7 +99,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject) => void;
+    displayFilesInModal: (file: FileObject[]) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -214,7 +214,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        displayFileInModal,
+        displayFilesInModal,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -783,12 +783,6 @@ function ComposerWithSuggestions(
         [setIsFullComposerAvailable, containerComposeStyles],
     );
 
-    const handleFocus = useCallback(() => {
-        // The last composer that had focus should re-gain focus
-        setUpComposeFocusManager(true);
-        onFocus();
-    }, [onFocus, setUpComposeFocusManager]);
-
     return (
         <>
             <View
@@ -809,12 +803,16 @@ function ComposerWithSuggestions(
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
-                    onFocus={handleFocus}
+                    onFocus={() => {
+                        // The last composer that had focus should re-gain focus
+                        setUpComposeFocusManager(true);
+                        onFocus();
+                    }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        displayFileInModal(file);
+                        displayFilesInModal([file]);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
