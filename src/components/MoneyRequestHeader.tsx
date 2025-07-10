@@ -176,7 +176,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
         [theme.icon],
     );
 
-    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = useCallback(() => {
+    const statusBarProps: MoneyRequestHeaderStatusBarProps | undefined = useMemo(() => {
         if (isOnHold) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
         }
@@ -207,8 +207,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     }, [isOnHold, isDuplicate, transaction, shouldShowBrokenConnectionViolation, parentReport, policy, hasPendingRTERViolation, translate, getStatusIcon]);
-
-    const statusBarProps = useMemo(() => getStatusBarProps(), [getStatusBarProps]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

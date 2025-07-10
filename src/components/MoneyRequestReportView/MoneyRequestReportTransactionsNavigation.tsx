@@ -13,6 +13,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
 
+    /** The ID of the parent report that contains the transaction threads */
     parentReportID?: string;
 
     /** The route to navigate back to when the user clicks on the back button */
