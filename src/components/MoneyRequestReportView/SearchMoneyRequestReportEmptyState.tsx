@@ -17,55 +17,50 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
-const MIN_MODAL_HEIGHT = 380;
+const minModalHeight = 380;
 
 function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: string; policy?: Policy}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportId}`, {canBeMissing: true});
     const isChatReportArchived = useReportIsArchived(reportId);
-    const canAddExpense = !!(report && isAddExpenseAction(report, [], isChatReportArchived));
+    const shouldShowAddExpense = report && isAddExpenseAction(report, [], isChatReportArchived);
 
-    const handleCreateNewExpense = () => {
-        if (!reportId) {
-            return;
-        }
-
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
-        }
-        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
-    };
-
-    const handleAddUnreportedExpense = () => {
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
-        }
-
-        openUnreportedExpense(reportId);
-    };
-
-    const addExpenseOptions = [
+    const addExpenseDropdownOptions = [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             text: translate('iou.createNewExpense'),
             icon: Expensicons.Plus,
-            onSelected: handleCreateNewExpense,
+            onSelected: () => {
+                if (!reportId) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+            },
         },
+
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
             text: translate('iou.addUnreportedExpense'),
             icon: Expensicons.ReceiptPlus,
-            onSelected: handleAddUnreportedExpense,
+            onSelected: () => {
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                openUnreportedExpense(reportId);
+            },
         },
     ];
 
-    const buttonText = canAddExpense ? translate('iou.addExpense') : translate('iou.addUnreportedExpense');
-    const buttonAction = canAddExpense ? handleCreateNewExpense : handleAddUnreportedExpense;
-    const dropDownOptions = canAddExpense ? addExpenseOptions : undefined;
-
+    const buttons = shouldShowAddExpense
+        ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
+        : undefined;
+    const subtitle = shouldShowAddExpense ? translate('search.moneyRequestReport.emptyStateSubtitle') : undefined;
     return (
         <View style={styles.flex1}>
             <EmptyStateComponent
@@ -74,25 +69,17 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                 headerMedia={LottieAnimations.GenericEmptyState}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
+                subtitle={subtitle}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                 headerContentStyles={styles.emptyStateFolderWebStyles}
-                minModalHeight={MIN_MODAL_HEIGHT}
-                buttons={[
-                    {
-                        buttonText,
-                        buttonAction,
-                        success: true,
-                        isDisabled: false,
-                        dropDownOptions,
-                        icon: canAddExpense ? undefined : Expensicons.ReceiptPlus,
-                    },
-                ]}
+                minModalHeight={minModalHeight}
+                buttons={buttons}
             />
         </View>
     );
 }
 
 SearchMoneyRequestReportEmptyState.displayName = 'SearchMoneyRequestReportEmptyState';
+
 export default SearchMoneyRequestReportEmptyState;
