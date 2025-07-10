@@ -448,10 +448,13 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
- * Converts a colon-delimited tag string to a comma-separated one, trimming leading/trailing colons.
+ * Normalizes a tag string by unescaping colons, trimming leading/trailing colons, and converting internal colons to comma-separated format.
  */
 function getCommaSeparatedTagNameWithSanitizedColons(tag: string) {
-    return tag?.replace(/^:+|:+$/g, '').replace(/:+/g, ', ');
+    return tag
+        ?.replace(/\\:/g, CONST.COLON) // Unescape any "\:" into actual colon
+        .replace(/^:+|:+$/g, '') // Remove leading and trailing colons
+        .replace(/:+/g, ', '); // Replace inner colons with comma+space
 }
 
 /**

@@ -534,6 +534,7 @@ const ViolationsUtils = {
         translate: LocaleContextProps['translate'],
         missingFieldError?: string,
         transactionThreadActions?: ReportAction[],
+        tags?: PolicyTagLists,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
 
@@ -543,7 +544,7 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...transactionViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags);
                 if (!message) {
                     return;
                 }
