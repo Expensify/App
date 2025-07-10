@@ -3429,6 +3429,10 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
+                            if(isAuthenticated) {
+                                return;
+                            }
+
                             // Check if the report exists in the collection
                             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
