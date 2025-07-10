@@ -47,7 +47,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
     const deduplicateErrors = useCallback((errors: ErrorObject[]) => {
         const uniqueErrors = new Set<string>();
-        return errors.filter(error => {
+        return errors.filter((error) => {
             const key = `${error.error}-${error.fileExtension ?? ''}`;
             if (uniqueErrors.has(key)) {
                 return false;
