@@ -195,6 +195,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return true;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
