@@ -4,9 +4,10 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import GitHubUtils from '@github/libs/GithubUtils';
 import dedent from '@libs/StringUtils/dedent';
-import generateTranslations, {GENERATED_FILE_PREFIX} from '../../scripts/generateTranslations';
-import Translator from '../../scripts/utils/Translator/Translator';
+import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import Translator from '@scripts/utils/Translator/Translator';
 
 jest.mock('openai');
 
@@ -29,7 +30,7 @@ describe('generateTranslations', () => {
         process.env.LANGUAGES_DIR = LANGUAGES_DIR;
 
         // Set dry-run flag for tests
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it'];
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it'];
     });
 
     afterEach(() => {
@@ -446,5 +447,118 @@ describe('generateTranslations', () => {
                 export default strings;
             `)}`,
         );
+    });
+
+    it('reuses existing translations from --compare-ref', async () => {
+        // Step 1: simulate an old version with initial translations
+        const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-old-'));
+        const oldItPath = path.join(oldDir, 'src/languages/it.ts');
+        const oldEnPath = path.join(oldDir, 'src/languages/en.ts');
+        fs.mkdirSync(path.dirname(oldItPath), {recursive: true});
+
+        fs.writeFileSync(
+            oldEnPath,
+            dedent(`
+            const strings = {
+                greeting: 'Hello',
+                unchanged: 'Unchanged',
+                func: (name: string) => \`Hello \${name}\`,
+                noSubstitutionTemplate: \`Salutations\`,
+                complexFunc: (numScanning: number, numPending: number) => {
+                    const statusText: string[] = [];
+                    if (numScanning > 0) {
+                        statusText.push(\`\${numScanning} scanning\`);
+                    }
+                    if (numPending > 0) {
+                        statusText.push(\`\${numPending} pending\`);
+                    }
+                    return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                },
+                extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
+            };
+            export default strings;
+        `),
+            'utf8',
+        );
+        fs.writeFileSync(
+            oldItPath,
+            dedent(`
+            import type en from './en';
+            const strings = {
+                greeting: '[it] Hello',
+                unchanged: '[it] Unchanged',
+                func: (name: string) => \`[it] Hello \${name}\`,
+                noSubstitutionTemplate: \`[it] Salutations\`,
+                complexFunc: (numScanning: number, numPending: number) => {
+                    const statusText: string[] = [];
+                    if (numScanning > 0) {
+                        statusText.push(\`[it] \${numScanning} scanning\`);
+                    }
+                    if (numPending > 0) {
+                        statusText.push(\`[it] \${numPending} pending\`);
+                    }
+                    return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
+                },
+                extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
+            };
+            export default strings;
+        `),
+            'utf8',
+        );
+
+        // Step 2: patch GitHubUtils.getFileContents to load from disk
+        jest.spyOn(GitHubUtils, 'getFileContents').mockImplementation((filePath: string) => {
+            if (filePath.endsWith('en.ts')) {
+                return Promise.resolve(fs.readFileSync(oldEnPath, 'utf8'));
+            }
+            if (filePath.endsWith('it.ts')) {
+                return Promise.resolve(fs.readFileSync(oldItPath, 'utf8'));
+            }
+            throw new Error(`Unexpected filePath: ${filePath}`);
+        });
+
+        // Step 3: create new source with one changed and one unchanged string
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+            const strings = {
+                greeting: 'Hello',
+                unchanged: 'Unchanged',
+                func: (name: string) => \`Hello \${name}\`,
+                noSubstitutionTemplate: \`Salutations\`,
+                complexFunc: (numScanning: number, numPending: number) => {
+                    const statusText: string[] = [];
+                    if (numScanning > 0) {
+                        statusText.push(\`\${numScanning} scanning\`);
+                    }
+                    if (numPending > 0) {
+                        statusText.push(\`\${numPending} pending\`);
+                    }
+                    return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                },
+                extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
+                newKey: 'New value!',
+            };
+            export default strings;
+        `),
+            'utf8',
+        );
+
+        process.argv.push('--compare-ref=ref-does-not-matter-due-to-mock');
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        expect(itContent).toContain('[it] Hello');
+        expect(itContent).toContain('[it] Unchanged');
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(itContent).toContain('[it] Hello ${name}');
+        expect(itContent).toContain('[it] Salutations');
+        expect(itContent).toContain('[it] New value!');
+        expect(translateSpy).toHaveBeenCalledTimes(1);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
+
+        fs.rmSync(oldDir, {recursive: true});
     });
 });

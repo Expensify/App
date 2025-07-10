@@ -6,6 +6,7 @@ import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import GestureHandler from './GestureHandler';
 
 function Container({
     style,
@@ -16,6 +17,9 @@ function Container({
     animationIn,
     animationOut,
     type,
+    onSwipeComplete,
+    swipeDirection,
+    swipeThreshold = 100,
     ...props
 }: Partial<ReanimatedModalProps> & ContainerProps) {
     const styles = useThemeStyles();
@@ -46,13 +50,19 @@ function Container({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <Animated.View
-                style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && styles.flex1]}
-                entering={Entering}
-                exiting={Exiting}
+            <GestureHandler
+                swipeThreshold={swipeThreshold}
+                swipeDirection={swipeDirection}
+                onSwipeComplete={onSwipeComplete}
             >
-                {props.children}
-            </Animated.View>
+                <Animated.View
+                    style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && styles.flex1]}
+                    entering={Entering}
+                    exiting={Exiting}
+                >
+                    {props.children}
+                </Animated.View>
+            </GestureHandler>
         </View>
     );
 }

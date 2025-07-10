@@ -38,6 +38,9 @@ function ReanimatedModal({
     style,
     type,
     statusBarTranslucent = false,
+    onSwipeComplete,
+    swipeDirection,
+    swipeThreshold,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -149,6 +152,8 @@ function ReanimatedModal({
             animationOut={animationOut as AnimationOutType}
             style={style}
             type={type}
+            onSwipeComplete={onSwipeComplete}
+            swipeDirection={swipeDirection}
         >
             {children}
         </Container>
