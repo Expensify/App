@@ -5953,6 +5953,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultima dichiarazione',
                 },
             },
             status: 'Stato',

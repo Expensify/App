@@ -5942,7 +5942,8 @@ const translations = {
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'No mês passado',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Último mês',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Última declaração',
                 },
             },
             status: 'Status',
