@@ -7,4 +7,4 @@ function isEmptyObject<T>(obj: T | EmptyValue): obj is EmptyValue {
 }
 
 export {isEmptyObject};
-export type {EmptyObject}; 
+export type {EmptyObject};
