@@ -158,6 +158,7 @@ function ShareRootPage() {
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        lazyLoadEnabled
                         onTabSelect={onTabSelectFocusHandler}
                     >
                         <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab ref={shareTabInputRef} />}</TopTab.Screen>
