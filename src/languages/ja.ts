@@ -5914,6 +5914,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最後の声明',
                 },
             },
             status: 'ステータス',
@@ -5957,7 +5958,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、\n 下のボタンを使用するか、上の「その他」メニューから「経費を追加」を選択してください。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
@@ -6234,8 +6235,7 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '経費の提出に招待する',
-        inviteToChat: 'チャットのみ招待',
+        invite: '招待する',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {

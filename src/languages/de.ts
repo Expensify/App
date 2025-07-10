@@ -5940,6 +5940,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Niemals',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzte Erklärung',
                 },
             },
             status: 'Status',
@@ -5983,8 +5984,7 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle:
-                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
+            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
@@ -6261,8 +6261,7 @@ const translations = {
         levelThreeResult: 'Nachricht aus dem Kanal entfernt, anonyme Warnung gesendet und Nachricht zur Überprüfung gemeldet.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Zum Einreichen von Ausgaben einladen',
-        inviteToChat: 'Nur zum Chatten einladen',
+        invite: 'Lade sie ein',
         nothing: 'Nichts tun',
     },
     actionableMentionJoinWorkspaceOptions: {
