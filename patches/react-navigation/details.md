@@ -1,12 +1,13 @@
 # `@react-navigation` patches
 
-### [@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
-### [@react-navigation+elements+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
-### [@react-navigation+material-top-tabs+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
-### [@react-navigation+native-stack+7.10.0+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.10.0+002+fix-failing-jest-by-disabling-esmodule.patch)
-### [@react-navigation+native+7.10.0+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.10.0+002+fix-failing-jest-by-disabling-esmodule.patch)
-### [@react-navigation+routers+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
-### [@react-navigation+stack+7.10.0+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.10.0+004+fix-failing-jest-by-disabling-esmodule.patch)
+### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
+#### [@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.4.3+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.4.3+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+material-top-tabs+7.2.13+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.2.13+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native-stack+7.3.14+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.3.14+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native+7.1.10+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.10+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+routers+7.4.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.4.0+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+stack+7.3.3+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.3.3+004+fix-failing-jest-by-disabling-esmodule.patch)
 
 - Reason: Necessary to run Jest with the obligatory `--experimental-vm-modules` flag. Currently we transpile all the code to `commonjs`, but Jest looks up to individual `package.jsons` to see whether the package is `commonjs` or `ESModule`. That causes a conflict, which can be solved by removing `{"type":"module"}` from `lib/module/package.json`. This might be an issue with Jest, but it would require much more investigation. More: https://github.com/react-navigation/react-navigation/issues/12637
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/12637
