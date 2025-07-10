@@ -1608,6 +1608,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID
+        prevProps.userBillingFundID === nextProps.userBillingFundID &&
+        deepEqual(prevProps.taskReport, nextProps.taskReport)
     );
 });
