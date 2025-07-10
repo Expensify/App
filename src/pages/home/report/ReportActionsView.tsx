@@ -67,6 +67,10 @@ type ReportActionsViewProps = {
     onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
 
     scrollingVerticalOffset: SharedValue<number>;
+
+    keyboardInset: SharedValue<number>;
+
+    keyboardOffset: SharedValue<number>;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -81,6 +85,8 @@ function ReportActionsView({
     hasOlderActions,
     onScroll,
     scrollingVerticalOffset,
+    keyboardInset,
+    keyboardOffset,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -316,6 +322,8 @@ function ReportActionsView({
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 onScroll={onScroll}
                 scrollingVerticalOffset={scrollingVerticalOffset}
+                keyboardInset={keyboardInset}
+                keyboardOffset={keyboardOffset}
             />
             <UserTypingEventListener report={report} />
         </>

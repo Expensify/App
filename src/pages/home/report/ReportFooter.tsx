@@ -3,6 +3,8 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -77,6 +79,8 @@ type ReportFooterProps = {
     onComposerBlur?: () => void;
 
     nativeID?: string;
+
+    keyboardHeight: SharedValue<number>;
 };
 
 function ReportFooter({
@@ -92,6 +96,7 @@ function ReportFooter({
     reportTransactions,
     transactionThreadReportID,
     nativeID,
+    keyboardHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -200,6 +205,16 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
+    const animatedStyle = useAnimatedStyle(
+        () => ({
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            transform: [{translateY: -keyboardHeight.value}],
+        }),
+        [],
+    );
+
     return (
         <>
             {!!shouldHideComposer && (
@@ -233,7 +248,7 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                <Animated.View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose, animatedStyle]}>
                     <ReportActionCompose
                         onSubmit={onSubmitComment}
                         onComposerFocus={onComposerFocus}
@@ -248,7 +263,7 @@ function ReportFooter({
                         reportTransactions={reportTransactions}
                         nativeID={nativeID}
                     />
-                </View>
+                </Animated.View>
             )}
         </>
     );
