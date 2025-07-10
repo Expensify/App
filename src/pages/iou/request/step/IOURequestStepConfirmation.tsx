@@ -299,10 +299,11 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
+        // if (backTo) {
+        //     console.log('here');
+        //     Navigation.goBack(backTo);
+        //     return;
+        // }
 
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
