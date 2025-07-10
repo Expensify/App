@@ -924,8 +924,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Eine Tabelle hochladen',
+        import: 'Tabellenkalkulation importieren',
         dragAndDrop: 'Ziehen Sie Ihre Tabelle hierher oder wählen Sie unten eine Datei aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Ziehen Sie Ihre Tabelle hierher oder wählen Sie unten eine Datei aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         chooseSpreadsheet: 'Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         fileContainsHeader: 'Datei enthält Spaltenüberschriften',
         column: ({name}: SpreadSheetColumnParams) => `Spalte ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ups! Ein erforderliches Feld ("${fieldName}") wurde nicht zugeordnet. Bitte überprüfen und erneut versuchen.`,

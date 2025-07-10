@@ -922,8 +922,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Upload een spreadsheet',
+        import: 'Spreadsheet importeren',
         dragAndDrop: 'Sleep uw spreadsheet hierheen, of kies een bestand hieronder. Ondersteunde formaten: .csv, .txt, .xls, en .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Sleep uw spreadsheet hierheen, of kies een bestand hieronder. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Lees meer</a> over ondersteunde bestandsformaten.</muted-link>`,
         chooseSpreadsheet: 'Selecteer een spreadsheetbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls, en .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Selecteer een spreadsheetbestand om te importeren. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Lees meer</a> over ondersteunde bestandsformaten.</muted-link>`,
         fileContainsHeader: 'Bestand bevat kolomkoppen',
         column: ({name}: SpreadSheetColumnParams) => `Kolom ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oeps! Een verplicht veld ("${fieldName}") is niet toegewezen. Controleer het en probeer het opnieuw.`,
