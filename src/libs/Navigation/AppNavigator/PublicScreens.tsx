@@ -2,7 +2,7 @@ import React from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
@@ -77,18 +77,8 @@ function PublicScreens() {
                 name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
                 options={{
                     ...rootNavigatorScreenOptions.basicModalNavigator,
-                    native: {
-                        contentStyle: {
-                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
-                        },
-                        animation: InternalPlatformAnimations.FADE,
-                    },
-                    web: {
-                        cardStyle: {
-                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
-                        },
-                        animation: InternalPlatformAnimations.FADE,
-                    },
+                    animation: Animations.FADE,
+                    contentStyle: StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                 }}
                 component={TestToolsModalNavigator}
             />

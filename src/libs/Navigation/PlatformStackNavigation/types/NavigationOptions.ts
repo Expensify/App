@@ -1,5 +1,6 @@
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationOptions} from '@react-navigation/stack';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type CommonProperties from '@src/types/utils/CommonProperties';
@@ -15,9 +16,9 @@ type GeneralPlatformStackNavigationOptions = {
     web?: WebOnlyNavigationOptions;
     native?: NativeOnlyNavigationOptions;
 
-    keyboardHandlingEnabled?: boolean;
     animation?: (typeof Animations)[keyof typeof Animations];
     presentation?: (typeof Presentation)[keyof typeof Presentation];
+    contentStyle?: StyleProp<ViewStyle>;
 };
 
 // Combines common and general platform-specific options for PlatformStackNavigation.
