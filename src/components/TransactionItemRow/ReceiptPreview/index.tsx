@@ -6,6 +6,7 @@ import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import EReceipt from '@components/EReceipt';
 import BaseImage from '@components/Image/BaseImage';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -18,6 +19,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
     const styles = useThemeStyles();
     const [scaleFactor, setScaleFactor] = useState(0);
     const [aspectRatio, setAspectRatio] = useState<string | number | undefined>(undefined);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
@@ -62,7 +64,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
         };
     }, [hovered]);
 
-    if (!shouldShow || (!source && !isEReceipt)) {
+    if (shouldUseNarrowLayout || !shouldShow || (!source && !isEReceipt)) {
         return null;
     }
 
@@ -86,7 +88,6 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
                     onLayout={onLayout}
                     style={[
                         styles.w100,
-                        styles.dFlex,
                         styles.flexColumn,
                         styles.alignItemsCenter,
                         styles.justifyContentCenter,

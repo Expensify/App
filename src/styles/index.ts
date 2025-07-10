@@ -5934,7 +5934,7 @@ const styles = (theme: ThemeColors) =>
             left: 60,
             top: 60,
             width: 380,
-            maxHeight: 620,
+            maxHeight: 'calc(100vh - 120px)',
             borderRadius: variables.componentBorderRadiusLarge,
             borderWidth: 1,
             borderColor: theme.border,
