@@ -30,9 +30,11 @@ type FormHelpMessageProps = {
     shouldRenderMessageAsHTML?: boolean;
 
     /** Whether to show information icon */
+    // cspell:disable-next-line
     isInfor?: boolean;
 };
 
+// cspell:disable-next-line
 function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false, isInfor = false}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -63,6 +65,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                     fill={theme.danger}
                 />
             )}
+            {/* cspell:disable-next-line */}
             {isInfor && (
                 <Icon
                     src={Expensicons.Exclamation}

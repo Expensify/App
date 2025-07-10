@@ -157,6 +157,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError={!!errorMessage}
+                        // cspell:disable-next-line
                         isInfor={!errorMessage && shouldShowWarningMessage}
                         message={(errorMessage ?? '') || warningMessage}
                     />
