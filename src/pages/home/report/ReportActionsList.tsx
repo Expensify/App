@@ -4,6 +4,7 @@ import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMem
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useAnimatedProps} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -115,6 +116,10 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    keyboardInset: SharedValue<number>;
+
+    keyboardOffset: SharedValue<number>;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -154,6 +159,8 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     scrollingVerticalOffset,
+    keyboardInset,
+    keyboardOffset,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -763,6 +770,16 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
+    const animatedProps = useAnimatedProps(() => ({
+        contentInset: {
+            top: keyboardInset.get(),
+        },
+        contentOffset: {
+            x: 0,
+            y: -keyboardOffset.get(),
+        },
+    }));
+
     return (
         <>
             <FloatingMessageCounter
@@ -771,7 +788,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, {paddingBottom: CONST.CHAT_FOOTER_MIN_HEIGHT + 16}]}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
@@ -781,8 +798,16 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={(props) => renderScrollComponent?.({...props, onScroll})}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    renderScrollComponent={(props) =>
+                        renderScrollComponent?.({
+                            ...props,
+                            onScroll,
+                            animatedProps,
+                            automaticallyAdjustContentInsets: false,
+                            contentInsetAdjustmentBehavior: 'never',
+                        })
+                    }
+                    contentContainerStyle={[styles.chatContentScrollView]}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
