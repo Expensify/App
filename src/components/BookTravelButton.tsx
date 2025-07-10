@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +19,6 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
 import Text from './Text';
@@ -59,7 +58,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
@@ -67,9 +65,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
-    // Flag indicating whether NewDot was launched exclusively for Travel,
-    // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
