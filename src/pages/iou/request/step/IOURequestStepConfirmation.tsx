@@ -1134,7 +1134,7 @@ function IOURequestStepConfirmation({
                     onConfirm={removeCurrentTransaction}
                     onCancel={() => setRemoveConfirmModalVisible(false)}
                     prompt={translate('iou.removeExpenseConfirmation')}
-                    confirmText={translate('common.delete')}
+                    confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     danger
                 />
