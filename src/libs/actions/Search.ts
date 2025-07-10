@@ -74,10 +74,14 @@ function handleActionButtonPress(
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
+            if (!item) {
+                return;
+            }
+
             const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as Policy;
             const connectedIntegration = getValidConnectedIntegration(policy);
 
-            if (!connectedIntegration || !item) {
+            if (!connectedIntegration) {
                 return;
             }
 

@@ -23,7 +23,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -166,6 +166,20 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
+    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        canEvict: false,
+        canBeMissing: true,
+        selector: (allReportActions) => {
+            return Object.fromEntries(
+                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
+                    return [reportID, filteredReportActions];
+                }),
+            );
+        },
+    });
+
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
         () =>
@@ -254,8 +268,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, reportActions, currentSearchKey);
-    }, [currentSearchKey, groupBy, isDataLoaded, reportActions, searchResults, type]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearchKey);
+    }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
