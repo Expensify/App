@@ -16,6 +16,11 @@ function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (
     useEffect(() => {
         startTransition(() => {
             const normalizedSearchQuery = inputValue.trim().toLowerCase();
+
+            // Create shallow copy of data to prevent mutation. When no search query exists, we pass the full dataset
+            // to sortData. If sortData uses Array.sort() (which sorts in place and returns the same reference),
+            // the original data array would be mutated. This breaks React's reference equality check in setResult,
+            // preventing re-renders even when the sort order changes (e.g., on page refresh).
             const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : [...data];
             const sorted = sortData(filtered);
             setResult(sorted);
