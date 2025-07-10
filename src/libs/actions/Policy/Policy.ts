@@ -5450,8 +5450,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string) {
     }> = [];
 
     features.forEach((feature) => {
-        // If the feature is not enabled by default and it's programmaticaly enabled, we need to enable it
-        if (!feature.enabledByDefault && feature.programmaticalyEnabled) {
+        // If the feature is not enabled by default and it's programmatically enabled, we need to enable it
+        if (!feature.enabledByDefault && feature.programmaticallyEnabled) {
             if (feature.requiresUpdate && !shouldUpgradeToCorporate) {
                 shouldUpgradeToCorporate = true;
             }
@@ -5463,8 +5463,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string) {
                 },
             });
         }
-        // If the feature is enabled by default and it's programmaticaly disabled, we need to disable it
-        if (feature.enabledByDefault && !feature.programmaticalyEnabled) {
+        // If the feature is enabled by default and it's programmatically disabled, we need to disable it
+        if (feature.enabledByDefault && !feature.programmaticallyEnabled) {
             requests.push({
                 endpoint: feature.apiEndpoint,
                 parameters: {

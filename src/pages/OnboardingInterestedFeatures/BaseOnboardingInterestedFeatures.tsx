@@ -173,13 +173,15 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, userReportedIntegration)
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-        updateInterestedFeatures(
-            features.map((feature) => ({
-                ...feature,
-                programmaticalyEnabled: selectedFeatures.includes(feature.id),
-            })),
-            policyID ?? '',
-        );
+        if (policyID) {
+            updateInterestedFeatures(
+                features.map((feature) => ({
+                    ...feature,
+                    programmaticallyEnabled: selectedFeatures.includes(feature.id),
+                })),
+                policyID,
+            );
+        }
 
         if (shouldCreateWorkspace) {
             setOnboardingAdminsChatReportID(adminsChatReportID);

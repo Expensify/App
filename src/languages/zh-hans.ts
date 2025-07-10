@@ -2163,6 +2163,11 @@ const translations = {
             title: '您是否使用任何会计软件？',
             none: 'None',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: '请输入您的名字以继续',
         },

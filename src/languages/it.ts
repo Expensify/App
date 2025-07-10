@@ -2186,6 +2186,11 @@ const translations = {
             title: 'Usi qualche software di contabilità?',
             none: 'Nessuno',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
         },

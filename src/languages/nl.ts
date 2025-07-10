@@ -2187,6 +2187,11 @@ const translations = {
             title: 'Gebruikt u een boekhoudsoftware?',
             none: 'Geen',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: 'Voer alstublieft uw voornaam in om door te gaan',
         },

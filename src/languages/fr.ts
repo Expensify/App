@@ -2199,6 +2199,11 @@ const translations = {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
             none: 'Aucun',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',
         },

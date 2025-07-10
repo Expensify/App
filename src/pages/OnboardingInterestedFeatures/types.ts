@@ -19,7 +19,7 @@ type Feature = {
     enabledByDefault?: boolean;
     apiEndpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
     requiresUpdate?: boolean;
-    programmaticalyEnabled?: boolean;
+    programmaticallyEnabled?: boolean;
 };
 
 type SectionObject = {
