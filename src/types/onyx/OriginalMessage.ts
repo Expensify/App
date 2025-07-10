@@ -74,12 +74,6 @@ type OriginalMessageIOU = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
-
-    /** Where the invoice is paid with business account or not */
-    payAsBusiness?: boolean;
-
-    /** The bank account id */
-    bankAccountID?: number;
 };
 
 /** Names of moderation decisions */
@@ -122,11 +116,26 @@ type OriginalMessageAddComment = {
 
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionWhisper = {
+    /** Emails of users that aren't members of the room  */
+    inviteeEmails: string[];
+
     /** Account IDs of users that aren't members of the room  */
     inviteeAccountIDs: number[];
 
     /** Decision on whether to invite users that were mentioned but aren't members or do nothing */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** Collection of accountIDs of users mentioned in message */
+    whisperedTo?: number[];
+};
+
+/** Model of `actionable mention whisper` report action */
+type OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper = {
+    /** Account IDs of users that aren't members of the room  */
+    inviteeAccountIDs: number[];
+
+    /** Decision on whether to invite users that were mentioned but aren't members or do nothing */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> | null;
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
@@ -169,12 +178,6 @@ type OriginalMessageSubmitted = {
 
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
-
-    /** The login the approver who is acting on behalf of the vacationer */
-    to?: string;
-
-    /** The login of the approver who is on a vacation */
-    vacationer?: string;
 };
 
 /** Model of `closed` report action */
@@ -727,9 +730,6 @@ type OriginalMessageApproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
-
-    /** The login of approver who is on vacation */
-    managerOnVacation?: string;
 };
 
 /** Model of `forwarded` report action */
@@ -872,6 +872,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER]: OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
     [CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER]: OriginalMessagePolicyExpenseChatWelcomeWhisper;

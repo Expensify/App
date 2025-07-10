@@ -1,5 +1,9 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
+
+let previousTransactions: OnyxCollection<Transaction> = {};
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -9,6 +13,8 @@ export default createOnyxDerivedValueConfig({
             return {};
         }
 
+        // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
+        // If not, we need to process all transactions
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         let transactionsToProcess = Object.keys(transactions);
@@ -24,6 +30,19 @@ export default createOnyxDerivedValueConfig({
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
             const reportID = transaction?.reportID;
+
+            // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
+            const previousTransaction = previousTransactions?.[transactionKey];
+            const previousReportID = previousTransaction?.reportID;
+
+            if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
+                delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
+                const transactionID = previousTransaction?.transactionID;
+                if (transactionID) {
+                    delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                }
+            }
+
             if (!reportID) {
                 // eslint-disable-next-line no-continue
                 continue;
@@ -45,6 +64,8 @@ export default createOnyxDerivedValueConfig({
 
             reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
         }
+
+        previousTransactions = transactions;
 
         return reportTransactionsAndViolations;
     },

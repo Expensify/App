@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -34,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -45,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -100,6 +99,7 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,7 +551,6 @@ const translations = {
         userID: 'Gebruikers-ID',
         disable: 'Uitschakelen',
         export: 'Exporteren',
-        basicExport: 'Basis export',
         initialValue: 'Initiële waarde',
         currentDate: "I'm unable to provide real-time information, including the current date. Please check your device or calendar for the current date.",
         value: 'Waarde',
@@ -562,6 +562,7 @@ const translations = {
         longID: 'Lang ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
+        chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
         ignore: 'Ignore',
@@ -665,6 +666,12 @@ const translations = {
         attachmentImageTooLarge: 'Deze afbeelding is te groot om te bekijken voordat deze wordt geüpload.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `U kunt maximaal ${fileLimit} bestanden tegelijk uploaden.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden overschrijden ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
+        someFilesCantBeUploaded: 'Sommige bestanden kunnen niet worden geüpload',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden moeten kleiner zijn dan ${maxUploadSizeInMB} MB. Grotere bestanden worden niet geüpload.`,
+        maxFileLimitExceeded: "U kunt maximaal 30 bonnetjes tegelijk uploaden. Extra's worden niet geüpload.",
+        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} bestanden worden niet ondersteund. Alleen ondersteunde bestandstypen worden geüpload.`,
+        learnMoreAboutSupportedFiles: 'Meer informatie over ondersteunde formaten.',
+        passwordProtected: "Met wachtwoord beveiligde PDF's worden niet ondersteund. Alleen ondersteunde bestanden worden geüpload.",
     },
     dropzone: {
         addAttachments: 'Bijlagen toevoegen',
@@ -952,9 +959,13 @@ const translations = {
     },
     receipt: {
         upload: 'Bonnetje uploaden',
+        uploadMultiple: 'Bonnetjes uploaden',
         dragReceiptBeforeEmail: 'Sleep een bon naar deze pagina, stuur een bon door naar',
+        dragReceiptsBeforeEmail: 'Sleep bonnen naar deze pagina, stuur bonnen door naar',
         dragReceiptAfterEmail: 'of kies hieronder een bestand om te uploaden.',
+        dragReceiptsAfterEmail: 'of kies hieronder bestanden om te uploaden.',
         chooseReceipt: 'Kies een bon om te uploaden of stuur een bon door naar',
+        chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
         takePhoto: 'Maak een foto',
         cameraAccess: "Cameratoegang is vereist om foto's van bonnetjes te maken.",
         deniedCameraAccess: 'Camera-toegang is nog steeds niet verleend, volg alstublieft',
@@ -1111,19 +1122,10 @@ const translations = {
         individual: 'Individuueel',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} met Expensify` : `Betaal met Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als individu` : `Betalen met persoonlijke rekening`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} met wallet` : `Betalen met wallet`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als individu` : `Betaal als individu`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Betaal ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als betaald markeren` : `Markeren als betaald`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met persoonlijke rekening`,
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betalen via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `${amount} betaald via bankrekening ${last4Digits}.`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Persoonlijke rekening • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Zakelijke rekening • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als een bedrijf` : `Betalen als een bedrijf`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} ergens anders` : `Elders betalen`),
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
@@ -1152,15 +1154,14 @@ const translations = {
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: `goedgekeurd`,
         rejectedThisReport: 'heeft dit rapport afgewezen',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `is begonnen met afrekenen. Betaling wordt vastgehouden totdat ${submitterDisplayName} een bankrekening toevoegt.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `is met de betaling begonnen, maar wacht op ${submitterDisplayName} om een bankrekening toe te voegen.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}heeft de betaling geannuleerd`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} heeft een bankrekening toegevoegd. De betaling van ${amount} is gedaan.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}gemarkeerd als betaald`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}betaald met wallet`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} elders betaald`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}betaald met Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}betaald met Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
         noReimbursableExpenses: 'Dit rapport heeft een ongeldig bedrag.',
@@ -1540,6 +1541,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: 'Wat is nieuw',
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
@@ -1816,7 +1818,6 @@ const translations = {
         enableWallet: 'Portemonnee inschakelen',
         addBankAccountToSendAndReceive: 'Word terugbetaald voor uitgaven die je indient bij een werkruimte.',
         addBankAccount: 'Bankrekening toevoegen',
-        addDebitOrCreditCard: 'Debet- of creditcard toevoegen',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
         expensifyCard: 'Expensify Card',
@@ -2029,7 +2030,6 @@ const translations = {
         cardLastFour: 'Kaart eindigend op',
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om betalingen direct in de app te verzenden en ontvangen.',
         defaultPaymentMethod: 'Standaard',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bankrekening • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2212,6 +2212,237 @@ const translations = {
             title: 'Kon werk e-mailadres niet toevoegen',
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor begeleiding.`,
+        },
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `Neem een [proefrit](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Doe een snelle producttour](${testDriveURL}) om te zien waarom Expensify de snelste manier is om uw uitgaven te doen.`,
+            },
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `Neem een [proefrit](${testDriveURL})`,
+                description: ({testDriveURL}) => `Neem ons mee voor een [proefrit](${testDriveURL}) en uw team krijgt *3 maanden Expensify gratis!*`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een werkruimte`,
+                description: 'Maak een werkruimte en configureer de instellingen met de hulp van uw setup specialist!',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `Maak een [werkruimte](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*Maak een werkruimte* om uitgaven te volgen, bonnen te scannen, te chatten en meer.\n' +
+                    '\n' +
+                    '1. Klik op *Werkruimtes* > *Nieuwe werkruimte*.\n' +
+                    '\n' +
+                    `*Uw nieuwe werkruimte is klaar!* [Bekijk hem](${workspaceSettingsLink}).`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `Stel [categorieën](${workspaceCategoriesLink}) in`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*Stel categorieën in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
+                    '\n' +
+                    '1. Klik op *Werkruimtes*.\n' +
+                    '3. Selecteer uw werkruimte.\n' +
+                    '4. Klik op *Categorieën*.\n' +
+                    '5. Schakel alle categorieën uit die u niet nodig heeft.\n' +
+                    '6. Voeg uw eigen categorieën toe rechtsboven.\n' +
+                    '\n' +
+                    `[Breng me naar de categorie-instellingen van de werkruimte](${workspaceCategoriesLink}).\n` +
+                    '\n' +
+                    `![Stel categorieën in](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: 'Dien een uitgave in',
+                description:
+                    '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
+                    '\n' +
+                    '1. Klik op de groene *+*-knop.\n' +
+                    '2. Kies *Uitgave aanmaken*.\n' +
+                    '3. Voer een bedrag in of scan een bon.\n' +
+                    `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
+                    '5. Klik op *Aanmaken*.\n' +
+                    '\n' +
+                    'En u bent klaar!',
+            },
+            adminSubmitExpenseTask: {
+                title: 'Dien een uitgave in',
+                description:
+                    '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
+                    '\n' +
+                    '1. Klik op de groene *+*-knop.\n' +
+                    '2. Kies *Uitgave aanmaken*.\n' +
+                    '3. Voer een bedrag in of scan een bon.\n' +
+                    '4. Bevestig de details.\n' +
+                    '5. Klik op *Aanmaken*.\n' +
+                    '\n' +
+                    `En u bent klaar!`,
+            },
+            trackExpenseTask: {
+                title: 'Volg een uitgave',
+                description:
+                    '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
+                    '\n' +
+                    '1. Klik op de groene *+*-knop.\n' +
+                    '2. Kies *Uitgave aanmaken*.\n' +
+                    '3. Voer een bedrag in of scan een bon.\n' +
+                    '4. Kies uw *persoonlijke* ruimte.\n' +
+                    '5. Klik op *Aanmaken*.\n' +
+                    '\n' +
+                    'En u bent klaar! Jazeker, zo makkelijk is het.',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' met'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'uw' : ''} ${integrationName}](${workspaceAccountingLink})`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' uw' : ' met'} ${integrationName} voor automatische uitgavencodering en synchronisatie die de maandafsluiting een fluitje van een cent maken.\n` +
+                    '\n' +
+                    '1. Klik op *Instellingen*.\n' +
+                    '2. Ga naar *Werkruimtes*.\n' +
+                    '3. Selecteer uw werkruimte.\n' +
+                    '4. Klik op *Boekhouding*.\n' +
+                    `5. Zoek ${integrationName}.\n` +
+                    '6. Klik op *Verbinden*.\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[Breng me naar boekhouding](${workspaceAccountingLink}).\n\n![Verbind met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Breng me naar boekhouding](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
+                description: ({corporateCardLink}) =>
+                    `Verbind uw bedrijfskaart om uitgaven automatisch te importeren en te coderen.\n` +
+                    '\n' +
+                    '1. Klik op *Werkruimtes*.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Bedrijfskaarten*.\n' +
+                    '4. Volg de aanwijzingen om uw kaart te verbinden.\n' +
+                    '\n' +
+                    `[Breng me naar het verbinden van mijn bedrijfskaarten](${corporateCardLink}).`,
+            },
+
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
+                description: ({workspaceMembersLink}) =>
+                    '*Nodig uw team* uit voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.\n' +
+                    '\n' +
+                    '1. Klik op *Werkruimtes*.\n' +
+                    '3. Selecteer uw werkruimte.\n' +
+                    '4. Klik op *Leden* > *Lid uitnodigen*.\n' +
+                    '5. Voer e-mailadressen of telefoonnummers in. \n' +
+                    '6. Voeg een aangepast uitnodigingsbericht toe als u dat wilt!\n' +
+                    '\n' +
+                    `[Breng me naar werkruimtemedewerkers](${workspaceMembersLink}).\n` +
+                    '\n' +
+                    `![Nodig uw team uit](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceMoreFeaturesLink}) in`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*Stel categorieën en tags in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
+                    '\n' +
+                    `Importeer ze automatisch door [uw boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via uw [werkruimte-instellingen](${workspaceCategoriesLink}).`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `Stel [tags](${workspaceMoreFeaturesLink}) in`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    'Gebruik tags om extra uitgavendetails toe te voegen zoals projecten, klanten, locaties en afdelingen. Als u meerdere niveaus van tags nodig heeft, kunt u upgraden naar het Control-abonnement.\n' +
+                    '\n' +
+                    '1. Klik op *Werkruimtes*.\n' +
+                    '3. Selecteer uw werkruimte.\n' +
+                    '4. Klik op *Meer functies*.\n' +
+                    '5. Schakel *Tags* in.\n' +
+                    '6. Navigeer naar *Tags* in de werkruimteditor.\n' +
+                    '7. Klik op *+ Tag toevoegen* om uw eigen tags te maken.\n' +
+                    '\n' +
+                    `[Breng me naar meer functies](${workspaceMoreFeaturesLink}).\n` +
+                    '\n' +
+                    `![Stel tags in](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `Nodig uw [boekhouder](${workspaceMembersLink}) uit`,
+                description: ({workspaceMembersLink}) =>
+                    '*Nodig uw boekhouder uit* om samen te werken in uw werkruimte en zakelijke uitgaven te beheren.\n' +
+                    '\n' +
+                    '1. Klik op *Werkruimtes*.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Leden*.\n' +
+                    '4. Klik op *Lid uitnodigen*.\n' +
+                    '5. Voer het e-mailadres van uw boekhouder in.\n' +
+                    '\n' +
+                    `[Nodig nu uw boekhouder uit](${workspaceMembersLink}).`,
+            },
+
+            startChatTask: {
+                title: 'Start een chat',
+                description:
+                    '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
+                    '\n' +
+                    '1. Klik op de groene *+*-knop.\n' +
+                    '2. Kies *Start chat*.\n' +
+                    '3. Voer een e-mailadres of telefoonnummer in.\n' +
+                    '\n' +
+                    'Als ze Expensify nog niet gebruiken, worden ze automatisch uitgenodigd.\n' +
+                    '\n' +
+                    'Elke chat wordt ook omgezet in een e-mail of sms waar ze direct op kunnen reageren.',
+            },
+
+            splitExpenseTask: {
+                title: 'Splits een uitgave',
+                description:
+                    '*Splits uitgaven* met één of meer personen.\n' +
+                    '\n' +
+                    '1. Klik op de groene *+*-knop.\n' +
+                    '2. Kies *Start chat*.\n' +
+                    '3. Voer e-mailadressen of telefoonnummers in.\n' +
+                    '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
+                    '5. Maak de uitgave aan door *Handmatig*, *Scannen* of *Afstand* te selecteren.\n' +
+                    '\n' +
+                    'Voeg gerust meer details toe als u wilt, of stuur het gewoon op. Laten we ervoor zorgen dat u wordt terugbetaald!',
+            },
+
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
+                    '1. Klik op het instellingentabblad.\n' +
+                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
+                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+            },
+            createReportTask: {
+                title: 'Maak uw eerste rapport',
+                description:
+                    'Zo maakt u een rapport:\n' +
+                    '\n' +
+                    '1. Klik op de groene *+*-knop.\n' +
+                    '2. Kies *Rapport aanmaken*.\n' +
+                    '3. Klik op *Uitgave toevoegen*.\n' +
+                    '4. Voeg uw eerste uitgave toe.\n' +
+                    '\n' +
+                    'En u bent klaar!',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Neem een [proefrit](${testDriveURL})` : 'Neem een proefrit'),
+            embeddedDemoIframeTitle: 'Proefrit',
+            employeeFakeReceipt: {
+                description: 'Mijn proefrit bon!',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
+            onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `Hier is een takenlijst die ik zou aanraden voor een bedrijf van uw grootte met ${onboardingCompanySize} inzenders:`,
+            onboardingTrackWorkspaceMessage:
+                '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
+            onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
+            onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
+            onboardingLookingAroundMessage:
+                'Expensify staat vooral bekend om uitgaven, reizen en beheer van bedrijfskaarten, maar we doen veel meer dan dat. Laat me weten waarin u geïnteresseerd bent en ik help u op weg.',
+            onboardingTestDriveReceiverMessage: '*U heeft 3 maanden gratis! Begin hieronder.*',
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',
@@ -2426,11 +2657,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Om een bankrekening te koppelen, graag <a href="${contactMethodRoute}">voeg een e-mail toe als je primaire login</a> en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
-        hasCurrencyError: {
-            phrase1: 'Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar',
-            link: 'uw werkruimte-instellingen',
-            phrase2: 'om het in te stellen op USD en het opnieuw te proberen.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a href="${workspaceRoute}">uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.`,
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om verder te gaan.',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',
@@ -3205,7 +3433,7 @@ const translations = {
             welcomeNote: 'Gebruik alstublieft Expensify om uw bonnetjes in te dienen voor terugbetaling, bedankt!',
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
-            markAsExported: 'Markeren als geëxporteerd',
+            markAsExported: 'Markeren als handmatig geëxporteerd',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporteer naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             lineItemLevel: 'Regelniveau',
@@ -4070,6 +4298,11 @@ const translations = {
                     pleaseSelectFeedType: 'Selecteer een feedtype voordat u doorgaat.',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Laatste werkdag van de maand',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Aangepaste dag van de maand',
+            },
             assignCard: 'Kaart toewijzen',
             findCard: 'Kaart vinden',
             cardNumber: 'Kaartnummer',
@@ -4086,6 +4319,7 @@ const translations = {
             startDateDescription: 'We importeren alle transacties vanaf deze datum. Als er geen datum is opgegeven, gaan we zo ver terug als uw bank toestaat.',
             fromTheBeginning: 'Vanaf het begin',
             customStartDate: 'Aangepaste startdatum',
+            customCloseDate: 'Aangepaste sluitingsdatum',
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             confirmationDescription: 'We beginnen onmiddellijk met het importeren van transacties.',
             cardholder: 'Kaart houder',
@@ -4310,6 +4544,7 @@ const translations = {
                 removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Dit zal alle kaarten deactiveren.',
                 error: {
                     feedNameRequired: 'Naam van de kaartfeed is vereist',
+                    statementCloseDateRequired: 'Selecteer een datum waarop het afschrift moet worden gesloten.',
                 },
                 corporate: 'Beperk het verwijderen van transacties',
                 personal: 'Verwijderen van transacties toestaan',
@@ -4334,6 +4569,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Verkrijg de Expensify Card',
                 expensifyCardBannerSubtitle: 'Geniet van cashback op elke aankoop in de VS, tot 50% korting op je Expensify-rekening, onbeperkte virtuele kaarten en nog veel meer.',
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
+                statementCloseDateTitle: 'Datum waarop rekeningafschrift wordt gesloten',
+                statementCloseDateDescription: 'Laat ons weten wanneer je rekeningafschrift wordt gesloten, dan maken we een bijpassend rekeningafschrift in Expensify.',
             },
             workflows: {
                 title: 'Workflows',
@@ -5746,11 +5983,12 @@ const translations = {
                 members: 'Lid',
                 cards: 'Kaart',
             },
+            feed: 'Feed',
         },
         groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
-            emptyStateSubtitle: 'Je kunt uitgaven aan dit rapport toevoegen met de knop hierboven.',
+            emptyStateSubtitle: 'U kunt uitgaven aan dit rapport toevoegen\n via de knop hieronder of de optie "Uitgave toevoegen" in het menu Meer hierboven.',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
@@ -5908,7 +6146,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `verwijderd lid ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `betaald ${currency}${amount}`,
                 takeControl: `nam de controle over`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `mislukt om te synchroniseren met ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `Er is een probleem opgetreden bij het synchroniseren met ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Los het probleem op in de <a href="${workspaceAccountingLink}">werkruimte-instellingen</a>.`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `toegevoegd ${email} als ${role === 'member' ? 'a' : 'een'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `heeft de rol van ${email} bijgewerkt naar ${newRole} (voorheen ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -6026,8 +6265,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -6103,7 +6343,7 @@ const translations = {
         addressError: 'Adres is vereist',
         reasonError: 'Reden is vereist',
         successTitle: 'Uw nieuwe kaart is onderweg!',
-        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u uw virtuele kaart gebruiken.',
+        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u een virtuele kaart gebruiken.',
     },
     eReceipt: {
         guaranteed: 'Gegarandeerd eReceipt',
@@ -6215,10 +6455,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding.';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kan ontvangst niet automatisch koppelen vanwege een verbroken bankverbinding die ${email} moet herstellen.`
                     : 'Kan bon niet automatisch koppelen vanwege een verbroken bankverbinding die je moet herstellen.';
@@ -6418,9 +6658,7 @@ const translations = {
             authenticatePayment: 'Authenticeer betaling',
             requestRefund: 'Terugbetaling aanvragen',
             requestRefundModal: {
-                phrase1: 'Een terugbetaling krijgen is eenvoudig, verlaag gewoon uw account voordat uw volgende factuurdatum en u ontvangt een terugbetaling.',
-                phrase2:
-                    'Let op: Als je je account downgrade, worden je werkruimtes verwijderd. Deze actie kan niet ongedaan worden gemaakt, maar je kunt altijd een nieuwe werkruimte aanmaken als je van gedachten verandert.',
+                full: 'Een terugbetaling krijgen is eenvoudig, verlaag gewoon uw account voordat uw volgende factuurdatum en u ontvangt een terugbetaling. <br /> <br /> Let op: Als je je account downgrade, worden je werkruimtes verwijderd. Deze actie kan niet ongedaan worden gemaakt, maar je kunt altijd een nieuwe werkruimte aanmaken als je van gedachten verandert.',
                 confirm: 'Werkruimte(s) verwijderen en downgraden',
             },
             viewPaymentHistory: 'Bekijk betalingsgeschiedenis',
