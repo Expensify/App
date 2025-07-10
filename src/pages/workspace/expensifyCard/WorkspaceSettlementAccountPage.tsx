@@ -55,7 +55,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
 
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
-    const hasActiveAccountingConnection = policy?.connections && Object.keys(policy.connections).length > 0;
+    const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
     const fetchPolicyAccountingData = useCallback(() => {
         if (!policyID) {
@@ -158,7 +158,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {!!isUsingContinuousReconciliation && !!connectionParam && (
+                            {!!isUsingContinuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
                                 <Text style={[styles.mh5, styles.mb6]}>
                                     <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
                                     <TextLink
