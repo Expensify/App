@@ -54,6 +54,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
             onSubmit={submit}
             onBackButtonPress={goBack}
             enabledWhenOffline={false}
+            defaultDate={CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH}
         />
     );
 }
