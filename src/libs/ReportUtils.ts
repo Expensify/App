@@ -1670,7 +1670,10 @@ function getBankAccountRoute(report: OnyxEntry<Report>): Route {
     }
 
     if (isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-        return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
+        const invoiceReceiverPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`];
+        if (invoiceReceiverPolicy?.areInvoicesEnabled) {
+            return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
+        }
     }
 
     return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
@@ -2314,7 +2317,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? ([] as ReportAction[]);
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    return getOneTransactionThreadReportID(report, chatReport, reportActions) !== null;
+    return !!getOneTransactionThreadReportID(report, chatReport, reportActions);
 }
 
 /*
@@ -3609,7 +3612,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    const iouReportActionToApproveOrPay = getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID);
+    const iouReportActionToApproveOrPay = getIOUReportActionToApproveOrPay(optionOrReport, undefined);
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -4819,7 +4822,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
  */
-function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails): string {
+function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
@@ -8369,12 +8372,12 @@ function getInvoiceChatByParticipants(receiverID: string | number, receiverType:
 /**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: string | undefined): OnyxEntry<Report> {
+function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: string | undefined, reports = allReports): OnyxEntry<Report> {
     if (!ownerAccountID || !policyID) {
         return;
     }
 
-    return Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
+    return Object.values(reports ?? {}).find((report: OnyxEntry<Report>) => {
         // If the report has been deleted, then skip it
         if (!report) {
             return false;
@@ -8807,7 +8810,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isExpenseReport(report) && isOneTransactionReport(report)) {
+    if (isExpenseReport(report)) {
         return true;
     }
 
@@ -11662,7 +11665,6 @@ export {
     hasReportBeenReopened,
     getMoneyReportPreviewName,
     getNextApproverAccountID,
-    isOneTransactionReport,
     isWorkspaceTaskReport,
     isWorkspaceThread,
 };

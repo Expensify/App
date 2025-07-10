@@ -86,7 +86,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
     const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {initialValue: false, canBeMissing: true});
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: false});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
