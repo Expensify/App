@@ -189,13 +189,13 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        RBRMessage = {translationPath: 'iou.error.receiptFailureMessageShort'};
-    }
-
     const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
+    }
+
+    if (hasReceiptError(transaction) && RBRMessage === undefined) {
+        RBRMessage = {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
