@@ -1,9 +1,9 @@
 import React, {useCallback, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletStatementProps} from './types';
