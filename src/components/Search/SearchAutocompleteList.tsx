@@ -28,6 +28,7 @@ import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyU
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
+    getAutocompleteDatePresets,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -207,6 +208,7 @@ function SearchAutocompleteList(
         // Thus passing an empty object to the `allCards` parameter.
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
+    const datePresetAutoCompleteList = useMemo(() => getAutocompleteDatePresets(translate), [translate]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -459,6 +461,19 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
+                const filteredDates = datePresetAutoCompleteList[autocompleteKey]
+                    .filter((date) => date.text.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(date.text.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+                return filteredDates.map((date) => ({
+                    filterKey: autocompleteKey,
+                    text: date.text,
+                    autocompleteID: date.value,
+                    mapKey: autocompleteKey,
+                }));
+            }
             default: {
                 return [];
             }
@@ -483,6 +498,7 @@ function SearchAutocompleteList(
         allCards,
         booleanTypes,
         workspaceList,
+        datePresetAutoCompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
