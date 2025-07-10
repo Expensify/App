@@ -3,8 +3,8 @@ import type {Comment} from './Transaction';
 
 /** Model of transaction merge data */
 type MergeTransaction = {
-    /** Transactions ID we're keeping */
-    targetTransactionID: string[];
+    /** Transaction ID we're keeping */
+    targetTransactionID: string;
 
     /** ID of the transaction we're merging into that will be deleted */
     sourceTransactionID: string;
