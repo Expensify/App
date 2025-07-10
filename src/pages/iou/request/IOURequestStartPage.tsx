@@ -85,8 +85,7 @@ function IOURequestStartPage({
     const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
     const currentPolicyPerDiemUnit = getPerDiemCustomUnit(policy);
     const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
-    const shouldShowPerDiemOption = true || // *** for testing
-        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+    const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
