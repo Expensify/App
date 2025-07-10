@@ -1756,7 +1756,7 @@ describe('actions/Report', () => {
     });
 
     describe('searchInServer', () => {
-        it('should return the same result with or without uppercase input.', async () => {
+        it('should return the same result with or without uppercase input.', () => {
             Report.searchInServer('test');
             Report.searchInServer('TEST');
             const upperCaseRequest = PersistedRequests.getAll().at(0);
