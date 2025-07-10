@@ -20,7 +20,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {getReportActionActorAccountID, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,6 +118,16 @@ function ReportActionItemSingle({
 
     const {login, pendingFields, status} = personalDetails?.[accountID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
+
+    // Vacation delegate details for submitted action
+    const vacationer = getVacationer(action);
+    const submittedTo = getSubmittedTo(action);
+    const vacationDelegateDetailsForSubmit = getPersonalDetailByEmail(vacationer ?? '');
+    const submittedToDetails = getPersonalDetailByEmail(submittedTo ?? '');
+
+    // Vacation delegate details for approved action
+    const managerOnVacation = getManagerOnVacation(action);
+    const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
 
     const showMultipleUserAvatarPattern = shouldDisplayAllActors && !shouldShowSubscriptAvatar;
     const headingText = showMultipleUserAvatarPattern ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : displayName;
@@ -256,6 +266,19 @@ function ReportActionItemSingle({
                 ) : null}
                 {!!action?.delegateAccountID && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
+                )}
+                {!!vacationer && !!submittedTo && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.toAsVacationDelegate', {
+                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
+                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
+                        })}
+                    </Text>
+                )}
+                {!!managerOnVacation && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
+                    </Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
