@@ -1,6 +1,6 @@
 # `react-native` patches
 
-### [react-native+0.79.2+001+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch](react-native+0.79.2+001+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch)
+### [react-native+0.79.2+025+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch](react-native+0.79.2+025+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch)
 
 - Reason:
   
