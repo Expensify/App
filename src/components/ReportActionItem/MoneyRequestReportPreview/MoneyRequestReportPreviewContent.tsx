@@ -114,10 +114,11 @@ function MoneyRequestReportPreviewContent({
     isInvoice,
     shouldShowBorder = false,
     onPress,
-    chatReportMetadata,
 }: MoneyRequestReportPreviewContentProps) {
+    const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
-    // hasOnceLoadedReportActions is set as true one render before transactions are hydrated, to avoid showing empty state we need to defer loading state, so that it waits one more render for transactions
+    // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
+    // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;

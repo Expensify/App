@@ -2,7 +2,7 @@ import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'reac
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportMetadata, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -102,9 +102,6 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
 
         /** Callback called when the whole preview is pressed */
         onPress: () => void;
-
-        /** Report metadata */
-        chatReportMetadata: OnyxEntry<ReportMetadata>;
     };
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps, MoneyRequestReportPreviewStyleType};

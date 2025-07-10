@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -59,7 +58,6 @@ function MoneyRequestReportPreview({
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
-    const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;
@@ -109,7 +107,6 @@ function MoneyRequestReportPreview({
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}
-            chatReportMetadata={chatReportMetadata}
             containerStyles={[reportPreviewStyles.componentStyle]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
