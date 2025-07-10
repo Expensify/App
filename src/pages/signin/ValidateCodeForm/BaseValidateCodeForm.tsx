@@ -24,10 +24,8 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {resetSignInFlow} from '@userActions/HybridApp';
-import {clearAccountMessages, isAnonymousUser as isAnonymousUserUtil, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
+import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -293,18 +291,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [
-        account?.isLoading,
-        account?.errors,
-        account?.requiresTwoFactorAuth,
-        hybridApp?.readyToShowAuthScreens,
-        session,
-        isUsingRecoveryCode,
-        recoveryCode,
-        twoFactorAuthCode,
-        credentials?.accountID,
-        validateCode,
-    ]);
+    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
 
     return (
         <SafariFormWrapper>

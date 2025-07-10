@@ -47,13 +47,6 @@ import './setup/backgroundTask';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
-/**
- * Properties passed to the top-level React Native component by HybridApp.
- * These will always be `undefined` in "pure" NewDot builds.
- */
-type AppProps = {
-};
-
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
@@ -67,7 +60,7 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({}: AppProps) {
+function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
@@ -75,7 +68,7 @@ function App({}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider>
-                    <HybridAppHandler/>
+                    <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
                         <SafeAreaProvider
                             initialMetrics={{
@@ -134,5 +127,3 @@ function App({}: AppProps) {
 App.displayName = 'App';
 
 export default App;
-
-export type {AppProps};

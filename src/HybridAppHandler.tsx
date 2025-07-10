@@ -1,8 +1,8 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app/src/index.native';
 import {useContext, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
+import useOnyx from './hooks/useOnyx';
 import {parseHybridAppSettings} from './libs/actions/HybridApp';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';

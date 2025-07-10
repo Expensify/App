@@ -65,7 +65,13 @@ function shouldUseOldApp(tryNewDot?: TryNewDot) {
     return tryNewDot?.classicRedirect?.dismissed === true;
 }
 
-function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>, usingSignInModal = false) {
+function handleChangeInHybridAppSignInFlow(
+    hybridApp: OnyxEntry<HybridApp>,
+    tryNewDot: OnyxEntry<TryNewDot>,
+    credentials: OnyxEntry<Credentials>,
+    session: OnyxEntry<Session>,
+    usingSignInModal = false,
+) {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
