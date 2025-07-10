@@ -38,7 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';

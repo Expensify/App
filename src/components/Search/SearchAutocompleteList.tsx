@@ -39,7 +39,7 @@ import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -86,16 +86,16 @@ type SearchAutocompleteListProps = {
     textInputRef?: React.RefObject<AnimatedTextInputRef | null>;
 
     /** Personal details */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Reports */
-    reports: OnyxCollection<OnyxTypes.Report>;
+    reports: OnyxCollection<Report>;
 
     /** All feeds */
-    allFeeds: Record<string, OnyxTypes.CardFeeds | undefined>;
+    allFeeds: Record<string, CardFeeds | undefined>;
 
     /** All cards */
-    allCards: OnyxTypes.CardList;
+    allCards: CardList;
 };
 
 const defaultListOptions = {
