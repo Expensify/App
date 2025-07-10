@@ -33,7 +33,7 @@ The Reports page helps you explore and filter all reports and related expenses. 
 
 ---
 
-## To-do
+## To-Do
 
 - **Stay on top of tasks**: The To-do section shows exactly what needs your attention. This is your go-to spot to keep things moving.
 
