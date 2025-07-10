@@ -120,13 +120,11 @@ Nope — there's no extra charge for using Plaid or direct feeds.
 - With the **Collect** plan, you can add one direct or Plaid feed at no cost.  
 - To connect more than one, you'll need to upgrade to the **Control** plan.
 
-## Do you support debit card transactions?
+## Can I import debit card transactions?
 
-Yes! In addition to credit cards, we support importing debit card transactions by linking a checking/current account in every Plaid-supported region (US, UK, EU, Canada).
+Yes! Debit card transactions can be imported by linking a checking/current account in any Plaid-supported country.
 
-This feature is especially useful in EU markets where credit card accounts are often unavailable via third-party aggregators like Plaid due to how many EU banks classify credit card accounts under open banking regulations. However, debit card transactions are widely available under European open banking regulations.
-
-**Note:** It's possible to import both credit and debit card transactions via Plaid, giving you comprehensive transaction coverage across all supported regions.
+This is especially helpful in the EU, where open banking rules often block access to credit card data via aggregators. Debit cards, however, are fully supported under these regulations.
 
 ## Which banks support direct feeds?
 
