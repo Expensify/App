@@ -454,7 +454,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (!firstRenderRef.current && !reportID && !reportIdRef.current && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
@@ -462,7 +462,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            reportIdRef.current,
+        ],
     );
 
     const fetchReport = useCallback(() => {
