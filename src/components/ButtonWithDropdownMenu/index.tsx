@@ -245,6 +245,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
+                        // Clear shouldShowRightIcon since PopoverMenu doesn't use this property
                         shouldShowRightIcon: undefined,
                         onSelected: item.onSelected
                             ? () => item.onSelected?.()
