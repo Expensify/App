@@ -6,6 +6,7 @@ import {isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
 
@@ -22,9 +23,10 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
     policies,
     allReports,
-    report,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
+    const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({

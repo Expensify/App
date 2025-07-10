@@ -275,8 +275,6 @@ function SearchList(
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const reportID = Number(item?.reportID ?? CONST.DEFAULT_NUMBER_ID);
-            const report = allReports?.[reportID];
 
             return (
                 <ListItem
@@ -310,7 +308,6 @@ function SearchList(
                     isDisabled={isDisabled}
                     allReports={allReports}
                     groupBy={groupBy}
-                    report={report}
                 />
             );
         },
