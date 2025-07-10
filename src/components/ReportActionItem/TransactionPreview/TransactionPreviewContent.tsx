@@ -20,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeperatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -63,6 +63,7 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
 
@@ -98,7 +99,7 @@ function TransactionPreviewContent({
     const firstViolation = violations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction);
-    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit) : undefined;
+    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, policyTags) : undefined;
 
     const previewText = useMemo(
         () =>
@@ -345,7 +346,7 @@ function TransactionPreviewContent({
                                                         numberOfLines={1}
                                                         style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {getCleanedTagName(tag)}
+                                                        {getCommaSeperatedTagNameWithSanitizedColons(tag)}
                                                     </Text>
                                                 </View>
                                             )}

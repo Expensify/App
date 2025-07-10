@@ -1,3 +1,5 @@
+import _isEmpty from 'lodash/isEmpty';
+import _keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
@@ -160,6 +162,17 @@ function getTagViolationsForMultiLevelTags(
     }
 
     return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, updatedTransaction);
+}
+
+/**
+ * Returns a comma-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
+ */
+function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
+    if (_isEmpty(errorIndexes) || _isEmpty(tags)) {
+        return translate('violations.someTagLevelsRequired', {tagName});
+    }
+    const tagsWithIndexes = _keyBy(Object.values(tags), 'orderWeight');
+    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join(', ');
 }
 
 /**
@@ -392,7 +405,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -406,11 +419,12 @@ const ViolationsUtils = {
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,
-            tagName,
+            tagName = '',
             taxName,
             type,
             rterType,
             message = '',
+            errorIndexes = [],
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -481,7 +495,7 @@ const ViolationsUtils = {
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
-                return translate('violations.someTagLevelsRequired', {tagName});
+                return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
                 return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':
