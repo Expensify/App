@@ -315,6 +315,7 @@ const styles = (theme: ThemeColors) =>
             ...spacing.p2,
             borderRadius: 8,
         },
+        customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -1301,7 +1302,7 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: 'transparent',
+            backgroundColor: theme.appBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
@@ -1901,6 +1902,10 @@ const styles = (theme: ThemeColors) =>
         emojisWithTextFontSizeAligned: {
             fontSize: variables.fontSizeEmojisWithinText,
             marginVertical: -7,
+        },
+
+        customEmojiFontAlignment: {
+            marginTop: -variables.fontSizeNormal,
         },
 
         emojisFontFamily: {

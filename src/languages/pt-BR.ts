@@ -1154,8 +1154,7 @@ const translations = {
         automaticallyForwarded: `aprovado via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         forwarded: `aprovado`,
         rejectedThisReport: 'rejeitou este relatório',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `começou a acertar as contas. O pagamento está em espera até que ${submitterDisplayName} adicione uma conta bancária.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} cancelou o pagamento`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
@@ -1539,6 +1538,7 @@ const translations = {
             phrase4: 'Privacidade',
         },
         help: 'Ajuda',
+        whatIsNew: 'O que há de novo',
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
@@ -5981,11 +5981,12 @@ const translations = {
                 members: 'Membro',
                 cards: 'Cartão',
             },
+            feed: 'Feed',
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
@@ -6262,7 +6263,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6339,7 +6341,7 @@ const translations = {
         addressError: 'Endereço é obrigatório',
         reasonError: 'Motivo é obrigatório',
         successTitle: 'Seu novo cartão está a caminho!',
-        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, seu cartão virtual já está pronto para uso.',
+        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, você pode usar um cartão virtual.',
     },
     eReceipt: {
         guaranteed: 'eReceipt garantido',
