@@ -229,7 +229,7 @@ function ReportActionCompose({
     });
 
     const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
-    const linkedTransactionID = iouAction && !isTransactionsView ? getLinkedTransactionID(iouAction) : undefined;
+    const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 

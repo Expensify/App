@@ -305,7 +305,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             return '';
         }
         const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE) {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
                     {prompt}
