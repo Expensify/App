@@ -6959,7 +6959,7 @@ const translations = {
         globalCreateTooltip: '<tooltip><strong>Ausgaben erstellen</strong>, beginnen Sie zu chatten, und mehr. Probieren Sie es aus!</tooltip>',
         bottomNavInboxTooltip: '<tooltip>Überprüfen Sie was <strong>benötigt Ihre Aufmerksamkeit</strong> und <strong>über Ausgaben chatten.</strong></tooltip>',
         workspaceChatTooltip: '<tooltip>Chatten mit <strong>Genehmigern</strong></tooltip>',
-        GBRRBRChat: '<tooltip>Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong>,\nund 🔴 auf <strong>Elemente zur Überprüfung.</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong>, und 🔴 auf <strong>Elemente zur Überprüfung.</strong></tooltip>',
         accountSwitcher: '<tooltip>Zugriff auf Ihre <strong>Copilot-Konten</strong> hier</tooltip>',
         expenseReportsFilter: '<tooltip>Willkommen! Finden Sie alle Ihre <strong>Berichte des Unternehmens</strong> hier.</tooltip>',
         scanTestTooltip: {

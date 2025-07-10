@@ -294,7 +294,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <RenderHTML html={translate(tooltip.content)} />
+                    <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                        <RenderHTML html={translate(tooltip.content)} />
+                    </View>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop
@@ -344,6 +346,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.justifyContentBetween,
         styles.ph2,
         styles.gap2,
+        styles.renderHTML,
+        styles.dFlex,
+        styles.flexShrink1,
         theme.tooltipHighlightText,
         theme.icon,
         translate,
