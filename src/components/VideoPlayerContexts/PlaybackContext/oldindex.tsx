@@ -1,6 +1,6 @@
-import type {VideoPlayer} from 'expo-video';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {View} from 'react-native';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -12,15 +12,10 @@ import usePlaybackContextVideoRefs from './usePlaybackContextVideoRefs';
 const Context = React.createContext<PlaybackContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
-    // current playing video URL across whole app
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<PlaybackContextValues['currentlyPlayingURL']>(null);
-    // to jest ten udostępnoiny div zeby nie reloadować wideo
     const [sharedElement, setSharedElement] = useState<PlaybackContextValues['sharedElement']>(null);
-
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
-    // report ID związane z reportem na którym jest odpalone wideo
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
-
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
@@ -61,7 +56,13 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
-        (ref: VideoPlayer | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, shouldNotAutoPlay: boolean, {shouldUseSharedVideoElement, url, reportID}) => {
+        (
+            ref: VideoWithOnFullScreenUpdate | null,
+            parent: View | HTMLDivElement | null,
+            child: View | HTMLDivElement | null,
+            shouldNotAutoPlay: boolean,
+            {shouldUseSharedVideoElement, url, reportID},
+        ) => {
             if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentRouteReportID) {
                 return;
             }

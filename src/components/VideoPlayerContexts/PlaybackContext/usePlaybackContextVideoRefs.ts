@@ -1,20 +1,22 @@
-import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
+import type {VideoPlayer} from 'expo-video';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import Visibility from '@libs/Visibility';
-import type {PlaybackContextVideoRefs, PlayVideoPromiseRef, StopVideo, UnloadVideo} from './types';
+import type {PlaybackContextVideoRefs, StopVideo} from './types';
 
 function usePlaybackContextVideoRefs(resetCallback: () => void) {
     const currentVideoPlayerRef: PlaybackContextVideoRefs['ref'] = useRef(null);
     const videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'] = useRef(0);
-    const playVideoPromiseRef: PlayVideoPromiseRef = useRef(undefined);
     const isPlayPendingRef = useRef(false);
 
     const pauseVideo: PlaybackContextVideoRefs['pause'] = useCallback(() => {
-        currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
+        currentVideoPlayerRef.current?.pause();
     }, [currentVideoPlayerRef]);
 
     const stopVideo: StopVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0});
+        currentVideoPlayerRef.current?.pause();
+        if (currentVideoPlayerRef.current) {
+            currentVideoPlayerRef.current.currentTime = 0;
+        }
     }, [currentVideoPlayerRef]);
 
     const playVideo: PlaybackContextVideoRefs['play'] = useCallback(() => {
@@ -22,40 +24,24 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
             isPlayPendingRef.current = true;
             return;
         }
-        currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
-            const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
-            if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
-                newStatus.positionMillis = 0;
-            }
-            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus).catch((error: AVPlaybackStatus) => {
-                return error;
-            });
-        });
+        if (currentVideoPlayerRef.current && currentVideoPlayerRef.current.currentTime === currentVideoPlayerRef.current.duration) {
+            currentVideoPlayerRef.current.replay();
+        } else {
+            currentVideoPlayerRef.current?.play();
+        }
     }, [currentVideoPlayerRef]);
 
-    const unloadVideo: UnloadVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.unloadAsync?.();
-    }, [currentVideoPlayerRef]);
-
-    const checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'] = useCallback(
-        (statusCallback) => {
-            currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
-                statusCallback('isPlaying' in status && status.isPlaying);
-            });
-        },
+    const checkIfVideoIsPlaying: (statusCallback: (isPlaying: boolean) => void) => void = useCallback(
+        (statusCallback) => statusCallback(currentVideoPlayerRef.current?.playing ?? false),
         [currentVideoPlayerRef],
     );
 
     const resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'] = useCallback(() => {
-        // Play video is an async operation and if we call stop video before the promise is completed,
-        // it will throw a console error. So, we'll wait until the promise is resolved before stopping the video.
-        (playVideoPromiseRef.current ?? Promise.resolve()).then(stopVideo).finally(() => {
-            videoResumeTryNumberRef.current = 0;
-            resetCallback();
-            unloadVideo();
-            currentVideoPlayerRef.current = null;
-        });
-    }, [resetCallback, stopVideo, unloadVideo]);
+        stopVideo();
+        videoResumeTryNumberRef.current = 0;
+        resetCallback();
+        currentVideoPlayerRef.current = null;
+    }, [resetCallback, stopVideo]);
 
     useEffect(() => {
         return Visibility.onVisibilityChange(() => {
@@ -67,7 +53,7 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         });
     }, [playVideo]);
 
-    const updateCurrentVideoPlayerRef: PlaybackContextVideoRefs['updateRef'] = (ref) => {
+    const updateCurrentVideoPlayerRef: (videoPlayerRef: VideoPlayer | null) => void = (ref) => {
         currentVideoPlayerRef.current = ref;
     };
 
