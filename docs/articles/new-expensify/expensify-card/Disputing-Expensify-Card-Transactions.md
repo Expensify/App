@@ -31,10 +31,11 @@ If you encounter unrecognized, unauthorized, or fraudulent charges on your Expen
 
 **If you suspect fraud, deactivate your card to prevent further unauthorized charges:**
 
-1. Select **Wallet** from the left menu.
-2. Choose your Expensify Card.
-3. Click **Report card fraud**.
-4. Follow the prompts to deactivate your card and request a replacement.
+1. Click your profile image in the bottom-left menu.
+2. Select **Wallet** from the left menu.
+3. Choose your Expensify Card.
+4. Click **Report card fraud**.
+5. Follow the prompts to deactivate your card and request a replacement.
 
 ## 2. Contact Expensify
    - After deactivating your card, contact Expensify Concierge to report the fraudulent transaction:
