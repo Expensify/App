@@ -19,6 +19,9 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+// Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
+const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
+
 const DEFAULT_NUMBER_ID = 0;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -250,6 +253,8 @@ const CONST = {
 
         // Allowed extensions for receipts
         ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+
+        MAX_FILE_LIMIT: 30,
     },
 
     // Allowed extensions for spreadsheets import
@@ -416,6 +421,7 @@ const CONST = {
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
+        MONTH_DAYS,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -621,7 +627,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        AUTO_SUBMIT: 'autoSubmit',
+        ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -629,7 +635,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
-        NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
@@ -904,6 +909,7 @@ const CONST = {
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
+    WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
@@ -1059,7 +1065,6 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
-            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -1092,6 +1097,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1276,7 +1282,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -1451,12 +1461,12 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        OPEN_APP: 'open_app',
         SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
+        OPEN_REPORT_SEARCH: 'open_report_search',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
@@ -1489,6 +1499,8 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
+        DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
+        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1874,6 +1886,19 @@ const CONST = {
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
     },
+
+    FILE_VALIDATION_ERRORS: {
+        WRONG_FILE_TYPE: 'wrongFileType',
+        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
+        FILE_TOO_LARGE: 'fileTooLarge',
+        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
+        FILE_TOO_SMALL: 'fileTooSmall',
+        FILE_CORRUPTED: 'fileCorrupted',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
+        PROTECTED_FILE: 'protectedFile',
+    },
+
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
@@ -2914,6 +2939,7 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -3169,6 +3195,7 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
+            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3209,6 +3236,11 @@ const CONST = {
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
+        },
+        STATEMENT_CLOSE_DATE: {
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -5048,15 +5080,15 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
-            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
+            PRELOAD: 'PRELOAD',
+            POP_TO: 'POP_TO',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
-            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {
@@ -5151,7 +5183,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
 
     /**
      * Bank account names
@@ -6150,6 +6182,11 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        ACTION_FILTERS: {
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+        },
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
@@ -6193,7 +6230,7 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: 'all',
+                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6202,17 +6239,17 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: 'all',
+                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {
-                ALL: 'all',
+                ALL: '',
                 UNREAD: 'unread',
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
@@ -6220,7 +6257,7 @@ const CONST = {
                 PINNED: 'pinned',
             },
             TASK: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6290,6 +6327,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            ACTION: 'action',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6332,6 +6370,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            ACTION: 'action',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
@@ -6351,131 +6390,6 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-    },
-
-    /**
-     * SEARCH_TYPE_FILTERS_KEYS is an object keyed by the different search types.
-     * Each value is then an array of arrays where each inner array is a separate section in the UI.
-     */
-    get SEARCH_TYPE_FILTERS_KEYS() {
-        return {
-            [this.SEARCH.DATA_TYPES.EXPENSE]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.INVOICE]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.TRIP]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.CHAT]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.TASK]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                ],
-            ],
-        } as const;
     },
 
     EXPENSE: {
@@ -6577,7 +6491,7 @@ const CONST = {
             multiLevelTags: {
                 id: 'multiLevelTags' as const,
                 alias: 'multiLevelTags',
-                name: 'multiLevelTags',
+                name: 'Multi-level tags',
                 title: 'workspace.upgrade.multiLevelTags.title' as const,
                 description: 'workspace.upgrade.multiLevelTags.description' as const,
                 icon: 'Tag',
@@ -6727,7 +6641,8 @@ const CONST = {
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
         MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
-        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags',
+        MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
