@@ -4007,7 +4007,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             };
 
-            expect(canLeaveChat(report, undefined, undefined)).toBe(true);
+            expect(canLeaveChat(report, undefined)).toBe(true);
         });
 
         it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
