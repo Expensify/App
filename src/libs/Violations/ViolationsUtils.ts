@@ -165,7 +165,7 @@ function getTagViolationsForMultiLevelTags(
 }
 
 /**
- * Returns a comma-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
+ * Returns a dot-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
  */
 function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
     if (_isEmpty(errorIndexes) || _isEmpty(tags)) {
