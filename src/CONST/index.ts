@@ -1369,8 +1369,9 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
-                WIDE_WIDTH: 303,
+                MIN_WIDE_WIDTH: 303,
                 WIDE_HEIGHT: 269,
+                MIN_NARROW_WIDTH: 256,
             },
             DUPLICATE: {
                 WIDE_HEIGHT: 347,
