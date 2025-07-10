@@ -278,8 +278,6 @@ function MoneyRequestReportPreviewContent({
         managerID,
     ]);
 
-    const bankAccountRoute = getBankAccountRoute(chatReport);
-
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
      - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
@@ -522,7 +520,7 @@ function MoneyRequestReportPreviewContent({
                 onPaymentOptionsHide={onPaymentOptionsHide}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                addBankAccountRoute={bankAccountRoute}
+                chatReport={chatReport}
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,

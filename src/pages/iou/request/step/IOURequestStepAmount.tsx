@@ -318,7 +318,7 @@ function IOURequestStepAmount({
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}
-                bankAccountRoute={getBankAccountRoute(report)}
+                chatReport={report}
                 ref={(e) => {
                     textInput.current = e;
                 }}

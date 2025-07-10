@@ -1081,7 +1081,7 @@ function IOURequestStepConfirmation({
                         shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
-                        bankAccountRoute={getBankAccountRoute(report)}
+                        chatReport={report}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}

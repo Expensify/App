@@ -10,7 +10,7 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
@@ -30,7 +30,7 @@ const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
 function KYCWall({
-    addBankAccountRoute,
+    chatReport,
     addDebitCardRoute,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -122,10 +122,11 @@ function KYCWall({
 
                     return;
                 }
-                Navigation.navigate(addBankAccountRoute);
+                const bankAccountRoute = getBankAccountRoute(chatReport);
+                Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, iouReport, onSelectPaymentMethod],
+        [chatReport, addDebitCardRoute, iouReport, onSelectPaymentMethod],
     );
 
     /**
