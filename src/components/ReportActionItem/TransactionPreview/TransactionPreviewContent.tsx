@@ -161,6 +161,7 @@ function TransactionPreviewContent({
     const shouldShowIOUHeader = !!from && !!to;
 
     // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
+    const actorAccountID = action?.actorAccountID;
     const splitShare = useMemo(() => {
         if (!shouldShowSplitShare) {
             return 0;
@@ -183,8 +184,19 @@ function TransactionPreviewContent({
             }
         }
 
-        return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID);
-    }, [shouldShowSplitShare, isReportAPolicyExpenseChat, participantAccountIDs.length, transaction?.comment?.splits, amount, requestCurrency, sessionAccountID, isBillSplit, action]);
+        return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+    }, [
+        shouldShowSplitShare,
+        isReportAPolicyExpenseChat,
+        participantAccountIDs.length,
+        transaction?.comment?.splits,
+        amount,
+        requestCurrency,
+        sessionAccountID,
+        isBillSplit,
+        action,
+        actorAccountID,
+    ]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
