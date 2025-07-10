@@ -13,7 +13,7 @@ Suggested Search helps you quickly take action on expense reports you need to su
 
 # Suggested Search in New Expensify
 
-**Navigation: Left-hand Menu > Reports > Expense Reports > Suggested Search**.
+**Navigation: Left-hand Menu > Reports > Reports > Suggested Search**.
 
 Suggested Search surfaces key report actions in your **Reports** page so you can:
 - Submit expenses waiting on you

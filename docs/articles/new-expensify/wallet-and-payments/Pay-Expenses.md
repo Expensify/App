@@ -17,7 +17,7 @@ Before you can pay workspace expenses:
 
 ## How to Pay Workspace Expenses
 
-In the left-hand menu, select **Reports > Expense Reports** or follow the notification prompt.
+In the left-hand menu, select **Reports > Reports** or follow the notification prompt.
 
 1. You'll receive an email, in-app notification, or text (if your contact method is a phone number).
 2. Click or tap **Pay** to open the expense report in New Expensify.
@@ -35,7 +35,7 @@ To send personal payments, you’ll need to [set up your Wallet](https://help.ex
 
 ## How to Pay a Personal Expense
 
-In the left-hand menu, select **Reports > Expense Reports** or click on the notification you received.
+In the left-hand menu, select **Reports > Reports** or click on the notification you received.
 
 1. You'll be notified via email, in-app alert, or text when someone submits an expense to you.
 2. Click or tap **Pay** to view the details.

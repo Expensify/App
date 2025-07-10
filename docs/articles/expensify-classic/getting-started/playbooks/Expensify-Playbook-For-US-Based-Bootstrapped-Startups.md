@@ -31,7 +31,7 @@ Expensify provides you with direct access to lightning-fast 24/7 support via Con
 ## Step 3: Invite Your Team
 As a bootstrapped startup, you communicate with your team all day. Similarly, if you are a co-founder, you will have multiple people who will need to capture receipts for your project.
 
-1. Click your profile photo or icon in the bottom left menu
+1. Click your profile photo or icon in the left-side navigation menu
 2. Click on your workspace
 3. From the workspace view, click **Members** on the left
 4. Click **Invite member**
@@ -74,7 +74,7 @@ Expensify provides you with a *_yourdomain.com@expensify.com_* email address. Ha
 
 To view and pay bills:
 
-1. Click your profile photo or icon in the bottom left menu
+1. Click your profile photo or icon in the left-side navigation menu
 2. Select *Workspaces*.
 3. Click your workspace.
 4. Select **Bills**.
