@@ -689,6 +689,10 @@ function getAction(
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
 
+    if (currentSearch === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT) {
+        return CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING;
+    }
+
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
@@ -747,7 +751,7 @@ function getAction(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
-    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions) && currentSearch !== CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT) {
+    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
