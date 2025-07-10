@@ -10,6 +10,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {getLastUsedPaymentMethod, getLastUsedPaymentMethods} from '@libs/IOUUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
@@ -24,14 +25,6 @@ import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-
-let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    callback: (val) => {
-        lastPaymentMethod = val;
-    },
-});
 
 let allSnapshots: OnyxCollection<SearchResults>;
 Onyx.connect({
@@ -75,7 +68,7 @@ function getLastPolicyBankAccountID(policyID: string | undefined, reportType: ke
     if (!policyID) {
         return undefined;
     }
-    const lastPolicyPaymentMethod = lastPaymentMethod?.[policyID];
+    const lastPolicyPaymentMethod = getLastUsedPaymentMethod(policyID);
     return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
 }
 
@@ -106,7 +99,8 @@ function getSnapshotIOUReport(reportID?: string, hash?: number) {
 }
 
 function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
+    const lastPaymentMethods = (getLastUsedPaymentMethods() ?? {}) as OnyxEntry<LastPaymentMethod>;
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethods);
 
     if (!lastPolicyPaymentMethod) {
         goToItem();

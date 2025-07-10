@@ -47,6 +47,7 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
+    getLastUsedPaymentMethod,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
@@ -845,12 +846,6 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
-});
-
-let lastUsedPaymentMethods: OnyxEntry<OnyxTypes.LastPaymentMethod>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    callback: (value) => (lastUsedPaymentMethods = value),
 });
 
 /**
@@ -8942,7 +8937,8 @@ function getPayMoneyRequestParams(
     );
 
     if (iouReport?.policyID) {
-        const prevLastUsedPaymentMethod = (lastUsedPaymentMethods?.[iouReport.policyID] as OnyxTypes.LastPaymentMethodType)?.lastUsed?.name;
+        const lastUsedPaymentMethod = (getLastUsedPaymentMethod(iouReport.policyID) ?? {}) as OnyxTypes.LastPaymentMethodType;
+        const prevLastUsedPaymentMethod = lastUsedPaymentMethod?.lastUsed?.name;
         const usedPaymentOption = paymentPolicyID ?? paymentMethodType;
 
         const optimisticLastPaymentMethod = {
@@ -11014,7 +11010,7 @@ function savePreferredPaymentMethod(policyID: string | undefined, paymentMethod:
     }
 
     // to make it easier to revert to the previous last payment method, we will save it to this key
-    const prevPaymentMethod = lastUsedPaymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType;
+    const prevPaymentMethod = (getLastUsedPaymentMethod(policyID) ?? {}) as OnyxTypes.LastPaymentMethodType;
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {
         [policyID]: type ? {[type]: {name: paymentMethod}, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: prevPaymentMethod?.lastUsed?.name ?? paymentMethod}} : paymentMethod,
     });
