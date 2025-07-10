@@ -109,7 +109,7 @@ To adjust spending limits on an Expensify Card, follow these steps:
 #### [Manage Expensify Cards] How do I manage my issued Expensify Cards?
 To manage your issued Expensify Cards, you must be a Workspace Admin. Follow these steps:
 
-1. Press your profile image or icon in the bottom left menu.
+1. Press your profile image or icon in the left-side navigation menu.
 2. Scroll down and press **Workspaces** in the left menu.
 3. Select the workspace containing the desired Expensify Cards.
 4. Press **Expensify Card** in the left menu to see a list of all issued cards.

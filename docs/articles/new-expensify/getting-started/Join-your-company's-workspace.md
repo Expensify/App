@@ -39,7 +39,7 @@ By using a compatible device or browser, you’ll ensure the best experience wit
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click your profile image or icon in the bottom left menu.</li>
+   <li>Click your profile image or icon in the left-side navigation menu.</li>
    <li>Click the Edit pencil icon next to your profile image or icon and select <b>Upload Image</b> to choose a new image from your saved files.</li>  
    <li>Click <b>Profile</b> in the left menu and edit any of the following details as desired:</li>
        <ul>
@@ -92,7 +92,7 @@ You can create an expense by SmartScanning a receipt to automatically capture th
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click the + icon in the bottom left menu and select <b>Create Expense</b>.</li>
+   <li>Click the + icon in the left-side navigation menu and select <b>Create Expense</b>.</li>
    <li>Click <b>Scan</b>.</li>
    <li>Drag and drop the receipt into Expensify, or click <b>Choose File</b> to select it from your saved files. <i>Note: The SmartScan process will auto-populate the merchant, date, and amount.</i></li>
    <li>Use the search field to find the desired workspace or an individual’s name, email, or phone number.</li>
@@ -126,7 +126,7 @@ You can also forward receipts to receipts@expensify.com using an email address t
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click the + icon in the bottom left menu and select <b>Submit Expense</b>.</li>
+   <li>Click the + icon in the left-side navigation menu and select <b>Submit Expense</b>.</li>
    <li>Click <b>Manual</b>.</li>
    <li>Enter the amount on the receipt and click <b>Next</b>. <i>Note: Click the currency symbol to select a different currency</i>.</li>
    <li>Use the search field to find the desired workspace or an individual’s name, email, or phone number.</li>
@@ -162,7 +162,7 @@ To enable two-factor authentication,
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click your profile image or icon in the bottom left menu.</li> 
+   <li>Click your profile image or icon in the left-side navigation menu.</li> 
    <li>Click <b>Security</b>.</li> 
    <li>Click <b>Two-factor authentication</b>.</li>
    <li>Save a copy of your backup codes. This step is critical! You will lose access to your account if you cannot use your authenticator app and do not have your recovery codes.</li> 

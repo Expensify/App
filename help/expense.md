@@ -437,7 +437,7 @@ To enable invoicing:
 
 #### [Send Invoice] How do I send an invoice using Expensify?
 To send an invoice:
-1. Press the **+** icon in the bottom left menu and select **Send Invoice**.
+1. Press the **+** icon in the left-side navigation menu and select **Send Invoice**.
 2. Enter the amount due and press **Next**.
 3. Enter the email or phone number of the person who should receive the invoice.
 4. (Optional) Add additional invoice details, including description, date, category, tag, and/or tax.
@@ -634,7 +634,7 @@ To configure NetSuite settings:
 ### Exporting Data
 #### [Export Expenses] How do I export expenses to a CSV file?
 To export your expense data to a CSV file:
-1. Press the **Search** tab in the bottom left menu to view your expenses.
+1. Press the **Search** tab in the left-side navigation menu to view your expenses.
 2. Select the checkbox next to the expenses or reports you wish to export.
 3. Press **# selected** at the top-right and select **Download** to export.
 
@@ -673,8 +673,8 @@ Yes, Expensify Expense offers a free plan with basic features, with advanced pla
 Expensify converts expenses to your preferred currency and supports global reimbursement.
 
 ### Workflow Management
-#### [Delayed Submission and Approvals] If I have delayed submission and an approver, what should I expect with a report?
-When Add Approver is enabled with Delay Submission, expense reports go from Open > Processing > Approved. If delayed submission is disabled, expense reports go from Processing > Approved.
+#### [Delay Submission and Approvals] If I have delay submission and an approver, what should I expect with a report?
+When Add Approver is enabled with Delay Submission, expense reports go from Open > Processing > Approved. If delay submission is disabled, expense reports go from Processing > Approved.
 
 #### Can an employee have more than one approval workflow?
 No, each employee can have only one approval workflow.

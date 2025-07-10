@@ -8,6 +8,8 @@ keywords: [New Expensify, direct feeds, Plaid integration, company cards, credit
 
 Direct feeds in Expensify provide a fast, reliable way to import company card transactions. You can also use Plaid to connect your company card program, giving you even more options to manage your corporate card account directly in Expensify.
 
+**Note:** We also support importing debit card transactions by linking a checking/current account in every Plaid supported region (US, UK, EU, Canada). This is particularly useful in EU regions where credit card accounts are often not available via third-party aggregators like Plaid under open banking regulations, whereas debit card transactions are widely available. You can import both credit and debit card transactions via Plaid in all supported regions.
+
 You can add one **direct** or [**commercial feed**](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) on the **Collect plan**. Upgrade to the **Control plan** to add unlimited company cards.
 
 ---

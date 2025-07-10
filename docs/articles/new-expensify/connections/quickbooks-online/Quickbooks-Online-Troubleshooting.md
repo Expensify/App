@@ -190,12 +190,11 @@ Check the exporter's role in **Workspaces > [Workspace Name] > Accounting > Quic
 
 ## How do I disconnect the QuickBooks Online connection?
 
-1. Click your profile image in the bottom-left menu
-2. Go to **Workspaces**
-3. Select your workspace
-4. Click **Accounting**
-5. Click the **three-dot icon** next to QuickBooks Online and select **Disconnect**
-6. Confirm to disconnect
+1. Go to **Workspaces**
+2. Select your workspace
+3. Click **Accounting**
+4. Click the **three-dot icon** next to QuickBooks Online and select **Disconnect**
+5. Confirm to disconnect
 
 **Note:** This clears all imported options from Expensify
 

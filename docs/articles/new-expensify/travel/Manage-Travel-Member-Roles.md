@@ -7,7 +7,7 @@ Admins can assign roles to different travel members to determine who they can bo
   
 To assign a role to a travel member, 
 
-1. Click the + icon in the bottom left menu and select **Book travel**.
+1. Click the + icon in the left-side navigation menu and select **Book travel**.
 2. Click **Book or manage travel**.
 3. Click the **Program** tab at the top and select **Users**.
 4. Click the name of the member whose role you wish to update.

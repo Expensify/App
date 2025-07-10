@@ -11,7 +11,7 @@ Travel expenses follow the same approval workflow as other expenses. Admins can 
 
 # Set Approval Method
 
-1. Click the + icon in the bottom left menu and select **Book travel**. 
+1. Click the + icon in the left-side navigation menu and select **Book travel**. 
 2. Click **Book or manage travel**. 
 3. Click the **Program** tab at the top and select **Policies**.
 4. Under General, select approval methods for Flights, Hotels, Cars and Rail.
@@ -40,7 +40,24 @@ To decline the booking, click **Decline booking**. Then click **Deny**.
 
 ## Are extended approval windows given for trips booked over the weekend or during company holidays?
 
-No, the approval window will always be 24 hours from when the trip is booked. 
+Hard Approvals: Approval Window Rules
+Approval Required: The approver must take explicit action—either approve or deny the booking.
+
+Time-Sensitive Decision:
+
+If approved within the void window ➝ booking proceeds.
+
+If denied within the void window ➝ ticket is voided.
+
+If no action is taken ➝ auto-void occurs when the void window expires.
+
+Minimum approval window:
+
+48 hours or the full refund window (whichever is shorter).
+
+If refund window > 48h ➝ approval window = 48 hours.
+
+If travel starts in <48h ➝ approval window = until travel starts. 
 
 ## How does Expensify Travel handle approvals when the assigned approver is out of office? 
 

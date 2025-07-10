@@ -94,7 +94,7 @@ To approve a travel request:
 If you need to edit or cancel your travel arrangements, you can do so through the Expensify app:
 
 1. Open the Trip chat in your inbox to review your travel arrangements.
-2. Press your profile image or icon in the bottom left menu.
+2. Press your profile image or icon in the left-side navigation menu.
 3. Scroll down and press **Workspaces** in the left menu.
 4. Select the workspace the travel is booked under.
 5. Tap into the booking to see more details.

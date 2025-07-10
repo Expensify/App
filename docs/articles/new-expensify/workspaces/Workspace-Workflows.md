@@ -41,7 +41,7 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 - You can assign an approver per workspace member.
 - The default approver is the **Workspace Owner**, but any **Workspace Admin** can be selected.
 
-## Delay Submissions
+## Delay Submission
 
 - Controls when expenses are automatically submitted.
 - Choose how frequently expenses are submitted (e.g., daily, weekly).
@@ -62,11 +62,11 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 
 # FAQ
 
-## If I Have Both Delayed Submission and an Approver Enabled, What Happens?
+## If I Have Both Delay Submission and an Approver Enabled, What Happens?
 
 When both **Add Approvals** and **Delay Submission** are enabled, expense reports follow this flow: **Open** → **Processing** → **Approved**
 
-If **Delayed Submission** is turned off:
+If **Delay Submission** is turned off:
 - Reports are submitted immediately and follow this flow: **Processing** → **Approved**
 
 </div>

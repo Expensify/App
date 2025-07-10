@@ -12,7 +12,7 @@ Expensify Travel provides insights into company travel bookings to ensure real-t
 
 To view your analytics, 
 
-1. Click the + icon in the bottom left menu and select **Book travel**.
+1. Click the + icon in the left-side navigation menu and select **Book travel**.
 2. Click **Book Travel**. 
 3. Click the **Analytics** tab at the top of the screen. 
 
