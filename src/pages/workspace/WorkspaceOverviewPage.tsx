@@ -45,7 +45,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {CurrencyList} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -59,7 +60,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const illustrations = useThemeIllustrations();
 
     const backTo = route.params.backTo;
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID,
         canBeMissing: true,
