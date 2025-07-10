@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -29,7 +30,6 @@ import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import useCustomScreenOptions from '../useCustomScreenOptions';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
@@ -86,19 +86,12 @@ function OnboardingModalNavigator() {
 
     const defaultScreenOptions: PlatformStackNavigationOptions = {
         headerShown: false,
-        web: isMobileSafari()
-            ? {
-                  ...customScreenOptions.web,
-                  cardStyle: {
-                      height: '100%',
-                  },
-              }
-            : {
-                  cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                  cardStyle: {
-                      height: '100%',
-                  },
-              },
+        web: {
+            ...(isMobileSafari() ? customScreenOptions.web : {cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}),
+            cardStyle: {
+                height: '100%',
+            },
+        },
     };
 
     return (
