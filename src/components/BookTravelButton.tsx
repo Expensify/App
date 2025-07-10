@@ -9,12 +9,12 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
+import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,7 +70,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
+    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
@@ -128,8 +128,8 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             openTravelDotLink(policy?.id)
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
-                    if (!CONFIG.IS_HYBRID_APP || !hybridApp?.isSingleNewDotEntry) {
+                    // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
+                    if (!CONFIG.IS_HYBRID_APP || !wasNewDotLaunchedJustForTravel) {
                         return;
                     }
 
@@ -167,16 +167,16 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
+        groupPaidPolicies.length,
         travelSettings?.hasAcceptedTerms,
+        travelSettings?.lastTravelSignupRequestTime,
+        isBetaEnabled,
         styles.flexRow,
         styles.link,
         StyleUtils,
         translate,
-        hybridApp?.isSingleNewDotEntry,
+        wasNewDotLaunchedJustForTravel,
         isUserValidated,
-        groupPaidPolicies.length,
-        isBetaEnabled,
-        travelSettings?.lastTravelSignupRequestTime,
     ]);
 
     return (

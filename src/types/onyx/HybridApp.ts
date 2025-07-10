@@ -36,7 +36,7 @@ type HybridApp = {
     /** Holds delegate access information */
     delegateAccessData?: HybridAppDelegateAccessData;
 
-    /** Indicates if the NewDot is being closed */
+    /** Indicates if NewDot is being closed */
     closingReactNativeApp?: boolean;
 };
 

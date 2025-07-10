@@ -49,7 +49,6 @@ import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
-import {setClosingReactNativeApp} from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -595,13 +594,6 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         .catch((error) => {
             Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
         });
-}
-
-function closeReactNativeApp({shouldSignOut, shouldSetNVP}: {shouldSignOut: boolean; shouldSetNVP: boolean}) {
-    if (CONFIG.IS_HYBRID_APP) {
-        setClosingReactNativeApp(true);
-    }
-    HybridAppModule.closeReactNativeApp({shouldSignOut, shouldSetNVP});
 }
 
 /**
@@ -1446,5 +1438,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    closeReactNativeApp,
 };

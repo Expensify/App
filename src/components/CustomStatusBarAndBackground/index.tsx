@@ -1,12 +1,12 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import type {StatusBarStyle} from '@styles/index';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useOnyx} from '../../../__mocks__/react-native-onyx';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -21,9 +21,11 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
+    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.closingReactNativeApp, canBeMissing: true});
 
-    const isDisabled = (!isNested && !isRootStatusBarEnabled) || (hybridApp?.closingReactNativeApp ?? false);
+    // Include `closingReactNativeApp` to disable the StatusBar when switching from HybridApp to OldDot,
+    // preventing unexpected status bar blinking during the transition
+    const isDisabled = (!isNested && !isRootStatusBarEnabled) || closingReactNativeApp;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
