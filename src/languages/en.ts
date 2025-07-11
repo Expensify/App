@@ -1320,6 +1320,7 @@ const translations = {
         },
         receiptPage: {
             header: 'Select receipt',
+            pageTitle: 'Select the receipt you want to keep:',
         },
         detailsPage: {
             header: 'Select details',
