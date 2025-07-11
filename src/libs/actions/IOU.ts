@@ -7764,19 +7764,17 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
         return;
     }
 
-    // STEP 1: Calculate and prepare data for all transactions
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
-    const parameters: DeleteMoneyRequestParams = [];
+    const parameters: DeleteMoneyRequestParams[] = [];
     let finalIouReport: OnyxTypes.Report;
 
-    transactions.forEach(({transactionID, action: reportAction}, index) => {
+    transactions.forEach(({transactionID, action: reportAction}) => {
         if (!transactionID || !reportAction) {
             return;
         }
 
-        // Prepare data for each transaction
         const {
             shouldDeleteTransactionThread,
             shouldDeleteIOUReport,
@@ -7796,7 +7794,6 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
             finalIouReport = updatedIOUReport;
         }
 
-        // STEP 2: Build Onyx data for this transaction
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -7901,10 +7898,10 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
             });
         }
 
-        // Batch updates for report actions and reports
-        const reportActionUpdates: Record<string, OnyxTypes.ReportAction> = {
+        const reportActionUpdates = {
             [reportAction.reportActionID]: updatedReportAction,
         };
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
@@ -8073,22 +8070,19 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
             },
         });
 
-        // Collect parameters for the API call
         parameters.push({
             transactionID,
             reportActionID: reportAction.reportActionID,
         });
     });
 
-    // STEP 3: Make a single API request for all transactions
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
     transactions.forEach(({transactionID}) => {
-        // STEP 4: Clear PDF for each transaction
         if (!transactionID) {
             return;
         }
-        // Clear PDF for this transaction
+
         clearPdfByOnyxKey(transactionID);
     });
 }
@@ -8421,12 +8415,10 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         });
     }
 
-    const parameters = [
-        {
-            transactionID,
-            reportActionID: reportAction.reportActionID,
-        },
-    ];
+    const parameters = {
+        transactionID,
+        reportActionID: reportAction.reportActionID,
+    };
 
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
