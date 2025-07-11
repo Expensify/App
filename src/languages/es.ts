@@ -230,6 +230,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -5668,6 +5669,9 @@ const translations = {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `añadió el impuesto "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `eliminó el impuesto "${taxName}"`,
+        updateTax: ({oldValue, taxName}: UpdatedPolicyTaxParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} el impuesto "${taxName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `eliminó la sugerencia de descripción "${oldValue}" de la categoría "${categoryName}"`;
