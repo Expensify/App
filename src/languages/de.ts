@@ -3310,7 +3310,7 @@ const translations = {
         departs: 'Abfahrten',
         errorMessage: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
         phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
-            `<comment><rbr>Bitte <a href="${phoneErrorMethodsRoute}">fügen Sie eine Arbeits-E-Mail als Ihren primären Login hinzu</a> um Reisen zu buchen.</rbr></comment>`,
+            `<comment><pat>Bitte <a href="${phoneErrorMethodsRoute}" style="text-decoration-line: none;">fügen Sie eine Arbeits-E-Mail als Ihren primären Login hinzu</a> um Reisen zu buchen.</pat></comment>`,
         domainSelector: {
             title: 'Domain',
             subtitle: 'Wählen Sie eine Domain für die Einrichtung von Expensify Travel.',

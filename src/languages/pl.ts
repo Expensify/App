@@ -3323,7 +3323,7 @@ const translations = {
         departs: 'Odjeżdża',
         errorMessage: 'Coś poszło nie tak. Spróbuj ponownie później.',
         phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
-            `<comment><rbr>Proszę <a href="${phoneErrorMethodsRoute}">dodaj służbowy adres e-mail jako swoje główne logowanie</a> zarezerwować podróż.</rbr></comment>`,
+            `<comment><pat>Proszę <a href="${phoneErrorMethodsRoute}" style="text-decoration-line: none;">dodaj służbowy adres e-mail jako swoje główne logowanie</a> zarezerwować podróż.</pat></comment>`,
         domainSelector: {
             title: 'Domena',
             subtitle: 'Wybierz domenę dla konfiguracji Expensify Travel.',
