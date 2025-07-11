@@ -22,9 +22,15 @@ jobs:
 
           - variant: 'Debug'
             is_hybrid_build: true
+
+          - variant: 'Adhoc'
+            is_hybrid_build: true
+            # env_file: 'Mobile-Expensify/.env.adhoc.hybridapp.android'
+            # package_name: 'org.me.mobiexpensifyg'
+
     steps:
       - name: Checkout
-        # v4
+       # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: ${{ matrix.is_hybrid_build || false }}
@@ -35,12 +41,52 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
+      - name: Install 1Password CLI
+        if: matrix.variant == 'Adhoc'
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+
+      - name: Load files from 1Password
+        if: matrix.variant == 'Adhoc'
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+
+          cp ./upload-key.keystore Mobile-Expensify/Android
+
+      - name: Load Android upload keystore credentials from 1Password
+        if: matrix.variant == 'Adhoc'
+        id: load-credentials
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+
+      - name: Verify keystore
+        if: matrix.variant == 'Adhoc'
+        run: |
+          if [ ! -f "Mobile-Expensify/Android/upload-key.keystore" ]; then
+            echo "Keystore file not found"
+            exit 1
+          fi
+
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@2f67a7003e5ed1bb4e483619ab582fabff25677d
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
+          # ENVFILE: ${{ matrix.variant == 'Adhoc' && matrix.env_file || '' }}
+          # ANDROID_PACKAGE_NAME: ${{ matrix.package_name }}
         with:
           variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
-          rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
+          sign: ${{ matrix.variant == 'Adhoc' && 'true' || 'false' }}
+          keystore-base64: ${{ matrix.variant == 'Adhoc' && 'Mobile-Expensify/Android/upload-key.keystore' || '' }}
+          keystore-store-file: ${{ matrix.variant == 'Adhoc' && 'upload-key.keystore' || '' }}
+          keystore-store-password: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD || '' }}
+          keystore-key-alias: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS || '' }}
+          keystore-key-password: ${{ matrix.variant == 'Adhoc' && steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD || '' }}

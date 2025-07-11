@@ -24,6 +24,12 @@ jobs:
           - scheme: 'Expensify Dev'
             configuration: 'Debug'
             is_hybrid_build: true
+
+          - scheme: 'Expensify AdHoc'
+            configuration: 'DebugAdHoc'
+            # configuration: 'ReleaseAdHoc'
+            is_hybrid_build: true
+
     steps:
       - name: Checkout
         # v4
@@ -37,13 +43,48 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
+      - name: Load files from 1Password
+        if: matrix.scheme == 'Expensify AdHoc'
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+
+      - name: Load certificate and convert to base64
+        if: matrix.scheme == 'Expensify AdHoc'
+        id: load-certificate
+        run: |
+          echo "certificate-base64=$(base64 -i ./Certificates.p12)" >> "$GITHUB_OUTPUT"
+
+      - name: Load provisioning profile and convert to base64
+        if: matrix.scheme == 'Expensify AdHoc'
+        id: load-provisioning-profile
+        run: |
+          echo "profile-base64=$(base64 -i ./OldApp_AdHoc.mobileprovision)" >> "$GITHUB_OUTPUT"
+
       - name: RNEF Remote Build - iOS
         uses: callstackincubator/ios@78ed46313dac4ed09cb5cc73b9b1b9193d59d863
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           destination: simulator
+          # destination: device
+          github-token: ${{ github.token }}
           scheme: ${{ matrix.scheme }}
           configuration: ${{ matrix.configuration }}
-          github-token: ${{ github.token }}
           comment-bot: false
+          #For adhoc
+          certificate-base64: ${{ matrix.scheme == 'Expensify AdHoc' && steps.load-certificate.outputs.certificate-base64 || '' }}
+          # Not sure if we have in the secres on gh
+          certificate-password: ${{ matrix.scheme == 'Expensify AdHoc' && secrets.CERTIFICATE_PASSWORD || '' }}
+          # Not sure if we have in the secres on gh
+          keychain-password: ${{ matrix.scheme == 'Expensify AdHoc' && secrets.KEYCHAIN_PASSWORD || '' }}
+          provisioning-profile-base64: ${{ matrix.scheme == 'Expensify AdHoc' && steps.load-provisioning-profile.outputs.profile-base64 || '' }}
+          provisioning-profile-name: ${{ matrix.scheme == 'Expensify AdHoc' && '(OldApp) AdHoc' || '' }}
+          # We miss args for Share_Extension.mobileprovision and Notification_Service.mobileprovision, so I am adding them with rnef-build-extra-params. NO IDEA IF THAT WILL WORK :D Maybe we will need to covert to base64
+          rnef-build-extra-params: ${{ matrix.scheme == 'Expensify AdHoc' && '"share-extension-profile=./OldApp_AdHoc_Share_Extension.mobileprovision notification-service-profile=./OldApp_AdHoc_Notification_Service.mobileprovision"' || '' }}
+
+          
