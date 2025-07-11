@@ -4,556 +4,410 @@ import {globSync} from 'glob';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-interface StyleDefinition {
+type StyleDefinition = {
     key: string;
     file: string;
     line: number;
     column: number;
-    exportName?: string;
-    parentObject?: string; // Track which object this property belongs to
-}
+};
 
-interface ImportInfo {
-    localName: string;
-    importedName: string;
-    modulePath: string;
-}
+// Static patterns and constants - created once
+const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx,js,jsx}';
+const EXCLUDED_STYLE_DIRECTORIES = ['src/styles/utils/', 'src/styles/generators/', 'src/styles/theme/'];
+const VALID_IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+const SPREAD_PROPERTY_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+const STYLE_KEY_SKIP_PATTERNS = ['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet'];
 
-interface ObjectUsage {
-    objectName: string;
-    file: string;
-    usageType: 'spread' | 'property-access' | 'destructuring' | 'full-object';
-}
+// Comment removal patterns
+const SINGLE_LINE_COMMENT_PATTERN = /\/\/.*$/gm;
+const MULTI_LINE_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
 
-class UnusedStylesFinder {
+class ComprehensiveStylesFinder {
+    private rootDir: string;
+
     private styleDefinitions = new Map<string, StyleDefinition>();
-    private styleUsages = new Set<string>();
-    private objectUsages = new Set<string>(); // Track when entire objects are used
-    private program: ts.Program;
-    private fileImports = new Map<string, ImportInfo[]>();
-    private exportedObjects = new Map<string, Set<string>>();
-    private fileToExportMap = new Map<string, string>(); // Map file paths to their main export names
 
-    constructor(private rootDir: string) {
-        const configPath = ts.findConfigFile(rootDir, ts.sys.fileExists, 'tsconfig.json');
-        if (!configPath) {
-            throw new Error('Could not find tsconfig.json');
-        }
+    private fileContents = new Map<string, string>();
 
-        const config = ts.readConfigFile(configPath, ts.sys.readFile);
-        const parsedConfig = ts.parseJsonConfigFileContent(config.config, ts.sys, rootDir);
-
-        this.program = ts.createProgram(parsedConfig.fileNames, parsedConfig.options);
+    constructor(rootDir: string) {
+        this.rootDir = rootDir;
     }
 
-    async findUnusedStyles(): Promise<StyleDefinition[]> {
-        console.log('🔍 Step 1: Scanning for style definitions...');
-        await this.findStyleDefinitions();
+    findUnusedStyles(): StyleDefinition[] {
+        console.log('🔍 Step 1: Finding all style definitions...');
+        this.findAllStyleDefinitions();
+        console.log(`📊 Found ${this.styleDefinitions.size} style definitions`);
 
-        console.log(`Found ${this.styleDefinitions.size} style definitions`);
-        console.log('🔍 Step 2: Analyzing imports and exports...');
-        await this.analyzeImportsAndExports();
+        console.log('🔍 Step 2: Loading all file contents...');
+        this.loadAllFileContents();
 
-        console.log('🔍 Step 3: Scanning for style usages...');
-        await this.findStyleUsages();
+        console.log('🔍 Step 3: Comprehensive style usage analysis...');
+        this.findStyleUsagesComprehensive();
 
-        console.log(`Found ${this.styleUsages.size} direct style usages`);
-        console.log(`Found ${this.objectUsages.size} object-level usages`);
-        console.log('🔍 Step 4: Resolving object usages...');
-        this.resolveObjectUsages();
-
-        console.log('📊 Analyzing results...');
+        console.log('📊 Step 4: Identifying unused styles...');
         return this.getUnusedStyles();
     }
 
-    private async findStyleDefinitions(): Promise<void> {
-        const styleFiles = globSync('src/styles/**/*.{ts,tsx,js,jsx}', {
+    private findAllStyleDefinitions(): void {
+        const styleFilesPaths = `src/styles/${STYLE_FILE_EXTENSIONS}`;
+        const styleFiles = globSync(styleFilesPaths, {
             cwd: this.rootDir,
-        }) as string[];
+        });
 
-        console.log(`Scanning ${styleFiles.length} style files...`);
+        // Filter out utils, generators, and themes - focus only on main style files
+        const mainStyleFiles = styleFiles.filter((file) => {
+            return !EXCLUDED_STYLE_DIRECTORIES.some((dir) => file.includes(dir));
+        });
 
-        for (const file of styleFiles) {
+        console.log(`Scanning ${mainStyleFiles.length} main style files (excluding ${styleFiles.length - mainStyleFiles.length} utils/generators/themes)...`);
+
+        for (const file of mainStyleFiles) {
             const fullPath = path.join(this.rootDir, file);
-
             try {
                 const fileContent = fs.readFileSync(fullPath, 'utf8');
                 const sourceFile = ts.createSourceFile(fullPath, fileContent, ts.ScriptTarget.Latest, true);
-
-                this.visitNodeForStyles(sourceFile, file, sourceFile);
+                this.extractStyleKeysFromFile(sourceFile, file);
             } catch (error) {
                 console.warn(`Warning: Could not read style file ${file}:`, error);
             }
         }
     }
 
-    private visitNodeForStyles(node: ts.Node, file: string, sourceFile: ts.SourceFile): void {
-        // Look for variable declarations
-        if (ts.isVariableDeclaration(node) && node.initializer) {
-            const varName = ts.isIdentifier(node.name) ? node.name.text : undefined;
+    private extractStyleKeysFromFile(sourceFile: ts.SourceFile, file: string): void {
+        const visit = (node: ts.Node) => {
+            // For styles/index.ts, only process styles that are inside the main styles function
+            if (file === 'src/styles/index.ts') {
+                // Look for the main styles function (arrow function assigned to 'styles' variable)
+                if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'styles' && node.initializer && ts.isArrowFunction(node.initializer)) {
+                    // Process only the body of the styles function
+                    if (node.initializer.body) {
+                        let returnObject: ts.Expression | undefined;
 
-            if (ts.isObjectLiteralExpression(node.initializer)) {
-                this.extractStylesFromObject(node.initializer, file, sourceFile, varName, varName);
+                        if (ts.isParenthesizedExpression(node.initializer.body)) {
+                            returnObject = node.initializer.body.expression;
+                        } else if (ts.isObjectLiteralExpression(node.initializer.body)) {
+                            returnObject = node.initializer.body;
+                        } else if (ts.isSatisfiesExpression(node.initializer.body)) {
+                            const satisfiesExpr = node.initializer.body.expression;
 
-                // Map this file to its main export
-                if (varName) {
-                    this.fileToExportMap.set(file, varName);
-                }
-            }
+                            if (ts.isParenthesizedExpression(satisfiesExpr)) {
+                                returnObject = satisfiesExpr.expression;
+                            } else {
+                                returnObject = satisfiesExpr;
+                            }
+                        }
 
-            // Handle function calls that return objects (like functions that generate styles)
-            if (ts.isCallExpression(node.initializer)) {
-                if (varName) {
-                    this.fileToExportMap.set(file, varName);
-                }
-            }
-        }
-
-        // Look for default exports
-        if (ts.isExportAssignment(node)) {
-            if (ts.isObjectLiteralExpression(node.expression)) {
-                this.extractStylesFromObject(node.expression, file, sourceFile, 'default', 'default');
-                this.fileToExportMap.set(file, 'default');
-            }
-
-            if (ts.isIdentifier(node.expression)) {
-                this.fileToExportMap.set(file, node.expression.text);
-            }
-        }
-
-        // Look for StyleSheet.create calls
-        if (ts.isCallExpression(node)) {
-            if (ts.isPropertyAccessExpression(node.expression)) {
-                const obj = node.expression.expression;
-                const method = node.expression.name;
-
-                if (ts.isIdentifier(obj) && ts.isIdentifier(method)) {
-                    if (obj.text === 'StyleSheet' && method.text === 'create') {
-                        if (node.arguments.length > 0 && ts.isObjectLiteralExpression(node.arguments[0])) {
-                            this.extractStylesFromObject(node.arguments[0], file, sourceFile);
+                        if (returnObject && ts.isObjectLiteralExpression(returnObject)) {
+                            // Process each property in the returned object
+                            this.processObjectProperties(returnObject, sourceFile, file);
                         }
                     }
-                }
-            }
-        }
-
-        ts.forEachChild(node, (child) => this.visitNodeForStyles(child, file, sourceFile));
-    }
-
-    private extractStylesFromObject(obj: ts.ObjectLiteralExpression, file: string, sourceFile: ts.SourceFile, exportName?: string, parentObject?: string): void {
-        obj.properties.forEach((prop) => {
-            if (ts.isPropertyAssignment(prop)) {
-                let key: string | undefined;
-
-                if (ts.isIdentifier(prop.name)) {
-                    key = prop.name.text;
-                } else if (ts.isStringLiteral(prop.name)) {
-                    key = prop.name.text;
+                    return; // Don't continue traversing for styles function
                 }
 
-                if (key) {
-                    try {
-                        const {line, character} = sourceFile.getLineAndCharacterOfPosition(prop.getStart());
-
-                        this.styleDefinitions.set(key, {
-                            key,
-                            file,
-                            line: line + 1,
-                            column: character + 1,
-                            exportName,
-                            parentObject,
-                        });
-                    } catch (error) {
-                        console.warn(`Warning: Could not get position for style '${key}' in ${file}`);
-                        this.styleDefinitions.set(key, {
-                            key,
-                            file,
-                            line: 0,
-                            column: 0,
-                            exportName,
-                            parentObject,
-                        });
-                    }
+                // Skip processing top-level constants and other functions for styles/index.ts
+                if (ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node)) {
+                    return;
                 }
-            }
-
-            if (ts.isMethodDeclaration(prop) && ts.isIdentifier(prop.name)) {
-                const key = prop.name.text;
-                try {
-                    const {line, character} = sourceFile.getLineAndCharacterOfPosition(prop.getStart());
-
-                    this.styleDefinitions.set(key, {
-                        key,
-                        file,
-                        line: line + 1,
-                        column: character + 1,
-                        exportName,
-                        parentObject,
-                    });
-                } catch (error) {
-                    console.warn(`Warning: Could not get position for method style '${key}' in ${file}`);
-                    this.styleDefinitions.set(key, {
-                        key,
-                        file,
-                        line: 0,
-                        column: 0,
-                        exportName,
-                        parentObject,
-                    });
-                }
-            }
-        });
-    }
-
-    private async analyzeImportsAndExports(): Promise<void> {
-        const allFiles = globSync('src/**/*.{ts,tsx,js,jsx}', {
-            cwd: this.rootDir,
-        });
-
-        for (const file of allFiles) {
-            const fullPath = path.join(this.rootDir, file);
-
-            try {
-                const fileContent = fs.readFileSync(fullPath, 'utf8');
-                const sourceFile = ts.createSourceFile(fullPath, fileContent, ts.ScriptTarget.Latest, true);
-
-                this.analyzeFileImportsExports(sourceFile, file);
-            } catch (error) {
-                console.warn(`Warning: Could not analyze imports/exports for ${file}:`, error);
-            }
-        }
-    }
-
-    private analyzeFileImportsExports(sourceFile: ts.SourceFile, file: string): void {
-        const imports: ImportInfo[] = [];
-        const exports = new Set<string>();
-
-        const visit = (node: ts.Node) => {
-            if (ts.isImportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-                const modulePath = node.moduleSpecifier.text;
-
-                if (node.importClause) {
-                    if (node.importClause.name && ts.isIdentifier(node.importClause.name)) {
-                        imports.push({
-                            localName: node.importClause.name.text,
-                            importedName: 'default',
-                            modulePath,
-                        });
-                    }
-
-                    if (node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
-                        node.importClause.namedBindings.elements.forEach((element) => {
-                            if (ts.isIdentifier(element.name)) {
-                                const importedName = element.propertyName ? element.propertyName.text : element.name.text;
-                                imports.push({
-                                    localName: element.name.text,
-                                    importedName,
-                                    modulePath,
-                                });
-                            }
-                        });
-                    }
-
-                    if (node.importClause.namedBindings && ts.isNamespaceImport(node.importClause.namedBindings)) {
-                        imports.push({
-                            localName: node.importClause.namedBindings.name.text,
-                            importedName: '*',
-                            modulePath,
-                        });
-                    }
-                }
+            } else {
+                // For other files, process all style-like nodes normally
+                this.processStyleNode(node, sourceFile, file);
             }
 
             ts.forEachChild(node, visit);
         };
 
         visit(sourceFile);
-
-        this.fileImports.set(file, imports);
-        this.exportedObjects.set(file, exports);
     }
 
-    private async findStyleUsages(): Promise<void> {
-        const sourceFiles = globSync('src/**/*.{ts,tsx,js,jsx}', {
+    private processObjectProperties(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): void {
+        for (const property of objectLiteral.properties) {
+            if (ts.isPropertyAssignment(property) || ts.isMethodDeclaration(property)) {
+                const key = this.extractKeyFromPropertyNode(property);
+
+                if (key && this.isStyleKey(key)) {
+                    try {
+                        let shouldCapture = false;
+                        if (ts.isPropertyAssignment(property)) {
+                            // For PropertyAssignment, check if the value is an object literal
+                            if (ts.isObjectLiteralExpression(property.initializer)) {
+                                shouldCapture = true;
+                            }
+                        } else if (ts.isMethodDeclaration(property)) {
+                            // For MethodDeclaration, it's a function that returns styles
+                            shouldCapture = true;
+                        }
+
+                        if (shouldCapture) {
+                            const {line, character} = sourceFile.getLineAndCharacterOfPosition(property.getStart());
+                            this.styleDefinitions.set(key, {
+                                key,
+                                file,
+                                line: line + 1,
+                                column: character + 1,
+                            });
+                        }
+                    } catch (error) {
+                        console.warn(`Warning: Could not get position for style '${key}' in ${file}`);
+                    }
+                }
+            }
+        }
+    }
+
+    private extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDeclaration): string | undefined {
+        if (ts.isPropertyAssignment(node)) {
+            if (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name)) {
+                return node.name.text;
+            }
+        } else if (ts.isMethodDeclaration(node) && ts.isIdentifier(node.name)) {
+            return node.name.text;
+        }
+        return undefined;
+    }
+
+    private processStyleNode(node: ts.Node, sourceFile: ts.SourceFile, file: string): void {
+        // Look for object literal properties (style definitions)
+        if (ts.isPropertyAssignment(node) || ts.isMethodDeclaration(node)) {
+            const key = this.extractKeyFromPropertyNode(node);
+
+            if (key && this.isStyleKey(key)) {
+                try {
+                    let shouldCapture = false;
+                    if (ts.isPropertyAssignment(node)) {
+                        // For PropertyAssignment, check if the value is an object literal
+                        if (ts.isObjectLiteralExpression(node.initializer)) {
+                            shouldCapture = true;
+                        }
+                    } else if (ts.isMethodDeclaration(node)) {
+                        // For MethodDeclaration, it's a function that returns styles
+                        shouldCapture = true;
+                    }
+
+                    if (shouldCapture) {
+                        const {line, character} = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+                        this.styleDefinitions.set(key, {
+                            key,
+                            file,
+                            line: line + 1,
+                            column: character + 1,
+                        });
+                    }
+                } catch (error) {
+                    console.warn(`Warning: Could not get position for style '${key}' in ${file}`);
+                }
+            }
+        }
+
+        // Also look for variable declarations that might be styles
+        if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
+            const key = node.name.text;
+            if (this.isStyleKey(key)) {
+                try {
+                    const {line, character} = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+                    this.styleDefinitions.set(key, {
+                        key,
+                        file,
+                        line: line + 1,
+                        column: character + 1,
+                    });
+                } catch (error) {
+                    console.warn(`Warning: Could not get position for style '${key}' in ${file}`);
+                }
+            }
+        }
+    }
+
+    private isStyleKey(key: string): boolean {
+        // Skip certain patterns that are likely not style keys
+        if (STYLE_KEY_SKIP_PATTERNS.includes(key)) {
+            return false;
+        }
+
+        // Must be a valid identifier
+        if (!VALID_IDENTIFIER_PATTERN.test(key)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private loadAllFileContents(): void {
+        // Load all source files EXCEPT style definition files
+        const allFilesPaths = `src/**/${STYLE_FILE_EXTENSIONS}`;
+        const allFiles = globSync(allFilesPaths, {
             cwd: this.rootDir,
         });
 
-        console.log(`Scanning ${sourceFiles.length} source files for style usages...`);
+        // Filter out style definition files, BUT keep utils/generators/themes for usage checking
+        const sourceFiles = allFiles.filter((file) => {
+            // Keep utils/generators/themes to check for main style usage
+            if (EXCLUDED_STYLE_DIRECTORIES.some((dir) => file.includes(dir))) {
+                return true;
+            }
+            // Exclude other style definition files (like index.ts itself)
+            return !file.includes('src/styles/');
+        });
+
+        console.log(`Loading ${sourceFiles.length} source files (including utils/generators/themes for usage checking)...`);
 
         for (const file of sourceFiles) {
             const fullPath = path.join(this.rootDir, file);
-
             try {
                 const fileContent = fs.readFileSync(fullPath, 'utf8');
-                const sourceFile = ts.createSourceFile(fullPath, fileContent, ts.ScriptTarget.Latest, true);
-
-                this.visitNodeForUsages(sourceFile, file);
+                this.fileContents.set(file, fileContent);
             } catch (error) {
                 console.warn(`Warning: Could not read source file ${file}:`, error);
             }
         }
     }
 
-    private visitNodeForUsages(node: ts.Node, currentFile: string): void {
-        const fileImports = this.fileImports.get(currentFile) || [];
+    private findStyleUsagesComprehensive(): void {
+        const allFiles = Array.from(this.fileContents.entries());
+        console.log(`Analyzing usage patterns for ${this.styleDefinitions.size} style keys across ${allFiles.length} files...`);
 
-        // Look for property access expressions
-        if (ts.isPropertyAccessExpression(node)) {
-            if (ts.isIdentifier(node.expression) && ts.isIdentifier(node.name)) {
-                const objName = node.expression.text;
-                const propertyName = node.name.text;
+        let processedFiles = 0;
+        for (const [file, content] of allFiles) {
+            this.analyzeFileForStyleUsage(file, content);
+            processedFiles++;
 
-                const importInfo = fileImports.find((imp) => imp.localName === objName);
-                if (importInfo) {
-                    this.styleUsages.add(propertyName);
-
-                    // If this is a nested access like FontUtils.fontFamily.platform.SYSTEM
-                    // Mark the top-level property as used
-                    this.checkForNestedPropertyAccess(node, importInfo, currentFile);
-                } else if (this.isStyleObjectName(objName)) {
-                    this.styleUsages.add(propertyName);
-                }
-            }
-        }
-
-        // Look for bracket notation
-        if (ts.isElementAccessExpression(node)) {
-            if (ts.isIdentifier(node.expression)) {
-                const objName = node.expression.text;
-
-                if (ts.isStringLiteral(node.argumentExpression)) {
-                    const propertyName = node.argumentExpression.text;
-
-                    const importInfo = fileImports.find((imp) => imp.localName === objName);
-                    if (importInfo) {
-                        this.styleUsages.add(propertyName);
-                    } else if (this.isStyleObjectName(objName)) {
-                        this.styleUsages.add(propertyName);
-                    }
-                }
-            }
-        }
-
-        // Look for destructuring
-        if (ts.isVariableDeclaration(node) && node.initializer) {
-            if (ts.isIdentifier(node.initializer)) {
-                const initName = node.initializer.text;
-
-                const importInfo = fileImports.find((imp) => imp.localName === initName);
-                if (importInfo || this.isStyleObjectName(initName)) {
-                    if (node.name && ts.isObjectBindingPattern(node.name)) {
-                        node.name.elements.forEach((element) => {
-                            if (ts.isBindingElement(element) && ts.isIdentifier(element.name)) {
-                                this.styleUsages.add(element.name.text);
-                            }
-                        });
-                    }
-                }
-            }
-        }
-
-        // Look for object spread - THIS IS KEY FOR YOUR ISSUE
-        if (ts.isSpreadAssignment(node)) {
-            if (ts.isIdentifier(node.expression)) {
-                const objName = node.expression.text;
-
-                const importInfo = fileImports.find((imp) => imp.localName === objName);
-                if (importInfo) {
-                    // Mark this entire object as used via spread
-                    this.objectUsages.add(objName);
-                    console.log(`🔍 Object spread detected: ${objName} from ${importInfo.modulePath}`);
-                } else if (this.isStyleObjectName(objName)) {
-                    this.objectUsages.add(objName);
-                }
-            }
-        }
-
-        // Look for spread in object literals like {...chatContentScrollViewPlatformStyles}
-        if (ts.isObjectLiteralExpression(node)) {
-            node.properties.forEach((prop) => {
-                if (ts.isSpreadAssignment(prop) && ts.isIdentifier(prop.expression)) {
-                    const objName = prop.expression.text;
-                    const importInfo = fileImports.find((imp) => imp.localName === objName);
-                    if (importInfo) {
-                        this.objectUsages.add(objName);
-                        console.log(`🔍 Object spread in literal detected: ${objName}`);
-                    }
-                }
-            });
-        }
-
-        // Look for template literals
-        if (ts.isTemplateExpression(node)) {
-            node.templateSpans.forEach((span) => {
-                if (ts.isPropertyAccessExpression(span.expression)) {
-                    if (ts.isIdentifier(span.expression.expression) && ts.isIdentifier(span.expression.name)) {
-                        const objName = span.expression.expression.text;
-                        const propertyName = span.expression.name.text;
-
-                        const importInfo = fileImports.find((imp) => imp.localName === objName);
-                        if (importInfo || this.isStyleObjectName(objName)) {
-                            this.styleUsages.add(propertyName);
-                        }
-                    }
-                }
-            });
-        }
-
-        // Look for function calls with style arguments
-        if (ts.isCallExpression(node)) {
-            node.arguments.forEach((arg) => {
-                if (ts.isPropertyAccessExpression(arg)) {
-                    if (ts.isIdentifier(arg.expression) && ts.isIdentifier(arg.name)) {
-                        const objName = arg.expression.text;
-                        const propertyName = arg.name.text;
-
-                        const importInfo = fileImports.find((imp) => imp.localName === objName);
-                        if (importInfo || this.isStyleObjectName(objName)) {
-                            this.styleUsages.add(propertyName);
-                        }
-                    }
-                }
-
-                // Handle spread arguments like fn(...styles)
-                if (ts.isSpreadElement(arg) && ts.isIdentifier(arg.expression)) {
-                    const objName = arg.expression.text;
-                    const importInfo = fileImports.find((imp) => imp.localName === objName);
-                    if (importInfo) {
-                        this.objectUsages.add(objName);
-                    }
-                }
-            });
-        }
-
-        ts.forEachChild(node, (child) => this.visitNodeForUsages(child, currentFile));
-    }
-
-    private checkForNestedPropertyAccess(node: ts.PropertyAccessExpression, importInfo: ImportInfo, currentFile: string): void {
-        // For patterns like FontUtils.fontFamily.platform.SYSTEM
-        // We want to mark SYSTEM as used since the chain leads to it
-        let current = node;
-        const accessChain: string[] = [];
-
-        while (ts.isPropertyAccessExpression(current)) {
-            if (ts.isIdentifier(current.name)) {
-                accessChain.unshift(current.name.text);
-            }
-
-            if (ts.isIdentifier(current.expression)) {
-                accessChain.unshift(current.expression.text);
-                break;
-            } else if (ts.isPropertyAccessExpression(current.expression)) {
-                current = current.expression;
-            } else {
+            // Early termination: if all styles are found, stop processing
+            if (this.styleDefinitions.size === 0) {
+                console.log(`  ✅ All styles found as used! Stopping early after ${processedFiles} files.`);
                 break;
             }
+
+            // Show progress every 100 files
+            if (processedFiles % 100 === 0) {
+                console.log(`  ${this.styleDefinitions.size} styles remaining...`);
+            }
         }
 
-        // If we have a chain like FontUtils.fontFamily.platform.SYSTEM
-        // Mark 'SYSTEM' as used
-        if (accessChain.length > 2) {
-            const finalProperty = accessChain[accessChain.length - 1];
-            this.styleUsages.add(finalProperty);
-            console.log(`🔍 Nested property access: ${accessChain.join('.')} -> marking '${finalProperty}' as used`);
-        }
+        console.log(`  Completed analysis.`);
     }
 
-    private resolveObjectUsages(): void {
-        // When an object is used via spread or as a whole, mark all its properties as used
-        const fileImports = Array.from(this.fileImports.values()).flat();
+    private analyzeFileForStyleUsage(file: string, content: string): void {
+        // Remove comments to avoid false positives
+        const cleanContent = this.removeComments(content);
 
-        for (const usedObject of this.objectUsages) {
-            console.log(`🔍 Resolving usage for object: ${usedObject}`);
+        // Check for specific spread patterns and mark only relevant styles
+        this.checkSpecificSpreadUsage(cleanContent);
 
-            // Find the import info for this object
-            const importInfo = fileImports.find((imp) => imp.localName === usedObject);
-            if (importInfo) {
-                // Find the file that exports this object
-                const exportingFile = this.resolveModulePath(importInfo.modulePath);
-                if (exportingFile) {
-                    // Mark all properties from that file as used
-                    for (const [key, definition] of this.styleDefinitions) {
-                        if (definition.file === exportingFile) {
-                            this.styleUsages.add(key);
-                            console.log(`  ✅ Marking '${key}' as used (from spread/object usage)`);
-                        }
-                    }
-                }
+        // Now check individual style usage patterns - iterate over current definitions
+        const keysToCheck = Array.from(this.styleDefinitions.keys());
+        for (const key of keysToCheck) {
+            if (this.isStyleUsedInContent(key, cleanContent)) {
+                // Remove the key from definitions since it's used
+                this.styleDefinitions.delete(key);
             }
         }
     }
 
-    private resolveModulePath(modulePath: string): string | undefined {
-        // Convert relative import path to actual file path
-        if (modulePath.startsWith('./') || modulePath.startsWith('../')) {
-            // Handle relative paths
-            const resolvedPath = path.normalize(modulePath);
-            const possibleExtensions = ['.ts', '.tsx', '.js', '.jsx', '/index.ts', '/index.tsx'];
+    private removeComments(content: string): string {
+        // Remove single-line comments
+        let cleanContent = content.replace(SINGLE_LINE_COMMENT_PATTERN, '');
 
-            for (const ext of possibleExtensions) {
-                const fullPath = `src/styles/${resolvedPath}${ext}`;
-                if (this.fileToExportMap.has(fullPath)) {
-                    return fullPath;
-                }
-            }
-        }
+        // Remove multi-line comments
+        cleanContent = cleanContent.replace(MULTI_LINE_COMMENT_PATTERN, '');
 
-        // Try direct mapping
-        return this.fileToExportMap.has(modulePath) ? modulePath : undefined;
+        return cleanContent;
     }
 
-    private isStyleObjectName(name: string): boolean {
-        const stylePatterns = [
-            'styles',
-            'theme',
-            'themeStyles',
-            'defaultStyles',
-            'componentStyles',
-            'colors',
-            'fontUtils',
-            'modalStyle',
-            'chatContentScrollViewPlatformStyles',
-            'overflowXHidden',
-            'defaultInsets',
+    private checkSpecificSpreadUsage(content: string): void {
+        // Look for specific property spreads like ...positioning.pFixed
+        const specificMatches = content.matchAll(SPREAD_PROPERTY_PATTERN);
+        for (const match of specificMatches) {
+            const objectName = match[1]; // e.g., "text", "positioning", "colors"
+            const propertyName = match[2]; // e.g., "textMatch", "pFixed", "primary"
+
+            // Mark BOTH the object name and property name as used by removing from definitions
+            if (this.styleDefinitions.has(objectName)) {
+                this.styleDefinitions.delete(objectName);
+            }
+
+            if (this.styleDefinitions.has(propertyName)) {
+                this.styleDefinitions.delete(propertyName);
+            }
+        }
+    }
+
+    private isStyleUsedInContent(key: string, content: string): boolean {
+        // Fast check: if the key doesn't appear at all in the content, it's not used
+        if (!content.includes(key)) {
+            return false;
+        }
+
+        // Most common usage patterns - check these first for performance
+        const commonPatterns = [
+            // Direct property access (90% of cases)
+            new RegExp(`\\w+\\.${key}\\b`, 'g'), // styles.key, theme.key, etc.
+
+            // Destructuring (common in React)
+            new RegExp(`\\{[^}]*\\b${key}\\b[^}]*\\}`, 'g'), // {key} or {other, key}
+
+            // Object key access
+            new RegExp(`\\[['"\`]${key}['"\`]\\]`, 'g'), // ['key'] or ["key"]
+
+            // Object property definition
+            new RegExp(`\\b${key}\\s*:`, 'g'), // key: value
+
+            // Import/export
+            new RegExp(`(import|export)\\s+.*\\b${key}\\b`, 'g'),
         ];
 
-        return stylePatterns.some(
-            (pattern) =>
-                name === pattern ||
-                name.toLowerCase().includes('style') ||
-                name.toLowerCase().includes('theme') ||
-                name.toLowerCase().includes('color') ||
-                name.toLowerCase().includes('font'),
-        );
+        // Test common patterns first
+        for (const pattern of commonPatterns) {
+            if (pattern.test(content)) {
+                return true;
+            }
+        }
+
+        // Less common patterns (only check if not found above)
+        const rarePatterns = [
+            // Function calls
+            new RegExp(`\\b${key}\\s*\\(`, 'g'), // key(...)
+
+            // Assignments and conditionals
+            new RegExp(`[=?&|]\\s*${key}\\b`, 'g'), // = key, ? key, && key, || key
+            new RegExp(`\\b${key}\\s*[?&|=]`, 'g'), // key =, key ?, key &&, key ||
+
+            // Template literals
+            new RegExp(`\\\`[^\\\`]*\\$\\{[^}]*${key}[^}]*\\}[^\\\`]*\\\``, 'g'),
+
+            // Array/function parameters
+            new RegExp(`[\\[\\(,]\\s*${key}\\s*[\\]\\),]`, 'g'),
+        ];
+
+        for (const pattern of rarePatterns) {
+            if (pattern.test(content)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private getUnusedStyles(): StyleDefinition[] {
-        const unused: StyleDefinition[] = [];
-
-        for (const [key, definition] of this.styleDefinitions) {
-            if (!this.styleUsages.has(key)) {
-                unused.push(definition);
-            }
-        }
-
+        // Whatever remains in styleDefinitions are the unused styles
+        const unused = Array.from(this.styleDefinitions.values());
         return unused.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
     }
 }
 
 // CLI interface
-async function main() {
+function main() {
     const rootDir = process.cwd();
 
     try {
-        const finder = new UnusedStylesFinder(rootDir);
-        const unusedStyles = await finder.findUnusedStyles();
+        const finder = new ComprehensiveStylesFinder(rootDir);
+        const unusedStyles = finder.findUnusedStyles();
 
         if (unusedStyles.length === 0) {
             console.log('✅ No unused styles found!');
             process.exit(0);
         }
 
-        console.log(`❌ Found ${unusedStyles.length} unused styles:`);
+        console.log(`Found ${unusedStyles.length} unused styles:`);
         console.log('');
 
         const groupedByFile: Record<string, StyleDefinition[]> = {};
@@ -567,11 +421,7 @@ async function main() {
         for (const [file, styles] of Object.entries(groupedByFile)) {
             console.log(`📁 ${file}:`);
             for (const style of styles) {
-                if (style.line > 0) {
-                    console.log(`  - ${style.key} (line ${style.line}:${style.column})`);
-                } else {
-                    console.log(`  - ${style.key}`);
-                }
+                console.log(`  - ${style.key} (line ${style.line}:${style.column})`);
             }
             console.log('');
         }
