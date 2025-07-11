@@ -845,6 +845,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         style={screenWrapperStyle}
                         shouldEnableKeyboardAvoidingView={false}
                         testID={`report-screen-${reportID}`}
+                        includeSafeAreaPaddingBottom={false}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}

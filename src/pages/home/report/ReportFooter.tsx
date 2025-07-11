@@ -199,7 +199,7 @@ function ReportFooter({
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            transform: [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() + unmodifiedPaddingBottom : 0}],
+            transform: [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}],
         };
     });
 
