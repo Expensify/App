@@ -1,5 +1,7 @@
+import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -224,6 +226,45 @@ function SidebarOrderedReportsContextProvider({
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
 
+    const currentDeps = {
+        priorityMode,
+        chatReports,
+        policies,
+        transactions,
+        transactionViolations,
+        reportNameValuePairs,
+        betas,
+        reportAttributes,
+        currentReportsToDisplay,
+        shouldUseNarrowLayout,
+        accountID,
+        currentReportIDValue,
+        derivedCurrentReportID,
+        prevDerivedCurrentReportID,
+        policyMemberAccountIDs,
+        prevBetas,
+        prevPriorityMode,
+        reportsToDisplayInLHN,
+        orderedReportIDs,
+        orderedReports,
+    };
+    const prevContextValue = usePrevious(contextValue);
+    const previousDeps = usePrevious(currentDeps);
+
+    useEffect(() => {
+        // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
+        // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
+
+        // Case 1: orderedReports goes from empty to non-empty
+        if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps);
+        }
+        // Case 2: orderedReports goes from non-empty to empty
+        if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
+        }
+    }, [contextValue, currentDeps, prevContextValue, previousDeps]);
+
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
 
@@ -233,3 +274,19 @@ function useSidebarOrderedReports() {
 
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
 export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
+
+function getChangedKeys<T extends Record<string, any>>(deps: T, prevDeps: T) {
+    const depsKeys = Object.keys(deps);
+
+    return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
+}
+
+function logChangedDeps(msg: string, deps: Record<string, any>, prevDeps: Record<string, any>) {
+    const startTime = performance.now();
+    const changedDeps = getChangedKeys(deps, prevDeps);
+    const processingDuration = performance.now() - startTime;
+    Log.info(msg, false, {
+        changedDeps,
+        processingDuration,
+    });
+}
