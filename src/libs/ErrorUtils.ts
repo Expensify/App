@@ -1,7 +1,7 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPathError, TranslationPathErrors, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
@@ -43,6 +43,10 @@ function getAuthenticateErrorMessage(response: Response): TranslationPaths {
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
     return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+}
+
+function getMicroSecondTranslationErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): TranslationPathErrors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: {translationPath: error}};
 }
 
 /**
@@ -197,6 +201,19 @@ function isReceiptError(message: unknown): message is ReceiptError {
     return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
 }
 
+function isTranslationPathError(message: unknown): message is TranslationPathError {
+    if (typeof message === 'string') {
+        return false;
+    }
+    if (Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length === 0) {
+        return false;
+    }
+    return (message as Record<string, unknown>)?.translationPath !== undefined;
+}
+
 export {
     addErrorMessage,
     getAuthenticateErrorMessage,
@@ -212,6 +229,8 @@ export {
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
     isReceiptError,
+    isTranslationPathError,
+    getMicroSecondTranslationErrorWithTranslationKey,
 };
 
 export type {OnyxDataWithErrors};
