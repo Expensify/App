@@ -352,24 +352,22 @@ function TransactionItemRow({
             <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
                 <View style={[styles.flexRow]}>
                     {shouldShowCheckbox && (
-                        <View style={[styles.mr3, styles.justifyContentCenter]}>
-                            <Checkbox
-                                disabled={isDisabled}
-                                onPress={() => {
-                                    onCheckboxPress(transactionItem.transactionID);
-                                }}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                isChecked={isSelected}
-                            />
-                        </View>
-                    )}
-                    {/* CAN REDUCE */}
-                    <View style={[styles.mr3]}>
-                        <ReceiptCell
-                            transactionItem={transactionItem}
-                            isSelected={isSelected}
+                        <Checkbox
+                            disabled={isDisabled}
+                            onPress={() => {
+                                onCheckboxPress(transactionItem.transactionID);
+                            }}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isChecked={isSelected}
+                            style={styles.mr3}
+                            wrapperStyle={styles.justifyContentCenter}
                         />
-                    </View>
+                    )}
+                    <ReceiptCell
+                        transactionItem={transactionItem}
+                        isSelected={isSelected}
+                        style={styles.mr3}
+                    />
                     <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                             <DateCell
@@ -442,19 +440,18 @@ function TransactionItemRow({
     }
 
     return (
-        <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
+        <View style={[...safeColumnWrapperStyle, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                {/* CAN REDUCE */}
-                <View style={[styles.mr1, styles.justifyContentCenter]}>
-                    <Checkbox
-                        disabled={isDisabled}
-                        onPress={() => {
-                            onCheckboxPress(transactionItem.transactionID);
-                        }}
-                        accessibilityLabel={CONST.ROLE.CHECKBOX}
-                        isChecked={isSelected}
-                    />
-                </View>
+                <Checkbox
+                    disabled={isDisabled}
+                    onPress={() => {
+                        onCheckboxPress(transactionItem.transactionID);
+                    }}
+                    accessibilityLabel={CONST.ROLE.CHECKBOX}
+                    isChecked={isSelected}
+                    style={styles.mr1}
+                    wrapperStyle={styles.justifyContentCenter}
+                />
                 {columns?.map((column) => columnComponent[column])}
             </View>
             <TransactionItemRowRBRWithOnyx

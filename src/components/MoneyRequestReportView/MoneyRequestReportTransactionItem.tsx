@@ -80,10 +80,7 @@ function MoneyRequestReportTransactionItem({
     });
 
     return (
-        <OfflineWithFeedback
-            pendingAction={pendingAction}
-            style={{flex: 1}}
-        >
+        <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {
@@ -103,7 +100,7 @@ function MoneyRequestReportTransactionItem({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={animatedHighlightStyle}
+                wrapperStyle={[animatedHighlightStyle]}
             >
                 <TransactionItemRow
                     transactionItem={transaction}
