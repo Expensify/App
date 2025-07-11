@@ -1,0 +1,44 @@
+name: Code Coverage w/ Octocov
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard_index: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for octocov to compare with base branch
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.1"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test -- --coverage --shard=${{ matrix.shard_index }}/5 --coverageDirectory=coverage-shard-${{ matrix.shard_index }}
+        env:
+          CI: true
+
+      - name: Merge coverage reports with istanbul-combine
+        run: npm run test:coverage:merge
+
+      - name: Run octocov
+        uses: k1LoW/octocov-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          config: .octocov.yml
