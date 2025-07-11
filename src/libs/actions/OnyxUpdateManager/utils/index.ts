@@ -76,7 +76,6 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitRe
             // This can cause a recursion loop, because "validateAndApplyDeferredUpdates" will refetch
             // missing updates up to the previous update, which will then be applied again.
             if (isPreviousUpdateAlreadyApplied) {
-                // eslint-disable-next-line no-continue
                 continue;
             }
 
