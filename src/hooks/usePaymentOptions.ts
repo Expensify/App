@@ -2,7 +2,6 @@ import {useEffect, useMemo, useRef} from 'react';
 import type {TupleToUnion} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
-import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {
@@ -56,7 +55,7 @@ function usePaymentOptions({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
-}: UsePaymentOptionsProps): PaymentOrApproveOption[] {
+}: UsePaymentOptionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -78,6 +77,8 @@ function usePaymentOptions({
             return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
         },
     });
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -99,15 +100,17 @@ function usePaymentOptions({
         const buttonOptions = [];
         const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
-            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: translate('iou.settleExpensify', {formattedAmount}),
-                icon: Expensicons.Wallet,
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+                icon: Expensicons.User,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                shouldUpdateSelectedIndex: false,
             },
-            [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleExpensify', {formattedAmount}),
-                icon: Expensicons.Wallet,
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusiness', {formattedAmount: ''}),
+                icon: Expensicons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
+                shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
@@ -134,10 +137,10 @@ function usePaymentOptions({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         if (canUseWallet) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
         }
         if (isExpenseReport && shouldShowPayWithExpensifyOption) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
         }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
