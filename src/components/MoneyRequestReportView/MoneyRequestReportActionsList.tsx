@@ -287,9 +287,15 @@ function MoneyRequestReportActionsList({
         lastMessageTime.current = null;
 
         const hasNewMessagesInView = scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        const hasUnreadReportAction = reportActions.some(
-            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== getCurrentUserAccountID(),
-        );
+        const hasUnreadReportAction = reportActions.some((reportAction) => {
+            if (!newMessageTimeReference || newMessageTimeReference >= reportAction.created) {
+                return false;
+            }
+            // Include system messages (non-comment actions) even if they're from the current user
+            const isSystemMessage = reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+
+            return isSystemMessage || reportAction.actorAccountID !== getCurrentUserAccountID();
+        });
 
         if (!hasNewMessagesInView || !hasUnreadReportAction) {
             return;
@@ -329,7 +335,7 @@ function MoneyRequestReportActionsList({
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = startIndex; index >= endIndex; index--) {
             const reportAction = visibleReportActions.at(index);
-            const nextAction = visibleReportActions.at(index - 1);
+            const nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =
