@@ -1505,7 +1505,7 @@ function createTypeMenuSections(
         menuItems: [],
     };
 
-    let defaultFeed: string | undefined = undefined;
+    let defaultFeed: string | undefined;
 
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
