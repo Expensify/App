@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
+import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -70,12 +70,11 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
+    const containsOnlyCustomEmoji = useMemo(() => containsOnlyCustomEmojiUtil(text), [text]);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
-        // We don't want to replace the space in tags with &nbsp;
-        const escapedHtml = html.replace(/(?:(?![\n\r])\s)(?![^<]*>)/g, '&nbsp;');
-        const htmlWithDeletedTag = styleAsDeleted ? `<del>${escapedHtml}</del>` : escapedHtml;
+        const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         let htmlContent = htmlWithDeletedTag;
         if (containsOnlyEmojis) {
@@ -131,6 +130,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                        containsOnlyCustomEmoji && styles.customEmojiFont,
                     ]}
                 >
                     {convertToLTR(message ?? '')}

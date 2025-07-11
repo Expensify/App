@@ -684,6 +684,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
@@ -1325,20 +1328,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             screens: {
                                 distance: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
-                                    exact: true,
                                 },
                                 manual: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-                                    exact: true,
                                 },
                                 scan: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-                                    exact: true,
                                 },
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
-                                    exact: true,
                                 },
                             },
                         },
@@ -1486,6 +1485,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE.route,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
@@ -1804,7 +1804,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
-                    path: ROUTES.TEST_TOOLS_MODAL,
+                    path: ROUTES.TEST_TOOLS_MODAL.route,
                     exact: true,
                 },
             },
