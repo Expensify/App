@@ -284,9 +284,21 @@ function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T)
 function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T) {
     const startTime = performance.now();
     const changedDeps = getChangedKeys(deps, prevDeps);
+    const parsedDeps = parseDepsForLogging(deps);
     const processingDuration = performance.now() - startTime;
     Log.info(msg, false, {
+        deps: parsedDeps,
         changedDeps,
         processingDuration,
     });
+}
+
+/**
+ * @param deps - The dependencies to parse.
+ * @returns A simplified object with light-weight values.
+ */
+function parseDepsForLogging<T extends Record<string, unknown>>(deps: T) {
+    // If object or array, return the keys' length
+    // If primitive, return the value
+    return Object.fromEntries(Object.entries(deps).map(([key, value]) => [key, typeof value === 'object' && value !== null ? Object.keys(value).length : value]));
 }
