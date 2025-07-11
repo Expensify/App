@@ -19,6 +19,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
@@ -168,6 +169,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {unmodifiedPaddings} = useSafeAreaPaddings();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -788,7 +790,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, {paddingBottom: CONST.CHAT_FOOTER_MIN_HEIGHT + 16}]}
+                style={[styles.flexGrow1, {paddingBottom: unmodifiedPaddings.bottom ?? 0}, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList

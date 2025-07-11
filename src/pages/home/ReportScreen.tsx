@@ -864,6 +864,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         style={screenWrapperStyle}
                         shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
                         testID={`report-screen-${reportID}`}
+                        includeSafeAreaPaddingBottom={false}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
