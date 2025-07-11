@@ -27,7 +27,7 @@ const updateLegalName = (values: PrivatePersonalDetails) => {
 
 function LegalNamePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
