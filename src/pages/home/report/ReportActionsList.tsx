@@ -429,7 +429,11 @@ function ReportActionsList({
                     return;
                 }
                 const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
-                setActionIdHighlightedTemporary(action?.reportActionID ?? '');
+
+                if (!!action?.reportActionID) {
+                    setActionIdHighlightedTemporary(action?.reportActionID);
+                }
+
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && index > 0) {
                     setTimeout(() => {
                         reportScrollManager.scrollToIndex(index);
