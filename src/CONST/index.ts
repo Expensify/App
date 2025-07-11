@@ -639,7 +639,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
