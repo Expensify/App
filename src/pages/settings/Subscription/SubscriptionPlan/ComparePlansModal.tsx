@@ -62,6 +62,8 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
         </View>
     );
 
+    const maxHeight = isSmallScreenWidth ? undefined : windowHeight - 20;
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -70,23 +72,16 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
                     onClose={() => setIsModalVisible(false)}
                     animationOut={isSmallScreenWidth ? animationOut : undefined}
-                    innerContainerStyle={isSmallScreenWidth ? undefined : styles.workspaceSection}
+                    innerContainerStyle={isSmallScreenWidth ? {...safeAreaPaddingBottomStyle, maxHeight} : {...styles.workspaceSection, ...safeAreaPaddingBottomStyle, maxHeight}}
                 >
-                    <View
-                        style={{
-                            maxHeight: isSmallScreenWidth ? windowHeight : windowHeight - 20,
-                            ...safeAreaPaddingBottomStyle,
-                        }}
-                    >
-                        <HeaderWithBackButton
-                            title={translate('subscription.compareModal.comparePlans')}
-                            shouldShowCloseButton
-                            onCloseButtonPress={() => setIsModalVisible(false)}
-                            shouldShowBackButton={false}
-                            style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
-                        />
-                        <ScrollView addBottomSafeAreaPadding>{renderPlans()}</ScrollView>
-                    </View>
+                    <HeaderWithBackButton
+                        title={translate('subscription.compareModal.comparePlans')}
+                        shouldShowCloseButton
+                        onCloseButtonPress={() => setIsModalVisible(false)}
+                        shouldShowBackButton={false}
+                        style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
+                    />
+                    <ScrollView>{renderPlans()}</ScrollView>
                 </Modal>
             )}
         </SafeAreaConsumer>
