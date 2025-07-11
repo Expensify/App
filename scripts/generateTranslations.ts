@@ -8,11 +8,12 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
-import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -20,6 +21,15 @@ import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils from './utils/TSCompilerUtils';
+import type {LabeledNode} from './utils/TSCompilerUtils';
+
+/**
+ * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
+ */
+type StringWithContext = {
+    text: string;
+    context?: string;
+};
 
 const GENERATED_FILE_PREFIX = dedent(`
     /**
@@ -36,14 +46,6 @@ const GENERATED_FILE_PREFIX = dedent(`
 `);
 
 /**
- * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
- */
-type StringWithContext = {
-    text: string;
-    context?: string;
-};
-
-/**
  * This class encapsulates most of the non-CLI logic to generate translations.
  * The primary reason it exists as a class is so we can import this file with no side effects at the top level of the script.
  * This is useful for unit testing.
@@ -55,6 +57,9 @@ type StringWithContext = {
  *  - It also formats the files using prettier.
  */
 class TranslationGenerator {
+    /**
+     * Regex to match context annotations.
+     */
     private static readonly CONTEXT_REGEX = /^\s*(?:\/{2}|\*|\/\*)?\s*@context\s+([^\n*/]+)/;
 
     /**
@@ -77,33 +82,133 @@ class TranslationGenerator {
      */
     private readonly translator: Translator;
 
-    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator}) {
+    /**
+     * Ref to use for existing translations.
+     */
+    private readonly compareRef: string;
+
+    /**
+     * Should we print verbose logs?
+     */
+    private readonly verbose: boolean;
+
+    /**
+     * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
+     * This map provides us a way to look up the English hash for each translated span hash, so that when we're transforming the English file and we encounter a translated expression hash,
+     * we can look up English hash and use it to look up the translation for that hash (since the translation map is keyed by English string hashes).
+     */
+    private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
+
+    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef: string; verbose: boolean}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
+        this.compareRef = config.compareRef;
+        this.verbose = config.verbose;
     }
 
     public async generateTranslations(): Promise<void> {
         const promisePool = new PromisePool();
 
+        // map of translations for each locale
+        const translations = new Map<TranslationTargetLocale, Map<number, string>>();
+
+        // If a compareRef is provided, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
+        if (this.compareRef) {
+            const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
+
+            // An array of labeled "translation nodes", where "translations node" refers to the main object in en.ts and
+            // other locale files that contains all the translations.
+            const oldTranslationNodes: Array<LabeledNode<Locale>> = [];
+            const downloadPromises = [];
+            for (const targetLanguage of allLocales) {
+                const targetPath = `src/languages/${targetLanguage}.ts`;
+                downloadPromises.push(
+                    promisePool.add(() =>
+                        // Download the file from GitHub
+                        GitHubUtils.getFileContents(targetPath, this.compareRef).then((content) => {
+                            // Parse the file contents and find the translations node, save it in the oldTranslationsNodes map
+                            const parsed = ts.createSourceFile(targetPath, content, ts.ScriptTarget.Latest, true);
+                            const oldTranslationNode = this.findTranslationsNode(parsed);
+                            if (!oldTranslationNode) {
+                                throw new Error(`Could not find translation node in ${targetPath}`);
+                            }
+                            oldTranslationNodes.push({label: targetLanguage, node: oldTranslationNode});
+                        }),
+                    ),
+                );
+            }
+            await Promise.all(downloadPromises);
+
+            // Traverse ASTs of all downloaded files in parallel, building a map of {locale => {translationKey => translation}}
+            // Note: traversing in parallel is not just a performance optimization. We need the translation key
+            // from en.ts to map to translations in other files, but we can't rely on dot-notation style paths alone
+            // because sometimes there are strings defined elsewhere, such as in functions or nested templates.
+            // So instead, we rely on the fact that the AST structure of en.ts will very nearly match the AST structure of other locales.
+            // We walk through the AST of en.ts in parallel with all the other ASTs, and take the translation key from
+            // en.ts and the translated value from the target locale.
+            TSCompilerUtils.traverseASTsInParallel(oldTranslationNodes, (nodes: Record<Locale, ts.Node>) => {
+                const enNode = nodes[LOCALES.EN];
+                if (!this.shouldNodeBeTranslated(enNode)) {
+                    return;
+                }
+
+                // Use English for the translation key
+                const translationKey = this.getTranslationKey(enNode);
+
+                for (const targetLanguage of this.targetLanguages) {
+                    const translatedNode = nodes[targetLanguage];
+                    if (!this.shouldNodeBeTranslated(translatedNode)) {
+                        if (this.verbose) {
+                            console.warn('😕 found translated node that should not be translated while English node should be translated', {enNode, translatedNode});
+                            console.trace();
+                        }
+                        continue;
+                    }
+                    const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
+                    const serializedNode =
+                        ts.isStringLiteral(translatedNode) || ts.isNoSubstitutionTemplateLiteral(translatedNode)
+                            ? translatedNode.getText().slice(1, -1)
+                            : this.templateExpressionToString(translatedNode);
+                    translationsForLocale.set(translationKey, serializedNode);
+                    translations.set(targetLanguage, translationsForLocale);
+
+                    // For complex template expressions, we need a way to look up the English span hash for each translated span hash, so we track those here
+                    if (ts.isTemplateExpression(enNode) && ts.isTemplateExpression(translatedNode) && !this.isSimpleTemplateExpression(enNode)) {
+                        for (let i = 0; i < enNode.templateSpans.length; i++) {
+                            const enSpan = enNode.templateSpans[i];
+                            const translatedSpan = translatedNode.templateSpans[i];
+                            this.translatedSpanHashToEnglishSpanHash.set(hashStr(translatedSpan.expression.getText()), hashStr(enSpan.expression.getText()));
+                        }
+                    }
+                }
+            });
+        }
+
         for (const targetLanguage of this.targetLanguages) {
+            // Map of translations
+            const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
+
             // Extract strings to translate
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
             // Translate all the strings in parallel (up to 8 at a time)
-            const translations = new Map<number, string>();
             const translationPromises = [];
             for (const [key, {text, context}] of stringsToTranslate) {
-                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translations.set(key, result)));
+                if (translationsForLocale.has(key)) {
+                    // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
+                    continue;
+                }
+                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);
 
             // Replace translated strings in the AST
-            const transformer = this.createTransformer(translations);
+            const transformer = this.createTransformer(translationsForLocale);
             const result = ts.transform(this.sourceFile, [transformer]);
             let transformedSourceFile = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
             result.dispose();
@@ -139,9 +244,22 @@ class TranslationGenerator {
     }
 
     /**
+     * Each translation file should have an object called translations that's later default-exported. This function takes in a root node, and finds the translations node.
+     */
+    private findTranslationsNode(sourceFile: ts.SourceFile): ts.Node | null {
+        const defaultExport = TSCompilerUtils.findDefaultExport(sourceFile);
+        if (!defaultExport) {
+            throw new Error('Could not find default export in source file');
+        }
+        const defaultExportIdentifier = TSCompilerUtils.extractIdentifierFromExpression(defaultExport);
+        const translationsNode = TSCompilerUtils.resolveDeclaration(defaultExportIdentifier ?? '', sourceFile);
+        return translationsNode;
+    }
+
+    /**
      * Should the given node be translated?
      */
-    private shouldNodeBeTranslated(node: ts.Node): boolean {
+    private shouldNodeBeTranslated(node: ts.Node): node is ts.StringLiteral | ts.TemplateExpression | ts.NoSubstitutionTemplateLiteral {
         // We only translate string literals and template expressions
         if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
             return false;
@@ -293,20 +411,23 @@ class TranslationGenerator {
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
         if (this.shouldNodeBeTranslated(node)) {
             const context = this.getContextForNode(node);
+            const translationKey = this.getTranslationKey(node);
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-                stringsToTranslate.set(this.getTranslationKey(node), {text: node.text, context});
+                stringsToTranslate.set(translationKey, {text: node.text, context});
             }
 
             // Template expressions must be encoded directly before they can be translated
             else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 } else {
-                    console.log('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
+                    if (this.verbose) {
+                        console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
+                    }
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
-                    stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }
         }
@@ -357,7 +478,14 @@ class TranslationGenerator {
             if (/^\d+$/.test(trimmed)) {
                 // It's a hash reference to a complex span
                 const hashed = Number(trimmed);
-                const translatedExpression = translatedComplexExpressions.get(hashed);
+
+                // If the translated, serialized template expression came from an existing translation file, then the hash of the complex expression will be a hash of the translated expression.
+                // If the translated, serialized template expression came from ChatGPT, then the hash of the complex expression will be a hash of the English expression.
+                // Meanwhile, translatedComplexExpressions is keyed by English hashes, because it comes from createTransformer, which is parsing and transforming an English file.
+                // So when rebuilding the template expression from its serialized form, we first search for the translated expression assuming the expression is serialized with English hashes.
+                // If that fails, we look up the English expression hash associated with the translated expression hash, then look up the translated expression using the English hash.
+                const translatedExpression = translatedComplexExpressions.get(hashed) ?? translatedComplexExpressions.get(this.translatedSpanHashToEnglishSpanHash.get(hashed) ?? hashed);
+
                 if (!translatedExpression) {
                     throw new Error(`No template found for hash: ${hashed}`);
                 }
@@ -437,11 +565,14 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
+    /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         flags: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             'dry-run': {
                 description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
+            },
+            verbose: {
+                description: 'Should we print verbose logs?',
             },
         },
         namedArgs: {
@@ -461,8 +592,14 @@ async function main(): Promise<void> {
                     return validatedLocales;
                 },
             },
+            'compare-ref': {
+                description:
+                    'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
+                default: '',
+            },
         },
     } as const);
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     let translator: Translator;
     if (cli.flags['dry-run']) {
@@ -488,7 +625,10 @@ async function main(): Promise<void> {
         languagesDir,
         sourceFile: enSourceFile,
         translator,
+        compareRef: cli.namedArgs['compare-ref'],
+        verbose: cli.flags.verbose,
     });
+
     await generator.generateTranslations();
 }
 

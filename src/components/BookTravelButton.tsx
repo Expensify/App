@@ -1,20 +1,20 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
-import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
+import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
 import Text from './Text';
@@ -62,7 +61,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
@@ -72,7 +70,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
+    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
@@ -137,8 +135,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-                    setRootStatusBarEnabled(false);
+                    closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                 })
                 ?.catch(() => {
                     setErrorMessage(translate('travel.errorMessage'));
@@ -147,6 +144,9 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
+            if (!travelSettings?.lastTravelSignupRequestTime) {
+                requestTravelAccess();
+            }
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
@@ -167,16 +167,16 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
+        groupPaidPolicies.length,
         travelSettings?.hasAcceptedTerms,
+        travelSettings?.lastTravelSignupRequestTime,
+        isBetaEnabled,
         styles.flexRow,
         styles.link,
         StyleUtils,
         translate,
         wasNewDotLaunchedJustForTravel,
-        setRootStatusBarEnabled,
         isUserValidated,
-        groupPaidPolicies.length,
-        isBetaEnabled,
     ]);
 
     return (

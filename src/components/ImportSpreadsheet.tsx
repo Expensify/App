@@ -1,10 +1,10 @@
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as XLSX from 'xlsx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
@@ -24,6 +24,7 @@ import FilePicker from './FilePicker';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
@@ -123,6 +124,20 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
             });
     };
 
+    const getTextForImportModal = () => {
+        let text = '';
+        if (spreadsheet?.isImportingMultiLevelTags) {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
+        } else {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
+        }
+        return text;
+    };
+
+    const acceptableFileTypes = spreadsheet?.isImportingMultiLevelTags
+        ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')
+        : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+
     const desktopView = (
         <>
             <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
@@ -139,12 +154,10 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
-                <Text style={[styles.subTextFileUpload, styles.textSupporting]}>
-                    {isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop')}
-                </Text>
+                <Text style={[styles.textFileUpload, styles.mb1]}>{spreadsheet?.isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
+                <RenderHTML html={getTextForImportModal()} />
             </View>
-            <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
+            <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
                         success
