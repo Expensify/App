@@ -730,7 +730,9 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('', false);
+             // debounce should be true here, otherwise the input will intially clear, but then the value the user had typed before they sent will return when the debounce timeout fires.
+             // It's okay for the Onyx value to lag a bit since we're using local state to feed the actual input. The only real impact is the pencil remains visible in the LHN for a moment
+            updateComment('', true);
         },
         [onCleared, updateComment],
     );
