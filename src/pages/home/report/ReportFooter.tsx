@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -75,6 +76,8 @@ type ReportFooterProps = {
     nativeID?: string;
 
     keyboardHeight: SharedValue<number>;
+
+    onLayout: (height: number) => void;
 };
 
 function ReportFooter({
@@ -89,12 +92,14 @@ function ReportFooter({
     reportTransactions,
     nativeID,
     keyboardHeight,
+    onLayout,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {bottom} = useSafeAreaInsets();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
@@ -198,7 +203,7 @@ function ReportFooter({
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            transform: [{translateY: -keyboardHeight.get()}],
+            transform: [{translateY: keyboardHeight.get() > bottom ? -keyboardHeight.get() + bottom : 0}],
         };
     });
 
@@ -248,6 +253,7 @@ function ReportFooter({
                         didHideComposerInput={didHideComposerInput}
                         reportTransactions={reportTransactions}
                         nativeID={nativeID}
+                        onLayout={onLayout}
                     />
                 </Animated.View>
             )}

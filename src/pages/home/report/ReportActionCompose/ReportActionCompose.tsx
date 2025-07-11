@@ -109,6 +109,8 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     didHideComposerInput?: boolean;
 
     nativeID?: string;
+
+    onLayout: (height: number) => void;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -132,6 +134,7 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     nativeID,
+    onLayout,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -552,8 +555,18 @@ function ReportActionCompose({
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
+    const onLayoutInternal = useCallback(
+        (event: LayoutChangeEvent) => {
+            return onLayout(event.nativeEvent.layout.height);
+        },
+        [onLayout],
+    );
+
     return (
-        <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+        <View
+            onLayout={onLayoutInternal}
+            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
+        >
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>

@@ -72,6 +72,8 @@ type ReportActionsViewProps = {
     keyboardInset: SharedValue<number>;
 
     keyboardOffset: SharedValue<number>;
+
+    composerHeight: number;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -88,6 +90,7 @@ function ReportActionsView({
     scrollingVerticalOffset,
     keyboardInset,
     keyboardOffset,
+    composerHeight,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -326,6 +329,7 @@ function ReportActionsView({
                 scrollingVerticalOffset={scrollingVerticalOffset}
                 keyboardInset={keyboardInset}
                 keyboardOffset={keyboardOffset}
+                composerHeight={composerHeight}
             />
             <UserTypingEventListener report={report} />
         </>

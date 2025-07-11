@@ -1,10 +1,10 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import {KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
+import {KeyboardController, KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import Banner from '@components/Banner';
@@ -222,6 +222,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                KeyboardController.dismiss();
+            };
+        }, []),
+    );
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
@@ -331,6 +339,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
 
     const wasReportAccessibleRef = useRef(false);
 
@@ -828,6 +837,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
     );
 
+    const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -842,7 +853,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     return (
         <KeyboardGestureArea
             style={styles.flexGrow1}
-            offset={90}
+            offset={composerHeight}
             interpolator="ios"
             textInputNativeID="composer"
         >
@@ -905,6 +916,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             scrollingVerticalOffset={scrollY}
                                             keyboardInset={keyboardInset}
                                             keyboardOffset={keyboardOffset}
+                                            composerHeight={composerHeight}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -930,33 +942,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             reportTransactions={reportTransactions}
                                             nativeID="composer"
                                             keyboardHeight={keyboardHeight}
+                                            onLayout={onComposerLayout}
                                         />
                                     ) : null}
                                 </View>
-                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                    <MoneyRequestReportActionsList
-                                        report={report}
-                                        policy={policy}
-                                        reportActions={reportActions}
-                                        transactions={reportTransactions}
-                                        newTransactions={newTransactions}
-                                        hasOlderActions={hasOlderActions}
-                                        hasNewerActions={hasNewerActions}
-                                        showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
-                                    />
-                                ) : null}
-                                {isCurrentReportLoadedFromOnyx ? (
-                                    <ReportFooter
-                                        report={report}
-                                        reportMetadata={reportMetadata}
-                                        policy={policy}
-                                        pendingAction={reportPendingAction}
-                                        isComposerFullSize={!!isComposerFullSize}
-                                        lastReportAction={lastReportAction}
-                                        nativeID="composer"
-                                        keyboardHeight={keyboardHeight}
-                                    />
-                                ) : null}
                                 <PortalHost name="suggestions" />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
