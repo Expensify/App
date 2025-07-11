@@ -1505,14 +1505,18 @@ function createTypeMenuSections(
         menuItems: [],
     };
 
+    let defaultFeed: string | undefined = undefined;
+
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
+    const activePolicy = getActivePolicy();
     const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
 
-    Object.values(policies).some((policy) => {
+    // The active (default) policy is prioritized to correctly set the default feed
+    [activePolicy, ...Object.values(policies)].some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
         }
@@ -1521,10 +1525,20 @@ function createTypeMenuSections(
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        shouldShowStatementsSuggestion ||= false; // s77rt TODO
-        showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
-        shouldShowReconciliationSuggestion ||= false; // s77rt TODO
+        const isEligibleForStatementsSuggestion = false; // s77rt TODO
+        const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForReconciliationSuggestion = false; // s77rt TODO
+
+        // The default feed must be based on an eligible policy
+        if (isEligibleForUnapprovedCompanyCardsSuggestion && !defaultFeed) {
+            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id].toSorted((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
+        }
+
+        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
+        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
         return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
@@ -1568,8 +1582,7 @@ function createTypeMenuSections(
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                        // s77rt this should be update to use the default feed
-                        feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                        feed: defaultFeed ? [defaultFeed] : undefined,
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
                     return queryString;
@@ -1610,8 +1623,7 @@ function createTypeMenuSections(
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                    // s77rt this should be update to use the default feed
-                    feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                    feed: defaultFeed ? [defaultFeed] : undefined,
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
                 return queryString;
