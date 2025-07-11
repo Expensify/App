@@ -746,7 +746,9 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically approved $1.69 via workspace rules');
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'approved via <a href=\"https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules\">workspace rules</a>',
+            );
         });
 
         test('Automatically Approved Report message when report is approved', () => {
@@ -767,7 +769,9 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically approved $1.69 via workspace rules');
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'approved via <a href=\"https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules\">workspace rules</a>',
+            );
         });
     });
 
@@ -790,7 +794,9 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically submitted $1.69 via delayed submission');
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href=\"https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows\">delay submissions</a>',
+            );
         });
 
         test('Automatically Approved Report message for report type submitted and status is closed', () => {
@@ -811,7 +817,9 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically submitted $1.69 via delayed submission');
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href=\"https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows\">delay submissions</a>',
+            );
         });
     });
 
