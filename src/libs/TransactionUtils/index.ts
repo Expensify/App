@@ -1672,6 +1672,10 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
+function shouldNavigateToMergeReceipt(transactions: Array<OnyxEntry<Transaction>>): boolean {
+    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1774,6 +1778,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
+    shouldNavigateToMergeReceipt,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 };
 

@@ -611,6 +611,7 @@ const translations = {
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
+        merge: 'Merge',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1327,6 +1328,25 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Merge expenses',
+            noEligibleExpenseFound: 'No eligible expenses found',
+            noEligibleExpenseFoundSubtitle: `You don't have any expenses that can be merged with this one. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Learn more</a> about eligible expenses.`,
+            mergeButton: 'Merge Transactions',
+            selectTransactionToMerge: `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with`,
+        },
+        receiptPage: {
+            header: 'Select receipt',
+            pageTitle: 'Select the receipt you want to keep:',
+        },
+        detailsPage: {
+            header: 'Select details',
+        },
+        confirmationPage: {
+            header: 'Confirm details',
+        },
     },
     share: {
         shareToExpensify: 'Share to Expensify',

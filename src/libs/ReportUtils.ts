@@ -2489,6 +2489,16 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 }
 
 /**
+ * Checks whether the supplied report supports merging transactions from it.
+ * Return true if:
+ * - report is editable
+ * - expense is unreported (draft expense)
+ */
+function isMergeableMoneyRequestReport(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
+}
+
+/**
  * Checks whether the card transaction support deleting based on liability type
  */
 function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
@@ -11522,6 +11532,7 @@ export {
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,
+    isMergeableMoneyRequestReport,
 };
 
 export type {

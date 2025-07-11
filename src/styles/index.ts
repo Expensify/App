@@ -4981,6 +4981,16 @@ const styles = (theme: ThemeColors) =>
             height: 'auto',
         },
 
+        mergeTransactionReceiptImage: {
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            aspectRatio: 16 / 9,
+            height: 180,
+            maxWidth: '100%',
+        },
+
         pdfErrorPlaceholder: {
             overflow: 'hidden',
             borderWidth: 2,
@@ -5012,6 +5022,12 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
             borderWidth: 2,
             borderRadius: '50%',
+        },
+
+        mergeTransactionReceiptThumbnail: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
         },
 
         mapViewContainer: {

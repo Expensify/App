@@ -79,6 +79,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
+        LoadingPlaceholderComponent = OptionsListSkeletonView,
         showConfirmButton = false,
         isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
@@ -632,7 +633,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
             return (
-                <OptionsListSkeletonView
+                <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
                     shouldStyleAsTable={shouldUseUserSkeletonView}
                     speed={loaderSpeed}
