@@ -253,6 +253,13 @@ class ComprehensiveStylesFinder {
         for (const file of sourceFiles) {
             const fullPath = path.join(this.rootDir, file);
             try {
+                // Check if it's actually a file (not a directory)
+                const stat = fs.lstatSync(fullPath);
+                if (!stat.isFile()) {
+                    console.warn(`Skipping ${file}: not a file`);
+                    continue;
+                }
+
                 const fileContent = fs.readFileSync(fullPath, 'utf8');
                 this.fileContents.set(file, fileContent);
             } catch (error) {
