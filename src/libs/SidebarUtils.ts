@@ -5,7 +5,16 @@ import type {ValueOf} from 'type-fest';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DraftReportComments, PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    DraftReportComments,
+    PersonalDetails,
+    PersonalDetailsList,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -239,7 +248,12 @@ function shouldDisplayReportInLHN(
     const isSystemChat = isSystemChatUtil(report);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldOverrideHidden =
-        isValidDraftComment(draftReportComments?.[report.reportID]) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        isValidDraftComment(draftReportComments?.[report.reportID]) ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -308,7 +322,6 @@ function updateReportsToDisplayInLHN(
     currentReportId: string | undefined,
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],

@@ -1,5 +1,6 @@
 import Log from './Log';
 import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
+import MoveDraftsToNVP from './migrations/MoveDraftsToNVP';
 import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticReportToMetadata';
 import NVPMigration from './migrations/NVPMigration';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
@@ -8,7 +9,6 @@ import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportAction
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
-import MoveDraftsToNVP from './migrations/MoveDraftsToNVP';
 
 export default function () {
     const startTime = Date.now();

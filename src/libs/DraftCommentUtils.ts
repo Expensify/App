@@ -1,7 +1,7 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { DraftReportComments } from '@src/types/onyx';
+import type {DraftReportComments} from '@src/types/onyx';
 
 let draftCommentCollection: OnyxEntry<DraftReportComments> = {};
 Onyx.connect({
@@ -30,7 +30,7 @@ function isValidDraftComment(comment?: string | null): boolean {
 
 /**
  * Returns true if the report has a valid draft comment.
- * @deprecated prefer useOnyx to access when possible
+ * NOTE: please prefer useOnyx when possible
  */
 function hasValidDraftComment(reportID: string): boolean {
     return isValidDraftComment(getDraftComment(reportID));

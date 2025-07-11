@@ -146,7 +146,6 @@ function SidebarOrderedReportsContextProvider({
                 derivedCurrentReportID,
                 priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
-                policies,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
