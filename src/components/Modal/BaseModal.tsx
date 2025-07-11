@@ -226,8 +226,20 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                enableEdgeToEdgeBottomSafeAreaPadding,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
+        [
+            StyleUtils,
+            type,
+            windowWidth,
+            windowHeight,
+            isSmallScreenWidth,
+            popoverAnchorPosition,
+            innerContainerStyle,
+            outerStyle,
+            shouldUseModalPaddingStyle,
+            enableEdgeToEdgeBottomSafeAreaPadding,
+        ],
     );
 
     const modalPaddingStyles = useMemo(() => {
