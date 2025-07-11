@@ -151,7 +151,9 @@ function AccountDetailsPage() {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
                     onSubmit={(values) => {
-                        requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
+                        const login = values[INPUT_IDS.PHONE_OR_EMAIL].trim();
+                        setEmail(login);
+                        requestValidationCodeForAccountMerge(login);
                     }}
                     style={[styles.flexGrow1, styles.mh5]}
                     shouldTrimValues
