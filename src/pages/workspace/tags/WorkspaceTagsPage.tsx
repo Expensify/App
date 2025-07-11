@@ -95,7 +95,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -107,7 +107,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
-    const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -315,7 +315,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
             toggleTag(tag);
             return;
         }
@@ -409,7 +409,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
         const selectedTagLists = selectedTags.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
 
-        if (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTags.length === 0) {
+        if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
             const hasPrimaryActions = !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
@@ -560,7 +560,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -665,7 +665,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={() => {
-                            if (isMobileSelectionModeEnabled) {
+                            if (selectionMode?.isEnabled) {
                                 setSelectedTags([]);
                                 turnOffMobileSelectionMode();
                                 return;

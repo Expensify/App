@@ -128,7 +128,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode();
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -138,7 +138,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return [customUnits, allRates, allSubRatesMemo];
     }, [policy]);
 
-    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const fetchPerDiem = useCallback(() => {
         openPolicyPerDiemPage(policyID);
@@ -251,7 +251,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     }, [policyID]);
 
     const openSubRateDetails = (rate: PolicyOption) => {
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
             toggleSubRate(rate);
             return;
         }
@@ -354,12 +354,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const isLoading = !isOffline && customUnit === undefined;
 
     useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
+        if (selectionMode?.isEnabled) {
             return;
         }
 
         setSelectedPerDiem([]);
-    }, [setSelectedPerDiem, isMobileSelectionModeEnabled]);
+    }, [setSelectedPerDiem, selectionMode?.isEnabled]);
 
     useSearchBackPress({
         onClearSelection: () => {
@@ -368,7 +368,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
-    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -413,7 +413,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     icon={!selectionModeHeader ? Illustrations.PerDiem : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
+                        if (selectionMode?.isEnabled) {
                             setSelectedPerDiem([]);
                             turnOffMobileSelectionMode();
                             return;

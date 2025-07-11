@@ -139,7 +139,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle>(null);
@@ -158,7 +158,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
 
-    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
@@ -523,12 +523,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
+        if (selectionMode?.isEnabled) {
             return;
         }
 
         setSelectedEmployees([]);
-    }, [setSelectedEmployees, isMobileSelectionModeEnabled]);
+    }, [setSelectedEmployees, selectionMode?.isEnabled]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedEmployees([]),
@@ -702,7 +702,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         );
     };
 
-    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -740,7 +740,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             onBackButtonPress={() => {
-                if (isMobileSelectionModeEnabled) {
+                if (selectionMode?.isEnabled) {
                     setSelectedEmployees([]);
                     turnOffMobileSelectionMode();
                     return;

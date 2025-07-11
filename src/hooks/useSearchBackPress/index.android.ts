@@ -7,11 +7,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type UseSearchBackPress from './types';
 
 const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationCallBack}) => {
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                if (selectionMode) {
+                if (selectionMode?.isEnabled) {
                     onClearSelection();
                     turnOffMobileSelectionMode();
                     return true;
@@ -21,7 +21,7 @@ const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationC
             };
             const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             return () => backHandler.remove();
-        }, [selectionMode, onClearSelection, onNavigationCallBack]),
+        }, [selectionMode?.isEnabled, onClearSelection, onNavigationCallBack]),
     );
 };
 

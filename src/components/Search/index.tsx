@@ -8,6 +8,7 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -48,7 +49,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -58,9 +58,9 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
-    searchResults?: SearchResults;
+    currentSearchResults?: SearchResults;
+    lastNonEmptySearchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
-    isMobileSelectionModeEnabled: boolean;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, reportActions: ReportAction[]): [string, SelectedTransactionInfo] {
@@ -147,7 +147,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
+function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onSearchListScroll, contentContainerStyle, handleSearch}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -168,6 +168,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         isExportMode,
         setExportMode,
     } = useSearchContext();
+    const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
@@ -193,6 +194,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }, [hash, clearSelectedTransactions, setCurrentSearchHash]),
     );
 
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
     useEffect(() => {
@@ -201,29 +203,31 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
-        if (selectedKeys.length === 0 && isMobileSelectionModeEnabled && shouldTurnOffSelectionMode) {
+        if (selectedKeys.length === 0 && selectionMode?.isEnabled && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
+    }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
+            if (selectedKeys.length === 0) {
                 turnOffMobileSelectionMode();
             }
             return;
         }
-        if (selectedKeys.length > 0 && !isMobileSelectionModeEnabled && !isSearchResultsEmpty) {
+        if (selectedKeys.length > 0 && !selectionMode?.isEnabled && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
+
+        // We don't need to run the effect on change of isSearchResultsEmpty.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
+    }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isOffline) {
@@ -249,7 +253,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
 
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -322,10 +326,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 };
             });
         }
-        if (isEmptyObject(newTransactionList)) {
-            return;
-        }
-
         setSelectedTransactions(newTransactionList, data);
 
         isRefreshingSelection.current = true;
@@ -414,7 +414,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const openReport = useCallback(
         (item: SearchListItem) => {
-            if (isMobileSelectionModeEnabled) {
+            if (selectionMode?.isEnabled) {
                 toggleTransaction(item);
                 return;
             }
@@ -464,7 +464,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction],
+        [hash, selectionMode?.isEnabled, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -484,27 +484,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [shouldShowLoadingState],
     );
 
+    if (shouldShowLoadingState) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+            />
+        );
+    }
+
+    if (searchResults === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+    }
+
+    const ListItem = getListItem(type, status, groupBy);
+    const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, groupBy);
+
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
-    const ListItem = getListItem(type, status, groupBy);
-    const sortedSelectedData = useMemo(
-        () =>
-            getSortedSections(type, status, data, sortBy, sortOrder, groupBy).map((item) => {
-                const baseKey = isChat
-                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
-                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
-                // Check if the base key matches the newSearchResultKey (TransactionListItemType)
-                const isBaseKeyMatch = baseKey === newSearchResultKey;
-                // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
-                const isAnyTransactionMatch =
-                    !isChat &&
-                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
-                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return transactionKey === newSearchResultKey;
-                    });
-                // Determine if either the base key or any transaction key matches
-                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode?.isEnabled === true);
+
+    const sortedSelectedData = sortedData.map((item) => {
+        const baseKey = isChat
+            ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+            : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+        // Check if the base key matches the newSearchResultKey (TransactionListItemType)
+        const isBaseKeyMatch = baseKey === newSearchResultKey;
+        // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
+        const isAnyTransactionMatch =
+            !isChat &&
+            (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                return transactionKey === newSearchResultKey;
+            });
+        // Determine if either the base key or any transaction key matches
+        const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
@@ -513,14 +528,41 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
-    const fetchMoreResults = useCallback(() => {
+    if (hasErrors) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <FullPageErrorView
+                    shouldShow
+                    subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
+                />
+            </View>
+        );
+    }
+
+    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <EmptySearchView
+                    hash={hash}
+                    type={type}
+                    groupBy={groupBy}
+                    hasResults={searchResults.search.hasResults}
+                />
+            </View>
+        );
+    }
+
+    const fetchMoreResults = () => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+    };
 
-    const toggleAllTransactions = useCallback(() => {
+    const toggleAllTransactions = () => {
         const areItemsGrouped = !!groupBy;
         const totalSelected = Object.keys(selectedTransactions).length;
 
@@ -550,50 +592,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
-
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
-
-    if (shouldShowLoadingState) {
-        return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
-            />
-        );
-    }
-
-    if (searchResults === undefined) {
-        Log.alert('[Search] Undefined search type');
-        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
-    }
-
-    if (hasErrors) {
-        return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                <FullPageErrorView
-                    shouldShow
-                    subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                    subtitle={translate('errorPage.subtitle')}
-                />
-            </View>
-        );
-    }
-
-    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
-        return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                <EmptySearchView
-                    hash={hash}
-                    type={type}
-                    groupBy={groupBy}
-                    hasResults={searchResults.search.hasResults}
-                />
-            </View>
-        );
-    }
+    };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
@@ -648,8 +647,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 }
                 queryJSON={queryJSON}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />
         </SearchScopeProvider>
     );

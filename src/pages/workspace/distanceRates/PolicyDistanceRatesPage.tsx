@@ -62,9 +62,9 @@ function PolicyDistanceRatesPage({
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policy = usePolicy(policyID);
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode();
 
-    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
@@ -325,7 +325,7 @@ function PolicyDistanceRatesPage({
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
+            {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
@@ -361,7 +361,7 @@ function PolicyDistanceRatesPage({
         </View>
     );
 
-    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -399,7 +399,7 @@ function PolicyDistanceRatesPage({
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
+                        if (selectionMode?.isEnabled) {
                             setSelectedDistanceRates([]);
                             turnOffMobileSelectionMode();
                             return;
