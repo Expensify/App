@@ -52,7 +52,10 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
-        setWorkspaceRequiresCategory(policyID, value, policyTagLists, allTransactionViolations);
+        if (policy === undefined) {
+            return;
+        }
+        setWorkspaceRequiresCategory(policy, value, policyTagLists, allTransactionViolations);
     };
 
     const {sections} = useMemo(() => {

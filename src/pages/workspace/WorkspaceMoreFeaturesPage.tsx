@@ -101,6 +101,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
 
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -248,10 +250,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: onDisabledOrganizeSwitchPress,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
-                if (!policyID) {
+                if (policy === undefined) {
                     return;
                 }
-                enablePolicyCategories(policyID, isEnabled, policyTagLists, allTransactionViolations, true);
+                enablePolicyCategories(policy, isEnabled, policyTagLists, allTransactionViolations, true);
             },
         },
         {
@@ -266,7 +268,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTags(policyID, isEnabled);
+                enablePolicyTags(policy, isEnabled, policyCategories, allTransactionViolations);
             },
         },
         {

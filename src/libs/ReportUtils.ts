@@ -18,6 +18,7 @@ import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -1827,58 +1828,107 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
  *
  * @param policyUpdate Changed policy properties, if none pass empty object
  * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
+ * @param policyTagListsUpdate Changed categories properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
-    policyID: string,
-    policyTagLists: PolicyTagLists,
+    policy: Policy,
     policyCategories: PolicyCategories,
+    policyTagLists: PolicyTagLists,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
-    policyUpdate: Partial<Policy> = {},
+    policyUpdate: Partial<Policy>,
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ): OnyxData {
-    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
+    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate) && isEmptyObject(policyTagListsUpdate)) {
         return onyxData;
     }
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
-        return acc;
-    }, {}) as PolicyCategories;
 
-    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
+    const reports = getAllPolicyReports(policy.id);
 
-    getAllPolicyReports(policyID).forEach((report) => {
-        if (!report?.reportID) {
+    if (!reports || reports.length === 0) {
+        return onyxData;
+    }
+
+    const optimisticPolicyTagLists = isEmptyObject(policyTagListsUpdate)
+        ? policyTagLists
+        : {
+              ...policyTagLists,
+              ...Object.keys(policyTagListsUpdate).reduce<PolicyTagLists>((acc, tagName) => {
+                  acc[tagName] = {
+                      ...(policyTagLists?.[tagName] ?? {}),
+                      tags: {
+                          ...(policyTagLists?.[tagName].tags ?? {}),
+                          ...policyTagListsUpdate[tagName].tags,
+                      },
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    const optimisticPolicyCategories = isEmptyObject(policyCategoriesUpdate)
+        ? policyCategories
+        : {
+              ...policyCategories,
+              ...Object.keys(policyCategoriesUpdate).reduce<PolicyCategories>((acc, categoryName) => {
+                  acc[categoryName] = {...(policyCategories?.[categoryName] ?? {}), ...(policyCategoriesUpdate?.[categoryName] ?? {})};
+                  return acc;
+              }, {}),
+          };
+
+    const optimisticPolicy = {...policy, ...policyUpdate};
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
+
+    const processedTransactionIDs = new Set<string>();
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // Iterate through all reports to find transactions that need optimistic violations
+    reports.forEach((report) => {
+        // Skipping invoice report because they do not have category or tag violations
+        if (!report?.reportID || isInvoiceReport(report)) {
             return;
         }
 
-        const isReportAnInvoice = isInvoiceReport(report);
+        getReportTransactions(report.reportID).forEach((transaction) => {
+            const transactionID = transaction?.transactionID;
+            if (!transactionID || processedTransactionIDs.has(transactionID)) {
+                return;
+            }
 
-        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            processedTransactionIDs.add(transactionID);
 
-            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+            const existingViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                transactionViolations,
+                existingViolations ?? [],
                 optimisticPolicy,
-                policyTagLists,
+                optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
-                isReportAnInvoice,
+                false,
             );
 
-            if (optimisticTransactionViolations) {
-                onyxData?.optimisticData?.push(optimisticTransactionViolations);
-                onyxData?.failureData?.push({
+            if (optimisticViolations) {
+                optimisticData.push(optimisticViolations);
+                failureData.push({
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: existingViolations ?? null,
                 });
             }
         });
     });
-    return onyxData;
+
+    if (optimisticData.length === 0) {
+        return onyxData;
+    }
+    return {
+        ...onyxData,
+        optimisticData: optimisticData.length > 0 ? [...(onyxData?.optimisticData ?? []), ...optimisticData] : onyxData.optimisticData,
+        failureData: failureData.length > 0 ? [...(onyxData?.failureData ?? []), ...failureData] : onyxData.failureData,
+    };
 }
 
 /**

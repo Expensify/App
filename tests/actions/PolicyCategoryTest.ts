@@ -31,7 +31,7 @@ describe('actions/PolicyCategory', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Category.setWorkspaceRequiresCategory(fakePolicy.id, true);
+            Category.setWorkspaceRequiresCategory(fakePolicy, true);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -169,7 +169,7 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate);
+            Category.setWorkspaceCategoryEnabled(fakePolicy, categoriesToUpdate);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -214,7 +214,7 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete);
+            Category.deleteWorkspaceCategories(fakePolicy, categoriesToDelete);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
