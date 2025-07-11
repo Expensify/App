@@ -1805,7 +1805,10 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         let callback = () => {
             const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            InteractionManager.runAfterInteractions(() => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            });
+
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                 ...report,
                 reportID: preexistingReportID,
