@@ -1794,7 +1794,7 @@ const translations = {
         nameOnCard: 'カード名義人',
         paymentCardNumber: 'カード番号',
         expiration: '有効期限',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: '請求先住所',
         growlMessageOnSave: 'お支払いカードが正常に追加されました',
