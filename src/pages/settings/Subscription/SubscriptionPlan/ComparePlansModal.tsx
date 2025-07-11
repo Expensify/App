@@ -3,12 +3,14 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import type {AnimationOut} from '@components/Modal/ReanimatedModal/types';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
 
@@ -23,6 +25,7 @@ type ComparePlansModalProps = {
 function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -60,22 +63,33 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
     );
 
     return (
-        <Modal
-            isVisible={isModalVisible}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-            onClose={() => setIsModalVisible(false)}
-            animationOut={isSmallScreenWidth ? animationOut : undefined}
-            innerContainerStyle={isSmallScreenWidth ? undefined : styles.workspaceSection}
-        >
-            <HeaderWithBackButton
-                title={translate('subscription.compareModal.comparePlans')}
-                shouldShowCloseButton
-                onCloseButtonPress={() => setIsModalVisible(false)}
-                shouldShowBackButton={false}
-                style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
-            />
-            {isSmallScreenWidth ? <ScrollView addBottomSafeAreaPadding>{renderPlans()}</ScrollView> : renderPlans()}
-        </Modal>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <Modal
+                    isVisible={isModalVisible}
+                    type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
+                    onClose={() => setIsModalVisible(false)}
+                    animationOut={isSmallScreenWidth ? animationOut : undefined}
+                    innerContainerStyle={isSmallScreenWidth ? undefined : styles.workspaceSection}
+                >
+                    <View
+                        style={{
+                            maxHeight: isSmallScreenWidth ? windowHeight : windowHeight - 20,
+                            ...safeAreaPaddingBottomStyle,
+                        }}
+                    >
+                        <HeaderWithBackButton
+                            title={translate('subscription.compareModal.comparePlans')}
+                            shouldShowCloseButton
+                            onCloseButtonPress={() => setIsModalVisible(false)}
+                            shouldShowBackButton={false}
+                            style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
+                        />
+                        <ScrollView addBottomSafeAreaPadding>{renderPlans()}</ScrollView>
+                    </View>
+                </Modal>
+            )}
+        </SafeAreaConsumer>
     );
 }
 
