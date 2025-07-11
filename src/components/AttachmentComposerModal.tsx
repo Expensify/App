@@ -175,7 +175,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         }
     }, [fileError, validFilesToUpload, convertFileToAttachment, getModalType]);
 
-    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(setValidFilesToUpload);
+    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(setValidFilesToUpload, false);
 
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
