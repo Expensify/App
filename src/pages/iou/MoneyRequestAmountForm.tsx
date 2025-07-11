@@ -170,7 +170,7 @@ function MoneyRequestAmountForm(
         [currency],
     );
 
-    const initializeIsNegative =  useCallback((currentAmount: number) => {
+    const initializeIsNegative = useCallback((currentAmount: number) => {
         if (currentAmount >= 0) {
             setIsNegative(false);
             return;
