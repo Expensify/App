@@ -13,7 +13,7 @@ import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
 import arrayDifference from './arrayDifference';
 import CONST from './CONST';
-import {isEmptyObject} from './EmptyObject';
+import {isEmptyObject} from './isEmptyObject';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 

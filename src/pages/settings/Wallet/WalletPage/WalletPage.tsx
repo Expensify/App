@@ -65,6 +65,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
@@ -294,11 +295,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID);
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
+    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, lastUsedPaymentMethods]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
@@ -478,13 +479,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     isCentralPane
                                     subtitleMuted
                                     titleStyles={styles.accountSettingsSectionTitle}
+                                    childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
                                 >
                                     <>
                                         {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                                style={[styles.mt7, styles.mb5]}
+                                                style={[styles.mb5]}
                                             />
                                         )}
                                         {!shouldShowLoadingSpinner && hasActivatedWallet && (
@@ -493,7 +495,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 errors={walletTerms?.errors}
                                                 onClose={clearWalletTermsError}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
-                                                style={[styles.mt4, styles.mb2]}
+                                                style={[styles.mb2]}
                                             >
                                                 <MenuItemWithTopDescription
                                                     description={translate('walletPage.balance')}
