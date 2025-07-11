@@ -160,7 +160,8 @@ function IOURequestStepParticipants({
         const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
         transactions.forEach((transaction) => {
             setCustomUnitRateID(transaction.transactionID, rateID);
-            setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? isActivePolicyRequest : true);
+            const shouldSetParticipantAutoAssignement = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && iouType === CONST.IOU.TYPE.CREATE;
+            setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, shouldSetParticipantAutoAssignement ? isActivePolicyRequest : true);
         });
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
         waitForKeyboardDismiss(() => {
