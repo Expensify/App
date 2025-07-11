@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -67,7 +68,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         }
 
         return sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
+            .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
     }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
 
@@ -85,8 +86,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     return;
                 }
                 return translate('workflowsPage.approverCircularReference', {
-                    name1: approver.displayName,
-                    name2: previousApprover.displayName,
+                    name1: Str.removeSMSDomain(approver.displayName),
+                    name2: Str.removeSMSDomain(previousApprover.displayName),
                 });
             }
 
@@ -156,7 +157,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                title={approver?.displayName}
+                                title={Str.removeSMSDomain(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}

@@ -912,8 +912,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
+        import: 'Import spreadsheet',
         dragAndDrop: 'Drag and drop your spreadsheet here, or choose a file below. Supported formats: .csv, .txt, .xls, and .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Drag and drop your spreadsheet here, or choose a file below. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
         chooseSpreadsheet: 'Select a spreadsheet file to import. Supported formats: .csv, .txt, .xls, and .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Select a spreadsheet file to import. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
         fileContainsHeader: 'File contains column headers',
         column: ({name}: SpreadSheetColumnParams) => `Column ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oops! A required field ("${fieldName}") hasn't been mapped. Please review and try again.`,
@@ -1142,7 +1145,7 @@ const translations = {
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the payment`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -1526,6 +1529,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: "What's new",
         accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',
@@ -5910,6 +5914,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
             status: 'Status',
@@ -6304,7 +6309,7 @@ const translations = {
         addressError: 'Address is required',
         reasonError: 'Reason is required',
         successTitle: 'Your new card is on the way!',
-        successDescription: "You'll need to activate it once it arrives in a few business days. In the meantime, your virtual card is ready to use.",
+        successDescription: "You'll need to activate it once it arrives in a few business days. In the meantime, you can use a virtual card.",
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',

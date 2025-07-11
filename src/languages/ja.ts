@@ -925,8 +925,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
+        import: 'スプレッドシートをインポート',
         dragAndDrop: 'スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。対応フォーマット: .csv, .txt, .xls, および .xlsx。',
+        dragAndDropMultiLevelTag: `<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         chooseSpreadsheet: 'インポートするスプレッドシートファイルを選択してください。サポートされている形式: .csv, .txt, .xls, および .xlsx。',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています。',
         column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `おっと！必須フィールド（"${fieldName}"）がマッピングされていません。確認して再試行してください。`,
@@ -1156,7 +1159,7 @@ const translations = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認済み`,
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを拒否しました',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `精算を開始しました。${submitterDisplayName} が銀行口座を追加するまで、支払いは保留されます。`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}が支払いをキャンセルしました`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
@@ -1540,6 +1543,7 @@ const translations = {
             phrase4: 'プライバシー',
         },
         help: '助けて',
+        whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
@@ -5913,6 +5917,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最後の声明',
                 },
             },
             status: 'ステータス',

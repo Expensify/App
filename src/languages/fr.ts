@@ -927,8 +927,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Télécharger une feuille de calcul',
+        import: 'Importer une feuille de calcul',
         dragAndDrop: 'Faites glisser et déposez votre feuille de calcul ici, ou choisissez un fichier ci-dessous. Formats pris en charge : .csv, .txt, .xls et .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Faites glisser et déposez votre feuille de calcul ici, ou choisissez un fichier ci-dessous. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichier pris en charge.</muted-link>`,
         chooseSpreadsheet: 'Sélectionnez un fichier de feuille de calcul à importer. Formats pris en charge : .csv, .txt, .xls et .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Sélectionnez un fichier de feuille de calcul à importer. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichier pris en charge.</muted-link>`,
         fileContainsHeader: 'Le fichier contient des en-têtes de colonnes',
         column: ({name}: SpreadSheetColumnParams) => `Colonne ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oups ! Un champ requis (« ${fieldName} ») n'a pas été mappé. Veuillez vérifier et réessayer.`,
@@ -1158,8 +1161,7 @@ const translations = {
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: `approuvé`,
         rejectedThisReport: 'a rejeté ce rapport',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `a commencé à régler. Le paiement est en attente jusqu'à ce que ${submitterDisplayName} ajoute un compte bancaire.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} a annulé le paiement`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n'a pas activé leur Expensify Wallet dans les 30 jours`,
@@ -1547,6 +1549,7 @@ const translations = {
             phrase4: 'Confidentialité',
         },
         help: 'Aide',
+        whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
@@ -5950,6 +5953,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernière relevé',
                 },
             },
             status: 'Statut',
@@ -6347,7 +6351,7 @@ const translations = {
         addressError: "L'adresse est requise",
         reasonError: 'La raison est requise',
         successTitle: 'Ihre neue Karte ist auf dem Weg!',
-        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
+        successDescription: "Vous devrez l'activer une fois qu'elle arrivera dans quelques jours ouvrables. En attendant, vous pouvez utiliser une carte virtuelle.",
     },
     eReceipt: {
         guaranteed: 'eReçu garanti',

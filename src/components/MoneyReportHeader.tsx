@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -85,6 +86,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
@@ -167,15 +169,14 @@ function MoneyReportHeader({
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions = getEmptyArray<OnyxTypes.Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
-        initialValue: [],
         canBeMissing: true,
     });
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`, {
         canBeMissing: true,
     });
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: true});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
@@ -184,6 +185,15 @@ function MoneyReportHeader({
 
     const isExported = isExportedUtils(reportActions);
     const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
+
+    const [reportPreviewAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`, {
+        canBeMissing: true,
+        selector: (actions) => Object.entries(actions ?? {}).find(([id]) => id === moneyRequestReport?.parentReportActionID)?.[1],
+    });
+
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
@@ -219,6 +229,8 @@ function MoneyReportHeader({
         () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
         [allViolations, transactionIDs],
     );
+
+    const details = useReportAvatarDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
@@ -880,9 +892,9 @@ function MoneyReportHeader({
         [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
     );
 
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    if (selectionMode?.isEnabled) {
+    if (isMobileSelectionModeEnabled) {
         return (
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
@@ -944,6 +956,7 @@ function MoneyReportHeader({
             <HeaderWithBackButton
                 shouldShowReportAvatarWithDisplay
                 shouldShowPinButton={false}
+                singleAvatarDetails={details}
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldShowBackButton}

@@ -260,6 +260,9 @@ const CONST = {
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
 
+    // Allowed extensions for multilevel tag spreadsheets
+    MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS: ['csv', 'tsv'],
+
     // Allowed extensions for text files that are used as spreadsheets
     TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
 
@@ -909,6 +912,7 @@ const CONST = {
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
+    WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
@@ -1369,8 +1373,9 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
-                WIDE_WIDTH: 303,
+                MIN_WIDE_WIDTH: 303,
                 WIDE_HEIGHT: 269,
+                MIN_NARROW_WIDTH: 256,
             },
             DUPLICATE: {
                 WIDE_HEIGHT: 347,
@@ -1721,6 +1726,10 @@ const CONST = {
 
     // Amount of emojis to render ahead at the end of the update cycle
     EMOJI_DRAW_AMOUNT: 100,
+
+    CUSTOM_EMOJIS: {
+        GLOBAL_CREATE: '\uE100',
+    },
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -2934,6 +2943,7 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -3423,9 +3433,13 @@ const CONST = {
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
+
+        PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
+
+        ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
@@ -6224,7 +6238,7 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: 'all',
+                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6233,17 +6247,17 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: 'all',
+                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {
-                ALL: 'all',
+                ALL: '',
                 UNREAD: 'unread',
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
@@ -6251,7 +6265,7 @@ const CONST = {
                 PINNED: 'pinned',
             },
             TASK: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6367,13 +6381,22 @@ const CONST = {
             ACTION: 'action',
         },
         DATE_MODIFIERS: {
+            ON: 'On',
             BEFORE: 'Before',
             AFTER: 'After',
-            ON: 'On',
         },
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            LAST_STATEMENT: 'last-statement',
+        },
+        get FILTER_DATE_PRESETS() {
+            return {
+                // s77rt remove DEV lock
+                [this.SYNTAX_FILTER_KEYS.POSTED]:
+                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
+                [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
+            };
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
@@ -6635,7 +6658,8 @@ const CONST = {
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
         MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
-        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags',
+        MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
