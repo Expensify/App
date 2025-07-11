@@ -115,7 +115,7 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
-function getTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
+function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
     return violations?.reduce((acc, violation) => {
         if (violation.type === CONST.VIOLATION_TYPES.VIOLATION && violation.name === 'someTagLevelsRequired') {
             const violationCount = violation?.data?.errorIndexes?.length ?? 0;
@@ -127,7 +127,7 @@ function getTagViolationsCount(violations: OnyxTypes.TransactionViolations): num
 
 function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
     const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-    const tagViolationsCount = getTagViolationsCount(violations) ?? 0;
+    const tagViolationsCount = getMultiLevelTagViolationsCount(violations) ?? 0;
     const hasViolationsAndHold = violationsCount > 0 && isTransactionOnHold;
     const isTooLong = violationsCount > 1 || tagViolationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
     const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
