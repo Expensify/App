@@ -274,6 +274,11 @@ function unpause() {
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
 
+    // If there are no persisted requests, we need to flush the Onyx updates queue
+    if (numberOfPersistedRequests === 0) {
+        flushOnyxUpdatesQueue();
+    }
+
     // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
     // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
     // the pending READ request never received the resolved callback. That's why we don't want to recreate
