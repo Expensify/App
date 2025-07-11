@@ -3429,6 +3429,7 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
+                            // Navigation for signed users is handled by react-navigation.
                             if (isAuthenticated) {
                                 return;
                             }
