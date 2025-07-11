@@ -351,15 +351,16 @@ function IOURequestStepConfirmation({
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
         transaction?.receipt?.isTestDriveReceipt,
+        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
-        transaction?.participants,
         requestType,
         iouType,
         initialTransactionID,
         reportID,
-        participantsAutoAssignedFromRoute,
         isMovingTransactionFromTrackExpense,
+        participantsAutoAssignedFromRoute,
+        isBetaEnabled,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
