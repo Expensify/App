@@ -1559,7 +1559,7 @@ const translations = {
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment center><mtm issmall>Lire le <a href="${termsURL}">Conditions d'utilisation</a> et <a href="${privacyURL}">Confidentialité</a>.</mtm></comment>`,
+            `<comment><mtm issmall>Lire le <a href="${termsURL}" style="text-decoration-line: none;">Conditions d'utilisation</a> et <a href="${privacyURL}" style="text-decoration-line: none;">Confidentialité</a>.</mtm></comment>`,
         help: 'Aide',
         whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',

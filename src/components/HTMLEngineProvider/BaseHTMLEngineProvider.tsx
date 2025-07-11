@@ -66,6 +66,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     }
                     return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro};
                 },
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-link': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-link',
                 mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
@@ -88,7 +90,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                         if (tnode.attributes.center === undefined) {
                             return {whiteSpace: 'pre'};
                         }
-                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center', textDecorationLine: 'none'};
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
@@ -182,7 +184,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing={false}
+            enableCSSInlineProcessing
             systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
