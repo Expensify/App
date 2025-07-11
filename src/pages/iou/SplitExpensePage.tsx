@@ -40,7 +40,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = React.useState<string>('');
     const {currentSearchHash} = useSearchContext();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
@@ -56,7 +56,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isCardTransaction(transaction);
 
     useEffect(() => {
-        setErrorMessage(null);
+        setErrorMessage('');
     }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
 
     const onAddSplitExpense = useCallback(() => {
@@ -157,9 +157,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError={!!errorMessage}
-                        // cspell:disable-next-line
-                        isInfor={!errorMessage && shouldShowWarningMessage}
-                        message={(errorMessage ?? '') || warningMessage}
+                        isInfo={!errorMessage && shouldShowWarningMessage}
+                        message={errorMessage || warningMessage}
                     />
                 )}
                 <Button
