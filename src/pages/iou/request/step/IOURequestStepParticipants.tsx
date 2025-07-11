@@ -173,7 +173,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(iouConfirmationPageRoute);
             }
         });
-    }, [action, backTo, selfDMReport, selfDMReportID, transactions, initialTransactionID, waitForKeyboardDismiss]);
+    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, isBetaEnabled, iouType, selfDMReport, isActivePolicyRequest, backTo]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
