@@ -277,6 +277,14 @@ module.exports = {
                 property: 'isHybridApp',
                 message: 'Use CONFIG.IS_HYBRID_APP instead.',
             },
+            // Prevent direct use of HybridAppModule.closeReactNativeApp().
+            // Instead, use the `closeReactNativeApp` action from `@userActions/HybridApp`,
+            // which correctly updates `hybridApp.closingReactNativeApp` when closing NewDot
+            {
+                object: 'HybridAppModule',
+                property: 'closeReactNativeApp',
+                message: 'Use `closeReactNativeApp` from `@userActions/HybridApp` instead.',
+            },
         ],
         'no-restricted-imports': [
             'error',

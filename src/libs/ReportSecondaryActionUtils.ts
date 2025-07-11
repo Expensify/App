@@ -57,7 +57,7 @@ import {
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
-    if (!isReportSubmitter) {
+    if (!isReportSubmitter || reportTransactions.length === 0) {
         return false;
     }
 
@@ -193,6 +193,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
     }
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);

@@ -35,6 +35,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -45,6 +46,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -277,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -675,6 +678,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Adicionar anexos',
+        addReceipt: 'Adicionar recibo',
         scanReceipts: 'Escanear recibos',
         replaceReceipt: 'Substituir recibo',
     },
@@ -922,8 +926,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Carregar uma planilha',
+        import: 'Importar planilha',
         dragAndDrop: 'Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. Formatos suportados: .csv, .txt, .xls e .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo suportados.</muted-link>`,
         chooseSpreadsheet: 'Selecione um arquivo de planilha para importar. Formatos suportados: .csv, .txt, .xls e .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Selecione um arquivo de planilha para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo suportados.</muted-link>`,
         fileContainsHeader: 'O arquivo contém cabeçalhos de coluna',
         column: ({name}: SpreadSheetColumnParams) => `Coluna ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Por favor, revise e tente novamente.`,
@@ -1122,10 +1129,20 @@ const translations = {
         individual: 'Individual',
         business: 'Negócio',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} com Expensify` : `Pague com Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar como indivíduo`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar com conta pessoal`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} com carteira` : `Pagar com carteira`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} como uma empresa` : `Pagar como empresa`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} em outro lugar` : `Pague em outro lugar`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como empresa` : `Pagar com conta empresarial`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta empresarial ${last4Digits}` : `Pago com conta empresarial`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
         nextStep: 'Próximos passos',
         finished: 'Concluído',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
@@ -1160,8 +1177,8 @@ const translations = {
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi realizado.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} pago em outro lugar`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagou com Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcado como pago`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pago com carteira`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} pagou com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         noReimbursableExpenses: 'Este relatório possui um valor inválido',
@@ -1817,6 +1834,7 @@ const translations = {
         enableWallet: 'Ativar carteira',
         addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
         addBankAccount: 'Adicionar conta bancária',
+        addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -2029,6 +2047,7 @@ const translations = {
         cardLastFour: 'Cartão terminando em',
         addFirstPaymentMethod: 'Adicione um método de pagamento para enviar e receber pagamentos diretamente no aplicativo.',
         defaultPaymentMethod: 'Padrão',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conta bancária • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -5942,7 +5961,8 @@ const translations = {
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'No mês passado',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Último mês',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Última declaração',
                 },
             },
             status: 'Status',
@@ -5986,7 +6006,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
@@ -6263,8 +6283,7 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Convidar para enviar despesas',
-        inviteToChat: 'Convidar apenas para conversar',
+        invite: 'Convide-os',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6780,11 +6799,8 @@ const translations = {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
                 info: 'Se você quiser continuar usando seu(s) espaço(s) de trabalho em uma base de pagamento por uso, está tudo certo.',
-                preventFutureActivity: {
-                    part1: 'Se você deseja evitar atividades e cobranças futuras, você deve',
-                    link: 'excluir seu(s) espaço(s) de trabalho',
-                    part2: '. Observe que, ao excluir seu(s) workspace(s), você será cobrado por qualquer atividade pendente que tenha ocorrido durante o mês corrente.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Se você deseja evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">excluir seu(s) espaço(s) de trabalho</a>. Observe que, ao excluir seu(s) workspace(s), você será cobrado por qualquer atividade pendente que tenha ocorrido durante o mês corrente.`,
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',
