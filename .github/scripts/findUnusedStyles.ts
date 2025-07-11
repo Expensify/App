@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import * as fs from 'fs';
 import {globSync} from 'glob';
 import * as path from 'path';
@@ -273,7 +272,7 @@ class ComprehensiveStylesFinder {
 
             // Early termination: if all styles are found, stop processing
             if (this.styleDefinitions.size === 0) {
-                console.log(`  ✅ All styles found as used! Stopping early after ${processedFiles} files.`);
+                console.log(`  ✅ All styles found as used!`);
                 break;
             }
 
