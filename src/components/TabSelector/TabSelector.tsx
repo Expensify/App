@@ -83,10 +83,12 @@ function TabSelector({
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
-
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View style={styles.tabSelector} ref={setView}>
+            <View
+                style={styles.tabSelector}
+                ref={setView}
+            >
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
@@ -114,7 +116,6 @@ function TabSelector({
                         onTabPress(route.name);
                     };
 
-                    
                     return (
                         <TabSelectorItem
                             key={route.name}

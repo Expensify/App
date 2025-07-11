@@ -5,10 +5,10 @@ import type {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
@@ -49,7 +49,7 @@ type TabSelectorItemProps = {
     renderProductTrainingTooltip?: () => React.JSX.Element;
 
     /** Parent tab selector, for computing tooltip placement */
-    parentView?: View|null;
+    parentView?: View | null;
 };
 
 function TabSelectorItem({
@@ -73,25 +73,29 @@ function TabSelectorItem({
     const [shiftHorizontal, setShiftHorizontal] = useState(0);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    
+
     // Compute horizontal shift for EducationalTooltip:
     //  - on desktop, ignore RHP bounds and center tooltip on the tab (no shift needed)
     //  - on mobile (aka smallscreen) center tooltip within the panel
     useLayoutEffect(() => {
-        if (!isActive) { return }   // only active tab gets tooltip
+        if (!isActive) {
+            return;
+        } // only active tab gets tooltip
 
-        if (!isSmallScreenWidth) { return }  // no shift needed on desktop (note: not "shouldUseNarrowLayout")
+        if (!isSmallScreenWidth) {
+            return;
+        } // no shift needed on desktop (note: not "shouldUseNarrowLayout")
 
         const timerID = setTimeout(() => {
-                parentView?.measureInWindow((parentX, _parentY, parentWidth) => {
-                    childRef.current?.measureInWindow((x, _y, width) => {
-                        // To center tooltip in parent:
-                        const parentCenter = parentX + parentWidth / 2; // ... where it should be...
-                        const currentCenter = x + width / 2;            // ... minus where it is now...
-                        setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
-                    });
+            parentView?.measureInWindow((parentX, _parentY, parentWidth) => {
+                childRef.current?.measureInWindow((x, _y, width) => {
+                    // To center tooltip in parent:
+                    const parentCenter = parentX + parentWidth / 2; // ... where it should be...
+                    const currentCenter = x + width / 2; // ... minus where it is now...
+                    setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
                 });
-             }, CONST.TOOLTIP_MEASURE_DELAY);   // must allow animation to complete before taking measurement
+            });
+        }, CONST.TOOLTIP_MEASURE_DELAY); // must allow animation to complete before taking measurement
         return () => {
             clearTimeout(timerID);
         };

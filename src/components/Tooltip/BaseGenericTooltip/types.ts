@@ -22,7 +22,7 @@ type BaseGenericTooltipProps = {
 
     /** Minimum width for the tooltip */
     minWidth?: number;
-    
+
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
     shiftHorizontal?: number;
