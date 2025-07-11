@@ -50,6 +50,9 @@ type ReportFooterProps = {
     /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
+    /** Report transactions */
+    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
+
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -82,6 +85,7 @@ function ReportFooter({
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
+    reportTransactions,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -89,7 +93,7 @@ function ReportFooter({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false, canBeMissing: true});
+    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
@@ -232,6 +236,7 @@ function ReportFooter({
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             didHideComposerInput={didHideComposerInput}
+                            reportTransactions={reportTransactions}
                         />
                     </SwipeableView>
                 </View>
@@ -252,5 +257,6 @@ export default memo(
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        deepEqual(prevProps.policy?.role, nextProps.policy?.role),
+        deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
+        deepEqual(prevProps.reportTransactions, nextProps.reportTransactions),
 );

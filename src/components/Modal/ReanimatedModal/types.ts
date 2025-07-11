@@ -13,10 +13,27 @@ type GestureProps = {
     deviceWidth?: number | null;
 };
 
+type SwipeDirection = ValueOf<typeof CONST.SWIPE_DIRECTION>;
+
+type GestureHandlerProps = {
+    /** Callback to be fired on swipe gesture. */
+    onSwipeComplete?: () => void;
+
+    /** Threshold for swipe gesture. */
+    swipeThreshold: number;
+
+    /** Threshold for swipe gesture. */
+    swipeDirection?: SwipeDirection | SwipeDirection[];
+};
+
+type AnimationInType = 'fadeIn' | 'slideInUp' | 'slideInRight';
+type AnimationOutType = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+
 type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
 
 type ReanimatedModalProps = ViewProps &
-    GestureProps & {
+    GestureProps &
+    GestureHandlerProps & {
         /** Content inside the modal */
         children: ReactNode;
 
@@ -47,13 +64,13 @@ type ReanimatedModalProps = ViewProps &
         useNativeDriverForBackdrop?: boolean;
 
         /** Enum for animation type when modal appears */
-        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>>;
+        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>> | AnimationInType;
 
         /** Duration of the animation when modal appears */
         animationInTiming?: number;
 
         /** Enum for animation type when modal disappears */
-        animationOut?: AnimationOut;
+        animationOut?: AnimationOut | AnimationOutType;
 
         /** Duration of the animation when modal disappears */
         animationOutTiming?: number;
@@ -156,7 +173,13 @@ type ContainerProps = {
 
     /** Position animated by pan gesture */
     panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
+
+    /** Animation played when modal shows */
+    animationIn: AnimationInType;
+
+    /** Animation played when modal disappears */
+    animationOut: AnimationOutType;
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, AnimationOut};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationOut, AnimationInType, AnimationOutType, SwipeDirection};
