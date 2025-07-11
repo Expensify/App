@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +28,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
 
     const data = assignCard?.data;
 
@@ -40,6 +41,14 @@ function CardNameStep({policyID}: CardNameStepProps) {
             isEditing: false,
         });
     };
+    const handleBackButtonPress = () => {
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+    };
+
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
@@ -64,7 +73,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardName')}
-                    onBackButtonPress={() => setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false})}
+                    onBackButtonPress={handleBackButtonPress}
                 />
                 <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider
