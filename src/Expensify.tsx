@@ -100,10 +100,11 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     useDebugShortcut();
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
@@ -115,10 +116,12 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
-    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
-    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
-    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale && (CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot : true);
+    const shouldHideSplash =
+        shouldInit &&
+        (CONFIG.IS_HYBRID_APP
+            ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || !!hybridApp?.useNewDotSignInPage)
+            : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -206,18 +209,14 @@ function Expensify() {
             // We use custom deeplink handler in setup/hybridApp
             if (CONFIG.IS_HYBRID_APP) {
                 Report.doneCheckingPublicRoom();
-                return;
             }
-            setInitialUrl(url);
+
+            setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            // We use custom deeplink handler in setup/hybridApp
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
             Report.openReportFromDeepLink(state.url);
         });
 
