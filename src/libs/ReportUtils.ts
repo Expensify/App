@@ -3961,7 +3961,7 @@ function getTransactionDetails(
     const report = getReportOrDraftReport(transaction?.reportID);
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID), 
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
@@ -4221,8 +4221,8 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreported = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        return isUnreported
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, allReports ?? {})).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, allReports ?? {})).length > 1;
     }
