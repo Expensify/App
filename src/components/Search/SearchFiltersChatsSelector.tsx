@@ -27,7 +27,8 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option): OptionData {
-    return {...option, isSelected: true, reportID: option.reportID ?? String(CONST.DEFAULT_NUMBER_ID)};
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    return {...option, isSelected: true, reportID: option.reportID ?? '-1'};
 }
 
 type SearchFiltersParticipantsSelectorProps = {
