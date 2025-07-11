@@ -209,15 +209,13 @@ function ReportActionsView({
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const visibleReportActions = useMemo(
         () =>
-            isReportTransactionThread
-                ? reportActions
-                : reportActions.filter(
-                      (reportAction) =>
-                          (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                          shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                          isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
-                  ),
-        [isReportTransactionThread, reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
+            reportActions.filter(
+                (reportAction) =>
+                    (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
+            ),
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
