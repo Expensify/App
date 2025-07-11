@@ -53,32 +53,41 @@ function MoneyRequestReportPreview({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 
-    const currentWidth = useRef<number>(0);
-    const currentWrapperWidth = useRef<number>(0);
-    const [isMoneyPreviewContentReady, setIsMoneyPreviewContentReady] = useState(false);
+    const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
+    const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
 
-    const onLayout = useCallback(() => {
-        if (!currentWidth.current || !currentWrapperWidth.current) {
-            return;
+    const updateWidths = useCallback(() => {
+        const {currentWidth, currentWrapperWidth} = widthsRef.current;
+
+        if (currentWidth && currentWrapperWidth) {
+            setWidths({currentWidth, currentWrapperWidth});
         }
+    }, []);
 
-        if (shouldUseNarrowLayout) {
-            setIsMoneyPreviewContentReady(!isMoneyPreviewContentReady);
-            return;
-        }
-
-        if (isMoneyPreviewContentReady) {
-            return;
-        }
-
-        setIsMoneyPreviewContentReady(true);
-    }, [isMoneyPreviewContentReady, shouldUseNarrowLayout]);
+    const onCarouselLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWidth !== newWidth) {
+                widthsRef.current.currentWidth = newWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
+    const onWrapperLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWrapperWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
+                widthsRef.current.currentWrapperWidth = newWrapperWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
 
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth?.current, currentWrapperWidth?.current),
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [StyleUtils, shouldUseNarrowLayout, transactions.length, isMoneyPreviewContentReady],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
     );
 
     const shouldShowPayerAndReceiver = useMemo(() => {
@@ -99,22 +108,6 @@ function MoneyRequestReportPreview({
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
-
-    const onCarouselLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            currentWidth.current = e.nativeEvent.layout.width;
-            onLayout();
-        },
-        [onLayout],
-    );
-
-    const onWrapperLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            currentWrapperWidth.current = e.nativeEvent.layout.width;
-            onLayout();
-        },
-        [onLayout],
-    );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -162,7 +155,7 @@ function MoneyRequestReportPreview({
             renderTransactionItem={renderItem}
             onCarouselLayout={onCarouselLayout}
             onWrapperLayout={onWrapperLayout}
-            currentWidth={currentWidth?.current}
+            currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
