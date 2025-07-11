@@ -263,7 +263,7 @@ function SidebarOrderedReportsContextProvider({
         if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
         }
-    }, [contextValue, currentDeps, prevContextValue, previousDeps]);
+    });
 
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
@@ -275,13 +275,13 @@ function useSidebarOrderedReports() {
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
 export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
 
-function getChangedKeys<T extends Record<string, any>>(deps: T, prevDeps: T) {
+function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
     const depsKeys = Object.keys(deps);
 
     return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
 }
 
-function logChangedDeps(msg: string, deps: Record<string, any>, prevDeps: Record<string, any>) {
+function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T) {
     const startTime = performance.now();
     const changedDeps = getChangedKeys(deps, prevDeps);
     const processingDuration = performance.now() - startTime;
