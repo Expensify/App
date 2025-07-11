@@ -393,7 +393,7 @@
     },
     "KRW": {
         "symbol": "₩",
-        "name": "Korean Won",
+        "name": "South Korean Won",
         "decimals": 0,
         "ISO4217": "410"
     },
@@ -626,7 +626,7 @@
     },
     "RUB": {
         "symbol": "₽",
-        "name": "Russian Rouble",
+        "name": "Russian Ruble",
         "ISO4217": "643"
     },
     "RWF": {
