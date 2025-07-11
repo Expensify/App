@@ -121,7 +121,7 @@ function IOURequestStepScan({
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
-    const isReplacingReceipt = isEditing && hasReceipt(initialTransaction);
+    const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -317,7 +317,7 @@ function IOURequestStepScan({
     }, [backTo]);
 
     const navigateToConfirmationPage = useCallback(
-        (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
+        (shouldNavigateToSubmit = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, initialTransactionID, reportID, backToReport));
@@ -329,7 +329,7 @@ function IOURequestStepScan({
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                             CONST.IOU.ACTION.CREATE,
-                            isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
                             initialTransactionID,
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             reportIDParam || reportID,
@@ -505,8 +505,14 @@ function IOURequestStepScan({
 
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                (!initialTransaction?.participants || initialTransaction?.participants?.at(0)?.reportID === activePolicyExpenseChat?.reportID) &&
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(activePolicy) &&
+                activePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(activePolicy.id)
+            ) {
                 const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
@@ -519,6 +525,12 @@ function IOURequestStepScan({
                     ),
                 );
             } else {
+                // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
+                if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
+                    const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+                    Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage(true, initialTransaction?.reportID));
+                    return;
+                }
                 navigateToParticipantPage(iouType, initialTransactionID, reportID);
             }
         },
@@ -527,6 +539,9 @@ function IOURequestStepScan({
             report,
             reportNameValuePairs,
             iouType,
+            initialTransaction?.participants,
+            initialTransaction?.currency,
+            initialTransaction?.reportID,
             activePolicy,
             initialTransactionID,
             navigateToConfirmationPage,
@@ -536,7 +551,6 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
-            initialTransaction?.currency,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
@@ -573,7 +587,7 @@ function IOURequestStepScan({
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
