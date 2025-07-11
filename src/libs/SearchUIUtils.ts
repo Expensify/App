@@ -1525,13 +1525,13 @@ function createTypeMenuSections(
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        const isEligibleForStatementsSuggestion = false; // s77rt TODO
+        const isEligibleForStatementsSuggestion = policy.areCompanyCardsEnabled === true && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = false; // s77rt TODO
 
         // The default feed must be based on an eligible policy
-        if (isEligibleForUnapprovedCompanyCardsSuggestion && !defaultFeed) {
+        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
             defaultFeed = cardFeedsForDisplayPerPolicy[policy.id].toSorted((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
         }
 
@@ -1545,7 +1545,25 @@ function createTypeMenuSections(
     });
 
     if (shouldShowStatementsSuggestion) {
-        // s77rt TODO
+        accountingSection.menuItems.push({
+            translationPath: 'search.statements',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CreditCard,
+            emptyState: {
+                headerMedia: DotLottieAnimations.GenericEmptyState,
+                title: 'search.searchResults.emptyStatementsResults.title',
+                subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.CARDS,
+                    feed: defaultFeed ? [defaultFeed] : undefined,
+                    postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
+                });
+                return queryString;
+            },
+        });
     }
 
     if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
