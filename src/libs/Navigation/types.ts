@@ -1410,7 +1410,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         pageIndex?: string;
-        backTo?: Routes;
+        backTo?: string;
         participantsAutoAssigned?: string;
         backToReport?: string;
     };

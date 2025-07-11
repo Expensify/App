@@ -25,7 +25,7 @@ type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
     icon?: IconAsset;
-    shouldShowRightIcon?: boolean;
+    shouldShowButtonRightIcon?: boolean;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;

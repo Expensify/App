@@ -98,7 +98,7 @@ function getIconDetails({
 
         const defaultAvatar = {
             source: avatar ?? FallbackAvatar,
-            id: actorAccountID,
+            id: accountID,
             name: defaultDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -259,7 +259,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
     const attendeesIDs = transactions
         // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
         ?.flatMap<number | undefined>((tr) =>
-            tr.comment?.attendees?.map((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
+            tr.comment?.attendees?.map?.((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
         )
         .filter((accountID) => !!accountID);
 
