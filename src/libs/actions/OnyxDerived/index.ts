@@ -85,7 +85,7 @@ function init() {
                 const newDerivedValue = compute(dependencyValues, context);
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
-                Onyx.set(key, derivedValue ?? null);
+                setDerivedValue(key, derivedValue);
             };
 
             for (let i = 0; i < dependencies.length; i++) {
