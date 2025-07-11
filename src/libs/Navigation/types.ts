@@ -2186,7 +2186,9 @@ type ScheduleCallParamList = {
 };
 
 type TestToolsModalModalNavigatorParamList = {
-    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;

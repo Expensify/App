@@ -5970,8 +5970,13 @@ const styles = (theme: ThemeColors) =>
 
         getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
             const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
-            const height = isAuthenticated ? defaultHeight : '55%';
+            // Use fixed height values based on the actual content height after the removal of the
+            // "Use profiling" and "Client side logging" menu items.
+            // - ~654px when authenticated
+            // - ~400px when unauthenticated
+            // For narrow layouts, we keep using percentages because fixed heights like 654px can overflow on mWeb Safari.
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : 654;
+            const height = isAuthenticated ? defaultHeight : 400;
 
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
