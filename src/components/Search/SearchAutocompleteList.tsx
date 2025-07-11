@@ -28,6 +28,7 @@ import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyU
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
+    getAutocompleteDatePresets,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -203,10 +204,11 @@ function SearchAutocompleteList(
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const cardAutocompleteList = Object.values(allCards);
     const feedAutoCompleteList = useMemo(() => {
-        // We don't want to show the "Expensify Card" feed in the autocomplete suggestion list
+        // We don't want to show the "Expensify Card" feeds in the autocomplete suggestion list as they don't have real "Statements"
         // Thus passing an empty object to the `allCards` parameter.
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
+    const datePresetAutoCompleteList = useMemo(() => getAutocompleteDatePresets(translate), [translate]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -409,7 +411,7 @@ function SearchAutocompleteList(
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
                     text: feed.name,
-                    autocompleteID: feed.feed,
+                    autocompleteID: feed.id,
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }
@@ -459,6 +461,19 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
+                const filteredDates = datePresetAutoCompleteList[autocompleteKey]
+                    .filter((date) => date.text.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(date.text.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+                return filteredDates.map((date) => ({
+                    filterKey: autocompleteKey,
+                    text: date.text,
+                    autocompleteID: date.value,
+                    mapKey: autocompleteKey,
+                }));
+            }
             default: {
                 return [];
             }
@@ -483,6 +498,7 @@ function SearchAutocompleteList(
         allCards,
         booleanTypes,
         workspaceList,
+        datePresetAutoCompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
