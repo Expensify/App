@@ -429,9 +429,11 @@ function ReportActionsList({
                     return;
                 }
                 const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
+                setActionIdHighlightedTemporary(action?.reportActionID ?? '');
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && index > 0) {
-                    reportScrollManager.scrollToIndex(index);
-                    setActionIdHighlightedTemporary(action?.reportActionID);
+                    setTimeout(() => {
+                        reportScrollManager.scrollToIndex(index);
+                    }, 100);
                 } else {
                     reportScrollManager.scrollToBottom();
                 }
@@ -447,10 +449,10 @@ function ReportActionsList({
         if (actionIdHighlightedTemporary === '') {
             return;
         }
-
+        // Time highlight is the same as SearchPage
         const timer = setTimeout(() => {
             setActionIdHighlightedTemporary('');
-        }, 3000);
+        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
         return () => clearTimeout(timer);
     }, [actionIdHighlightedTemporary]);
 
