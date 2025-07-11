@@ -16,7 +16,7 @@ describe('getTimeDifferenceIntervals', () => {
                     },
                 },
             },
-        } as OnyxEntry<Transaction>);
+        }) as OnyxEntry<Transaction>;
 
     it('calculates hours for same-day transactions', () => {
         // Given a transaction that starts and ends on the same day

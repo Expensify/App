@@ -5,12 +5,14 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACE_HUB} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -99,21 +101,6 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         );
     }
 
-    if (RHP_TO_WORKSPACE_HUB[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE_HUB[route.name]);
-
-        return getInitialSplitNavigatorState(
-            {
-                name: SCREENS.WORKSPACE_HUB.ROOT,
-                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
-            },
-            {
-                name: RHP_TO_WORKSPACE_HUB[route.name],
-                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
-            },
-        );
-    }
-
     if (RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
@@ -184,8 +171,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     if (isWorkspaceSplitNavigator) {
-        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
-        return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
+        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
     }
 
     // If there is no full screen route in the root, we want to add it.
@@ -199,8 +186,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
-                    routes.unshift(settingsSplitRoute);
+                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+                    routes.unshift(workspacesListRoute);
                 }
                 return getRoutesWithIndex(routes);
             }
@@ -225,8 +212,27 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     return state;
 }
 
+/**
+ * Generate a navigation state from a given path, adapting it to handle cases like onboarding flow,
+ * displaying RHP screens and navigating in the Workspaces tab.
+ * For detailed information about generating state from a path,
+ * see the NAVIGATION.md documentation.
+ *
+ * @param path - The path to generate state from
+ * @param options - Extra options to fine-tune how to parse the path
+ * @param shouldReplacePathInNestedState - Whether to replace the path in nested state
+ * @returns The adapted navigation state
+ * @throws Error if unable to get state from path
+ */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+
+    normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
+
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizedPath === CONST.SIGNIN_ROUTE) {
+        normalizedPath = '/';
+    }
 
     const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {

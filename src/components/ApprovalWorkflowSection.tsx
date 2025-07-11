@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +39,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
         }
 
         return sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
+            .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
     }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
 
@@ -70,7 +71,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     title={translate('workflowsExpensesFromPage.title')}
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={styles.textNormalThemeText}
+                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
                     icon={Expensicons.Users}
@@ -89,8 +90,8 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             title={approverTitle(index)}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={styles.textNormalThemeText}
-                            description={approver.displayName}
+                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                            description={Str.removeSMSDomain(approver.displayName)}
                             icon={Expensicons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}

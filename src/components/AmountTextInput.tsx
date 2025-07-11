@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -38,9 +37,12 @@ type AmountTextInputProps = {
     /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior'>;
 
 function AmountTextInput(
     {
@@ -55,11 +57,11 @@ function AmountTextInput(
         containerStyle,
         disableKeyboard = true,
         hideFocusedState = true,
+        shouldApplyPaddingToContainer = false,
         ...rest
     }: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const styles = useThemeStyles();
     return (
         <TextInput
             autoGrow
@@ -67,7 +69,7 @@ function AmountTextInput(
             shouldInterceptSwipe
             disableKeyboard={disableKeyboard}
             inputStyle={style}
-            textInputContainerStyles={[styles.p0, containerStyle]}
+            textInputContainerStyles={containerStyle}
             onChangeText={onChangeAmount}
             ref={ref}
             value={formattedAmount}
@@ -88,6 +90,7 @@ function AmountTextInput(
             spellCheck={false}
             disableKeyboardShortcuts
             shouldUseFullInputHeight
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

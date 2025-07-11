@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,9 +10,6 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 type ReceiptEmptyStateProps = {
-    /** Whether or not there is an error */
-    hasError?: boolean;
-
     /** Callback to be called on onPress */
     onPress?: () => void;
 
@@ -26,10 +24,12 @@ type ReceiptEmptyStateProps = {
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
+
+    style?: StyleProp<ViewStyle>;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -39,12 +39,9 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.moneyRequestViewImage,
-        isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-        isThumbnail && !isInMoneyRequestView && styles.w100,
-        isThumbnail && isInMoneyRequestView && styles.thumbnailImageContainerHighlight,
-        isInMoneyRequestView && styles.expenseViewImage,
-        hasError && styles.borderColorDanger,
+        isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
+        style,
     ];
 
     return (
