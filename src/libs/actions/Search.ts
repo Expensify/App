@@ -10,6 +10,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {getLastUsedPaymentMethod, getLastUsedPaymentMethods} from '@libs/IOUUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
@@ -18,19 +19,12 @@ import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/S
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-
-let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    callback: (val) => {
-        lastPaymentMethod = val;
-    },
-});
 
 let allSnapshots: OnyxCollection<SearchResults>;
 Onyx.connect({
@@ -42,7 +36,7 @@ Onyx.connect({
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
-    // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
+    // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
@@ -74,7 +68,7 @@ function getLastPolicyBankAccountID(policyID: string | undefined, reportType: ke
     if (!policyID) {
         return undefined;
     }
-    const lastPolicyPaymentMethod = lastPaymentMethod?.[policyID];
+    const lastPolicyPaymentMethod = getLastUsedPaymentMethod(policyID);
     return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
 }
 
@@ -96,8 +90,17 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
+function getSnapshotIOUReport(reportID?: string, hash?: number) {
+    if (!reportID || !hash) {
+        return;
+    }
+
+    return allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
 function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
+    const lastPaymentMethods = (getLastUsedPaymentMethods() ?? {}) as OnyxEntry<LastPaymentMethod>;
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethods);
 
     if (!lastPolicyPaymentMethod) {
         goToItem();
@@ -434,10 +437,20 @@ function clearAllFilters() {
 }
 
 function clearAdvancedFilters() {
-    const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
+    const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
+        .filter((key) => key !== FILTER_KEYS.GROUP_BY)
         .forEach((key) => {
+            if (key === FILTER_KEYS.TYPE) {
+                values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+                return;
+            }
+
+            if (key === FILTER_KEYS.STATUS) {
+                values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                return;
+            }
+
             values[key] = null;
         });
 
@@ -465,4 +478,5 @@ export {
     openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
+    getSnapshotIOUReport,
 };

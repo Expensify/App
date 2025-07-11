@@ -315,6 +315,7 @@ const styles = (theme: ThemeColors) =>
             ...spacing.p2,
             borderRadius: 8,
         },
+        customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -338,7 +339,6 @@ const styles = (theme: ThemeColors) =>
 
         navigationTabBarLabel: {
             lineHeight: 14,
-            height: 16,
         },
 
         webViewStyles: webViewStyles(theme),
@@ -448,6 +448,11 @@ const styles = (theme: ThemeColors) =>
         textSmall: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
+        },
+
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
         },
 
         textMicro: {
@@ -651,6 +656,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            paddingHorizontal: 4,
         },
 
         leftNavigationTabBarContainer: {
@@ -669,6 +675,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            paddingHorizontal: 4,
         },
 
         button: {
@@ -1300,7 +1307,7 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: 'transparent',
+            backgroundColor: theme.appBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
@@ -1900,6 +1907,10 @@ const styles = (theme: ThemeColors) =>
         emojisWithTextFontSizeAligned: {
             fontSize: variables.fontSizeEmojisWithinText,
             marginVertical: -7,
+        },
+
+        customEmojiFontAlignment: {
+            marginTop: -variables.fontSizeNormal,
         },
 
         emojisFontFamily: {
@@ -2659,15 +2670,6 @@ const styles = (theme: ThemeColors) =>
 
         emptyAvatarMarginSmaller: {
             marginRight: variables.avatarChatSpacing - 4,
-        },
-
-        subscriptIcon: {
-            position: 'absolute',
-            bottom: -4,
-            right: -4,
-            width: 20,
-            height: 20,
-            backgroundColor: theme.buttonDefaultBG,
         },
 
         borderTop: {
@@ -4703,6 +4705,15 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4920,6 +4931,10 @@ const styles = (theme: ThemeColors) =>
             maxHeight: 500,
             paddingBottom: 0,
             paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
         },
 
         moneyRequestViewImage: {
@@ -5941,6 +5956,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        topBarWrapper: {
+            zIndex: 15,
         },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
