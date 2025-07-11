@@ -156,29 +156,29 @@ platforms:
       - href: getting-started
         title: Getting Started
         icon: /assets/images/accounting.svg
-        description: "Set up your account to optimize Expensify's travel features."
+        description: "Learn how to get started with Expensify Travel."
 
       - href: booking-travel
         title: Booking with Expensify Travel
-        icon: /assets/images/plane.svg
-        description: "Learn how to book flights, hotels, and rental cars."
+        icon: /assets/images/simple-illustration__luggage.svg
+        description: "Everything you need to know about booking flights, hotels, and more with Expensify Travel."
 
       - href: managing-trips
         title: Managing trips
         icon: /assets/images/plane.svg
-        description: "Manage your travel preferences and settings."
+        description: "Learn how to easily manage, modify, or cancel your trips."
 
       - href: company-setup
         title: Setting up your company in Expensify travel
-        icon: /assets/images/money-receipt.svg
-        description: "Set approval workflows and use Expensify’s automated report features."
+        icon: /assets/images/gears.svg
+        description: "Configure your company profile in Expensify Travel, and set your preferences, approval type, and more."
 
       - href: travel-policy
         title: Creating a travel policy
-        icon: /assets/images/shield.svg
-        description: "Configure rules, settings, and limits for your company’s travel spending."
+        icon: /assets/images/simple-illustration__rules.svg
+        description: "Create a clear, effective travel policy for employee bookings."
 
       - href: travel-analytics
         title: Travel Analytics
-        icon: /assets/images/gears.svg
-        description: "Manage your travel settings and preferences."
+        icon: /assets/images/simple-illustration__chart.svg
+        description: "Track spend, spot savings, and drive smarter bookings with travel analytics."
