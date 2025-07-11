@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -153,7 +154,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
     const handleDeleteModalConfirm = useCallback(() => {
         setIsDeleteModalVisible(false);
         if (!parentReportAction || !transaction) {
-            throw new Error('Data missing');
+            Log.hmmm('[MoneyRequestHeader] Unable to delete expense due to missing data', {
+                hasParentReportAction: !!parentReportAction,
+                parentReportID: report?.parentReportID,
+                hasTransaction: !!transaction,
+                transactionID: transaction?.transactionID,
+            });
+
+            onBackButtonPress();
+            return;
         }
         if (isTrackExpenseAction(parentReportAction)) {
             deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, true);
