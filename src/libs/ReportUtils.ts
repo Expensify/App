@@ -4530,7 +4530,7 @@ function getReportPreviewMessage(
         }
     }
 
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
         const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
