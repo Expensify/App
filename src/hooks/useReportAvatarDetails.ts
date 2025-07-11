@@ -98,7 +98,7 @@ function getIconDetails({
 
         const defaultAvatar = {
             source: avatar ?? FallbackAvatar,
-            id: actorAccountID,
+            id: accountID,
             name: defaultDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
         };

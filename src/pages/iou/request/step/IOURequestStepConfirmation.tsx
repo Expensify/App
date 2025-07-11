@@ -81,7 +81,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport, backTo},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
     transaction: initialTransaction,
     isLoadingTransaction,
@@ -299,12 +299,6 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
-        // if (backTo) {
-        //     console.log('here');
-        //     Navigation.goBack(backTo);
-        //     return;
-        // }
-
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -359,7 +353,6 @@ function IOURequestStepConfirmation({
         reportID,
         participantsAutoAssignedFromRoute,
         isMovingTransactionFromTrackExpense,
-        backTo,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {

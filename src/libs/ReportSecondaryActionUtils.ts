@@ -57,7 +57,7 @@ import {
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
-    if (!isReportSubmitter) {
+    if (!isReportSubmitter || reportTransactions.length === 0) {
         return false;
     }
 
