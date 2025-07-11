@@ -17,7 +17,7 @@ function convertToWebNavigationOptions(screenOptions: ScreenOptionsOrCallback<Pl
         };
     }
 
-    return {...buildPlatformSpecificNavigationOptions<StackNavigationOptions>(screenOptions), ...screenOptions.web};
+    return {...buildPlatformSpecificNavigationOptions<StackNavigationOptions>(screenOptions), cardStyle: screenOptions.contentStyle, ...screenOptions.web};
 }
 
 export default convertToWebNavigationOptions;
