@@ -55,10 +55,6 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         });
     };
 
-    if (!isModalVisible) {
-        return null;
-    }
-
     return (
         <ConfirmModal
             isVisible={isModalVisible}
