@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/Transaction';
+import {getSourceTransaction, getTargetTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldNavigateToMergeReceipt} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -85,8 +86,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
-        const targetTransaction = eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction?.targetTransactionID);
-        const sourceTransaction = eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction?.sourceTransactionID);
+        const targetTransaction = getTargetTransaction(mergeTransaction);
+        const sourceTransaction = getSourceTransaction(mergeTransaction);
         if (!sourceTransaction || !targetTransaction) {
             return;
         }
@@ -100,7 +101,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
         }
-    }, [eligibleTransactions, mergeTransaction, transactionID]);
+    }, [mergeTransaction, transactionID]);
 
     if (eligibleTransactions?.length === 0) {
         return (
