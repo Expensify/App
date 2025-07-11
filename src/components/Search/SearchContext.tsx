@@ -142,8 +142,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             }
             const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
 
-            if (selectedTransactionIDs.length === 0) {
-                const removedTransaction = searchContextData.selectedTransactions[transactionID];
+            if (!isEmptyObject(searchContextData.selectedTransactions)) {
                 const newSelectedTransactions = Object.entries(searchContextData.selectedTransactions).reduce((acc, [key, value]) => {
                     if (key === transactionID) {
                         return acc;
@@ -151,19 +150,19 @@ function SearchContextProvider({children}: ChildrenProps) {
                     acc[key] = value;
                     return acc;
                 }, {} as SelectedTransactions);
-                const reportIDOwningTransaction = removedTransaction?.reportID;
+
                 setSearchContextData((prevState) => ({
                     ...prevState,
                     selectedTransactions: newSelectedTransactions,
-                    selectedReports: prevState.selectedReports.filter((report) => report.reportID !== reportIDOwningTransaction),
                 }));
-                return;
             }
 
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
-            }));
+            if (selectedTransactionIDs.length > 0) {
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+                }));
+            }
         },
         [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
