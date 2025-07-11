@@ -76,7 +76,7 @@ function TabSelectorItem({
 
     // Compute horizontal shift for EducationalTooltip:
     //  - on desktop, ignore RHP bounds and center tooltip on the tab (no shift needed)
-    //  - on mobile (aka smallscreen) center tooltip within the panel
+    //  - on mobile (aka small screen) center tooltip within the panel
     useLayoutEffect(() => {
         if (!isActive) {
             return;

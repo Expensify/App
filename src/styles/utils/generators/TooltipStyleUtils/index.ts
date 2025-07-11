@@ -128,8 +128,6 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             tooltipWidth = minWidth;
         }
 
-        const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
-
         let shouldShowBelow = false;
         let horizontalShift = 0;
         let horizontalShiftPointer = 0;
@@ -140,7 +138,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         let pointerAdditionalStyle = {};
         let opacity = 0;
 
-        if (isTooltipSizeReady) {
+        if (tooltipWidth !== undefined && tooltipHeight !== undefined) {
             // Determine if the tooltip should display below the wrapped component.
             // If either a tooltip will try to render within GUTTER_WIDTH or desktop header logical pixels of the top of the screen,
             // Or the wrapped component is overlapping at top-center with another element
