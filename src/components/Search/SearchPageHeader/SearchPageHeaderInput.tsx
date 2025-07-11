@@ -37,8 +37,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 
@@ -63,9 +61,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(), []);
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds = getEmptyObject<Record<string, WorkspaceCardsList | undefined>>()] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const [allFeeds = getEmptyObject<Record<string, CardFeeds | undefined>>()] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
@@ -392,7 +390,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 personalDetails={personalDetails}
                                 reports={reports}
                                 allCards={allCards}
-                                allFeeds={allFeeds}
+                                allFeeds={allFeeds ?? {}}
                             />
                         </View>
                     )}
@@ -463,7 +461,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             personalDetails={personalDetails}
                             reports={reports}
                             allCards={allCards}
-                            allFeeds={allFeeds}
+                            allFeeds={allFeeds ?? {}}
                         />
                     </View>
                 </View>
