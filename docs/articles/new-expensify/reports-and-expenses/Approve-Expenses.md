@@ -27,7 +27,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To set up an approval workflow:**
 
-1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Approvals**.
+1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Workflows**.
 2. Create a custom workflow to route expenses to the appropriate approvers.
 
 ---
