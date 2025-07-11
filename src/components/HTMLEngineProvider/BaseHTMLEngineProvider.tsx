@@ -58,6 +58,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-link': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-link',
+                mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -156,6 +161,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.h1,
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
+            styles.subTextFileUpload,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

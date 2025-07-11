@@ -23,7 +23,7 @@ function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const route = useRoute();
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
