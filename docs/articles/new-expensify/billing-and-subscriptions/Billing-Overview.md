@@ -34,7 +34,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ## 🌍 Localized pricing
 
-- Pricing available in **GBP**, **AUD**, and **NZD**
+- Pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🔄 Flexible scaling
 
