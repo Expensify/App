@@ -120,8 +120,6 @@ type ReportActionsListProps = {
     keyboardInset: SharedValue<number>;
 
     keyboardOffset: SharedValue<number>;
-
-    composerHeight: number;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -163,7 +161,6 @@ function ReportActionsList({
     scrollingVerticalOffset,
     keyboardInset,
     keyboardOffset,
-    composerHeight,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
