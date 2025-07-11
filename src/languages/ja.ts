@@ -279,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6768,11 +6769,8 @@ const translations = {
                 title: 'サブスクリプションがキャンセルされました',
                 subtitle: '年間サブスクリプションがキャンセルされました。',
                 info: 'ワークスペースを従量課金制で引き続き使用したい場合は、これで準備完了です。',
-                preventFutureActivity: {
-                    part1: '今後のアクティビティと請求を防ぎたい場合は、',
-                    link: 'ワークスペースを削除する',
-                    part2: 'ワークスペースを削除すると、現在のカレンダー月に発生した未払いの活動に対して請求されることに注意してください。',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `今後のアクティビティと請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除する</a> ワークスペースを削除すると、現在のカレンダー月に発生した未払いの活動に対して請求されることに注意してください。`,
             },
             requestSubmitted: {
                 title: 'リクエストが送信されました',

@@ -279,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6673,11 +6674,8 @@ const translations = {
                 title: '订阅已取消',
                 subtitle: '您的年度订阅已被取消。',
                 info: '如果您想继续按使用量付费的方式使用您的工作区，您就准备好了。',
-                preventFutureActivity: {
-                    part1: '如果您想防止未来的活动和收费，您必须',
-                    link: '删除您的工作区',
-                    part2: '请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `如果您想防止未来的活动和收费，您必须 <a href="${workspacesListRoute}">删除您的工作区</a> 请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。`,
             },
             requestSubmitted: {
                 title: '请求已提交',

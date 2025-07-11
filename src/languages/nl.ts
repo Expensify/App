@@ -279,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6802,11 +6803,8 @@ const translations = {
                 title: 'Abonnement geannuleerd',
                 subtitle: 'Uw jaarlijkse abonnement is geannuleerd.',
                 info: 'Als je je werkruimte(s) op een pay-per-use basis wilt blijven gebruiken, ben je helemaal klaar.',
-                preventFutureActivity: {
-                    part1: 'Als je toekomstige activiteiten en kosten wilt voorkomen, moet je',
-                    link: 'verwijder je werkruimte(s)',
-                    part2: '. Let op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die in de huidige kalendermaand zijn gemaakt.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Als je toekomstige activiteiten en kosten wilt voorkomen, moet je <a href="${workspacesListRoute}">verwijder je werkruimte(s)</a>. Let op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die in de huidige kalendermaand zijn gemaakt.`,
             },
             requestSubmitted: {
                 title: 'Verzoek ingediend',
