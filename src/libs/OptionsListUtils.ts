@@ -243,6 +243,8 @@ type GetOptionsConfig = {
     recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
+    searchString?: string;
+    maxElements?: number;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -1296,6 +1298,17 @@ function orderReportOptions(options: OptionData[]) {
     return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
 }
 
+// Raw data comparators for prefiltering
+const rawReportComparator = (option: OptionData) => {
+    return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
+};
+
+const rawPersonalDetailsComparator = (personalDetail: PersonalDetails) => {
+    // Sort by displayName or login for alphabetical ordering
+    const name = personalDetail.displayName ?? personalDetail.login ?? '';
+    return name.toLowerCase();
+};
+
 const recentReportComparator = (option: OptionData) => {
     return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
@@ -1899,6 +1912,8 @@ function getValidOptions(
         shouldSeparateWorkspaceChat = false,
         excludeHiddenThreads = false,
         canShowManagerMcTest = false,
+        searchString,
+        maxElements,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1923,12 +1938,86 @@ function getValidOptions(
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
+    // Early optimization: prefilter raw data if searchString and maxElements are provided
+    let filteredReports = options.reports;
+    let filteredPersonalDetails = options.personalDetails;
+
+    if (maxElements) {
+        if (options.reports) {
+            const searchTerms = (searchString ?? '')
+                .toLowerCase()
+                .split(' ')
+                .filter((term) => term.length > 0);
+            const reportEntries = Object.entries(options.reports);
+            const heap = new MinHeap<[string, Report]>(([_, report]) => rawReportComparator(report));
+
+            for (const [reportID, report] of reportEntries) {
+                if (!report) continue;
+
+                // Basic search matching on report name and participants
+                const reportName = report.reportName?.toLowerCase() || '';
+                const participantNames = Object.keys(report.participants || {})
+                    .map((accountID) => (options.personalDetails?.[Number(accountID)]?.displayName || options.personalDetails?.[Number(accountID)]?.login || '').toLowerCase())
+                    .join(' ');
+
+                const searchText = `${reportName} ${report.text} ${participantNames} ${report.login}`.toLocaleLowerCase();
+
+                const matches = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+
+                if (matches) {
+                    if (heap.size() < maxElements) {
+                        heap.push([reportID, report]);
+                    } else {
+                        const peeked = heap.peek();
+                        if (peeked && rawReportComparator(report) > rawReportComparator(peeked[1])) {
+                            heap.pop();
+                            heap.push([reportID, report]);
+                        }
+                    }
+                }
+            }
+
+            filteredReports = Object.fromEntries([...heap].reverse()) as unknown as typeof options.reports;
+        }
+
+        // Filter personal details by search string and build heap in one pass
+        if (options.personalDetails) {
+            const searchTerms = searchString
+                .toLowerCase()
+                .split(' ')
+                .filter((term) => term.length > 0);
+            const personalDetailEntries = Object.entries(options.personalDetails);
+            const heap = new MinHeap<[string, PersonalDetails]>(([_, pd]) => rawPersonalDetailsComparator(pd));
+
+            for (const [accountID, personalDetail] of personalDetailEntries) {
+                if (!personalDetail || personalDetail.accountID === undefined) continue;
+
+                const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`;
+                const matches = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+
+                if (matches) {
+                    if (heap.size() < maxElements) {
+                        heap.push([accountID, personalDetail as PersonalDetails]);
+                    } else {
+                        const peeked = heap.peek();
+                        if (peeked && rawPersonalDetailsComparator(personalDetail as PersonalDetails) > rawPersonalDetailsComparator(peeked[1])) {
+                            heap.pop();
+                            heap.push([accountID, personalDetail as PersonalDetails]);
+                        }
+                    }
+                }
+            }
+
+            filteredPersonalDetails = Object.fromEntries([...heap].reverse()) as unknown as typeof options.personalDetails;
+        }
+    }
+
     // Get valid recent reports:
     let recentReportOptions: OptionData[] = [];
     let workspaceChats: OptionData[] = [];
     let selfDMChat: OptionData | undefined;
     if (includeRecentReports) {
-        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(options.reports, {
+        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(Object.values(filteredReports), {
             ...getValidReportsConfig,
             includeP2P,
             includeDomainEmail,
@@ -1938,6 +2027,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
         });
+
         recentReportOptions = recentReports;
         workspaceChats = workspaceOptions;
         selfDMChat = selfDMOption;
@@ -1968,7 +2058,7 @@ function getValidOptions(
             };
         }
 
-        personalDetailsOptions = getValidPersonalDetailOptions(options.personalDetails, {
+        personalDetailsOptions = getValidPersonalDetailOptions(Object.values(filteredPersonalDetails), {
             loginsToExclude: personalDetailLoginsToExclude,
             shouldBoldTitleByDefault,
             includeDomainEmail,
@@ -1995,7 +2085,7 @@ function getValidOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true): Options {
+function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true, searchQuery = '', maxResults?: number): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getValidOptions(options, {
@@ -2012,6 +2102,8 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,
+        maxElements: maxResults,
+        searchString: searchQuery,
     });
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
