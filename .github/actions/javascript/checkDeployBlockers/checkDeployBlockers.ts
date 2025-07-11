@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import CONST from '@github/libs/CONST';
-import {isEmptyObject} from '@github/libs/EmptyObject';
 import GithubUtils from '@github/libs/GithubUtils';
+import {isEmptyObject} from '@github/libs/isEmptyObject';
 
 const run = function (): Promise<void> {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));

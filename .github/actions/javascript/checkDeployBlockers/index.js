@@ -11529,8 +11529,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const EmptyObject_1 = __nccwpck_require__(94);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const isEmptyObject_1 = __nccwpck_require__(6497);
 const run = function () {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', { required: true }));
     console.log(`Fetching issue number ${issueNumber}`);
@@ -11564,7 +11564,7 @@ const run = function () {
             return;
         }
         // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
-        if ((0, EmptyObject_1.isEmptyObject)(comments.data)) {
+        if ((0, isEmptyObject_1.isEmptyObject)(comments.data)) {
             console.log('No comments found on issue');
             core.setOutput('HAS_DEPLOY_BLOCKERS', true);
             return;
@@ -12213,14 +12213,6 @@ function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
 exports.isEmptyObject = isEmptyObject;
-
-
-/***/ }),
-
-/***/ 94:
-/***/ ((module) => {
-
-module.exports = eval("require")("@github/libs/EmptyObject");
 
 
 /***/ }),
