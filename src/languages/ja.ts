@@ -925,8 +925,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
+        import: 'スプレッドシートをインポート',
         dragAndDrop: 'スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。対応フォーマット: .csv, .txt, .xls, および .xlsx。',
+        dragAndDropMultiLevelTag: `<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         chooseSpreadsheet: 'インポートするスプレッドシートファイルを選択してください。サポートされている形式: .csv, .txt, .xls, および .xlsx。',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています。',
         column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `おっと！必須フィールド（"${fieldName}"）がマッピングされていません。確認して再試行してください。`,
@@ -5914,6 +5917,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最後の声明',
                 },
             },
             status: 'ステータス',
@@ -6234,8 +6238,7 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '経費の提出に招待する',
-        inviteToChat: 'チャットのみ招待',
+        invite: '招待する',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {

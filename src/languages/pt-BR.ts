@@ -922,8 +922,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Carregar uma planilha',
+        import: 'Importar planilha',
         dragAndDrop: 'Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. Formatos suportados: .csv, .txt, .xls e .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo suportados.</muted-link>`,
         chooseSpreadsheet: 'Selecione um arquivo de planilha para importar. Formatos suportados: .csv, .txt, .xls e .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Selecione um arquivo de planilha para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo suportados.</muted-link>`,
         fileContainsHeader: 'O arquivo contém cabeçalhos de coluna',
         column: ({name}: SpreadSheetColumnParams) => `Coluna ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Por favor, revise e tente novamente.`,
@@ -5942,7 +5945,8 @@ const translations = {
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'No mês passado',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Último mês',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Última declaração',
                 },
             },
             status: 'Status',
@@ -6263,8 +6267,7 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Convidar para enviar despesas',
-        inviteToChat: 'Convidar apenas para conversar',
+        invite: 'Convide-os',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {

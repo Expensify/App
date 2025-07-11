@@ -906,8 +906,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Importar',
+        import: 'Importar hoja de cálculo',
         dragAndDrop: 'Arrastra y suelta un archivo de hoja de cálculo aquí',
-        chooseSpreadsheet: 'Subir',
+        dragAndDropMultiLevelTag: `<muted-link>Arrastra y suelta un archivo de hoja de cálculo aquí, o elige un archivo a continuación. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
+        chooseSpreadsheet: 'Elige un archivo de hoja de cálculo para importar. Los formatos soportados son .csv, .txt, .xls y .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Elige un archivo de hoja de cálculo para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
         fileContainsHeader: 'El archivo contiene encabezados',
         column: ({name}: SpreadSheetColumnParams) => `Columna ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
@@ -5933,6 +5936,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extracto',
                 },
             },
             status: 'Estado',
@@ -6693,8 +6697,7 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invitar a enviar gastos',
-        inviteToChat: 'Invitar solo a chatear',
+        invite: 'Invitar',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {
