@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -250,6 +250,7 @@ function SidebarOrderedReportsContextProvider({
     };
     const prevContextValue = usePrevious(contextValue);
     const previousDeps = usePrevious(currentDeps);
+    const firstRender = useRef(true);
 
     useEffect(() => {
         // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
@@ -263,6 +264,13 @@ function SidebarOrderedReportsContextProvider({
         if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
         }
+
+        // Case 3: orderedReports are empty from the beginning
+        if (firstRender.current && contextValue.orderedReports.length === 0) {
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps);
+        }
+
+        firstRender.current = false;
     });
 
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
