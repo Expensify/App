@@ -386,6 +386,7 @@ function MagicCodeInput(
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({
@@ -437,7 +438,7 @@ function MagicCodeInput(
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
                     const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
-                    const cursorMargin = char ? {marginLeft: 2} : {marginRigth: 0};
+                    const cursorMargin = char ? {marginLeft: 2} : {};
                     const isFocused = focusedIndex === index;
 
                     return (
