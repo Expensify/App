@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
@@ -96,7 +96,7 @@ function ReportFooter({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {bottom} = useSafeAreaInsets();
+    const {unmodifiedPaddings} = useSafeAreaPaddings();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false, canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
@@ -192,12 +192,14 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
+    const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
+
     const animatedStyle = useAnimatedStyle(() => {
         return {
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            transform: [{translateY: keyboardHeight.get() > bottom ? -keyboardHeight.get() + bottom : 0}],
+            transform: [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() + unmodifiedPaddingBottom : 0}],
         };
     });
 
