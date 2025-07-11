@@ -62,7 +62,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
         </View>
     );
 
-    const maxHeight = isSmallScreenWidth ? undefined : windowHeight - 20;
+    const maxHeight = isSmallScreenWidth ? undefined : windowHeight - 40;
 
     return (
         <SafeAreaConsumer>
