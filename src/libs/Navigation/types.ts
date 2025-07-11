@@ -1410,7 +1410,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         pageIndex?: string;
-        backTo?: Routes;
+        backTo?: string;
         participantsAutoAssigned?: string;
         backToReport?: string;
     };
@@ -1725,6 +1725,10 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
+        token: string;
+        isTestAccount?: string;
+    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
@@ -2186,7 +2190,9 @@ type ScheduleCallParamList = {
 };
 
 type TestToolsModalModalNavigatorParamList = {
-    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
