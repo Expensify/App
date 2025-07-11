@@ -2,7 +2,6 @@ import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, format, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
@@ -15,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
@@ -91,7 +91,7 @@ function ScheduleCallPage() {
             return allSlots;
         }, [] as TimeSlot[]);
 
-        // Group timeslots by date to render per day slots on calendar
+        // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
@@ -114,7 +114,7 @@ function ScheduleCallPage() {
     const lastDate = selectableDates.at(selectableDates.length - 1);
     const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
-    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
+    const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

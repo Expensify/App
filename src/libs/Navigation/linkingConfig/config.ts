@@ -2,6 +2,7 @@ import type {LinkingOptions} from '@react-navigation/native';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
@@ -53,6 +54,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
+                [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
             },
         },
@@ -137,6 +139,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
+                    exact: true,
+                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
@@ -194,6 +212,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },
+                        },
+                        [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_LOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UNLOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT,
+                            exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
@@ -654,6 +684,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
@@ -825,8 +858,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORT]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
                         },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
@@ -1286,20 +1328,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             screens: {
                                 distance: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
-                                    exact: true,
                                 },
                                 manual: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-                                    exact: true,
                                 },
                                 scan: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-                                    exact: true,
                                 },
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
-                                    exact: true,
                                 },
                             },
                         },
@@ -1321,6 +1359,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
+                        [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
@@ -1446,6 +1485,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE.route,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
@@ -1472,6 +1512,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_BY,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_SUBMITTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_SUBMITTED,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_APPROVED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_APPROVED,
@@ -1494,7 +1537,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TITLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TITLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_ASSIGNEE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_CREATED_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
@@ -1742,9 +1784,29 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
             initialRouteName: SCREENS.SHARE.ROOT,
             screens: {
-                [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
+                [SCREENS.SHARE.ROOT]: {
+                    path: ROUTES.SHARE_ROOT,
+                    screens: {
+                        [CONST.TAB.SHARE.SHARE]: {
+                            path: ROUTES.SHARE_ROOT_SHARE,
+                            exact: true,
+                        },
+                        [CONST.TAB.SHARE.SUBMIT]: {
+                            path: ROUTES.SHARE_ROOT_SUBMIT,
+                            exact: true,
+                        },
+                    },
+                },
                 [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
                 [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
+            },
+        },
+        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+                    path: ROUTES.TEST_TOOLS_MODAL.route,
+                    exact: true,
+                },
             },
         },
     },
@@ -1768,9 +1830,12 @@ const normalizedConfigs = Object.keys(config.screens)
         ),
     )
     .flat()
-    .reduce((acc, route) => {
-        acc[route.screen as Screen] = route;
-        return acc;
-    }, {} as Record<Screen, RouteConfig>);
+    .reduce(
+        (acc, route) => {
+            acc[route.screen as Screen] = route;
+            return acc;
+        },
+        {} as Record<Screen, RouteConfig>,
+    );
 
 export {normalizedConfigs, config};

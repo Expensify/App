@@ -22,7 +22,7 @@ const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 jest.mock('fs');
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
-const mockGetPullRequestsMergedBetween = jest.fn();
+const mockGetPullRequestsDeployedBetween = jest.fn();
 
 beforeAll(() => {
     // Mock core module
@@ -65,7 +65,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = mockOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+    GitUtils.getPullRequestsDeployedBetween = mockGetPullRequestsDeployedBetween;
 
     vol.reset();
     vol.fromJSON({
@@ -76,7 +76,7 @@ beforeAll(() => {
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
-    mockGetPullRequestsMergedBetween.mockClear();
+    mockGetPullRequestsDeployedBetween.mockClear();
 });
 
 afterAll(() => {
@@ -127,9 +127,6 @@ const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
 // eslint-disable-next-line max-len
-const timingDashboardVerification =
-    'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
-// eslint-disable-next-line max-len
 const firebaseVerificationCurrentRelease =
     'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
 // eslint-disable-next-line max-len
@@ -176,7 +173,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             return 'fake_token';
         });
 
-        mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
@@ -205,7 +202,6 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(6)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -230,7 +226,6 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
                 `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
                 `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
                 `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
                 `${lineBreak}${closedCheckbox}${ghVerification}` +
@@ -273,7 +268,7 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
@@ -331,7 +326,6 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
                     // Note: these will be unchecked with a new app version, and that's intentional
-                    `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                     `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                     `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                     `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -350,7 +344,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 }
                 return 'fake_token';
             });
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
@@ -405,7 +399,6 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${baseIssueList.at(0)}` +
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
                     `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
                     `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +

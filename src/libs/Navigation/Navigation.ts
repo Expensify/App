@@ -161,6 +161,15 @@ function getReportRHPActiveRoute(): string {
 }
 
 /**
+ * Cleans the route path by removing redundant slashes and query parameters.
+ * @param routePath The route path to clean.
+ * @returns The cleaned route path.
+ */
+function cleanRoutePath(routePath: string): string {
+    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -170,16 +179,18 @@ function getReportRHPActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    let activeRoute = getActiveRoute();
+    let activeRoute = getActiveRouteWithoutParams();
     activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
 
     // We remove redundant (consecutive and trailing) slashes from path before matching
-    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
+    return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
 }
 
 /**
  * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
+ * For detailed information about moving between screens,
+ * see the NAVIGATION.md documentation.
  *
  * @param route - The route to navigate to.
  * @param options - Optional navigation options.
@@ -203,7 +214,7 @@ function navigate(route: Route, options?: LinkToOptions) {
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
  */
-const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
+const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID', 'pop'];
 
 /**
  * @private
@@ -314,11 +325,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     }
 
     /**
-     * If we are not comparing params, we want to use navigate action because it will replace params in the route already existing in the state if necessary.
-     * This part will need refactor after migrating to react-navigation 7. We will use popTo instead.
+     * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
     if (!compareParams) {
-        navigationRef.current.dispatch(minimalAction);
+        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
         return;
     }
 
@@ -326,6 +336,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 }
 
 /**
+ * Navigate back to the previous screen or a specified route.
+ * For detailed information about navigation patterns and best practices,
+ * see the NAVIGATION.md documentation.
  * @param backToRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param options - Optional configuration that affects navigation logic
  */
@@ -347,6 +360,11 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     navigationRef.current?.goBack();
 }
 
+/**
+ * Navigate back to the sidebar screen in SplitNavigator and pop all central screens from the navigator at the same time.
+ * For detailed information about moving between screens,
+ * see the NAVIGATION.md documentation.
+ */
 function popToSidebar() {
     setShouldPopToSidebar(false);
 
@@ -537,6 +555,8 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 
 /**
  * Closes the modal navigator (RHP, onboarding).
+ * For detailed information about dismissing modals,
+ * see the NAVIGATION.md documentation.
  */
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
@@ -546,6 +566,8 @@ const dismissModal = (ref = navigationRef) => {
 
 /**
  * Dismisses the modal and opens the given report.
+ * For detailed information about dismissing modals,
+ * see the NAVIGATION.md documentation.
  */
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
@@ -587,6 +609,10 @@ function popToTop() {
 function popRootToTop() {
     const rootState = navigationRef.getRootState();
     navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
+function pop(target: string) {
+    navigationRef.current?.dispatch({...StackActions.pop(), target});
 }
 
 function removeScreenFromNavigationState(screen: string) {
@@ -652,6 +678,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     popToTop,
     popRootToTop,
+    pop,
     removeScreenFromNavigationState,
     removeScreenByKey,
     getReportRouteByID,

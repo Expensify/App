@@ -55,7 +55,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
+        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -117,7 +117,6 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
-                didVersionChange ? false : currentChecklistData.isTimingDashboardChecked,
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );

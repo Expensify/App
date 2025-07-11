@@ -1,13 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,9 +33,12 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Whether to disable assign card button */
     isDisabledAssignCardButton?: boolean;
+
+    /** Whether to show GB disclaimer */
+    shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -122,6 +125,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     if (allCards.length === 0) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
+                shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                 handleAssignCard={handleAssignCard}
                 isDisabledAssignCardButton={isDisabledAssignCardButton}
             />
@@ -134,6 +138,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
             data={filteredSortedCards}
             renderItem={renderItem}
             ListHeaderComponent={renderListHeader}
+            keyboardShouldPersistTaps="handled"
         />
     );
 }

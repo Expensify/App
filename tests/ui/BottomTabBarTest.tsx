@@ -18,9 +18,10 @@ describe('NavigationTabBar', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
     });
     beforeEach(() => {
-        Onyx.clear();
+        Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]);
     });
     describe('Home tab', () => {
         describe('Debug mode enabled', () => {

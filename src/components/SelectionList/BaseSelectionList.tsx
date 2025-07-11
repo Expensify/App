@@ -61,6 +61,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
+        textInputStyle,
         textInputHint,
         textInputMaxLength,
         inputMode = CONST.INPUT_MODE.TEXT,
@@ -74,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        footerContentAbovePagination,
         listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
@@ -136,6 +138,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleContainerStyles,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
+        shouldClearInputOnSelect = true,
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
         fixedNumItemsForLoader,
@@ -144,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        canShowProductTrainingTooltip,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -186,6 +190,10 @@ function BaseSelectionList<TItem extends ListItem>(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
+
+    const canShowProductTrainingTooltipMemo = useMemo(() => {
+        return canShowProductTrainingTooltip && isFocused;
+    }, [canShowProductTrainingTooltip, isFocused]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
@@ -398,8 +406,12 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
+        if (!shouldClearInputOnSelect) {
+            return;
+        }
+
         onChangeText?.('');
-    }, [onChangeText]);
+    }, [onChangeText, shouldClearInputOnSelect]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -611,6 +623,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
+                    canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                 />
             </View>
         );
@@ -641,7 +654,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const renderInput = () => {
         return (
-            <View style={[styles.ph5, styles.pb3]}>
+            <View style={[styles.ph5, styles.pb3, textInputStyle]}>
                 <TextInput
                     onKeyPress={textInputKeyPress}
                     ref={(element) => {
@@ -936,7 +949,12 @@ function BaseSelectionList<TItem extends ListItem>(
                             )
                         }
                         scrollEnabled={scrollEnabled}
-                        ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                        ListFooterComponent={
+                            <>
+                                {footerContentAbovePagination}
+                                {listFooterContent ?? ShowMoreButtonInstance}
+                            </>
+                        }
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

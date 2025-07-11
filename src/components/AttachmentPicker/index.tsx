@@ -1,8 +1,8 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import {isMobileChrome} from '@libs/Browser';
 import Visibility from '@libs/Visibility';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type AttachmentPickerProps from './types';
 
@@ -60,9 +60,15 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                         return;
                     }
 
-                    const file = e.target.files[0];
-
-                    if (file) {
+                    if (allowMultiple && e.target.files.length > 1) {
+                        const files = Array.from(e.target.files).map((currentFile) => {
+                            // eslint-disable-next-line no-param-reassign
+                            currentFile.uri = URL.createObjectURL(currentFile);
+                            return currentFile as FileObject;
+                        });
+                        onPicked.current(files);
+                    } else if (e.target.files[0]) {
+                        const file = e.target.files[0];
                         file.uri = URL.createObjectURL(file);
                         onPicked.current([file]);
                     }

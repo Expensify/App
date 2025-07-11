@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,6 +11,7 @@ import SelectionList from '@components/SelectionList';
 import SplitListItem from '@components/SelectionList/SplitListItem';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
@@ -91,7 +91,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction],
     );
 
-    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? ''), [translate]);
+    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
     const [sections] = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
@@ -193,7 +193,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                     <SelectionList
                         onSelectRow={(item) => {
-                            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
+                            Keyboard.dismiss();
+                            InteractionManager.runAfterInteractions(() => {
+                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
+                            });
                         }}
                         headerContent={headerContent}
                         sections={sections}
