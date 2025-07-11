@@ -34,7 +34,6 @@ import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {isAnonymousUser} from './Session';
-import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -176,7 +175,6 @@ const isReadyToOpenApp = new Promise<void>((resolve) => {
 });
 
 function confirmReadyToOpenApp() {
-    Timing.end(CONST.TIMING.OPEN_APP);
     resolveIsReadyPromise();
 }
 
