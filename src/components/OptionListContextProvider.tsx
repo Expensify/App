@@ -1,13 +1,10 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import getPlatform from '@libs/getPlatform';
-import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
+import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
@@ -45,8 +42,7 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
-    const [areOptionsInitialized, setAreOptionsInitialized] = useState(false);
-
+    const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
@@ -71,12 +67,12 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
      * This effect is responsible for generating the options list when their data is not yet initialized
      */
     useEffect(() => {
-        if (!areOptionsInitialized || !reports || hasInitialData) {
+        if (!areOptionsInitialized.current || !reports || hasInitialData) {
             return;
         }
 
         loadOptions();
-    }, [reports, personalDetails, hasInitialData, loadOptions, areOptionsInitialized]);
+    }, [reports, personalDetails, hasInitialData, loadOptions]);
 
     /**
      * This effect is responsible for generating the options list when the locale changes
@@ -106,7 +102,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
      * This effect is responsible for updating the options only for changed reports
      */
     useEffect(() => {
-        if (!changedReportsEntries || !areOptionsInitialized) {
+        if (!changedReportsEntries || !areOptionsInitialized.current) {
             return;
         }
 
@@ -134,10 +130,10 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [areOptionsInitialized, changedReportsEntries, personalDetails]);
+    }, [changedReportsEntries, personalDetails]);
 
     useEffect(() => {
-        if (!changedReportActions || !areOptionsInitialized) {
+        if (!changedReportActions || !areOptionsInitialized.current) {
             return;
         }
 
@@ -166,14 +162,14 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [areOptionsInitialized, changedReportActions, personalDetails]);
+    }, [changedReportActions, personalDetails]);
 
     /**
      * This effect is used to update the options list when personal details change.
      */
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized.current) {
             return;
         }
 
@@ -237,30 +233,24 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
     const initializeOptions = useCallback(() => {
         loadOptions();
-        if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
-            InteractionManager.runAfterInteractions(() => {
-                setAreOptionsInitialized(true);
-            });
-            return;
-        }
-        setAreOptionsInitialized(true);
+        areOptionsInitialized.current = true;
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized.current) {
             return;
         }
 
-        setAreOptionsInitialized(false);
+        areOptionsInitialized.current = false;
         setOptions({
             reports: [],
             personalDetails: [],
         });
-    }, [areOptionsInitialized]);
+    }, []);
 
     return (
         <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
-            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized, resetOptions}), [options, initializeOptions, areOptionsInitialized, resetOptions])}
+            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
         >
             {children}
         </OptionsListContext.Provider>
@@ -273,21 +263,45 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
+    const prevOptions = useRef<OptionList>(null);
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized) {
+        if (!prevOptions.current) {
+            prevOptions.current = optionsList;
+            setInternalOptions(optionsList);
+            return;
+        }
+        /**
+         * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
+         * This is necessary to avoid unnecessary re-renders in components that use this context.
+         */
+        const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
+        prevOptions.current = optionsList;
+        if (areOptionsEqual) {
+            return;
+        }
+        setInternalOptions(optionsList);
+    }, [optionsList]);
+
+    useEffect(() => {
+        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
 
-    return {
-        initializeOptions,
-        options: optionsList,
-        areOptionsInitialized,
-        resetOptions,
-    };
+    return useMemo(
+        () => ({
+            initializeOptions,
+            options: internalOptions,
+            areOptionsInitialized,
+            resetOptions,
+        }),
+        [initializeOptions, internalOptions, areOptionsInitialized, resetOptions],
+    );
 };
 
 export default OptionsListContextProvider;

@@ -1,9 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useRef} from 'react';
 import WebView from 'react-native-webview';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {buildTravelDotURL} from '@libs/actions/Link';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
@@ -13,8 +14,10 @@ type TravelDotLinkWebviewProps = StackScreenProps<TravelNavigatorParamList, type
 function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
     const {translate} = useLocalize();
     const {token, isTestAccount} = route.params;
+    const webViewRef = useRef<WebView>(null);
+    const styles = useThemeStyles();
 
-    const url = buildTravelDotURL(token, isTestAccount ?? false);
+    const url = buildTravelDotURL(token, isTestAccount === 'true');
 
     return (
         <ScreenWrapper
@@ -29,8 +32,11 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
                 shouldShowBackButton
             />
             <WebView
+                ref={webViewRef}
                 source={{uri: url}}
-                style={{flex: 1}}
+                style={styles.flex1}
+                incognito
+                originWhitelist={['https://*']}
             />
         </ScreenWrapper>
     );

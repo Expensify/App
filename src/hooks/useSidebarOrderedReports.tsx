@@ -1,6 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -9,6 +8,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -53,13 +53,13 @@ function SidebarOrderedReportsContextProvider({
      */
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
+    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
@@ -68,6 +68,7 @@ function SidebarOrderedReportsContextProvider({
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -106,6 +107,11 @@ function SidebarOrderedReportsContextProvider({
                 .map(([key]) => key);
         }
 
+        // Make sure the previous and current reports are always included in the updates when we switch reports.
+        if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
+            reportsToUpdate.push(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+        }
+
         return reportsToUpdate;
     }, [
         reportUpdates,
@@ -120,6 +126,8 @@ function SidebarOrderedReportsContextProvider({
         priorityMode,
         prevBetas,
         prevPriorityMode,
+        prevDerivedCurrentReportID,
+        derivedCurrentReportID,
     ]);
 
     const reportsToDisplayInLHN = useMemo(() => {
