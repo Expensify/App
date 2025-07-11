@@ -36,11 +36,6 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
-    EXP_NEUE_THIN: {
-        fontFamily: 'Expensify Neue',
-        fontStyle: 'normal',
-        fontWeight: fontWeight.thin,
-    },
     EXP_NEUE_BOLD: {
         fontFamily: 'Expensify Neue',
         fontStyle: 'normal',

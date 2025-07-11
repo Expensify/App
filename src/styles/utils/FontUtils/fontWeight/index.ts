@@ -1,9 +1,8 @@
 import type {TextStyle} from 'react-native';
 
-type FontWeightStyles = Record<'thin' | 'normal' | 'medium' | 'bold', NonNullable<TextStyle['fontWeight']>>;
+type FontWeightStyles = Record<'normal' | 'medium' | 'bold', NonNullable<TextStyle['fontWeight']>>;
 
 const fontWeight: FontWeightStyles = {
-    thin: '300',
     normal: '400',
     medium: '500',
     bold: '700',

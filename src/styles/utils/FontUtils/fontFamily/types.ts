@@ -7,7 +7,6 @@ type FontFamilyKey =
     | 'MONOSPACE_ITALIC'
     | 'MONOSPACE_BOLD_ITALIC'
     | 'EXP_NEUE'
-    | 'EXP_NEUE_THIN'
     | 'EXP_NEUE_BOLD'
     | 'EXP_NEUE_ITALIC'
     | 'EXP_NEUE_BOLD_ITALIC'

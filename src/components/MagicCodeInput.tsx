@@ -437,6 +437,7 @@ function MagicCodeInput(
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
                     const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
+                    const cursorMargin = char ? {marginLeft: 2} : {marginRigth: 0};
                     const isFocused = focusedIndex === index;
 
                     return (
@@ -458,8 +459,9 @@ function MagicCodeInput(
                                     <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
                                     {isFocused && !isDisableKeyboard && (
                                         <View style={[styles.magicCodeInputCursorContainer]}>
-                                            {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char} </Text>}
-                                            <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle]}>|</Animated.Text>
+                                            {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
+                                            <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
+                                            <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>
                                         </View>
                                     )}
                                 </View>
