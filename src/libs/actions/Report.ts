@@ -169,6 +169,7 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
     DismissedProductTraining,
+    DraftReportComments,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -397,10 +398,9 @@ Onyx.connect({
     callback: (val) => (introSelected = val),
 });
 
-let allReportDraftComments: Record<string, string | undefined> = {};
+let allReportDraftComments: OnyxEntry<DraftReportComments> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
+    key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS,
     callback: (value) => (allReportDraftComments = value),
 });
 
@@ -424,15 +424,17 @@ Onyx.connect({
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = getAllPolicyReports(policyID);
             const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpDrafts: Record<string, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpDrafts[reportID] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.multiSet(cleanUpSetQueries);
+            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -1819,7 +1821,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
                 // Replacing the existing report's participants to avoid duplicates
                 participants: existingReport?.participants ?? report.participants,
             });
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[reportID]: null});
         };
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
@@ -1841,7 +1843,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
         // after that clear the optimistically created report
-        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+        const draftReportComment = allReportDraftComments?.[reportID];
         if (!draftReportComment) {
             callback();
             return;
