@@ -8,10 +8,10 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {Report} from '@src/types/onyx';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
@@ -20,7 +20,7 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
 };
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, parentReport}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const [transactionIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
+    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`, {canEvict: false, canBeMissing: true});

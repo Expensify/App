@@ -929,7 +929,7 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/scan/${backToReport ?? ''}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
-        route: ':action/:iouType/start/:transactionID/:reportID/per-diem/:backToReport?',
+        route: 'per-diem/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
@@ -1789,6 +1789,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME: {
         route: 'workspaces/:policyID/company-cards/settings/feed-name',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/feed-name` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: {
+        route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
