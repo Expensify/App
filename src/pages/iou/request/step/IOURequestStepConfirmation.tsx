@@ -325,7 +325,7 @@ function IOURequestStepConfirmation({
                         ? reportID
                         : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                           transaction?.reportID || reportID;
-                const iouTypeForRoute = shouldUseNewScanFlow && iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
+                const iouTypeForRoute = shouldUseNewScanFlow ? CONST.IOU.TYPE.CREATE : iouType;
                 Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouTypeForRoute, initialTransactionID, backToReportID, undefined, action), {
                     compareParams: false,
                 });
