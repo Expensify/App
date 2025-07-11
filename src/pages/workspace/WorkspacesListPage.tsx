@@ -442,10 +442,7 @@ function WorkspacesListPage() {
                             return reimbursementAccountBrickRoadIndicator;
                         }
 
-                        const isSyncInProgress = isConnectionInProgress(
-                            allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`],
-                            policy,
-                        );
+                        const isSyncInProgress = isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy);
                         return getPolicyBrickRoadIndicatorStatus(policy, isSyncInProgress);
                     })(),
                     pendingAction: policy.pendingAction,

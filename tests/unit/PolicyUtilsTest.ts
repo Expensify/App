@@ -10,8 +10,8 @@ import {
     getSubmitToAccountID,
     getUnitRateValue,
     isUserInvitedToWorkspace,
-    shouldShowPolicy,
     shouldShowEmployeeListError,
+    shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -793,267 +793,267 @@ describe('PolicyUtils', () => {
     });
 
     describe('shouldShowEmployeeListError', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
-    it('should return true for policy admin when any employee has errors', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('admin@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                'admin@test.com': {
-                    email: 'admin@test.com',
-                    role: 'admin',
-                    errors: {},
-                },
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {
-                        someError: 'Employee has an error',
+        it('should return true for policy admin when any employee has errors', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('admin@test.com');
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    'admin@test.com': {
+                        email: 'admin@test.com',
+                        role: 'admin',
+                        errors: {},
+                    },
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {
+                            someError: 'Employee has an error',
+                        },
                     },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(true);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(true);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should return false for policy admin when no employees have errors', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('admin@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                'admin@test.com': {
-                    email: 'admin@test.com',
-                    role: 'admin',
-                    errors: {},
-                },
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {},
-                },
-            },
-        } as Policy;
+            getCurrentUserEmailSpy.mockRestore();
+        });
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+        it('should return false for policy admin when no employees have errors', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('admin@test.com');
 
-    it('should return true for non-admin user when current user has employee errors', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {
-                'admin@test.com': {
-                    email: 'admin@test.com',
-                    role: 'admin',
-                    errors: {},
-                },
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {
-                        personalError: 'User has a personal error',
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    'admin@test.com': {
+                        email: 'admin@test.com',
+                        role: 'admin',
+                        errors: {},
+                    },
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {},
                     },
                 },
-                'other@test.com': {
-                    email: 'other@test.com',
-                    role: 'user',
-                    errors: {
-                        otherError: 'Other user has an error',
+            } as Policy;
+
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
+
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should return true for non-admin user when current user has employee errors', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {
+                    'admin@test.com': {
+                        email: 'admin@test.com',
+                        role: 'admin',
+                        errors: {},
+                    },
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {
+                            personalError: 'User has a personal error',
+                        },
+                    },
+                    'other@test.com': {
+                        email: 'other@test.com',
+                        role: 'user',
+                        errors: {
+                            otherError: 'Other user has an error',
+                        },
                     },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(true);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(true);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should return false for non-admin user when current user has no employee errors', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {
-                'admin@test.com': {
-                    email: 'admin@test.com',
-                    role: 'admin',
-                    errors: {},
-                },
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {},
-                },
-                'other@test.com': {
-                    email: 'other@test.com',
-                    role: 'user',
-                    errors: {
-                        otherError: 'Other user has an error',
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should return false for non-admin user when current user has no employee errors', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {
+                    'admin@test.com': {
+                        email: 'admin@test.com',
+                        role: 'admin',
+                        errors: {},
+                    },
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {},
+                    },
+                    'other@test.com': {
+                        email: 'other@test.com',
+                        role: 'user',
+                        errors: {
+                            otherError: 'Other user has an error',
+                        },
                     },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should return false for non-admin user when current user is not in employee list', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('nonexistent@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {
-                'admin@test.com': {
-                    email: 'admin@test.com',
-                    role: 'admin',
-                    errors: {},
-                },
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {
-                        someError: 'Employee has an error',
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should return false for non-admin user when current user is not in employee list', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('nonexistent@test.com');
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {
+                    'admin@test.com': {
+                        email: 'admin@test.com',
+                        role: 'admin',
+                        errors: {},
+                    },
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {
+                            someError: 'Employee has an error',
+                        },
                     },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should return false when getCurrentUserEmail returns null', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue(null);
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {
-                        someError: 'Employee has an error',
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should return false when getCurrentUserEmail returns null', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue(null);
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {
+                            someError: 'Employee has an error',
+                        },
                     },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should return false when getCurrentUserEmail returns undefined', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue(undefined);
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    errors: {
-                        someError: 'Employee has an error',
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should return false when getCurrentUserEmail returns undefined', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue(undefined);
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        errors: {
+                            someError: 'Employee has an error',
+                        },
                     },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should return false when policy is null', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
-        
-        const result = shouldShowEmployeeListError(null as unknown as Policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            getCurrentUserEmailSpy.mockRestore();
+        });
 
-    it('should return false when policy has no employeeList', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-        } as Policy;
+        it('should return false when policy is null', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
-    });
+            const result = shouldShowEmployeeListError(null as unknown as Policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
-    it('should handle edge case where employee exists but has no errors field', () => {
-        const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
-        
-        const policy = {
-            ...createRandomPolicy(1),
-            id: 'test-policy-id',
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {
-                'employee@test.com': {
-                    email: 'employee@test.com',
-                    role: 'user',
-                    // No errors field - this is handled gracefully in the implementation
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should return false when policy has no employeeList', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+            } as Policy;
+
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
+
+            getCurrentUserEmailSpy.mockRestore();
+        });
+
+        it('should handle edge case where employee exists but has no errors field', () => {
+            const getCurrentUserEmailSpy = jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('employee@test.com');
+
+            const policy = {
+                ...createRandomPolicy(1),
+                id: 'test-policy-id',
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {
+                    'employee@test.com': {
+                        email: 'employee@test.com',
+                        role: 'user',
+                        // No errors field - this is handled gracefully in the implementation
+                    },
                 },
-            },
-        } as Policy;
+            } as Policy;
 
-        const result = shouldShowEmployeeListError(policy);
-        expect(result).toBe(false);
-        expect(getCurrentUserEmailSpy).toHaveBeenCalled();
-        
-        getCurrentUserEmailSpy.mockRestore();
+            const result = shouldShowEmployeeListError(policy);
+            expect(result).toBe(false);
+            expect(getCurrentUserEmailSpy).toHaveBeenCalled();
+
+            getCurrentUserEmailSpy.mockRestore();
+        });
     });
-});
 });
