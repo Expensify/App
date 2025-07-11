@@ -11685,7 +11685,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -11827,10 +11826,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
-                    ...originalTransactionViolations,
-                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
             },
         },
     });
@@ -11840,7 +11836,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransactionViolations,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
             },
         },
     });
