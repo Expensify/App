@@ -7,6 +7,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
@@ -229,6 +230,8 @@ import type {
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagListParams,
+    UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
@@ -3476,6 +3479,10 @@ const translations = {
                 semimonthly: 'Twice a month',
                 monthly: 'Monthly',
             },
+            budgetFrequency: {
+                monthly: 'monthly',
+                yearly: 'yearly',
+            },
             planType: 'Plan type',
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
@@ -5702,6 +5709,14 @@ const translations = {
                 : `changed the "${categoryName}" category description hint to “${newValue}” (previously “${oldValue}”)`;
         },
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated the tags on the list "${tagListName}"`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
+            `updated the tag lists ${tagListsName
+                .split(',')
+                .map((v) => `"${v}"`)
+                .join(', ')} to be ${isRequired ? 'required' : 'not required'}`,
+        importTags: 'imported a tag CSV',
+        deletedAllTags: 'deleted all tags',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
@@ -5792,6 +5807,7 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        addBudget: ({amount, frequency, categoryName, entityType}: AddBudgetParams) => `added a ${frequency} shared budget of ${amount} to the ${entityType} "${categoryName}".`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
