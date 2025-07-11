@@ -345,22 +345,7 @@ function IOURequestStepConfirmation({
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
-    }, [
-        action,
-        isPerDiemRequest,
-        transaction?.isFromGlobalCreate,
-        transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participantsAutoAssigned,
-        transaction?.reportID,
-        transaction?.participants,
-        requestType,
-        iouType,
-        initialTransactionID,
-        reportID,
-        participantsAutoAssignedFromRoute,
-        isMovingTransactionFromTrackExpense,
-    ]);
+    }, [action, isPerDiemRequest, transaction?.isFromGlobalCreate, transaction.receipt?.isTestReceipt, transaction.receipt?.isTestDriveReceipt, transaction.participants, transaction?.participantsAutoAssigned, transaction?.reportID, requestType, iouType, initialTransactionID, reportID, isMovingTransactionFromTrackExpense, participantsAutoAssignedFromRoute, isBetaEnabled]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
