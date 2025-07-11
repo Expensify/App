@@ -14,7 +14,7 @@ import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
@@ -97,6 +97,36 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
+    it('canSubmit should return false for expense preview report with only pending transactions', async () => {
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
     describe('canApprove', () => {
         it('should return true for report being processed', async () => {
             const report = {
@@ -147,6 +177,35 @@ describe('getReportPreviewAction', () => {
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
+            } as unknown as Transaction;
+
+            expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], false)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return false for report with pending expenses', async () => {
+            const report = {
+                ...createRandomReport(REPORT_ID),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                amount: 10,
+                merchant: 'Merchant',
+                date: '2025-01-01',
             } as unknown as Transaction;
 
             expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], false)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -211,6 +270,7 @@ describe('getReportPreviewAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             isWaitingOnBankAccount: false,
+            total: 7,
         };
 
         const policy = createRandomPolicy(0);
@@ -230,6 +290,51 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
+    it('getReportPreviewAction should return VIEW action for zero value invoice', async () => {
+        const PARENT_REPORT_ID = (REPORT_ID + 1).toString();
+        const parentReport: Report = {
+            ...createRandomReport(Number(PARENT_REPORT_ID)),
+            type: CONST.REPORT.TYPE.INVOICE,
+            invoiceReceiver: {
+                type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                accountID: CURRENT_USER_ACCOUNT_ID,
+            },
+            policyID: '1',
+        };
+
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.INVOICE,
+            parentReportID: PARENT_REPORT_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1, // Different from current user
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            isWaitingOnBankAccount: false,
+            total: 0,
+            policyID: '1',
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        policy.id = '1';
+
+        const invoiceReceiverPolicy = createRandomPolicy(0);
+        invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, parentReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.parentReportID));
+
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
     it('canPay should return false for archived invoice', async () => {
         const report = {
             ...createRandomReport(REPORT_ID),
@@ -238,6 +343,7 @@ describe('getReportPreviewAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             isWaitingOnBankAccount: false,
+            total: 7,
         };
 
         const policy = createRandomPolicy(0);

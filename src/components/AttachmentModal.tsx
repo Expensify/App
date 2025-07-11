@@ -2,13 +2,12 @@ import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import type {Direction} from 'react-native-modal';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -144,9 +143,6 @@ type AttachmentModalProps = {
     /** The iou type of the expense creation flow of which we are displaying the receipt for. */
     iouType?: IOUType;
 
-    /** In which direction modal will swipe */
-    swipeDirection?: Direction | undefined;
-
     /** The id of the draft transaction linked to the receipt. */
     draftTransactionID?: string;
 
@@ -196,7 +192,6 @@ function AttachmentModal({
     iouType: iouTypeProp,
     attachmentLink = '',
     shouldHandleNavigationBack,
-    swipeDirection,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -223,6 +218,8 @@ function AttachmentModal({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
+
+    // TODO: Remove the logic for validating files, ideally in a follow-up to avoid breaking changes/regressions
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -525,7 +522,6 @@ function AttachmentModal({
             <Modal
                 type={modalType}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
-                swipeDirection={swipeDirection}
                 isVisible={isModalOpen}
                 onModalShow={() => {
                     onModalShow();

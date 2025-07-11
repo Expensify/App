@@ -14,10 +14,9 @@ import {
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
     isPreferredExporter,
-    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
-import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
+import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canEditReportPolicy,
@@ -109,6 +108,7 @@ function isSubmitAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
     isChatReportArchived = false,
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -117,6 +117,10 @@ function isSubmitAction(
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (!transactionAreComplete) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -157,7 +161,7 @@ function isSubmitAction(
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
-    return !!isScheduledSubmitEnabled;
+    return !!isScheduledSubmitEnabled || primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
@@ -173,10 +177,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (!isCurrentUserManager) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    if (!isProcessingReport) {
+        return false;
+    }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -184,14 +188,20 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -200,7 +210,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
@@ -271,10 +281,10 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isReportSender = isCurrentUserSubmitter(report.reportID);
 
-    if (isInvoiceReport && isReportSender) {
-        return true;
+    // We don't allow export to accounting for invoice reports in OD so we want to align with that here.
+    if (isInvoiceReport) {
+        return false;
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
@@ -288,7 +298,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
+    const isReportSettled = isSettled(report);
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
         return true;
     }
 
@@ -412,9 +423,14 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
+    const isInvoiceReport = isInvoiceReportUtils(report);
 
     if (isUnreported) {
         return isOwner;
+    }
+
+    if (isInvoiceReport) {
+        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
@@ -443,12 +459,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
 
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
+    if (!isExpenseReport || isInstantSubmit) {
         return false;
     }
 
@@ -493,7 +508,6 @@ function getSecondaryReportActions({
     reportNameValuePairs,
     reportActions,
     policies,
-    canUseRetractNewDot,
     isChatReportArchived = false,
 }: {
     report: Report;
@@ -504,7 +518,6 @@ function getSecondaryReportActions({
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
     policies?: OnyxCollection<Policy>;
-    canUseRetractNewDot?: boolean;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -518,7 +531,18 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived)) {
+    const primaryAction = getReportPrimaryAction({
+        report,
+        chatReport,
+        reportTransactions,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        isChatReportArchived,
+    });
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -542,11 +566,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (canUseRetractNewDot && isRetractAction(report, policy)) {
+    if (isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
-    if (canUseRetractNewDot && isReopenAction(report, policy)) {
+    if (isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
