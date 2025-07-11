@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
@@ -135,7 +136,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={!isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
@@ -156,25 +158,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 shouldValidateOnChange={shouldValidateOnChange}
                 shouldTrimValues={false}
                 footerContent={
-                    <View style={styles.mb2}>
-                        <OfflineWithFeedback
-                            shouldDisplayErrorAbove
-                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
-                            errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage('')}
-                        >
-                            <Button
-                                large
-                                text={translate('common.skip')}
-                                testID="onboardingPrivateEmailSkipButton"
-                                onPress={() => {
-                                    setOnboardingErrorMessage('');
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        style={styles.mb3}
+                        errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                        errorRowStyles={[styles.mt2, styles.textWrap]}
+                        onClose={() => setOnboardingErrorMessage('')}
+                    >
+                        <Button
+                            large
+                            text={translate('common.skip')}
+                            testID="onboardingPrivateEmailSkipButton"
+                            onPress={() => {
+                                setOnboardingErrorMessage('');
 
-                                    setOnboardingMergeAccountStepValue(true, true);
-                                }}
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                                setOnboardingMergeAccountStepValue(true, true);
+                            }}
+                        />
+                    </OfflineWithFeedback>
                 }
                 shouldRenderFooterAboveSubmit
                 shouldHideFixErrorsAlert
