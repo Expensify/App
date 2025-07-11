@@ -315,7 +315,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (isSmallScreenWidth && !isMobileSelectionModeEnabled) {
+        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleTag(tag);
             return;
         }
