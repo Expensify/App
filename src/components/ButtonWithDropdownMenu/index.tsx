@@ -56,6 +56,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
         secondLineText = '',
         icon,
         shouldUseModalPaddingStyle = true,
+        shouldUseOptionIcon = false,
     } = props;
 
     const theme = useTheme();
@@ -78,6 +79,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
+    const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -220,10 +222,13 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                    innerStyles={[innerStyleDropButton]}
+                    innerStyles={[innerStyleDropButton, shouldShowButtonRightIcon && styles.dropDownButtonCartIconView]}
+                    iconRightStyles={shouldShowButtonRightIcon && styles.ml2}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     secondLineText={secondLineText}
-                    icon={icon}
+                    icon={shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon}
+                    iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
+                    shouldShowRightIcon={shouldShowButtonRightIcon}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
