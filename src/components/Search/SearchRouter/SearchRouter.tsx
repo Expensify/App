@@ -489,7 +489,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         textInputRef={textInputRef}
                         personalDetails={personalDetails}
                         reports={reports}
-                        allFeeds={allFeeds ?? {}}
+                        allFeeds={allFeeds}
                         allCards={allCards}
                     />
                 </>

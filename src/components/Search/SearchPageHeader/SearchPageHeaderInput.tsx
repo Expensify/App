@@ -390,7 +390,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 personalDetails={personalDetails}
                                 reports={reports}
                                 allCards={allCards}
-                                allFeeds={allFeeds ?? {}}
+                                allFeeds={allFeeds}
                             />
                         </View>
                     )}
@@ -461,7 +461,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             personalDetails={personalDetails}
                             reports={reports}
                             allCards={allCards}
-                            allFeeds={allFeeds ?? {}}
+                            allFeeds={allFeeds}
                         />
                     </View>
                 </View>

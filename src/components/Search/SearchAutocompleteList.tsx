@@ -92,7 +92,7 @@ type SearchAutocompleteListProps = {
     reports: OnyxCollection<Report>;
 
     /** All feeds */
-    allFeeds: Record<string, CardFeeds | undefined>;
+    allFeeds: Record<string, CardFeeds | undefined> | undefined;
 
     /** All cards */
     allCards: CardList;
