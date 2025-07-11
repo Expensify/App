@@ -56,7 +56,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -124,8 +123,8 @@ type MoneyRequestConfirmationListProps = {
     /** Number of expenses to be created */
     expensesNumber?: number;
 
-    /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: Route;
+    /** Chat report for calculating bank account routes */
+    chatReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** The policyID of the request */
     policyID?: string;
@@ -205,7 +204,7 @@ function MoneyRequestConfirmationList({
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     isReadOnly = false,
-    bankAccountRoute = '',
+    chatReport,
     policyID,
     reportID = '',
     receiptPath = '',
@@ -985,7 +984,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                addBankAccountRoute={bankAccountRoute}
+                chatReport={chatReport}
                 shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
@@ -1045,7 +1044,7 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         iouType,
         confirm,
-        bankAccountRoute,
+        chatReport,
         iouCurrencyCode,
         policyID,
         isConfirmed,
@@ -1152,7 +1151,7 @@ export default memo(
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         deepEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
+        prevProps.chatReport === nextProps.chatReport &&
         prevProps.policyID === nextProps.policyID &&
         prevProps.reportID === nextProps.reportID &&
         prevProps.receiptPath === nextProps.receiptPath &&

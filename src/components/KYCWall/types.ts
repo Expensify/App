@@ -22,8 +22,8 @@ type AnchorPosition = {
 type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
 type KYCWallProps = {
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute: Route;
+    /** Chat report for calculating bank account routes */
+    chatReport?: OnyxEntry<Report>;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
