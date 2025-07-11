@@ -677,6 +677,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Adicionar anexos',
+        addReceipt: 'Adicionar recibo',
         scanReceipts: 'Escanear recibos',
         replaceReceipt: 'Substituir recibo',
     },
