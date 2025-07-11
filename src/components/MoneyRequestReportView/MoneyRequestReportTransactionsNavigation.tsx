@@ -11,8 +11,8 @@ import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {Report} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
