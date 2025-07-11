@@ -90,7 +90,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
                         if (tnode.attributes.center === undefined) {
-                            return {whiteSpace: 'pre', textDecorationLine: 'none', color: themeColors.link};
+                            return {whiteSpace: 'pre', color: themeColors.link};
                         }
                         return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
