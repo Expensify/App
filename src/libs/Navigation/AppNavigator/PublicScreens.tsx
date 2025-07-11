@@ -77,11 +77,11 @@ function PublicScreens() {
                 name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
                 options={{
                     ...rootNavigatorScreenOptions.basicModalNavigator,
+                    animation: InternalPlatformAnimations.FADE,
                     native: {
                         contentStyle: {
                             ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                         },
-                        animation: InternalPlatformAnimations.FADE,
                     },
                     web: {
                         cardStyle: {
