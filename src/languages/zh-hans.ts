@@ -678,6 +678,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: '添加附件',
+        addReceipt: '添加收据',
         scanReceipts: '扫描收据',
         replaceReceipt: '替换收据',
     },
