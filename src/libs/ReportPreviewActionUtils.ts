@@ -106,6 +106,10 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
         return false;
     }
 
+    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
