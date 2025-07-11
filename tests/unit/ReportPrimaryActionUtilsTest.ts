@@ -1,6 +1,9 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
+import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getReportPrimaryAction, getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +32,12 @@ const INVOICE_SENDER_ACCOUNT_ID = 4;
 
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn().mockReturnValue(true),
+    getValidConnectedIntegration: jest.fn(),
+}));
 
 describe('getPrimaryAction', () => {
     beforeAll(() => {
@@ -277,6 +286,8 @@ describe('getPrimaryAction', () => {
         const transaction = {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
+
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue('netsuite');
 
         expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(
             CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING,
