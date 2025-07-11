@@ -133,6 +133,7 @@ function MoneyRequestReportActionsList({
     const linkedReportActionID = route?.params?.reportActionID;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
@@ -155,7 +156,7 @@ function MoneyRequestReportActionsList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
@@ -472,6 +473,7 @@ function MoneyRequestReportActionsList({
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
+                    policies={policies}
                     reportAction={reportAction}
                     reportActions={reportActions}
                     parentReportAction={parentReportAction}
@@ -500,6 +502,7 @@ function MoneyRequestReportActionsList({
             firstVisibleReportActionID,
             linkedReportActionID,
             allReports,
+            policies,
         ],
     );
 
@@ -554,7 +557,7 @@ function MoneyRequestReportActionsList({
             style={[styles.flex1]}
             ref={wrapperViewRef}
         >
-            {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <>
                     <ButtonWithDropdownMenu
                         onPress={() => null}

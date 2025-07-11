@@ -4,7 +4,7 @@ description: Learn how Workspace Admins can access real-time employee travel ins
 keywords: [New Expensify, travel analytics, duty of care, ESG report, travel spend, employee location map, travel compliance, company travel data]
 ---
 
-<div id="new-expensify" markdown="1">
+Expensify Travel provides comprehensive insights into company travel bookings to ensure real-time duty of care reporting and travel policy compliance. Analytics are based on complete trip-level data that remains accurate regardless of individual expense handling. These analytics help Workspace Admins:
 
 Expensify Travel gives Workspace Admins real-time analytics for company travel. In one place, you can monitor employee safety, analyze spending trends, and ensure travel policy compliance.
 
