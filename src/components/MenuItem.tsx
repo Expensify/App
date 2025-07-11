@@ -610,7 +610,7 @@ function MenuItem(
         }
 
         if (event?.type === 'click') {
-            (event.currentTarget as HTMLElement).blur();
+            // (event.currentTarget as HTMLElement).blur();
         }
 
         if (onPress && event) {
