@@ -696,8 +696,6 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
-    console.log({keyboardInset, keyboardOffset});
-
     const animatedProps = useAnimatedProps(() => ({
         contentInset: {
             top: keyboardInset.get(),
