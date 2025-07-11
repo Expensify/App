@@ -1919,6 +1919,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+    },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
@@ -2585,7 +2589,10 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
 
-    TEST_TOOLS_MODAL: 'test-tools',
+    TEST_TOOLS_MODAL: {
+        route: 'test-tools',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
 } as const;
 
 /**
