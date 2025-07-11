@@ -28,7 +28,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -190,28 +189,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     enabled: true,
                     required: policyTagList.required,
                     isDisabledCheckbox: isSwitchDisabled,
-                    rightElement:
-                        hasDependentTags ? (
-                            <ListItemRightCaretWithLabel
-                                labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
-                                shouldShowCaret
-                            />
-                        ) : (
-                            <Switch
-                                isOn={isSwitchEnabled}
-                                accessibilityLabel={translate('workspace.tags.requiresTag')}
-                                onToggle={(newValue: boolean) => {
-                                    if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
-                                        setIsCannotMakeLastTagOptionalModalVisible(true);
-                                        return;
-                                    }
+                    rightElement: hasDependentTags ? (
+                        <ListItemRightCaretWithLabel
+                            labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
+                            shouldShowCaret
+                        />
+                    ) : (
+                        <Switch
+                            isOn={isSwitchEnabled}
+                            accessibilityLabel={translate('workspace.tags.requiresTag')}
+                            onToggle={(newValue: boolean) => {
+                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
+                                    setIsCannotMakeLastTagOptionalModalVisible(true);
+                                    return;
+                                }
 
-                                    updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
-                                }}
-                                disabled={isSwitchDisabled}
-                                showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
-                            />
-                        ),
+                                updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
+                            }}
+                            disabled={isSwitchDisabled}
+                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
+                        />
+                    ),
                 };
             });
         }
