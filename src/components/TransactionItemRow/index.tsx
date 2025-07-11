@@ -385,6 +385,7 @@ function TransactionItemRow({
     const shouldRenderChatBubbleCell = useMemo(() => {
         return columns?.includes(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) ?? false;
     }, [columns]);
+
     return (
         <View
             style={[styles.flex1]}
