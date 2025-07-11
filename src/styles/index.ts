@@ -351,6 +351,12 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        randomStyleColor: {
+            color: 'red',
+            height: 16,
+            width: 16,
+        },
+
         appBG: {
             backgroundColor: theme.appBG,
         },
