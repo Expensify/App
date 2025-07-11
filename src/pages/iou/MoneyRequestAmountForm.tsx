@@ -170,20 +170,26 @@ function MoneyRequestAmountForm(
         [currency],
     );
 
-    useEffect(() => {
-        if (amount >= 0) {
+    const initializeIsNegative =  useCallback((currentAmount: number) => {
+        if (currentAmount >= 0) {
+            setIsNegative(false);
             return;
         }
-
         setIsNegative(true);
-    }, [amount]);
+    }, []);
+
+    useEffect(() => {
+        initializeIsNegative(amount);
+    }, [amount, initializeIsNegative]);
 
     useEffect(() => {
         if (!currency || typeof absoluteAmount !== 'number') {
             return;
         }
+
         initializeAmount(absoluteAmount);
-        setIsNegative(false);
+        initializeIsNegative(amount);
+
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
