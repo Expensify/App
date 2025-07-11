@@ -104,7 +104,8 @@ get_tdd_instructions() {
 1. Create a unit test for methods before refactoring
 2. Refactor the methods
 3. Ensure the unit test still runs after refactoring
-4. Reinforce the unit testing with a functional test and a QA test"
+4. Reinforce the unit testing with a functional test and a QA test
+5. Once you are done, decrease the number of allowable ESLint warnings [here](https://github.com/Expensify/App/blob/e7b5ac9401e2ae9b5c2c70ec513e8de6f5279d7d/package.json#L48) to equal the number of Onyx.connect references remaining in the code"
 }
 
 # Function to build parent issue body
