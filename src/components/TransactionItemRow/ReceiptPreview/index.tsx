@@ -77,7 +77,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
         <Animated.View
             entering={FadeIn.duration(animationDuration)}
             exiting={FadeOut.duration(animationDuration)}
-            style={[styles.receiptPreview, styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}
+            style={[styles.receiptPreview, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentStart]}
         >
             {shouldShowEReceipt ? (
                 <View

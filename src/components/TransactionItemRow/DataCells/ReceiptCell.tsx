@@ -24,7 +24,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
     const isEReceipt = transactionItem.hasEReceipt && !hasReceiptSource(transactionItem);
     let source = transactionItem?.receipt?.source ?? '';
 
-    if (source && typeof source === 'string') {
+    if (source) {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
@@ -60,7 +60,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
             <ReceiptPreview
                 source={source}
                 hovered={hovered}
-                isEReceipt={isEReceipt}
+                isEReceipt={!!isEReceipt}
                 transactionID={transactionItem.transactionID}
             />
         </View>
