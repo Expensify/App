@@ -486,9 +486,6 @@ function IOURequestStepScan({
             report,
             reportNameValuePairs,
             iouType,
-            initialTransaction?.participants,
-            initialTransaction?.currency,
-            initialTransaction?.reportID,
             activePolicy,
             initialTransactionID,
             navigateToConfirmationPage,
@@ -498,9 +495,13 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
+            initialTransaction?.currency,
+            initialTransaction?.participants,
+            initialTransaction?.reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
+            selfDMReportID,
         ],
     );
 
