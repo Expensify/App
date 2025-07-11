@@ -20,6 +20,7 @@ type Feature = {
     apiEndpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
     requiresUpdate?: boolean;
     programmaticallyEnabled?: boolean;
+    canDisabled?: boolean;
 };
 
 type SectionObject = {

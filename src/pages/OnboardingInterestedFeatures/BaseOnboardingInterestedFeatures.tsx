@@ -78,6 +78,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 icon: Illustrations.Accounting,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+                canDisabled: !!userReportedIntegration,
             },
             {
                 id: 'company-cards',
@@ -132,7 +133,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
         ];
-    }, [translate]);
+    }, [translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
@@ -283,12 +284,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
                     style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth && styles.flexBasis100, isSelected && styles.activeComponentBG]}
+                    disabled={item.canDisabled}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon
                             src={item.icon}
-                            width={40}
-                            height={40}
+                            width={48}
+                            height={48}
                         />
                         <Text style={[styles.textStrong]}>{item.title}</Text>
                     </View>
