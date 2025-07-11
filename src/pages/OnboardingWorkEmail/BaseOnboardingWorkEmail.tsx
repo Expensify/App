@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
@@ -83,8 +84,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             return;
         }
 
+        if (!onboardingValues?.isMergeAccountStepSkipped) {
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            return;
+        }
+
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
+    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
@@ -130,7 +136,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={!isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
@@ -151,38 +158,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 shouldValidateOnChange={shouldValidateOnChange}
                 shouldTrimValues={false}
                 footerContent={
-                    <View style={styles.mb2}>
-                        <OfflineWithFeedback
-                            shouldDisplayErrorAbove
-                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
-                            errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage('')}
-                        >
-                            <Button
-                                large
-                                text={translate('common.skip')}
-                                testID="onboardingPrivateEmailSkipButton"
-                                onPress={() => {
-                                    setOnboardingErrorMessage('');
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        style={styles.mb3}
+                        errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                        errorRowStyles={[styles.mt2, styles.textWrap]}
+                        onClose={() => setOnboardingErrorMessage('')}
+                    >
+                        <Button
+                            large
+                            text={translate('common.skip')}
+                            testID="onboardingPrivateEmailSkipButton"
+                            onPress={() => {
+                                setOnboardingErrorMessage('');
 
-                                    setOnboardingMergeAccountStepValue(true);
-                                    // Once we skip the private email step, we need to force replace the screen
-                                    // so that we don't navigate back on back button press
-                                    if (isVsb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-
-                                    if (isSmb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-
-                                    Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-                                }}
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                                setOnboardingMergeAccountStepValue(true, true);
+                            }}
+                        />
+                    </OfflineWithFeedback>
                 }
                 shouldRenderFooterAboveSubmit
                 shouldHideFixErrorsAlert
