@@ -116,9 +116,14 @@ function ButtonWithDropdownMenu<IValueType>({
                 }
             } else {
                 const option = options.at(0);
-                if (option?.value) {
-                    onPress(e, option.value);
+                               if (!option) return;
+                if (option.onSelected) {
+                    option.onSelected(); // Call the same callbacks that would be called if this was a dropdown item
+                } else {
+                    onOptionSelected?.(option);
                 }
+                onSubItemSelected?.(option, 0, e);  // Call onSubItemSelected if it exists (for nested menu items)
+                onPress(e, option.value); // Finally call the main onPress
             }
         },
         {
@@ -207,7 +212,14 @@ function ButtonWithDropdownMenu<IValueType>({
                     text={selectedItem?.text}
                     onPress={(event) => {
                         const option = options.at(0);
-                        return option ? onPress(event, option.value) : undefined;
+                        if (!option) return;
+                        if (option.onSelected) {
+                            option.onSelected();  // Call the same callbacks that would be called if this was a dropdown item
+                        } else {
+                            onOptionSelected?.(option);
+                        }
+                        onSubItemSelected?.(option, 0, event); // Call onSubItemSelected if it exists (for nested menu items)
+                        onPress(event, option.value);  // Finally call the main onPress
                     }}
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
