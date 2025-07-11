@@ -45,7 +45,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
-import {getCardFeedsForDisplay} from './CardFeedUtils';
+import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -55,7 +55,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPoliciesWithLinkedFeed, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {
@@ -1510,7 +1510,7 @@ function createTypeMenuSections(
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
-    const policiesWithLinkedFeed = getPoliciesWithLinkedFeed(feeds);
+    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
 
     Object.values(policies).some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
@@ -1523,7 +1523,7 @@ function createTypeMenuSections(
 
         shouldShowStatementsSuggestion ||= false; // s77rt TODO
         showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && policiesWithLinkedFeed.has(policy.id);
+        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
         shouldShowReconciliationSuggestion ||= false; // s77rt TODO
 
         // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
