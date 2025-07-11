@@ -147,15 +147,15 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
+        groupPaidPolicies.length,
         travelSettings?.hasAcceptedTerms,
+        travelSettings?.lastTravelSignupRequestTime,
+        isBetaEnabled,
         styles.flexRow,
         styles.link,
         StyleUtils,
         translate,
         isUserValidated,
-        groupPaidPolicies.length,
-        isBetaEnabled,
-        travelSettings?.lastTravelSignupRequestTime,
     ]);
 
     return (
