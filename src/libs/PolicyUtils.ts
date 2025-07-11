@@ -450,6 +450,16 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
+ * Normalizes a tag string by unescaping colons, trimming leading/trailing colons, and converting internal colons to comma-separated format.
+ */
+function getCommaSeparatedTagNameWithSanitizedColons(tag: string) {
+    return tag
+        ?.replace(/\\:/g, CONST.COLON) // Unescape any "\:" into actual colon
+        .replace(/^:+|:+$/g, '') // Remove leading and trailing colons
+        .replace(/:+/g, ', '); // Replace inner colons with comma+space
+}
+
+/**
  * Escape colon from tag name
  */
 function escapeTagName(tag: string) {
@@ -1470,6 +1480,7 @@ export {
     getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
