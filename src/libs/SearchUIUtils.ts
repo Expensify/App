@@ -1021,10 +1021,6 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], groupBy?: SearchGroupBy) {
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    if (groupBy && (isChat || isTask)) {
-        // when we have groupBy on chat or task, we'll show the empty view
-        return [];
-    }
 
     if (isChat) {
         return getReportActionsSections(data);

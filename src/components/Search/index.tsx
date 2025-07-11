@@ -248,6 +248,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
+
+        const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+        const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+        if (groupBy && (isChat || isTask)) {
+            return [];
+        }
+
         return getSections(type, status, searchResults.data, searchResults.search, groupBy);
     }, [searchResults, isDataLoaded, type, status, groupBy]);
 
