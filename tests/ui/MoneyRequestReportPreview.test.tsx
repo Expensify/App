@@ -100,6 +100,9 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
 };
 
 const setCurrentWidth = () => {
+    fireEvent(screen.getByTestId('MoneyRequestReportPreviewContent-wrapper'), 'layout', {
+        nativeEvent: {layout: {width: 600}},
+    });
     fireEvent(screen.getByTestId('carouselWidthSetter'), 'layout', {
         nativeEvent: {layout: {width: 500}},
     });
@@ -147,6 +150,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
+        await waitForBatchedUpdatesWithAct();
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
@@ -163,6 +167,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
+        await waitForBatchedUpdatesWithAct();
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
 
@@ -175,6 +180,6 @@ describe('MoneyRequestReportPreview', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getAllByTestId(TransactionPreviewSkeletonView.displayName)).toHaveLength(2);
+        expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);
     });
 });
