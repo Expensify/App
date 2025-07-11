@@ -147,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        canShowProductTrainingTooltip,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -189,6 +190,10 @@ function BaseSelectionList<TItem extends ListItem>(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
+
+    const canShowProductTrainingTooltipMemo = useMemo(() => {
+        return canShowProductTrainingTooltip && isFocused;
+    }, [canShowProductTrainingTooltip, isFocused]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
@@ -618,6 +623,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     titleStyles={listItemTitleStyles}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
+                    canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                 />
             </View>
         );

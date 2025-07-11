@@ -315,6 +315,7 @@ const styles = (theme: ThemeColors) =>
             ...spacing.p2,
             borderRadius: 8,
         },
+        customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -447,6 +448,11 @@ const styles = (theme: ThemeColors) =>
         textSmall: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
+        },
+
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
         },
 
         textMicro: {
@@ -1301,7 +1307,7 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: 'transparent',
+            backgroundColor: theme.appBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
@@ -1901,6 +1907,10 @@ const styles = (theme: ThemeColors) =>
         emojisWithTextFontSizeAligned: {
             fontSize: variables.fontSizeEmojisWithinText,
             marginVertical: -7,
+        },
+
+        customEmojiFontAlignment: {
+            marginTop: -variables.fontSizeNormal,
         },
 
         emojisFontFamily: {
@@ -3345,7 +3355,30 @@ const styles = (theme: ThemeColors) =>
         magicCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
-            lineHeight: variables.inputHeight,
+            lineHeight: variables.lineHeightXXXLarge,
+        },
+
+        magicCodeInputValueContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+        },
+
+        magicCodeInputCursorContainer: {
+            position: 'absolute',
+            textAlign: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            overflow: 'visible',
+            width: '100%',
+        },
+
+        magicCodeInputCursor: {
+            fontSize: 24,
+            color: theme.heading,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
@@ -4499,10 +4532,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mr3,
         },
 
-        horizontalRule: {
-            borderColor: theme.border,
-        },
-
         reportHorizontalRule: {
             borderColor: theme.border,
             ...spacing.mh5,
@@ -4697,6 +4726,15 @@ const styles = (theme: ThemeColors) =>
         dropDownButtonCartIconContainerPadding: {
             paddingRight: 0,
             paddingLeft: 0,
+        },
+
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
         },
 
         dropDownMediumButtonArrowContain: {
@@ -4911,6 +4949,16 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
+
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
+        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,
@@ -5945,8 +5993,13 @@ const styles = (theme: ThemeColors) =>
 
         getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
             const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
-            const height = isAuthenticated ? defaultHeight : '55%';
+            // Use fixed height values based on the actual content height after the removal of the
+            // "Use profiling" and "Client side logging" menu items.
+            // - ~654px when authenticated
+            // - ~400px when unauthenticated
+            // For narrow layouts, we keep using percentages because fixed heights like 654px can overflow on mWeb Safari.
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : 654;
+            const height = isAuthenticated ? defaultHeight : 400;
 
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
