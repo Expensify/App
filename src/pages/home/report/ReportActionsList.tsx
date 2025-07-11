@@ -120,6 +120,8 @@ type ReportActionsListProps = {
     keyboardInset: SharedValue<number>;
 
     keyboardOffset: SharedValue<number>;
+
+    composerHeight: number;
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -163,6 +165,7 @@ function ReportActionsList({
     scrollingVerticalOffset,
     keyboardInset,
     keyboardOffset,
+    composerHeight,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -781,6 +784,8 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    console.log({keyboardInset, keyboardOffset});
+
     const animatedProps = useAnimatedProps(() => ({
         contentInset: {
             top: keyboardInset.get(),
@@ -798,7 +803,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, {paddingBottom: CONST.CHAT_FOOTER_MIN_HEIGHT + 16}]}
+                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, !hideComposer && {marginBottom: composerHeight}]}
                 testID={reportActionsListTestID}
                 nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
