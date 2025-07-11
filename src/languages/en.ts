@@ -1852,6 +1852,7 @@ const translations = {
         virtualCardNumber: 'Virtual card number',
         travelCardCvv: 'Travel card CVV',
         physicalCardNumber: 'Physical card number',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
         reportTravelFraud: 'Report travel card fraud',
@@ -4326,6 +4327,7 @@ const translations = {
             verifyingTheDetails: "We're verifying a few details. Concierge will let you know when Expensify Cards are ready to issue.",
             disclaimer:
                 'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
+            euUkDisclaimer: 'TBD',
             issueCard: 'Issue card',
             findCard: 'Find card',
             newCard: 'New card',
