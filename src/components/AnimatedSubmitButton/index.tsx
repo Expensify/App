@@ -18,13 +18,6 @@ type AnimatedSubmitButtonProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-// --- NEW: Define clear, adjustable durations for each state ---
-// How long the loading spinner is visible.
-const LOADING_STATE_DURATION = 1000; // 1 second
-
-// How long the "Submitted" button is visible before it animates out.
-const SUBMITTED_STATE_VISIBLE_DURATION = 1500; // 1.5 seconds
-
 function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, shouldAddTopMargin = false, wrapperStyle}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -69,7 +62,6 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                     transform: [{scale: 0}],
                 },
             })
-                // REMOVED: .delay() is no longer needed as the useEffect timer controls this.
                 .duration(buttonDuration)
                 .withCallback(stretchOutY),
         [buttonDuration, stretchOutY],
@@ -79,7 +71,6 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         icon = Expensicons.Send;
     }
 
-    // This effect starts the animation sequence and manages the loading phase.
     useEffect(() => {
         if (!isAnimationRunning) {
             setMinWidth(0);
@@ -95,20 +86,17 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
 
         const timer = setTimeout(() => {
             setIsShowingLoading(false);
-        }, LOADING_STATE_DURATION); // UPDATED: Use the new longer duration
+        }, CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION);
 
         return () => clearTimeout(timer);
     }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
 
-    // This effect manages the "submitted" phase, triggering the final exit animation.
     useEffect(() => {
         if (!isAnimationRunning || isShowingLoading) {
             return;
         }
 
-        // After the loading phase is over, the "submitted" button is shown.
-        // We set a timer to hide it after a longer delay, which triggers the exit animation.
-        const timer = setTimeout(() => setCanShow(false), SUBMITTED_STATE_VISIBLE_DURATION); // UPDATED: Use the new longer duration
+        const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION);
 
         return () => clearTimeout(timer);
     }, [isAnimationRunning, isShowingLoading]);
