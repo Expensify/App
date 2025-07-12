@@ -1,7 +1,7 @@
 ---
-title: Lock Account Tool
-description: Learn how the locked account tool works in New Expensify, when to use it, what features are blocked, and how users can regain access.
-keywords: [locked account, New Expensify, lock features, wallet disabled, card suspended, 2FA blocked, unlock account]
+title: Report Suspicious Activity
+description: Learn how to report suspicious activity and lock your account in New Expensify, when to use it, what features are blocked, and how users can regain access.
+keywords: [locked account, New Expensify, lock features, wallet disabled, card suspended, 2FA blocked, unlock account, suspicious activity]
 ---
 <div id="new-expensify" markdown="1">
 
@@ -9,9 +9,9 @@ The Lock Account tool blocks access to high-risk features when an account is sus
 
 ---
 
-# When to Use the Lock Account Button
+# When to Use the Report Suspicious Activity Button
 
-Click the **Lock Account** button if:
+Click the **Report Suspicious Activity** button if:
 
 - You believe your own account has been compromised (e.g., suspicious logins, changes to contact info, or unfamiliar devices).
 - You’re a Workspace Admin and suspect an employee’s account is at risk.
@@ -24,6 +24,11 @@ Locking the account restricts access to sensitive features and alerts Concierge 
 # What Happens When an Account is Locked
 
 The following actions will be blocked when an account is locked:
+
+## Admin Functionality
+
+- If you are the owner of a reimbursement account in Expensify, all ability to process reimbursements for anyone with access to the bank account will be locked. 
+- If you are a Domain Admin and have Expensify Cards, all Expensify Cards for the domain or workspace will be locked and all card activity will be suspended. 
 
 ## Contact & Security
 - Adding or removing a contact method
@@ -61,7 +66,7 @@ The following actions will be blocked when an account is locked:
 To lock your own account or an employee’s account:
 
 1. Go to **Account > Security**.
-2. Click **Lock Account**.
+2. Click **Report Suspicious Activity**.
 
 ⚠️ **Important:** This action is not reversible from within the product. Once an account is locked, only Expensify Support can unlock it.
 
@@ -69,7 +74,7 @@ To lock your own account or an employee’s account:
 
 # How to Unlock an Account
 
-Unlocking a locked account requires assistance from Expensify Support. Once you click **Lock Account**, Concierge will begin reviewing the account and contact you with the next steps. You may be asked to:
+Unlocking a locked account requires assistance from Expensify Support. Once you click **Report Suspicious Activity**, Concierge will begin reviewing the account and contact you with the next steps. You may be asked to:
 
 - Verify identity
 - Reset login credentials

@@ -1,6 +1,6 @@
 ---
-title: Locked Account Tool
-description: Understand how the locked account tool works in Expensify Classic, what features it restricts, and how to request an unlock.
+title: Report Suspicious Activity
+description: Learn how to report suspicious activity and lock your account in Expensify Classic, what features it restricts, and how to request an unlock.
 keywords: [locked account, Expensify Classic, domain admin, secondary login, reimbursements blocked, card locked, unlock account]
 ---
 <div id="expensify-classic" markdown="1">
@@ -11,7 +11,7 @@ The locked account tool prevents high-risk actions from being taken on accounts 
 
 ## When is it appropriate to click the button for your own account or for your employee’s account?
 
-Use the **Lock Account** button if:
+Use the **Report Suspicious Activity** button if:
 - You suspect unauthorized activity on your own or an employee's account.
 - There are changes to bank accounts, logins, or suspicious payment activity.
 - You want to pause activity on an account until Concierge investigates.
@@ -21,6 +21,11 @@ Use the **Lock Account** button if:
 ## Which features are locked?
 
 The following actions are restricted when an account is locked in Expensify Classic:
+
+## Admin Functionality
+
+- If you are the owner of a reimbursement account in Expensify, all ability to process reimbursements for anyone with access to the bank account will be locked. 
+- If you are a Domain Admin and have Expensify Cards, all Expensify Cards for the domain or workspace will be locked and all card activity will be suspended.
 
 ### Profile settings
 - Adding a secondary login
@@ -60,9 +65,9 @@ The following actions are restricted when an account is locked in Expensify Clas
 ## How to do it?
 
 
-- **Members:** The **Lock Account** button appears at the bottom of the screen in `Settings > Account > Profile`.
+- **Members:** The **Report Suspicious Activity** button appears at the bottom of the screen in `Settings > Account > Profile`.
 
-- **Domain Admins:** You can lock a domain member's account using the **Lock Account** option located in `Settings > Domains > Domain Members > Edit Settings`.
+- **Domain Admins:** You can lock a domain member's account using the **Report Suspicious Activity** option located in `Settings > Domains > Domain Members > Edit Settings`.
 
 ---
 
