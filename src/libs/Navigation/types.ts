@@ -1928,6 +1928,9 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
+        backTo?: string;
+    };
     [SCREENS.ONBOARDING.WORK_EMAIL]: {
         backTo?: string;
     };

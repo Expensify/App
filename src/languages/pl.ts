@@ -2204,6 +2204,11 @@ const translations = {
             title: 'Czy używasz jakiegoś oprogramowania księgowego?',
             none: 'None',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: 'Proszę podać swoje imię, aby kontynuować',
         },

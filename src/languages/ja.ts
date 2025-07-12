@@ -2202,6 +2202,11 @@ const translations = {
             title: '会計ソフトを使用していますか？',
             none: 'None',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: '続行するには、名前を入力してください。',
         },

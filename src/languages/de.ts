@@ -2219,6 +2219,11 @@ const translations = {
             title: 'Verwenden Sie eine Buchhaltungssoftware?',
             none: 'Keine',
         },
+        interestedFeatures: {
+            title: '',
+            featuresAlreadyEnabled: '',
+            featureYouMayBeInterestedIn: '',
+        },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
         },
