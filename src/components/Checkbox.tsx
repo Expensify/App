@@ -53,6 +53,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** Whether the checkbox should be selected when pressing Enter key */
     shouldSelectOnPressEnter?: boolean;
+
+    /** Additional styles to add to checkbox wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function Checkbox(
@@ -72,6 +75,7 @@ function Checkbox(
         accessibilityLabel,
         shouldStopMouseDownPropagation,
         shouldSelectOnPressEnter,
+        wrapperStyle,
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
@@ -123,6 +127,7 @@ function Checkbox(
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
+            wrapperStyle={wrapperStyle}
         >
             {children ?? (
                 <View
