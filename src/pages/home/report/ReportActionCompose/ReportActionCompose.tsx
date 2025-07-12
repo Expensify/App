@@ -35,6 +35,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import getSwipeDirection from '@libs/getSwipeDirection';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -580,6 +581,7 @@ function ReportActionCompose({
                     >
                         {PDFValidationComponent}
                         <AttachmentComposerModal
+                            swipeDirection={getSwipeDirection()}
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
