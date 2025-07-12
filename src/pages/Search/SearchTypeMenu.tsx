@@ -66,17 +66,14 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const [allCards, hasCardFeed] = useMemo(() => {
-        const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
-        return [mergedCards, Object.keys(mergedCards).length > 0];
-    }, [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
 
     const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => {
-        const sections = createTypeMenuSections(session, hasCardFeed, allPolicies);
+        const sections = createTypeMenuSections(session, allFeeds, allPolicies);
 
         // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we dont animate them in
         // We only animate in items that a user gains access to later on
@@ -85,7 +82,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         return sections;
-    }, [session, hasCardFeed, allPolicies]);
+    }, [session, allFeeds, allPolicies]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(

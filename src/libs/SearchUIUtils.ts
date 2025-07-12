@@ -45,7 +45,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
-import {getCardFeedsForDisplay} from './CardFeedUtils';
+import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -1261,7 +1261,11 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
+function createTypeMenuSections(
+    session: OnyxTypes.Session | undefined,
+    feeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy> = {},
+): SearchTypeMenuSection[] {
     const email = session?.email;
 
     // Start building the sections by requiring the following sections to always be present
@@ -1501,12 +1505,18 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         menuItems: [],
     };
 
+    let defaultFeed: string | undefined;
+
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
-    Object.values(policies).some((policy) => {
+    const activePolicy = getActivePolicy();
+    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
+
+    // The active (default) policy is prioritized to correctly set the default feed
+    [activePolicy, ...Object.values(policies)].some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
         }
@@ -1515,17 +1525,45 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        shouldShowStatementsSuggestion ||= false; // s77rt TODO
-        showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && hasCardFeed;
-        shouldShowReconciliationSuggestion ||= false; // s77rt TODO
+        const isEligibleForStatementsSuggestion = policy.areCompanyCardsEnabled === true && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForReconciliationSuggestion = false; // s77rt TODO
+
+        // The default feed must be based on an eligible policy
+        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
+            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id].toSorted((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
+        }
+
+        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
+        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
         return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
     });
 
     if (shouldShowStatementsSuggestion) {
-        // s77rt TODO
+        accountingSection.menuItems.push({
+            translationPath: 'search.statements',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CreditCard,
+            emptyState: {
+                headerMedia: DotLottieAnimations.GenericEmptyState,
+                title: 'search.searchResults.emptyStatementsResults.title',
+                subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.CARDS,
+                    feed: defaultFeed ? [defaultFeed] : undefined,
+                    postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
+                });
+                return queryString;
+            },
+        });
     }
 
     if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
@@ -1562,8 +1600,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                        // s77rt this should be update to use the default feed
-                        feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                        feed: defaultFeed ? [defaultFeed] : undefined,
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
                     return queryString;
@@ -1604,8 +1641,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                    // s77rt this should be update to use the default feed
-                    feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                    feed: defaultFeed ? [defaultFeed] : undefined,
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
                 return queryString;
