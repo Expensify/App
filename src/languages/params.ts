@@ -141,6 +141,10 @@ type PhoneErrorRouteParams = {
     phoneErrorMethodsRoute: string;
 };
 
+type WorkspacesListRouteParams = {
+    workspacesListRoute: string;
+};
+
 type BusinessBankAccountParams = {
     amount: string;
     last4Digits: string;
@@ -1077,6 +1081,7 @@ export type {
     RailTicketParams,
     TravelTypeParams,
     PhoneErrorRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
 };
