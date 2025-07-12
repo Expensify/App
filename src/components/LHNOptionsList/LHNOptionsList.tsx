@@ -53,7 +53,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -189,7 +189,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
+            const hasDraftComment = isValidDraftComment(draftComments?.[reportID]);
 
             const canUserPerformWrite = canUserPerformWriteAction(item);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
@@ -284,7 +284,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             transactions,
@@ -301,7 +300,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             transactions,

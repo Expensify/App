@@ -34,20 +34,18 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -248,13 +246,17 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
+    const [draftReportComment] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true, selector: (draftReportComments) => draftReportComments?.[reportID]});
     const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
+        if (draftReportComment) {
+            emojisPresentBefore.current = extractEmojis(draftReportComment);
         }
-        return draftComment;
+        return draftReportComment ?? '';
     });
+
+    useEffect(() => {
+        setValue(draftReportComment ?? '');
+    }, [draftReportComment]);
 
     const commentRef = useRef(value);
 
@@ -417,6 +419,7 @@ function ComposerWithSuggestions(
             }
 
             commentRef.current = newCommentConverted;
+
             if (shouldDebounceSaveComment) {
                 isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
@@ -726,6 +729,8 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
+             // debounce should be true here, otherwise the input will intially clear, but then the value the user had typed before they sent will return when the debounce timeout fires.
+             // It's okay for the Onyx value to lag a bit since we're using local state to feed the actual input. The only real impact is the pencil remains visible in the LHN for a moment
             updateComment('', true);
         },
         [onCleared, updateComment],
@@ -843,16 +848,6 @@ function ComposerWithSuggestions(
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
             />
-
-            {isValidReportIDFromPath(reportID) && (
-                <SilentCommentUpdater
-                    reportID={reportID}
-                    value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
-                    isCommentPendingSaved={isCommentPendingSaved}
-                />
-            )}
 
             {/* Only used for testing so far */}
             {children}
