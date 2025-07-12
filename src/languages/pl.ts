@@ -3219,6 +3219,18 @@ const translations = {
             consent: 'Proszę wyrazić zgodę na politykę prywatności',
         },
     },
+    docusignStep: {
+        subheader: 'Formularz Docusign',
+        pleaseComplete:
+            'Proszę wypełnić formularz autoryzacji ACH za pomocą poniższego linku Docusign, a następnie przesłać tutaj podpisaną kopię, abyśmy mogli pobierać środki bezpośrednio z Twojego konta bankowego.',
+        pleaseCompleteTheBusinessAccount: 'Proszę wypełnić Wniosek o Konto Firmowe oraz Umowę Polecenia Zapłaty.',
+        pleaseCompleteTheDirect:
+            'Proszę wypełnić Umowę Polecenia Zapłaty za pomocą poniższego linku Docusign, a następnie przesłać tutaj podpisaną kopię, abyśmy mogli pobierać środki bezpośrednio z Twojego konta bankowego.',
+        takeMeTo: 'Przejdź do Docusign',
+        uploadAdditional: 'Prześlij dodatkowe dokumenty',
+        pleaseUpload: 'Proszę przesłać formularz DEFT oraz stronę z podpisem Docusign.',
+        pleaseUploadTheDirect: 'Proszę przesłać Umowy Polecenia Zapłaty oraz stronę z podpisem Docusign.',
+    },
     finishStep: {
         connect: 'Połącz konto bankowe',
         letsFinish: 'Zakończmy na czacie!',
