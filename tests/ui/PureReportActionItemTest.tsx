@@ -23,18 +23,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@rnmapbox/maps', () => {
-    return {
-        default: jest.fn(),
-        MarkerView: jest.fn(),
-        setAccessToken: jest.fn(),
-    };
-});
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 const ACTOR_ACCOUNT_ID = 20258746;
 const actorEmail = 'test@test.com';
 
