@@ -25,6 +25,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -6788,12 +6789,8 @@ const translations = {
             whatsMainReason: 'Was ist der Hauptgrund, warum Sie die automatische Verlängerung deaktivieren?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wird am ${date} erneuert.`,
             pricingConfiguration: 'Die Preisgestaltung hängt von der Konfiguration ab. Für den niedrigsten Preis wählen Sie ein Jahresabonnement und erhalten Sie die Expensify Card.',
-            learnMore: {
-                part1: 'Erfahren Sie mehr auf unserer',
-                pricingPage: 'Preisseite',
-                part2: 'oder chatten Sie mit unserem Team in Ihrer',
-                adminsRoom: '#admins room.',
-            },
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>Erfahren Sie mehr auf unserer  <a href="${pricingURL}">Preisseite</a>  oder chatten Sie mit unserem Team in Ihrer  <a href="${adminsChatReportRoute}">#admins room.</a></muted-text>`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Expensify Card-Nutzung und den untenstehenden Abonnementoptionen.',
         },

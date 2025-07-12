@@ -71,6 +71,11 @@ type BeginningOfChatHistoryAdminRoomPartOneParams = {
     workspaceName: string;
 };
 
+type AdminsChatReportRouteParams = {
+    adminsChatReportRoute: string;
+    pricingURL: string;
+};
+
 type BeginningOfChatHistoryAnnounceRoomPartOneParams = {
     workspaceName: string;
 };
@@ -916,6 +921,7 @@ export type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    AdminsChatReportRouteParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
     DuplicateTransactionParams,
