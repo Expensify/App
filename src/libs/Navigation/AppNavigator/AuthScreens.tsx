@@ -38,6 +38,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -88,6 +89,9 @@ type AuthScreensProps = {
 
     /** The last Onyx update ID was applied to the client */
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
+
+    /** Initial url */
+    initialUrl: string | null;
 };
 
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
@@ -222,7 +226,7 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient, initialUrl}: AuthScreensProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -322,6 +326,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setIsDelegatorFromOldDotIsReady(true);
                         });
                 } else {
+                    const reportID = getReportIDFromLink(initialUrl);
+                    if (reportID) {
+                        Report.openReport(reportID);
+                    }
                     App.openApp();
                 }
             } else {
@@ -781,7 +789,7 @@ const AuthScreensMemoized = memo(AuthScreens, () => true);
 // Further analysis required and more details can be seen here:
 // https://github.com/Expensify/App/issues/50560
 // eslint-disable-next-line
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
+export default withOnyx<AuthScreensProps, Omit<AuthScreensProps, 'initialUrl'>>({
     session: {
         key: ONYXKEYS.SESSION,
     },

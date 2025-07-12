@@ -7,14 +7,17 @@ const PublicScreens = lazy(() => lazyRetry(() => import('./PublicScreens')));
 type AppNavigatorProps = {
     /** If we have an authToken this is true */
     authenticated: boolean;
+
+    /** Initial url */
+    initialUrl: string | null;
 };
 
-function AppNavigator({authenticated}: AppNavigatorProps) {
+function AppNavigator({authenticated, initialUrl}: AppNavigatorProps) {
     if (authenticated) {
         // These are the protected screens and only accessible when an authToken is present
         return (
             <Suspense fallback={null}>
-                <AuthScreens />
+                <AuthScreens initialUrl={initialUrl}/>
             </Suspense>
         );
     }
