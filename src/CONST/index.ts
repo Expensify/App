@@ -2656,6 +2656,8 @@ const CONST = {
             MANUAL: 'manual',
             SCAN: 'scan',
             PER_DIEM: 'per-diem',
+            DISTANCE_MAP: 'distance-map',
+            DISTANCE_MANUAL: 'distance-manual',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2664,6 +2666,8 @@ const CONST = {
             PER_DIEM: 'per-diem',
             EXPENSIFY_CARD: 'expensifyCard',
             PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
+            DISTANCE_MAP: 'distance-map',
+            DISTANCE_MANUAL: 'distance-manual',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -5071,6 +5075,8 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
         PER_DIEM: 'per-diem',
+        DISTANCE_MAP: 'distance-map',
+        DISTANCE_MANUAL: 'distance-manual',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
