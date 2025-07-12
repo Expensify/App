@@ -21,6 +21,7 @@ If your business operates out of the U.K., you can enable global reimbursements 
 - ✅ Bank statement
 - ✅ Proof of Beneficial Ownership
 - ✅ Copy of ID & Address for Signatories
+- ✅ A signed direct debit authorization form
 
 ---
 
