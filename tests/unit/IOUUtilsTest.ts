@@ -383,4 +383,16 @@ describe('Check valid amount for IOU/Expense request', () => {
         const expenseAmount = TransactionUtils.getAmount(expenseTransaction, true, false);
         expect(expenseAmount).toBeLessThan(0);
     });
+
+    test('Return correct unreported transaction amount with negative sign', () => {
+        const unreportedTransaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {
+                amount: 100,
+                currency: 'USD',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            },
+        });
+        const unreportedAmount = TransactionUtils.getAmount(unreportedTransaction, true, false);
+        expect(unreportedAmount).toBeLessThan(0);
+    });
 });
