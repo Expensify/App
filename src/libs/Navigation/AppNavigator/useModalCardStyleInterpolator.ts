@@ -14,6 +14,7 @@ type ModalCardStyleInterpolatorProps = {
     shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
     outputRangeMultiplier?: number;
+    animationEnabled?: boolean;
 };
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
@@ -33,6 +34,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         isFullScreenModal = false,
         shouldFadeScreen = false,
         shouldAnimateSidePanel = false,
+        animationEnabled = true,
         outputRangeMultiplier = 1,
     }) => {
         if (isOnboardingModal ? onboardingIsMediumOrLargerScreenWidth : shouldFadeScreen) {
@@ -52,7 +54,8 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
 
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        if (!isFullScreenModal || shouldUseNarrowLayout) {
+        // animationEnabled is checked here to avoid animating preloaded routes on web on the narrow layout
+        if (animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout)) {
             cardStyle.transform = [{translateX}];
         }
 
