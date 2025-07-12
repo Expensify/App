@@ -3349,6 +3349,10 @@ const CONST = {
             PAY_PER_USE: 'monthly2018',
         },
     },
+
+    // There is no pricing for invoicing subscription type, so we need to define a seperate constant for it
+    INVOICING_SUBSCRIPTION_TYPE: 'invoicing2018',
+
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {

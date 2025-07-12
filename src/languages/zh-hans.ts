@@ -1634,9 +1634,10 @@ const translations = {
             afterEmail: '到其他账户。请将其他账户合并到此账户中。',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: '无法合并',
-            afterEmail: '因为它是一个已开票账户的账单所有者，所以无法合并到其他账户。请将其他账户合并到它中。',
+            beforeEmail: '无法合并账户到 ',
+            afterEmail: '，因为该账户拥有已开具发票的计费关系。',
         },
+
         mergeFailureTooManyAttempts: {
             heading: '请稍后再试',
             description: '尝试合并账户的次数过多。请稍后再试。',

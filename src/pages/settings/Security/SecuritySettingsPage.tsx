@@ -22,6 +22,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -62,6 +63,8 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -147,6 +150,14 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
+                    // @ts-expect-error - There is no pricing for invoicing subscription type, so we need to define a separate constant for it which is not defined in the subscription type enum
+                    if (privateSubscription?.type === CONST.INVOICING_SUBSCRIPTION_TYPE) {
+                        Navigation.navigate(
+                            ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                        );
+                        return;
+                    }
+
                     Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
                 },
             },
@@ -191,7 +202,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, privateSubscription, currentUserPersonalDetails]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
