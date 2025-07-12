@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -31,6 +31,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchQueryJSON} from './types';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
@@ -68,6 +70,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
+
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
 
     /** The search query */
     queryJSON: SearchQueryJSON;
@@ -108,6 +113,7 @@ function SearchList(
         queryJSON,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
         isMobileSelectionModeEnabled,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
@@ -277,54 +283,62 @@ function SearchList(
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
-                <ListItem
-                    showTooltip
-                    isFocused={isItemFocused}
-                    onSelectRow={onSelectRow}
-                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent) {
-                            if (!event.nativeEvent.sourceCapabilities) {
-                                return;
+                <Animated.View
+                    exiting={shouldAnimate ? FadeOutUp.easing(easing) : undefined}
+                    entering={undefined}
+                    style={styles.overflowHidden}
+                >
+                    <ListItem
+                        showTooltip
+                        isFocused={isItemFocused}
+                        onSelectRow={onSelectRow}
+                        onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                            if (isMobileChrome() && event.nativeEvent) {
+                                if (!event.nativeEvent.sourceCapabilities) {
+                                    return;
+                                }
+                                // Ignore the focus if it's caused by a touch event on mobile chrome.
+                                // For example, a long press will trigger a focus event on mobile chrome
+                                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                    return;
+                                }
                             }
-                            // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, a long press will trigger a focus event on mobile chrome
-                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                return;
-                            }
-                        }
-                        setFocusedIndex(index);
-                    }}
-                    onLongPressRow={handleLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    canSelectMultiple={canSelectMultiple}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        ...item,
-                    }}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={hash}
-                    policies={policies}
-                    isDisabled={isDisabled}
-                    allReports={allReports}
-                    groupBy={groupBy}
-                />
+                            setFocusedIndex(index);
+                        }}
+                        onLongPressRow={handleLongPressRow}
+                        onCheckboxPress={onCheckboxPress}
+                        canSelectMultiple={canSelectMultiple}
+                        item={{
+                            shouldAnimateInHighlight: isItemHighlighted,
+                            ...item,
+                        }}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        queryJSONHash={hash}
+                        policies={policies}
+                        isDisabled={isDisabled}
+                        allReports={allReports}
+                        groupBy={groupBy}
+                    />
+                </Animated.View>
             );
         },
         [
-            ListItem,
-            canSelectMultiple,
             focusedIndex,
-            handleLongPressRow,
             itemsToHighlight,
-            onCheckboxPress,
+            shouldAnimate,
+            styles.overflowHidden,
+            ListItem,
             onSelectRow,
-            policies,
+            handleLongPressRow,
+            onCheckboxPress,
+            canSelectMultiple,
+            shouldPreventDefaultFocusOnSelectRow,
             hash,
+            policies,
+            allReports,
             groupBy,
             setFocusedIndex,
-            shouldPreventDefaultFocusOnSelectRow,
-            allReports,
         ],
     );
 
@@ -381,6 +395,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
+                itemLayoutAnimation={shouldAnimate ? LinearTransition.easing(easing) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
