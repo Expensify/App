@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -21,8 +22,8 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type BookTravelButtonProps = {
     text: string;
@@ -48,6 +49,8 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
@@ -88,14 +91,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(
                 <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
-                    <TextLink
-                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
-                    >
-                        {translate('travel.phoneError.link')}
-                    </TextLink>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
+                    <RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />
                 </Text>,
             );
             return;
@@ -152,10 +148,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         travelSettings?.lastTravelSignupRequestTime,
         isBetaEnabled,
         styles.flexRow,
-        styles.link,
         StyleUtils,
         translate,
         isUserValidated,
+        groupPaidPolicies.length,
+        isBetaEnabled,
+        phoneErrorMethodsRoute,
+        travelSettings?.lastTravelSignupRequestTime,
     ]);
 
     return (
