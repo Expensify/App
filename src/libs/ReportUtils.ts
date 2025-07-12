@@ -5292,7 +5292,7 @@ function getReportNameInternal({
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
+    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName || (report?.reportName ?? '');
 }
 
 /**
