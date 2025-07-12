@@ -327,10 +327,8 @@ function MoneyRequestReportPreviewContent({
             return;
         }
 
-        checkMarkScale.set(
-            isPaidAnimationRunning || isSubmittingAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1,
-        );
-    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, iouSettled, checkMarkScale]);
+        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
+    }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
     useEffect(() => {
         if (!isApproved) {
@@ -455,10 +453,8 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
-    // MoneyRequestReportPreviewContent.tsx
-
     const reportPreviewAction = useMemo(() => {
-        // If the paid animation is running, show the settlement button to let its animation finish.
+        // It's necessary to allow payment animation to finish before button is changed
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
@@ -467,7 +463,6 @@ function MoneyRequestReportPreviewContent({
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
         }
 
-        // If no animations are running, determine the correct action.
         return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy);
     }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
     const addExpenseDropdownOptions = useMemo(
