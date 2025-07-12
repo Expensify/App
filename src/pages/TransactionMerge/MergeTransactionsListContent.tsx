@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/Transaction';
-import {getSourceTransaction, getTargetTransaction} from '@libs/MergeTransactionUtils';
+import {getSourceTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldNavigateToMergeReceipt} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -34,8 +34,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
 
     useEffect(() => {
@@ -86,8 +86,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
-        const targetTransaction = getTargetTransaction(mergeTransaction);
         const sourceTransaction = getSourceTransaction(mergeTransaction);
+
         if (!sourceTransaction || !targetTransaction) {
             return;
         }
@@ -101,7 +101,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
         }
-    }, [mergeTransaction, transactionID]);
+    }, [mergeTransaction, transactionID, targetTransaction]);
 
     if (eligibleTransactions?.length === 0) {
         return (

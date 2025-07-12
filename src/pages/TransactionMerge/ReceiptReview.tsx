@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/Transaction';
-import {getSourceTransaction, getTargetTransaction} from '@libs/MergeTransactionUtils';
+import {getSourceTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -28,8 +28,8 @@ function ReceiptReview({route}: ReceiptReviewProps) {
     const {transactionID, backTo} = route.params;
 
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
 
-    const targetTransaction = getTargetTransaction(mergeTransaction);
     const sourceTransaction = getSourceTransaction(mergeTransaction);
 
     // Build receipts array from the two transactions
