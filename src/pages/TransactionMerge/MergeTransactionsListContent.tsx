@@ -11,10 +11,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/Transaction';
-import {getSourceTransaction} from '@libs/MergeTransactionUtils';
+import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {getSourceTransaction, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldNavigateToMergeReceipt} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,7 +91,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        if (shouldNavigateToMergeReceipt([targetTransaction, sourceTransaction])) {
+        if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
         } else {
             const mergedReceiptID = sourceTransaction?.receipt?.receiptID ?? targetTransaction?.receipt?.receiptID;

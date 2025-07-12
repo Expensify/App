@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {MergeTransaction} from '@src/types/onyx';
+import type {MergeTransaction, Transaction} from '@src/types/onyx';
 
 /**
  * Get the source transaction from a merge transaction
@@ -14,4 +14,13 @@ const getSourceTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => 
     return mergeTransaction.eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction.sourceTransactionID);
 };
 
-export {getSourceTransaction};
+/**
+ * Check if the user should navigate to the receipt review page
+ * @param transactions - array of target and source transactions
+ * @returns True if both transactions have a receipt
+ */
+function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
+    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+}
+
+export {getSourceTransaction, shouldNavigateToReceiptReview};

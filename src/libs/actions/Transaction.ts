@@ -5,7 +5,7 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, GetTransactionsForMergingParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
+import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -25,18 +25,7 @@ import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    MergeTransaction,
-    PersonalDetails,
-    Policy,
-    RecentWaypoint,
-    Report,
-    ReportAction,
-    ReviewDuplicates,
-    Transaction,
-    TransactionViolation,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {PersonalDetails, Policy, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -928,24 +917,6 @@ function getDraftTransactions(): Transaction[] {
     return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
-/**
- * Sets merge transaction data for a specific transaction
- */
-function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
-}
-
-/**
- * Fetches eligible transactions for merging
- */
-function getTransactionsForMerging(transactionID: string) {
-    const parameters: GetTransactionsForMergingParams = {
-        transactionID,
-    };
-
-    API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
-}
-
 export {
     saveWaypoint,
     removeWaypoint,
@@ -967,6 +938,4 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
-    setMergeTransactionKey,
-    getTransactionsForMerging,
 };
