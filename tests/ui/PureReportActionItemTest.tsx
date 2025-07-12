@@ -1,0 +1,152 @@
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import {render, screen} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxProvider from '@components/OnyxProvider';
+import OptionsListContextProvider from '@components/OptionListContextProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import {translateLocal} from '@libs/Localize';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import PureReportActionItem from '@pages/home/report/PureReportActionItem';
+import CONST from '@src/CONST';
+import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
+import type {OriginalMessage} from '@src/types/onyx/ReportAction';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+jest.mock('@react-navigation/native');
+
+jest.mock('@rnmapbox/maps', () => {
+    return {
+        default: jest.fn(),
+        MarkerView: jest.fn(),
+        setAccessToken: jest.fn(),
+    };
+});
+
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+}));
+
+const ACTOR_ACCOUNT_ID = 20258746;
+const actorEmail = 'asfsfdafd+fsfd@fdsadf.com';
+
+const createAutomaticAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
+    ({
+        reportActionID: '12345',
+        actorAccountID: ACTOR_ACCOUNT_ID,
+        created: '2025-07-12 09:03:17.653',
+        actionName,
+        automatic: true,
+        shouldShow: true,
+        avatar: '',
+        person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+        message: [{type: 'COMMENT', html: 'some message', text: 'some message'}],
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalMessage: {
+            ...originalMessageExtras,
+        },
+    }) as ReportAction;
+
+describe('PureReportActionItem', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
+        jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
+    });
+
+    beforeEach(() => {
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}).then(() =>
+            Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ACTOR_ACCOUNT_ID]: {
+                    accountID: ACTOR_ACCOUNT_ID,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
+                    displayName: actorEmail,
+                    login: actorEmail,
+                },
+            }),
+        );
+    });
+
+    afterEach(() => {
+        Onyx.clear();
+    });
+
+    function renderItemWithAction(action: ReportAction) {
+        return render(
+            <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <PureReportActionItem
+                                allReports={undefined}
+                                policies={undefined}
+                                report={undefined}
+                                reportActions={[]}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                isMostRecentIOUReportAction={false}
+                                shouldDisplayNewMarker={false}
+                                index={0}
+                                isFirstVisibleReportAction={false}
+                                taskReport={undefined}
+                                linkedReport={undefined}
+                                iouReportOfLinkedReport={undefined}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </OptionsListContextProvider>
+            </ComposeProviders>,
+        );
+    }
+
+    describe('Automatic actions', () => {
+        it('displays a generic message for an automatic APPROVED action', async () => {
+            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.automaticallyApproved'))).toBeOnTheScreen();
+        });
+
+        it('displays a generic message for an automatic FORWARDED action', async () => {
+            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.automaticallyForwarded'))).toBeOnTheScreen();
+        });
+
+        it('displays a generic message for a SUBMITTED action via harvesting', async () => {
+            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
+        });
+
+        it('displays a generic message for a SUBMITTED_AND_CLOSED action via harvesting', async () => {
+            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
+        });
+    });
+});
