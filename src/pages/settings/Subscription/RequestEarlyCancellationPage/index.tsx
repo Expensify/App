@@ -106,6 +106,7 @@ function RequestEarlyCancellationPage() {
     const contentMap: Partial<Record<CancellationType, ReactNode>> = {
         [CONST.CANCELLATION_TYPE.MANUAL]: manualCancellationContent,
         [CONST.CANCELLATION_TYPE.AUTOMATIC]: automaticCancellationContent,
+        [CONST.CANCELLATION_TYPE.NONE]: manualCancellationContent,
     };
 
     const screenContent = cancellationType ? contentMap[cancellationType] : surveyContent;
