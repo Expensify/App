@@ -969,7 +969,7 @@ function PureReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? targetReport?.reportID, undefined, undefined, isUserValidated)}
+                                onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
                                 pressOnEnter
                                 large
                             />
