@@ -1,3 +1,5 @@
+import Performance, { PERFORMANCE_METRICS } from '@libs/Performance';
+import {setShouldForceOffline} from '@libs/actions/Network';
 /* eslint-disable import/newline-after-import,import/first */
 
 /**
@@ -6,11 +8,10 @@
  * into the actual release app.
  */
 import canCapturePerformanceMetrics from '@libs/Metrics';
-import Performance from '@libs/Performance';
 import Config from 'react-native-config';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
-import installNetworkInterceptor from './utils/NetworkInterceptor';
+import { disableNetworkRequests } from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
 import type {TestModule, Tests} from './types';
 
@@ -42,7 +43,7 @@ const tests: Tests = {
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
 const appReady = new Promise<void>((resolve) => {
     Performance.subscribeToMeasurements((entry) => {
-        if (entry.name !== 'TTI') {
+        if (entry.name !== PERFORMANCE_METRICS.TTI) {
             return;
         }
 
@@ -50,12 +51,9 @@ const appReady = new Promise<void>((resolve) => {
     });
 });
 
-// Install the network interceptor
-installNetworkInterceptor(
-    () => E2EClient.getNetworkCache(appInstanceId),
-    (networkCache) => E2EClient.updateNetworkCache(appInstanceId, networkCache),
-    LaunchArgs.mockNetwork ?? false
-)
+const disableNetwork = LaunchArgs.mockNetwork ?? false;
+disableNetworkRequests(disableNetwork);
+setShouldForceOffline(disableNetwork);
 
 E2EClient.getTestConfig()
     .then((config): Promise<void> | undefined => {
@@ -75,7 +73,7 @@ E2EClient.getTestConfig()
         appReady
             .then(() => {
                 console.debug('[E2E] App is ready, running test…');
-                Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
+                Performance.measureFailSafe(PERFORMANCE_METRICS.APP_STARTED_TO_READY, PERFORMANCE_METRICS.REGULAR_APP_START);
                 test(config);
             })
             .catch((error) => {
@@ -87,6 +85,6 @@ E2EClient.getTestConfig()
     });
 
 // start the usual app
-Performance.markStart('regularAppStart');
-import '../../../index';
-Performance.markEnd('regularAppStart');
+Performance.markStart(PERFORMANCE_METRICS.REGULAR_APP_START);
+import '../../../appIndex';
+Performance.markEnd(PERFORMANCE_METRICS.REGULAR_APP_START);
