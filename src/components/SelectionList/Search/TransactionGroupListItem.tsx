@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -33,6 +33,10 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import IconButton from '@components/VideoPlayer/IconButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Accordion from '@components/Accordion';
+import { useSharedValue } from 'react-native-reanimated';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -51,11 +55,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isExpanded = useSharedValue(true);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const src = isExpanded.get() ? Expensicons.UpArrow : Expensicons.DownArrow;
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -179,41 +185,60 @@ function TransactionGroupListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
-                    {getHeader(hovered)}
-                    {isEmpty ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('search.moneyRequestReport.emptyStateTitle')}
-                            </Text>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flex1]}>
+                            {getHeader(hovered)}
                         </View>
-                    ) : (
-                        groupItem.transactions.map((transaction) => (
-                            <View key={transaction.transactionID}>
-                                <TransactionItemRow
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    isParentHovered={hovered}
-                                    columnWrapperStyles={[styles.ph3, styles.pv1Half]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                />
+                        <IconButton
+                            src={src}
+                            small
+                            onPress={() => {
+                                isExpanded.set(!isExpanded.get());
+                            }}
+                            style={[styles.p3]}
+                            hoverStyle={[styles.bgTransparent]}
+                        />
+                    </View>
+                    <Accordion
+                        isExpanded={isExpanded}
+                        isToggleTriggered={isExpanded}
+                    >
+                        {isEmpty ? (
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('search.moneyRequestReport.emptyStateTitle')}
+                                </Text>
                             </View>
-                        ))
-                    )}
+                        ) : (
+                            groupItem.transactions.map((transaction) => (
+                                <View key={transaction.transactionID}>
+                                    <TransactionItemRow
+                                        transactionItem={transaction}
+                                        isSelected={!!transaction.isSelected}
+                                        dateColumnSize={dateColumnSize}
+                                        amountColumnSize={amountColumnSize}
+                                        taxAmountColumnSize={taxAmountColumnSize}
+                                        shouldShowTooltip={showTooltip}
+                                        shouldUseNarrowLayout={!isLargeScreenWidth}
+                                        shouldShowCheckbox={!!canSelectMultiple}
+                                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                        columns={columns}
+                                        onButtonPress={() => {
+                                            openReportInRHP(transaction);
+                                        }}
+                                        isParentHovered={hovered}
+                                        columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                        isReportItemChild
+                                        isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                    />
+                                </View>
+                            ))
+                        )}
+                    </Accordion>
+                    
                 </View>
             )}
         </BaseListItem>

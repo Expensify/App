@@ -35,6 +35,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: () => true,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -143,7 +144,8 @@ type SearchTableHeaderProps = {
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
-    canSelectMultiple: boolean;
+    canSelectMultiple?: boolean;
+    shouldShowExpand?: boolean;
 };
 
 function SearchTableHeader({
@@ -157,6 +159,7 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
+    shouldShowExpand,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -166,7 +169,7 @@ function SearchTableHeader({
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
             const shouldShowFun = shouldShowColumnConfig[columnName];
-            return shouldShowFun(data, metadata);
+            return shouldShowFun?.(data, metadata);
         },
         [data, metadata],
     );
@@ -175,11 +178,22 @@ function SearchTableHeader({
         return;
     }
 
-    const columnConfig = SearchColumns[metadata.type];
-
-    if (!columnConfig) {
+    if (!SearchColumns[metadata.type]) {
         return;
     }
+
+    const columnConfig = [
+        ...(SearchColumns[metadata.type] ?? []),
+        ...(shouldShowExpand
+            ? [
+                  {
+                      columnName: CONST.SEARCH.TABLE_COLUMNS.EXPAND,
+                      translationKey: undefined,
+                      isColumnSortable: false,
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <SortableTableHeader
