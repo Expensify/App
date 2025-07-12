@@ -318,6 +318,7 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        submitted: 'Submitted',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',

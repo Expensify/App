@@ -3,6 +3,7 @@ import {ActivityIndicator, FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
+import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -142,7 +143,8 @@ function MoneyRequestReportPreviewContent({
         [transactions, iouReportID, action],
     );
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
+        usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -307,7 +309,7 @@ function MoneyRequestReportPreviewContent({
     }, [translate, numberOfRequests]);
 
     useEffect(() => {
-        if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
+        if (!isPaidAnimationRunning || isApprovedAnimationRunning || isSubmittingAnimationRunning) {
             return;
         }
 
@@ -325,8 +327,10 @@ function MoneyRequestReportPreviewContent({
             return;
         }
 
-        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
-    }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
+        checkMarkScale.set(
+            isPaidAnimationRunning || isSubmittingAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1,
+        );
+    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, iouSettled, checkMarkScale]);
 
     useEffect(() => {
         if (!isApproved) {
@@ -451,14 +455,21 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    // MoneyRequestReportPreviewContent.tsx
+
     const reportPreviewAction = useMemo(() => {
-        // It's necessary to allow payment animation to finish before button is changed
+        // If the paid animation is running, show the settlement button to let its animation finish.
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
 
+        if (isSubmittingAnimationRunning) {
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
+        }
+
+        // If no animations are running, determine the correct action.
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy);
+    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
     const addExpenseDropdownOptions = useMemo(
         () => [
             {
@@ -496,10 +507,15 @@ function MoneyRequestReportPreviewContent({
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
-            <Button
+            <AnimatedSubmitButton
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('iou.submitAmount', {amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
-                onPress={() => submitReport(iouReport)}
+                onPress={() => {
+                    startSubmittingAnimation();
+                    submitReport(iouReport);
+                }}
+                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                onAnimationFinish={stopAnimation}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (

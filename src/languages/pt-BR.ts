@@ -327,6 +327,7 @@ const translations = {
         selectMultiple: 'Selecionar múltiplos',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        submitted: 'Enviado',
         rotate: 'Girar',
         zoom: 'Zoom',
         password: 'Senha',
