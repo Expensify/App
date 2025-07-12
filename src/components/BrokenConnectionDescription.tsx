@@ -39,7 +39,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         return translate('violations.brokenConnection530Error');
     }
 
-    if (isPolicyAdmin && !isCurrentUserSubmitter(report?.reportID)) {
+    if (isPolicyAdmin && !isCurrentUserSubmitter(report)) {
         return (
             <>
                 {`${translate('violations.adminBrokenConnectionError')}`}
