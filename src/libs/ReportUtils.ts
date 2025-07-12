@@ -372,6 +372,8 @@ type BuildOptimisticIOUReportActionParams = {
     isOwnPolicyExpenseChat?: boolean;
     created?: string;
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
+    payAsBusiness?: boolean;
+    bankAccountID?: number | undefined;
     isPersonalTrackingExpense?: boolean;
 };
 
@@ -1557,6 +1559,10 @@ function isTripRoom(report: OnyxEntry<Report>): boolean {
 
 function isIndividualInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+}
+
+function isBusinessInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
 }
 
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
@@ -4220,11 +4226,18 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
+        const isRequestIOU = isIOUReport(moneyRequestReport);
+        if (isRequestIOU) {
+            return false;
+        }
+        const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
+
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreported = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return isUnreported
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, allReports ?? {})).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, allReports ?? {})).length > 1;
+            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, allReports ?? {})).length > 1 ||
+                  isOwner;
     }
 
     return true;
@@ -4530,7 +4543,7 @@ function getReportPreviewMessage(
         }
     }
 
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
         const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
@@ -4568,7 +4581,9 @@ function getReportPreviewMessage(
         });
     }
 
-    let linkedTransaction: OnyxEntry<Transaction>;
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+    let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
@@ -4599,13 +4614,22 @@ function getReportPreviewMessage(
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
+
+            if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                translatePhraseKey = 'iou.businessBankAccount';
+            }
         }
 
         let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: true});
+
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
-        return translateLocal(translatePhraseKey, {amount: formattedReimbursableAmount, payer: payerDisplayName ?? ''});
+        return translateLocal(translatePhraseKey, {
+            amount: formattedReimbursableAmount,
+            payer: payerDisplayName ?? '',
+            last4Digits: reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '',
+        });
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -6140,9 +6164,22 @@ function getPolicyChangeMessage(action: ReportAction) {
  * @param currency - IOU currency
  * @param paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify)
  * @param isSettlingUp - Whether we are settling up an IOU
+ * @param bankAccountID - Bank account ID
+ * @param payAsBusiness - Whether the payment is made as a business
  */
-function getIOUReportActionMessage(iouReportID: string, type: string, total: number, comment: string, currency: string, paymentType = '', isSettlingUp = false): Message[] {
+function getIOUReportActionMessage(
+    iouReportID: string,
+    type: string,
+    total: number,
+    comment: string,
+    currency: string,
+    paymentType = '',
+    isSettlingUp = false,
+    bankAccountID?: number | undefined,
+    payAsBusiness = false,
+): Message[] {
     const report = getReportOrDraftReport(iouReportID);
+    const isInvoice = isInvoiceReport(report);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isEmptyObject(report)
             ? convertToDisplayString(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
@@ -6183,7 +6220,14 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `deleted the ${amount} expense${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            if (isInvoice && isSettlingUp) {
+                iouMessage =
+                    paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE
+                        ? translateLocal('iou.payElsewhere', {formattedAmount: amount})
+                        : translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount, last4Digits: String(bankAccountID).slice(-4)});
+            } else {
+                iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            }
             break;
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             iouMessage = translateLocal('iou.expenseAmount', {formattedAmount: amount});
@@ -6234,6 +6278,8 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         created = DateUtils.getDBTime(),
         linkedExpenseReportAction,
         isPersonalTrackingExpense = false,
+        payAsBusiness,
+        bankAccountID,
     } = params;
 
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
@@ -6245,6 +6291,8 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
+        payAsBusiness,
+        bankAccountID,
     };
 
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -6306,7 +6354,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             },
         ],
         avatar: getCurrentUserAvatar(),
-        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp, bankAccountID, payAsBusiness),
     };
 
     const managerMcTestParticipant = participants.find((participant) => isSelectedManagerMcTest(participant.login));
@@ -9152,13 +9200,15 @@ function getTaskAssigneeChatOnyxData(
 /**
  * Return iou report action display message
  */
-function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>): string {
+function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, report?: Report): string {
     if (!isMoneyRequestAction(reportAction)) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const {IOUReportID, automaticAction} = originalMessage ?? {};
+    const {IOUReportID, automaticAction, payAsBusiness} = originalMessage ?? {};
     const iouReport = getReportOrDraftReport(IOUReportID);
+    const isInvoice = isInvoiceReport(iouReport);
+
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
@@ -9167,13 +9217,19 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         const {amount, currency} = originalMessage?.IOUDetails ?? originalMessage ?? {};
         const formattedAmount = convertToDisplayString(Math.abs(amount), currency) ?? '';
 
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
                 translationKey = hasMissingInvoiceBankAccount(IOUReportID) ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhere';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
-                translationKey = 'iou.paidWithExpensify';
+                if (isInvoice) {
+                    return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount: formattedAmount, last4Digits});
+                }
+                translationKey = 'iou.businessBankAccount';
                 if (automaticAction) {
                     translationKey = 'iou.automaticallyPaidWithExpensify';
                 }
@@ -9182,7 +9238,8 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 translationKey = 'iou.payerPaidAmount';
                 break;
         }
-        return translateLocal(translationKey, {amount: formattedAmount, payer: ''});
+
+        return translateLocal(translationKey, {amount: formattedAmount, payer: '', last4Digits});
     }
 
     const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
@@ -11442,6 +11499,7 @@ export {
     generateReportName,
     navigateToLinkedReportAction,
     buildOptimisticUnreportedTransactionAction,
+    isBusinessInvoiceRoom,
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getReportFieldsByPolicyID,

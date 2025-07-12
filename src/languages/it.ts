@@ -35,6 +35,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -45,6 +46,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -277,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -676,6 +679,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Aggiungi allegati',
+        addReceipt: 'Aggiungi ricevuta',
         scanReceipts: 'Scansiona ricevute',
         replaceReceipt: 'Sostituisci ricevuta',
     },
@@ -1064,6 +1068,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta, poi conferma i dettagli tu stesso o lascia che SmartScan se ne occupi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Controlla più tardi o inserisci i dettagli ora.',
+        removeFromReport: 'Rimuovi dal rapporto',
+        moveToPersonalSpace: 'Sposta spese nello spazio personale',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? "Spese potenzialmente duplicate identificate. Rivedi i duplicati per consentire l'invio."
@@ -1124,10 +1130,21 @@ const translations = {
         individual: 'Individuale',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} con Expensify` : `Paga con Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come individuo` : `Paga come individuo`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come individuo` : `Paga con conto personale`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} con portafoglio` : `Paga con portafoglio`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Paga ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga come un'azienda`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} altrove` : `Paga altrove`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga con conto aziendale`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagato`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagato ${amount} con conto aziendale ${last4Digits}` : `Pagato con conto aziendale`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            amount ? `Pagato ${amount} con conto bancario ${last4Digits}` : `Pagato con conto bancario ${last4Digits}`,
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `pagato ${amount ? `${amount} ` : ''}con il conto bancario terminante con ${last4Digits} tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conto personale • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conto aziendale • ${lastFour}`,
         nextStep: 'Prossimi passi',
         finished: 'Finito',
         sendInvoice: ({amount}: RequestAmountParams) => `Invia fattura di ${amount}`,
@@ -1162,8 +1179,8 @@ const translations = {
             `annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha attivato il loro Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}pagato altrove`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagato con Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}segnato come pagato`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} ha pagato con Expensify tramite <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         noReimbursableExpenses: 'Questo rapporto ha un importo non valido',
@@ -1821,6 +1838,7 @@ const translations = {
         enableWallet: 'Abilita portafoglio',
         addBankAccountToSendAndReceive: "Ricevi il rimborso per le spese che invii a un'area di lavoro.",
         addBankAccount: 'Aggiungi conto bancario',
+        addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Queste sono carte assegnate da un amministratore del workspace per gestire le spese aziendali.',
         expensifyCard: 'Expensify Card',
@@ -2033,6 +2051,7 @@ const translations = {
         cardLastFour: 'Carta che termina con',
         addFirstPaymentMethod: "Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell'app.",
         defaultPaymentMethod: 'Predefinito',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conto bancario • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -6796,11 +6815,8 @@ const translations = {
                 title: 'Abbonamento annullato',
                 subtitle: 'Il tuo abbonamento annuale è stato annullato.',
                 info: 'Se vuoi continuare a utilizzare il tuo workspace su base pay-per-use, sei a posto.',
-                preventFutureActivity: {
-                    part1: 'Se desideri prevenire attività e addebiti futuri, devi',
-                    link: 'elimina il tuo/i tuoi spazio/i di lavoro',
-                    part2: '. Si noti che quando si eliminano i propri workspace, verrà addebitata qualsiasi attività in sospeso che è stata sostenuta durante il mese di calendario corrente.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Se desideri prevenire attività e addebiti futuri, devi <a href="${workspacesListRoute}">elimina il tuo/i tuoi spazio/i di lavoro</a>. Si noti che quando si eliminano i propri workspace, verrà addebitata qualsiasi attività in sospeso che è stata sostenuta durante il mese di calendario corrente.`,
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',
