@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {isViolationDismissed} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -12,8 +12,17 @@ function useTransactionViolations(transactionID?: string): TransactionViolations
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, {
         canBeMissing: true,
     });
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {
+        canBeMissing: true,
+    });
 
-    return useMemo(() => transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation)), [transaction, transactionViolations]);
+    return useMemo(
+        () => transactionViolations.filter((violation: TransactionViolation) => !isViolationDismissed(transaction, violation) && shouldShowViolation(iouReport, policy, violation.name)),
+        [transaction, transactionViolations, iouReport, policy],
+    );
 }
 
 export default useTransactionViolations;
