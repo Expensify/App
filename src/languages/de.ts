@@ -6971,66 +6971,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Loslegen',
-            part2: 'hier!',
-        },
-        saveSearchTooltip: {
-            part1: 'Benennen Sie Ihre gespeicherten Suchen um',
-            part2: 'hier!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Überprüfen Sie was',
-            part2: 'benötigt Ihre Aufmerksamkeit',
-            part3: 'und',
-            part4: 'über Ausgaben chatten.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chatten mit',
-            part2: 'Genehmiger',
-        },
-        globalCreateTooltip: {
-            part1: 'Ausgaben erstellen',
-            part2: ', beginnen Sie zu chatten,',
-            part3: 'und mehr.',
-            part4: 'Probieren Sie es aus!',
-        },
-        GBRRBRChat: {
-            part1: 'Du wirst 🟢 auf sehen',
-            part2: 'Maßnahmen ergreifen',
-            part3: ',\nund 🔴 auf',
-            part4: 'Elemente zur Überprüfung.',
-        },
-        accountSwitcher: {
-            part1: 'Zugriff auf Ihre',
-            part2: 'Copilot-Konten',
-            part3: 'hier',
-        },
-        expenseReportsFilter: {
-            part1: 'Willkommen! Finden Sie alle Ihre',
-            part2: 'Berichte des Unternehmens',
-            part3: 'here.',
-        },
+        conciergeLHNGBR: '<tooltip>Loslegen <strong>hier!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Benennen Sie Ihre gespeicherten Suchen um</strong> hier!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Ausgaben erstellen</strong>, beginnen Sie zu chatten, und mehr. Probieren Sie es aus!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Überprüfen Sie was <strong>benötigt Ihre Aufmerksamkeit</strong> und <strong>über Ausgaben chatten.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chatten mit <strong>Genehmigern</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong>, und 🔴 auf <strong>Elemente zur Überprüfung.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Zugriff auf Ihre <strong>Copilot-Konten</strong> hier</tooltip>',
+        expenseReportsFilter: '<tooltip>Willkommen! Finden Sie alle Ihre <strong>Berichte des Unternehmens</strong> hier.</tooltip>',
         scanTestTooltip: {
-            part1: 'Möchten Sie sehen, wie Scan funktioniert?',
-            part2: 'Probieren Sie einen Testbeleg aus!',
-            part3: 'Wählen Sie unsere',
-            part4: 'Testmanager',
-            part5: 'um es auszuprobieren!',
-            part6: 'Jetzt,',
-            part7: 'Reichen Sie Ihre Ausgaben ein',
-            part8: 'und sieh zu, wie die Magie geschieht!',
+            main: '<tooltip><strong>Möchten Sie sehen, wie Scan funktioniert?</strong> Probieren Sie einen Testbeleg aus!</tooltip>',
+            manager: '<tooltip>Wählen Sie unsere <strong>Testmanager</strong>, um es auszuprobieren!</tooltip>',
+            confirmation: '<tooltip>Jetzt, <strong>Reichen Sie Ihre Ausgaben ein</strong> und sieh zu, wie die Magie geschieht!</tooltip>',
             tryItOut: 'Probieren Sie es aus',
             noThanks: 'Nein danke',
         },
-        outstandingFilter: {
-            part1: 'Filter für Ausgaben, die',
-            part2: 'Genehmigung erforderlich',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Diesen Beleg senden an',
-            part2: 'Beenden Sie die Probefahrt!',
-        },
+        outstandingFilter: '<tooltip>Filter für Ausgaben, die <strong>Genehmigung erforderlich</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Diesen Beleg senden an <strong>Beenden Sie die Probefahrt!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',
