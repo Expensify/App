@@ -36,7 +36,7 @@ jest.mock('@react-native-community/geolocation', () => ({
 }));
 
 const ACTOR_ACCOUNT_ID = 20258746;
-const actorEmail = 'asfsfdafd+fsfd@fdsadf.com';
+const actorEmail = 'test@test.com';
 
 const createAutomaticAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
     ({
