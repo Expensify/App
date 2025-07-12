@@ -129,6 +129,8 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         status: 'all',
         flatFilters: [],
     })),
+    buildQueryStringFromFilterFormValues: jest.fn(),
+    buildSearchQueryJSON: jest.fn(),
 }));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
