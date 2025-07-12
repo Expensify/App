@@ -34,7 +34,7 @@ function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const contactMethod = getContactMethod();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     useEffect(() => {
@@ -116,11 +116,11 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-            </ScrollView>
-            <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <View style={[styles.mh5, styles.mb4]}>
                     <TwoFactorAuthForm innerRef={formRef} />
                 </View>
+            </ScrollView>
+            <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
                     success
                     large

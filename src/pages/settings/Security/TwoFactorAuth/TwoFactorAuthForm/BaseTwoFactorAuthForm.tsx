@@ -116,6 +116,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
             autoFocus={false}
+            shouldHandleScrollOnVirtualViewPort
         />
     );
 }
