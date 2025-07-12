@@ -28,6 +28,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
     submit: 'common.submit',
     approve: 'iou.approve',
     pay: 'iou.pay',
+    exportToAccounting: 'common.export',
     done: 'common.done',
     paid: 'iou.settledExpensify',
 };

@@ -397,4 +397,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, getAllExpensesToHoldIfApplicable};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, getAllExpensesToHoldIfApplicable};
