@@ -1,5 +1,4 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 
 type PDFViewBaseProps = {
     /** URL to full-sized image */
@@ -33,21 +32,10 @@ type PDFViewBaseProps = {
     isUsedAsChatAttachment?: boolean;
 };
 
-type PDFViewOnyxProps = {
-    // Maximum canvas area to render the PDF preview
-    maxCanvasArea: OnyxEntry<number>;
-
-    // Maximum canvas height to render the PDF preview
-    maxCanvasHeight: OnyxEntry<number>;
-
-    // Maximum canvas width to render the PDF preview
-    maxCanvasWidth: OnyxEntry<number>;
-};
-
-type PDFViewProps = PDFViewBaseProps & PDFViewOnyxProps;
+type PDFViewProps = PDFViewBaseProps;
 
 type PDFViewNativeProps = PDFViewBaseProps & {
     onPress?: (page: number, x: number, y: number) => void;
 };
 
-export type {PDFViewNativeProps, PDFViewProps, PDFViewOnyxProps};
+export type {PDFViewNativeProps, PDFViewProps};
