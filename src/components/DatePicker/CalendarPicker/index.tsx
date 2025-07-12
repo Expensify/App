@@ -77,7 +77,7 @@ function CalendarPicker({
     const maxYear = getYear(new Date(maxDate));
 
     const [years, setYears] = useState<CalendarPickerListItem[]>(() =>
-        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
+        Array.from({length: maxYear - minYear + 1}, (v, i) => maxYear - i).map((year) => ({
             text: year.toString(),
             value: year,
             keyForList: year.toString(),
