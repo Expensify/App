@@ -130,11 +130,17 @@ function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, 
  * it returns an empty array. It identifies the latest error in each action and filters out duplicates to
  * ensure only unique error messages are returned.
  */
-function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions) {
+function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions, transaction: OnyxTypes.Transaction | undefined) {
     const reportErrors = Object.values(reportActions).map((reportAction) => {
         const errors = reportAction.errors ?? {};
         const key = Object.keys(errors).sort().reverse().at(0) ?? '';
         const error = errors[key];
+        if (isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID) {
+            if (getOriginalMessage(reportAction)?.IOUTransactionID === transaction?.transactionID) {
+                return typeof error === 'string' ? error : '';
+            }
+            return '';
+        }
         return typeof error === 'string' ? error : '';
     });
 
@@ -175,7 +181,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy(iouReport);
-    const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
+    const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID, transaction);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
 
@@ -207,7 +213,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (RBRMessage === undefined && hasActionWithErrors && !!reportActions) {
-        const actionsWithErrors = getUniqueActionErrors(reportActions);
+        const actionsWithErrors = getUniqueActionErrors(reportActions, transaction);
         RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
     }
 
@@ -330,7 +336,7 @@ function createTransactionPreviewConditionals({
         hasWarningTypeViolation(transaction, violations, true) ||
         hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
+    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID, transaction);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
