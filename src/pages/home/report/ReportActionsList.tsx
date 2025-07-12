@@ -174,6 +174,7 @@ function ReportActionsList({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+    const [actionIdHighlightedTemporary, setActionIdHighlightedTemporary] = useState('');
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -410,7 +411,7 @@ function ReportActionsList({
     }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean) => {
+        (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -427,13 +428,38 @@ function ReportActionsList({
                     });
                     return;
                 }
+                const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
 
-                reportScrollManager.scrollToBottom();
+                if (!!action?.reportActionID) {
+                    setActionIdHighlightedTemporary(action?.reportActionID);
+                }
+
+                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && index > 0) {
+                    setTimeout(() => {
+                        reportScrollManager.scrollToIndex(index);
+                    }, 100);
+                } else {
+                    reportScrollManager.scrollToBottom();
+                }
+
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions, reportScrollManager],
     );
+
+    // Clear highlight report action after scroll and highlight
+    useEffect(() => {
+        if (actionIdHighlightedTemporary === '') {
+            return;
+        }
+        // Time highlight is the same as SearchPage
+        const timer = setTimeout(() => {
+            setActionIdHighlightedTemporary('');
+        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+        return () => clearTimeout(timer);
+    }, [actionIdHighlightedTemporary]);
+
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -601,6 +627,7 @@ function ReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     transactions={Object.values(transactions ?? {})}
+                    shouldBeHighlightedTemporary={actionIdHighlightedTemporary === reportAction.reportActionID}
                 />
             );
         },
@@ -620,6 +647,7 @@ function ReportActionsList({
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            actionIdHighlightedTemporary,
         ],
     );
 
