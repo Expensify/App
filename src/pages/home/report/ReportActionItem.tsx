@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useBlockedFromConcierge} from '@components/OnyxProvider';
+import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';

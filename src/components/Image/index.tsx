@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
 import CONST from '@src/CONST';
