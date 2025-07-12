@@ -4,6 +4,8 @@ import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEng
 import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+// eslint-disable-next-line no-restricted-imports
+import themeColors from '@styles/theme/themes/dark';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
@@ -58,6 +60,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            mtm: HTMLElementModel.fromCustomModel({
+                tagName: 'mtm',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.mutedNormalTextLabel, ...styles.mb0};
+                    }
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, color: themeColors.textSupporting};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-link': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-link',
                 mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
@@ -78,7 +90,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
                         if (tnode.attributes.center === undefined) {
-                            return {whiteSpace: 'pre'};
+                            return {whiteSpace: 'pre', color: themeColors.link};
                         }
                         return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
@@ -180,7 +192,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing={false}
+            enableCSSInlineProcessing
             systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,

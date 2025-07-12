@@ -112,6 +112,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -196,6 +197,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2096,12 +2098,10 @@ const translations = {
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
-        phrase1: 'By logging in, you agree to the',
-        phrase2: 'Terms of Service',
-        phrase3: 'and',
-        phrase4: 'Privacy',
-        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
-        phrase6: 'licenses',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<comment><mtm issmall>By logging in, you agree to the <a href="${termsURL}" style="color: #5ab0ff; text-decoration-line: none;">Terms of Service</a> and <a href="${privacyURL}" style="color: #5ab0ff; text-decoration-line: none;">Privacy</a>.</mtm></comment>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<comment><mtm issmall>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${licensesURL}" style="color: #5ab0ff; text-decoration-line: none;">licenses</a>.</mtm></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
