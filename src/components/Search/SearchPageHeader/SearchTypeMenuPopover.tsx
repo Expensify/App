@@ -39,6 +39,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     shouldUseModalPaddingStyle={false}
                     innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
                     shouldAvoidSafariException
+                    scrollContainerStyle={styles.pv0}
                 />
             )}
             <DeleteConfirmModal />
