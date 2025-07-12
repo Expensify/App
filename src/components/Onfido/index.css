@@ -1,4 +1,8 @@
 /* These style overrides are necessary so that the Onfido modal looks nice */
+:root {
+    --ods-color-border-separator: transparent;
+}
+
 .onfido-sdk-ui-Modal-inner {
     border-style: none !important;
     width: 100% !important;
