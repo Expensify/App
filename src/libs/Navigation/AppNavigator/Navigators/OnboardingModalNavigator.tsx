@@ -30,6 +30,7 @@ import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
@@ -38,7 +39,7 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
@@ -80,7 +81,7 @@ function OnboardingModalNavigator() {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
     // If the account data is not loaded yet, we don't want to show the onboarding modal
-    if (isOnPrivateDomainAndHasAccessiblePolicies === undefined) {
+    if (isLoadingOnyxValue(accountMetadata)) {
         return null;
     }
 
