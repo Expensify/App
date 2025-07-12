@@ -101,7 +101,7 @@ describe('PureReportActionItem', () => {
     }
 
     describe('Automatic actions', () => {
-        it(' an automatic APPROVED action', async () => {
+        it('An automatic APPROVED action', async () => {
             const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
