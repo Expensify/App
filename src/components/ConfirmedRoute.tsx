@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -10,7 +10,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
@@ -19,12 +19,7 @@ import ImageSVG from './ImageSVG';
 import type {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
 
-type ConfirmedRoutePropsOnyxProps = {
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
-};
-
-type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
+type ConfirmedRouteProps = {
     /** Transaction that stores the distance expense data */
     transaction: OnyxEntry<Transaction>;
 
@@ -42,7 +37,7 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     interactive?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
+function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -50,6 +45,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
     const getMarkerComponent = useCallback(
         (icon: IconAsset): ReactNode => (
@@ -128,10 +125,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     );
 }
 
-export default withOnyx<ConfirmedRouteProps, ConfirmedRoutePropsOnyxProps>({
-    mapboxAccessToken: {
-        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    },
-})(ConfirmedRoute);
-
 ConfirmedRoute.displayName = 'ConfirmedRoute';
+
+export default ConfirmedRoute;
