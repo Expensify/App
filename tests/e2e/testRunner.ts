@@ -250,7 +250,6 @@ const runTests = async (): Promise<void> => {
 
             // assume that "includes" is a regexp
             if (!test?.name?.match(includes)) {
-                // eslint-disable-next-line no-continue
                 continue;
             }
         }

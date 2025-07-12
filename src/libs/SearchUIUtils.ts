@@ -877,7 +877,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     isWhisperActionTargetedToOthers(reportAction) ||
                     (isMoneyRequestAction(reportAction) && !!report?.isWaitingOnBankAccount && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney)
                 ) {
-                    // eslint-disable-next-line no-continue
                     continue;
                 }
 
