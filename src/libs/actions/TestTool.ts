@@ -1,9 +1,23 @@
 import throttle from 'lodash/throttle';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {close} from './Modal';
+
+/**
+ * Get the backTo parameter from the current test tools modal route
+ */
+function getBackToParam(): Route | undefined {
+    const route = navigationRef.current?.getCurrentRoute();
+    if (route?.name === SCREENS.TEST_TOOLS_MODAL.ROOT && route.params) {
+        return (route.params as {backTo?: Route}).backTo;
+    }
+    return undefined;
+}
 
 /**
  * Toggle the test tools modal open or closed.
@@ -11,13 +25,19 @@ import {close} from './Modal';
  */
 const throttledToggle = throttle(
     () => {
-        const currentRoute = Navigation.getActiveRoute().replace(/^\//, '');
-        if (currentRoute === ROUTES.TEST_TOOLS_MODAL) {
-            Navigation.goBack();
+        const currentRoute = Navigation.getActiveRoute();
+        const backTo = getBackToParam();
+
+        if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.goBack();
+            }
             return;
         }
         const openTestToolsModal = () => {
-            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
+            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(Navigation.getActiveRoute())), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
         // Dismiss any current modal before showing test tools modal
         // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state

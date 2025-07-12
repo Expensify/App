@@ -36,7 +36,7 @@ const fontFamily: FontFamilyStyles = {
     },
 
     EXP_NEUE: {
-        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
@@ -65,6 +65,9 @@ const fontFamily: FontFamilyStyles = {
         fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
+    },
+    CUSTOM_EMOJI_FONT: {
+        fontFamily: 'Custom Emoji Font',
     },
 };
 
