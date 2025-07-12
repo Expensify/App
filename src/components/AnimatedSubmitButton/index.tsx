@@ -9,16 +9,26 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type AnimatedSubmitButtonProps = {
+    // Whether to show the success state
     success: boolean | undefined;
+
+    // Text to show on the button
     text: string;
+
+    // Function to call when the button is pressed
     onPress: () => void;
+
+    // Whether the animation is running
     isSubmittingAnimationRunning: boolean;
+
+    // Function to call when the animation finishes
     onAnimationFinish: () => void;
+
+    // Whether to add top margin to the button
     shouldAddTopMargin?: boolean;
-    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, shouldAddTopMargin = false, wrapperStyle}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, shouldAddTopMargin = false}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
@@ -105,7 +115,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     const showLoading = isShowingLoading || (!viewRef.current && isAnimationRunning);
 
     return (
-        <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
+        <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
                     ref={(el) => {
