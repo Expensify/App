@@ -111,19 +111,17 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     const setContentSize = useCallback(
         (newDimensions: ContentSize | undefined) => {
             setInternalContentSize(newDimensions);
-            cachedImageDimensions.set(uri, newDimensions);
+            if (newDimensions !== undefined) {
+                cachedImageDimensions.set(uri, newDimensions);
+            }
         },
         [uri],
     );
     const updateContentSize = useCallback(
         ({nativeEvent: {width, height}}: ImageOnLoadEvent) => {
-            if (contentSize !== undefined) {
-                return;
-            }
-
             setContentSize({width, height});
         },
-        [contentSize, setContentSize],
+        [setContentSize],
     );
 
     // Enables/disables the lightbox based on the number of concurrent lightboxes
@@ -172,8 +170,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             return;
         }
         setLightboxImageLoaded(false);
-        setContentSize(undefined);
-    }, [isLightboxVisible, setContentSize]);
+        setInternalContentSize(cachedImageDimensions.get(uri));
+    }, [isLightboxVisible, uri]);
 
     // Enables and disables the fallback image when the carousel item is active or not
     useEffect(() => {
@@ -194,6 +192,13 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             setFallbackVisible(true);
         }
     }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
+
+    // Clear cache when component unmounts
+    useEffect(() => {
+        return () => {
+            cachedImageDimensions.delete(uri);
+        };
+    }, [uri]);
 
     const scaleChange = useCallback(
         (scale: number) => {
