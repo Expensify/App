@@ -186,6 +186,9 @@ type CustomBaseTextInputProps = {
 
     /** Whether the input should be enforced to take full height of container. Default is `false` */
     shouldUseFullInputHeight?: boolean;
+
+    /** Whether the input prefix should use the default text line height */
+    shouldPrefixUseDefaultLineHeight?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
