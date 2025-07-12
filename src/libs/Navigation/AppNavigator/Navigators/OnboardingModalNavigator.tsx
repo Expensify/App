@@ -8,7 +8,9 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -30,16 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
-const defaultScreenOptions: PlatformStackNavigationOptions = {
-    headerShown: false,
-    web: {
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        cardStyle: {
-            height: '100%',
-        },
-    },
-};
-
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
@@ -50,6 +42,7 @@ function OnboardingModalNavigator() {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
+    const customScreenOptions = useCustomScreenOptions();
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
 
@@ -90,6 +83,16 @@ function OnboardingModalNavigator() {
     if (isOnPrivateDomainAndHasAccessiblePolicies === undefined) {
         return null;
     }
+
+    const defaultScreenOptions: PlatformStackNavigationOptions = {
+        headerShown: false,
+        web: {
+            ...(isMobileSafari() ? customScreenOptions.web : {cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}),
+            cardStyle: {
+                height: '100%',
+            },
+        },
+    };
 
     return (
         <NoDropZone>
