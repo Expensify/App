@@ -11,7 +11,7 @@ index b63bcfc..bd6419e 100644
      buildPanResponder: () => void;
      getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 80f4e75..46277ea 100644
+index 80f4e75..5c9d275 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
 @@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
@@ -59,17 +59,7 @@ index 80f4e75..46277ea 100644
          if (this.didUpdateDimensionsEmitter) {
              this.didUpdateDimensionsEmitter.remove();
          }
-@@ -464,6 +481,9 @@ export class ReactNativeModal extends React.Component {
-             InteractionManager.clearInteractionHandle(this.interactionHandle);
-             this.interactionHandle = null;
-         }
-+        if (this.state.isVisible) {
-+            this.props.onModalHide();
-+        }
-     }
-     componentDidUpdate(prevProps) {
-         // If the animations have been changed then rebuild them to make sure we're
-@@ -490,7 +510,7 @@ export class ReactNativeModal extends React.Component {
+@@ -490,7 +507,7 @@ export class ReactNativeModal extends React.Component {
      }
      render() {
          /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -78,7 +68,7 @@ index 80f4e75..46277ea 100644
          const { testID, ...containerProps } = otherProps;
          const computedStyle = [
              { margin: this.getDeviceWidth() * 0.05, transform: [{ translateY: 0 }] },
-@@ -523,9 +543,9 @@ export class ReactNativeModal extends React.Component {
+@@ -523,9 +540,9 @@ export class ReactNativeModal extends React.Component {
                  this.makeBackdrop(),
                  containerView));
          }
