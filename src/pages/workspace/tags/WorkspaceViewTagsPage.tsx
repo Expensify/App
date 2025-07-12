@@ -73,7 +73,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const currentPolicyTag = policyTags?.[currentTagListName];
@@ -93,8 +93,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (hasDependentTags) {
             return false;
         }
-        return isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    }, [hasDependentTags, isSmallScreenWidth, isMobileSelectionModeEnabled]);
+        return isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    }, [hasDependentTags, isSmallScreenWidth, selectionMode]);
 
     useEffect(() => {
         if (isFocused) {
@@ -234,7 +234,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         ) : undefined;
 
     const getHeaderButtons = () => {
-        if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !isMobileSelectionModeEnabled)) {
+        if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
             return null;
         }
 
@@ -327,7 +327,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
     return (
         <AccessOrNotFoundWrapper
@@ -343,7 +343,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
                     onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
+                        if (selectionMode?.isEnabled) {
                             setSelectedTags([]);
                             turnOffMobileSelectionMode();
                             return;

@@ -41,7 +41,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
@@ -60,7 +60,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         selectionRef.current = selectedItems.length;
 
         if (!isSmallScreenWidth) {
-            if (selectedItems.length === 0 && isMobileSelectionModeEnabled) {
+            if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
             }
             return;
@@ -71,13 +71,13 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!wasSelectionOnRef.current && selectedItems.length > 0) {
             wasSelectionOnRef.current = true;
         }
-        if (selectedItems.length > 0 && !isMobileSelectionModeEnabled) {
+        if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
-        } else if (selectedItems.length === 0 && isMobileSelectionModeEnabled && !wasSelectionOnRef.current) {
+        } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, selectedItemsProp, isMobileSelectionModeEnabled, isSmallScreenWidth, isSelected, isFocused]);
+    }, [sections, selectedItemsProp, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {
@@ -94,7 +94,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
             rest?.onCheckboxPress?.(item);
             return;
         }
