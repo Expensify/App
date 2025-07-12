@@ -9,9 +9,10 @@ import type {ListItem} from '@components/SelectionList/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import {getSourceTransaction, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -33,13 +34,24 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
 
     useEffect(() => {
-        getTransactionsForMerging(transactionID);
-    }, [transactionID]);
+        // If the transactions are already loaded, don't fetch them again
+        if (Array.isArray(mergeTransaction?.eligibleTransactions)) {
+            return;
+        }
+
+        if (isOffline) {
+            getTransactionsForMergingLocally(transactionID, transactions);
+        } else {
+            getTransactionsForMerging(transactionID);
+        }
+    }, [transactionID, transactions, isOffline, mergeTransaction]);
 
     const sections = useMemo(() => {
         return [
