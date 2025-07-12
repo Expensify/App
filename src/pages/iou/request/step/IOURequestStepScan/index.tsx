@@ -61,6 +61,7 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
+    setMultipleMoneyRequestParticipantsFromReport,
     startSplitBill,
     trackExpense,
     updateLastLocationPermissionPrompt,
@@ -499,9 +500,8 @@ function IOURequestStepScan({
                     createTransaction(files, participant);
                     return;
                 }
-
-                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report));
-                Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage());
+                const transactionIDs = files.map((receiptFile) => receiptFile.transactionID);
+                setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report).then(() => navigateToConfirmationPage());
                 return;
             }
 
