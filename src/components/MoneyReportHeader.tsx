@@ -16,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -808,7 +808,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setMergeTransactionKey(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
+                setupMergeTransactionData(currentTransaction.transactionID);
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getReportRHPActiveRoute()));
             },
         },

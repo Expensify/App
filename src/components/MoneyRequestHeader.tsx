@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
-import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -236,8 +236,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 if (!transaction) {
                     return;
                 }
-                // Set the expense's transactionID in `t` of `MERGE_TRANSACTION{transactionID}` Onyx key
-                setMergeTransactionKey(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+
+                setupMergeTransactionData(transaction.transactionID);
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getReportRHPActiveRoute()));
             },
         },

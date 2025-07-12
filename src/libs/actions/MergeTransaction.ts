@@ -7,6 +7,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 
 /**
+ * Setup merge transaction data for merging flow
+ */
+function setupMergeTransactionData(transactionID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
+}
+
+/**
  * Sets merge transaction data for a specific transaction
  */
 function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
@@ -47,4 +54,4 @@ function getTransactionsForMergingLocally(transactionID: string, transactions: O
     });
 }
 
-export {setMergeTransactionKey, getTransactionsForMerging, getTransactionsForMergingLocally};
+export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, getTransactionsForMergingLocally};
