@@ -312,6 +312,7 @@ const translations = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        submitted: 'Enviado',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
