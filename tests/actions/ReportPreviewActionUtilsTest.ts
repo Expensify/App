@@ -68,7 +68,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(VIOLATIONS, report, undefined, [])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
+        expect(getReportPreviewAction(VIOLATIONS, false, report, undefined, [])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
     });
 
     it('canSubmit should return true for expense preview report with manual submit', async () => {
@@ -94,7 +94,7 @@ describe('getReportPreviewAction', () => {
 
         // Simulate how components use a hook to pass the isReportArchived parameter
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     it('canSubmit should return false for expense preview report with only pending transactions', async () => {
@@ -124,7 +124,7 @@ describe('getReportPreviewAction', () => {
 
         // Simulate how components use a hook to pass the isReportArchived parameter
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     describe('canApprove', () => {
@@ -151,7 +151,7 @@ describe('getReportPreviewAction', () => {
             } as unknown as Transaction;
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-            expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+            expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
 
         it('should return false for report with scanning expenses', async () => {
@@ -179,7 +179,7 @@ describe('getReportPreviewAction', () => {
                 },
             } as unknown as Transaction;
 
-            expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], false)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+            expect(getReportPreviewAction(VIOLATIONS, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
 
         it('should return false for report with pending expenses', async () => {
@@ -208,7 +208,7 @@ describe('getReportPreviewAction', () => {
                 date: '2025-01-01',
             } as unknown as Transaction;
 
-            expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], false)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+            expect(getReportPreviewAction(VIOLATIONS, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
     });
 
@@ -235,7 +235,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
 
     it('canPay should return true for expense report with payments enabled', async () => {
@@ -259,7 +259,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return true for submitted invoice', async () => {
@@ -287,7 +287,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('getReportPreviewAction should return VIEW action for zero value invoice', async () => {
@@ -332,7 +332,7 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.parentReportID));
 
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canPay should return false for archived invoice', async () => {
@@ -364,7 +364,7 @@ describe('getReportPreviewAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('getReportPreviewAction should return VIEW action for invoice when the chat report is archived', async () => {
@@ -392,7 +392,7 @@ describe('getReportPreviewAction', () => {
         const {result: isChatReportArchived} = renderHook(() => useReportIsArchived(report?.chatReportID));
 
         // Then the getReportPreviewAction should return the View action
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isChatReportArchived.current, undefined)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isChatReportArchived.current, report, policy, [transaction], undefined)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canExport should return true for finished reports', async () => {
@@ -414,7 +414,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
@@ -448,7 +448,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
@@ -485,7 +485,7 @@ describe('getReportPreviewAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        expect(getReportPreviewAction(VIOLATIONS, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 
     it('canView should return true for reports in which we are waiting for user to add a bank account', async () => {
@@ -507,6 +507,6 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 });
