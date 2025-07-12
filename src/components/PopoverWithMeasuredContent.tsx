@@ -1,5 +1,5 @@
 import {circularDeepEqual, deepEqual} from 'fast-equals';
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
@@ -84,11 +84,18 @@ function PopoverWithMeasuredContent({
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
+    useEffect(() => {
+        if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
+            return;
+        }
         ComposerFocusManager.saveFocusState(modalId);
-    }
+    }, [isVisible, shouldEnableNewFocusManagement, prevIsVisible, modalId]);
 
-    if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
+    useEffect(() => {
+        if (prevIsVisible || !isVisible || !isContentMeasured || shouldSkipRemeasurement) {
+            return;
+        }
+
         // Check if anything significant changed that would require re-measurement
         const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
         const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
@@ -98,10 +105,24 @@ function PopoverWithMeasuredContent({
         // 1. We don't have static dimensions, OR
         // 2. The anchor position changed significantly, OR
         // 3. The window size changed significantly
-        if (!hasStaticDimensions || hasAnchorPositionChanged || hasWindowSizeChanged) {
-            setIsContentMeasured(false);
+        if (hasStaticDimensions && !hasAnchorPositionChanged && !hasWindowSizeChanged) {
+            return;
         }
-    }
+
+        setIsContentMeasured(false);
+    }, [
+        prevIsVisible,
+        isVisible,
+        isContentMeasured,
+        shouldSkipRemeasurement,
+        prevAnchorPosition,
+        anchorPosition,
+        prevWindowDimensions,
+        windowWidth,
+        windowHeight,
+        popoverDimensions.width,
+        popoverDimensions.height,
+    ]);
 
     /**
      * Measure the size of the popover's content.
