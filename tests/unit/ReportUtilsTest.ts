@@ -727,6 +727,102 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('Automatically approved report message via automatic (not by a human) action is', () => {
+        test('shown when the report is forwarded (Control feature)', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+            );
+        });
+
+        test('shown when the report is approved', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+            );
+        });
+    });
+
+    describe('Automatically approved report message via harvesting (delayed submit) is', () => {
+        test('shown when report is submitted and status is submitted', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
+            );
+        });
+
+        test('shown when report is submitted and status is closed', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
+            );
+        });
+    });
+
     describe('requiresAttentionFromCurrentUser', () => {
         afterEach(async () => {
             await Onyx.clear();
