@@ -68,6 +68,29 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toContain('iou.expenseWasPutOnHold');
         });
 
+        it('returns correct receipt error message when the transaction has receipt error', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        error1: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'source.com',
+                            filename: 'file_name.png',
+                            action: 'replaceReceipt',
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                        },
+                    },
+                },
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.RBRMessage.translationPath).toContain('iou.error.receiptFailureMessageShort');
+        });
+
         it('should handle missing iouReport and transaction correctly', () => {
             const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -204,6 +227,27 @@ describe('TransactionPreviewUtils', () => {
                 ...basicProps,
                 violations: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, transactionID: 123, showInReview: true}],
             };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeTruthy();
+        });
+
+        it('should determine RBR visibility according to whether there is a receipt error', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        error1: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'source.com',
+                            filename: 'file_name.png',
+                            action: 'replaceReceipt',
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                        },
+                    },
+                },
+            };
+
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeTruthy();
         });
