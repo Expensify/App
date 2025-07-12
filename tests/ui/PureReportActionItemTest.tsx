@@ -113,7 +113,7 @@ describe('PureReportActionItem', () => {
     }
 
     describe('Automatic actions', () => {
-        it('displays a generic message for an automatic APPROVED action', async () => {
+        it(' an automatic APPROVED action', async () => {
             const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
@@ -122,7 +122,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.automaticallyApproved'))).toBeOnTheScreen();
         });
 
-        it('displays a generic message for an automatic FORWARDED action', async () => {
+        it('Automatic FORWARDED action', async () => {
             const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
@@ -131,7 +131,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.automaticallyForwarded'))).toBeOnTheScreen();
         });
 
-        it('displays a generic message for a SUBMITTED action via harvesting', async () => {
+        it('SUBMITTED action via harvesting', async () => {
             const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
@@ -140,7 +140,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
         });
 
-        it('displays a generic message for a SUBMITTED_AND_CLOSED action via harvesting', async () => {
+        it('SUBMITTED_AND_CLOSED action via harvesting', async () => {
             const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
