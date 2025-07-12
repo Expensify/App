@@ -1019,10 +1019,13 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
 function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], groupBy?: SearchGroupBy) {
-    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+
+    if (isChat) {
         return getReportActionsSections(data);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
+    if (isTask) {
         return getTaskSections(data);
     }
 
