@@ -499,7 +499,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
             },
         ],
-        ...(!hasSeenTour
+        ...(!hasSeenTour && shouldShowNewWorkspaceButton
             ? [
                   {
                       icon: Expensicons.Binoculars,
