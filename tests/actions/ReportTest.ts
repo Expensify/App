@@ -1754,4 +1754,14 @@ describe('actions/Report', () => {
             expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
     });
+
+    describe('searchInServer', () => {
+        it('should return the same result with or without uppercase input.', () => {
+            Report.searchInServer('test');
+            Report.searchInServer('TEST');
+            const upperCaseRequest = PersistedRequests.getAll().at(0);
+            const lowerCaseRequest = PersistedRequests.getAll().at(1);
+            expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
+        });
+    });
 });
