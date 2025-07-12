@@ -3501,6 +3501,7 @@ const translations = {
             defaultCategory: 'Domyślna kategoria',
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki ${displayName}`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: 'Nie możesz usunąć przestrzeni roboczej do końca rocznego okresu subskrypcji.',
         },
         perDiem: {
             subtitle: 'Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników.',

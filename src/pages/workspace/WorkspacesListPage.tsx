@@ -1,5 +1,5 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -28,6 +28,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,7 +44,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getPolicy, getPolicyBrickRoadIndicatorStatus, isDeleteWorkspaceAnnualSubscriptionError, isPolicyAdmin, shouldShowPolicy, wasPolicyLastModifiedWhileOffline} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -108,7 +109,7 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
@@ -122,8 +123,12 @@ function WorkspacesListPage() {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen, setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen] = useState(false);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const isFocused = useIsFocused();
+    const {lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -153,6 +158,9 @@ function WorkspacesListPage() {
     const hideSupportalModal = () => {
         setIsSupportalActionRestrictedModalOpen(false);
     };
+    const hideDeleteWorkspaceAnnualSubscriptionErrorModal = () => {
+        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(false);
+    };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -167,6 +175,22 @@ function WorkspacesListPage() {
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
     }, []);
+
+    useEffect(() => {
+        if (!isFocused || isDeleteWorkspaceAnnualSubscriptionErrorModalOpen) {
+            return;
+        }
+
+        const policyIDWithError = Object.values(policies ?? {}).find(isDeleteWorkspaceAnnualSubscriptionError)?.id;
+        if (
+            !policyIDWithError ||
+            wasPolicyLastModifiedWhileOffline(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDWithError}`], isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale)
+        ) {
+            return;
+        }
+        clearDeleteWorkspaceError(policyIDWithError);
+        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
+    }, [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen, policies, isFocused, isOffline, lastOfflineAt, lastOnlineAt, preferredLocale]);
 
     /**
      * Gets the menu item for each workspace
@@ -500,6 +524,16 @@ function WorkspacesListPage() {
             <SupportalActionRestrictedModal
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
+            />
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={!!isDeleteWorkspaceAnnualSubscriptionErrorModalOpen}
+                onConfirm={hideDeleteWorkspaceAnnualSubscriptionErrorModal}
+                onCancel={hideDeleteWorkspaceAnnualSubscriptionErrorModal}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('workspace.common.cannotDeleteWorkspaceAnnualSubscriptionError')}
+                shouldShowCancelButton={false}
+                success={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>

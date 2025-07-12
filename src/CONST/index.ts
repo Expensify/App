@@ -1624,6 +1624,7 @@ const CONST = {
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
+        CANNOT_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION: "You can't delete the workspace until the end of the annual subscription term.",
     },
     NETWORK: {
         METHOD: {
