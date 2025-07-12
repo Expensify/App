@@ -99,6 +99,19 @@ target 'NewExpensify' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'FirebaseCrashlytics'
+  pod 'FirebaseRemoteConfig'
+  pod 'FirebaseSessions'
+
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseABTesting', :modular_headers => true
+  pod 'FirebaseCoreExtension', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
+
   post_install do |installer|
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
