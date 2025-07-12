@@ -787,6 +787,11 @@ function MoneyReportHeader({
                     throw new Error('Parent action does not exist');
                 }
 
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
