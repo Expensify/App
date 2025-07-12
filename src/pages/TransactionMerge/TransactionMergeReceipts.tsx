@@ -1,12 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
+import {Zoom} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 type TransactionMergeReceiptsProps = {
@@ -42,7 +46,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                     accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
                                 />
                             </View>
-                            <View style={[styles.mergeTransactionReceiptImage]}>
+                            <View style={[styles.mergeTransactionReceiptImage, styles.pRelative]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs.thumbnail}
                                     fileExtension={receiptURIs.fileExtension}
@@ -53,6 +57,15 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                     transaction={transaction}
                                     readonly
                                 />
+                                <View style={[styles.pAbsolute, styles.b2, styles.r2]}>
+                                    <Button
+                                        innerStyles={[styles.arrowIcon]}
+                                        icon={Zoom}
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transaction.reportID, transaction.transactionID, true));
+                                        }}
+                                    />
+                                </View>
                             </View>
                         </PressableWithFeedback>
                     </View>
