@@ -500,7 +500,7 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     return true;
 }
 
-function isMergeAction(parentReport: Report, isReportArchived: boolean): boolean {
+function isMergeAction(parentReport: Report, isReportArchived?: boolean): boolean {
     return isMergeableMoneyRequestReport(parentReport, isReportArchived);
 }
 
@@ -615,7 +615,7 @@ function getSecondaryTransactionThreadActions(
     reportTransaction: Transaction,
     reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
-    isParentReportArchived: boolean,
+    isParentReportArchived?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 

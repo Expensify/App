@@ -18,6 +18,7 @@ import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
 type ReceiptReviewProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;
@@ -33,7 +34,7 @@ function ReceiptReview({route}: ReceiptReviewProps) {
     const sourceTransaction = getSourceTransaction(mergeTransaction);
 
     // Build receipts array from the two transactions
-    const transactions = [targetTransaction, sourceTransaction].filter((transaction) => !!transaction);
+    const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
     // Handle radio button toggle (select receipt)
     const handleSelect = (receiptID: number | undefined) => {
