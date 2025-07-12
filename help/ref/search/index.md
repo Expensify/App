@@ -1,8 +1,7 @@
 ---
 layout: product
-title: Expensify Chat
+title: Reports
 ---
-
 
 # Reports
 

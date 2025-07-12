@@ -2,7 +2,7 @@
 import * as core from '@actions/core';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@github/libs/isEmptyObject';
 
 const run = function (): Promise<void> {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
