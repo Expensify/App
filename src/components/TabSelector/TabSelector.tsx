@@ -74,6 +74,7 @@ function TabSelector({
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const [view, setView] = useState<View | null>(null);
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -84,7 +85,10 @@ function TabSelector({
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View style={styles.tabSelector}>
+            <View
+                style={styles.tabSelector}
+                ref={setView}
+            >
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
@@ -126,6 +130,7 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
+                            parentView={view}
                         />
                     );
                 })}
