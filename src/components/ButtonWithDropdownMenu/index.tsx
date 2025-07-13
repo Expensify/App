@@ -103,6 +103,25 @@ function ButtonWithDropdownMenu<IValueType>({
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical, popoverHorizontalOffsetType]);
 
+    const handleSingleOptionPress = useCallback(
+        (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+            const option = options.at(0);
+            if (!option) {
+                return;
+            }
+
+            if (option.onSelected) {
+                option.onSelected();
+            } else {
+                onOptionSelected?.(option);
+            }
+
+            onSubItemSelected?.(option, 0, event);
+            onPress(event, option.value);
+        },
+        [options, onPress, onOptionSelected, onSubItemSelected],
+    );
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
@@ -115,15 +134,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     onPress(e, selectedItem.value);
                 }
             } else {
-                const option = options.at(0);
-                               if (!option) return;
-                if (option.onSelected) {
-                    option.onSelected(); // Call the same callbacks that would be called if this was a dropdown item
-                } else {
-                    onOptionSelected?.(option);
-                }
-                onSubItemSelected?.(option, 0, e);  // Call onSubItemSelected if it exists (for nested menu items)
-                onPress(e, option.value); // Finally call the main onPress
+                handleSingleOptionPress(e);
             }
         },
         {
@@ -210,17 +221,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
                     text={selectedItem?.text}
-                    onPress={(event) => {
-                        const option = options.at(0);
-                        if (!option) return;
-                        if (option.onSelected) {
-                            option.onSelected();  // Call the same callbacks that would be called if this was a dropdown item
-                        } else {
-                            onOptionSelected?.(option);
-                        }
-                        onSubItemSelected?.(option, 0, event); // Call onSubItemSelected if it exists (for nested menu items)
-                        onPress(event, option.value);  // Finally call the main onPress
-                    }}
+                    onPress={handleSingleOptionPress}
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -231,6 +232,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     icon={shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon}
                     iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
                     shouldShowRightIcon={shouldShowButtonRightIcon}
+                    testID={testID}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
