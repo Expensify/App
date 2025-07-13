@@ -127,6 +127,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
@@ -184,11 +188,11 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
     }
 
     const parentReport = getParentReport(report);
-    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
         return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
 
-    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
 function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
