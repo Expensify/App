@@ -79,7 +79,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingWorkEmailValidation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

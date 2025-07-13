@@ -132,7 +132,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
