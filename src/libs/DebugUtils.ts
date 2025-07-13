@@ -817,6 +817,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                             ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
                         },
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
                 () =>
                     validateObject<ObjectElement<ReportAction, 'message'>>(value, {
@@ -900,6 +902,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         expenseReportID: 'string',
                         resolution: 'string',
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
             );
     }
@@ -947,6 +951,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
+        case 'wasMerchantCleared':
             return validateBoolean(value);
         case 'amount':
         case 'taxAmount':
@@ -1070,6 +1075,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    wasMerchantCleared: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
