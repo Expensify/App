@@ -1,21 +1,18 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import type {RefObject} from 'react';
 import React from 'react';
+import type {MutableRefObject} from 'react';
 import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
 import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
-import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';
-
-type ComposerType = 'main' | 'edit';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
-const composerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
 
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
-const editComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed
 let priorityFocusCallback: FocusCallback | null = null;
@@ -86,22 +83,6 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
-/**
- * This will prevent the composer's text input from focusing the next time it becomes the
- * first responder in the UIResponder chain. (iOS only, no-op on Android)
- */
-function preventComposerFocusOnFirstResponderOnce() {
-    preventTextInputFocusOnFirstResponderOnce(composerRef);
-}
-
-/**
- * This will prevent the edit composer's text input from focusing the next time it becomes the
- * first responder in the UIResponder chain. (iOS only, no-op on Android)
- */
-function preventEditComposerFocusOnFirstResponderOnce() {
-    preventTextInputFocusOnFirstResponderOnce(editComposerRef);
-}
-
 export default {
     composerRef,
     onComposerFocus,
@@ -110,8 +91,4 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
-    preventComposerFocusOnFirstResponderOnce,
-    preventEditComposerFocusOnFirstResponderOnce,
 };
-
-export type {ComposerType};

@@ -25,13 +25,20 @@ type WorkspaceCompanyCardStatementCloseDateSelectionListProps = {
     onSubmit: (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => void;
     onBackButtonPress: () => void;
     enabledWhenOffline: boolean;
+    defaultDate?: CompanyCardStatementCloseDate;
 };
 
-function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSubmit, onBackButtonPress, enabledWhenOffline}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
+function WorkspaceCompanyCardStatementCloseDateSelectionList({
+    confirmText,
+    onSubmit,
+    onBackButtonPress,
+    enabledWhenOffline,
+    defaultDate,
+}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [selectedDate, setSelectedDate] = useState<CompanyCardStatementCloseDate | undefined>(undefined);
+    const [selectedDate, setSelectedDate] = useState<CompanyCardStatementCloseDate | undefined>(defaultDate);
     const [selectedCustomDate, setSelectedCustomDate] = useState<number | undefined>(undefined);
     const [error, setError] = useState<string | undefined>(undefined);
 

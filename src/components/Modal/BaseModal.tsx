@@ -33,10 +33,12 @@ const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [C
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+    shouldUseReanimatedModal?: boolean;
 };
 
-function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type && REANIMATED_MODAL_TYPES.includes(type)) {
+function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
         return (
             <ReanimatedModal
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -45,6 +47,7 @@ function ModalComponent({type, ...props}: ModalComponentProps) {
             />
         );
     }
+
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
 }
@@ -90,6 +93,7 @@ function BaseModal(
         disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        shouldUseReanimatedModal = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -334,6 +338,7 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
+                        shouldUseReanimatedModal={shouldUseReanimatedModal}
                     >
                         <ModalContent
                             onModalWillShow={saveFocusState}
