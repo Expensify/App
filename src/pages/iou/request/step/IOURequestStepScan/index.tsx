@@ -18,6 +18,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -1018,7 +1019,6 @@ function IOURequestStepScan({
                     />
                 )}
             </AttachmentPicker>
-            <DownloadAppBanner />
         </ScrollView>
     );
 
@@ -1041,6 +1041,11 @@ function IOURequestStepScan({
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
+                        {!isMobile() && (
+                            <FixedFooter style={styles.p0}>
+                                <DownloadAppBanner />
+                            </FixedFooter>
+                        )}
                     </View>
                     {/* TODO: remove beta check after the feature is enabled */}
                     {canUseMultiDragAndDrop ? (
