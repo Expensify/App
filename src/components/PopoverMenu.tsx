@@ -314,7 +314,6 @@ function PopoverMenu({
                     }}
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
-                        shouldUseScrollView && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -329,7 +328,7 @@ function PopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pt3, headerStyles]}>{headerText}</Text>;
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pt4, headerStyles]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -429,7 +428,7 @@ function PopoverMenu({
                     style={[menuContainerStyle, containerStyles, styles.pv0]}
                 >
                     {renderHeaderText()}
-                    <View style={{paddingTop, paddingBottom, paddingVertical, ...styles.flex1}}>
+                    <View style={{paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}}>
                         {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                         {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
                     </View>
