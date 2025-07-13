@@ -978,7 +978,7 @@ function IOURequestStepScan({
             {PDFValidationComponent}
             <View
                 onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}
-                style={styles.mtAuto}
+                // style={styles.mtAuto}
             >
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
