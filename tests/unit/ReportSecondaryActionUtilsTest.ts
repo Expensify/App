@@ -1098,7 +1098,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
     it('include EXPORT_TO_ACCOUNTING option for settled expense report', async () => {
