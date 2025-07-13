@@ -86,9 +86,9 @@ const cardFeedsMock: OnyxCollection<CardFeeds> = {
             },
             companyCards: {
                 [cardFeedAmericaExpressMock]: {},
-                [cardFeedVisaMock]: {preferredPolicy: 'AABBCC'},
-                [cardFeedCitiBankMock]: {preferredPolicy: 'AABBCC'},
-                [cardFeedStripeMock]: {preferredPolicy: 'XXYYZZ'},
+                [cardFeedVisaMock]: {preferredPolicy: 'AA1BB2CC3'},
+                [cardFeedCitiBankMock]: {preferredPolicy: 'AA1BB2CC3'},
+                [cardFeedStripeMock]: {preferredPolicy: 'XX1YY2ZZ3'},
             },
         },
     },
@@ -148,11 +148,11 @@ describe('Card Feed Utils', () => {
         const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock);
         expect(cardFeedsForDisplayPerPolicy).toEqual({
             '': [{id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'}],
-            AABBCC: [
+            AA1BB2CC3: [
                 {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
                 {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
             ],
-            XXYYZZ: [{id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'}],
+            XX1YY2ZZ3: [{id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'}],
         });
     });
 });
