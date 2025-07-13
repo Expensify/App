@@ -232,7 +232,6 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
         return isManager || isAdmin;
     }
 
-    // Managers or admins can unapprove non-finally approved reports
     return isReportApprover;
 }
 
