@@ -71,7 +71,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
-    const guideCalendarLink = account?.guideCalendarLink ?? '';
+    const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;

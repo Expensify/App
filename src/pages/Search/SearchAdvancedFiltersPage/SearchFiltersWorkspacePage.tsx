@@ -70,7 +70,7 @@ function SearchFiltersWorkspacePage() {
     }, [selectedOptions]);
 
     const resetChanges = useCallback(() => {
-        updateWorkspaceFilter(null);
+        setSelectedOptions([]);
     }, []);
 
     return (
@@ -102,7 +102,6 @@ function SearchFiltersWorkspacePage() {
                             onChangeText={setSearchTerm}
                             onSelectRow={selectWorkspace}
                             headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
-                            initiallyFocusedOptionKey={selectedOptions?.at(0)}
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
                             footerContent={
                                 <SearchFilterPageFooterButtons

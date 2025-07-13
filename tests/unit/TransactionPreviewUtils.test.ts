@@ -177,9 +177,28 @@ describe('TransactionPreviewUtils', () => {
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
+
+        it('should display the correct amount for a bill split transaction', () => {
+            const functionArgs = {...basicProps, isBillSplit: true};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$1.00');
+        });
+
+        it('should display the correct amount for a bill split transaction after updating the amount', () => {
+            const functionArgs = {...basicProps, isBillSplit: true, transaction: {...basicProps.transaction, modifiedAmount: 50}};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$0.50');
+        });
     });
 
     describe('createTransactionPreviewConditionals', () => {
+        beforeAll(() => {
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+        });
+        afterAll(() => {
+            Onyx.clear([ONYXKEYS.SESSION]);
+        });
+
         it('should determine RBR visibility according to violation and hold conditions', () => {
             const functionArgs = {
                 ...basicProps,
@@ -207,6 +226,15 @@ describe('TransactionPreviewUtils', () => {
                 isBillSplit: true,
                 transactionDetails: {
                     amount: 1,
+                },
+                action: {
+                    ...basicProps.action,
+                    originalMessage: {
+                        participantAccountIDs: [999],
+                        amount: 100,
+                        currency: 'USD',
+                        type: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    },
                 },
             };
             const result = createTransactionPreviewConditionals(functionArgs);
@@ -260,6 +288,35 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {comment: 'A valid comment', merchant: ''}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeTruthy();
+        });
+
+        it('should show split share only if user is part of the split bill transaction', () => {
+            const functionArgs = {
+                ...basicProps,
+                isBillSplit: true,
+                transactionDetails: {amount: 100},
+                action: {
+                    ...basicProps.action,
+                    originalMessage: {
+                        participantAccountIDs: [999],
+                        amount: 100,
+                        currency: 'USD',
+                        type: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    },
+                },
+            };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowSplitShare).toBeTruthy();
+        });
+
+        it('should not show split share if user is not a participant', () => {
+            const functionArgs = {
+                ...basicProps,
+                isBillSplit: true,
+                transactionDetails: {amount: 100},
+            };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowSplitShare).toBeFalsy();
         });
     });
 
