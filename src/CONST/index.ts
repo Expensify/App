@@ -3343,11 +3343,9 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
+            INVOICING: 'invoicing2018',
         },
     },
-
-    // There is no pricing for invoicing subscription type, so we need to define a seperate constant for it
-    INVOICING_SUBSCRIPTION_TYPE: 'invoicing2018',
 
     get SUBSCRIPTION_PRICES() {
         return {
@@ -3355,55 +3353,65 @@ const CONST = {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3000,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 800,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3200,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.EUR]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
         };
