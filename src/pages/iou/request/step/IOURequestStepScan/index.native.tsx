@@ -44,7 +44,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -133,6 +133,8 @@ function IOURequestStepScan({
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
     const shouldAcceptMultipleFiles = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !isEditing && !backTo;
+
+    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -446,14 +448,24 @@ function IOURequestStepScan({
 
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-            if (
-                (!initialTransaction?.participants || initialTransaction?.participants?.at(0)?.reportID === activePolicyExpenseChat?.reportID) &&
-                iouType === CONST.IOU.TYPE.CREATE &&
-                isPaidGroupPolicy(activePolicy) &&
-                activePolicy?.isPolicyExpenseChatEnabled &&
-                !shouldRestrictUserBillableActions(activePolicy.id)
-            ) {
+            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+
+                // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
+                if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== activePolicyExpenseChat?.reportID) {
+                    const isTrackExpense = initialTransaction?.participants?.at(0)?.reportID === selfDMReportID;
+
+                    const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+                    Promise.all(setParticipantsPromises).then(() => {
+                        if (isTrackExpense) {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID));
+                        } else {
+                            navigateToConfirmationPage(iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
+                        }
+                    });
+                    return;
+                }
+
                 const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
@@ -466,12 +478,6 @@ function IOURequestStepScan({
                     ),
                 );
             } else {
-                // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
-                if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
-                    const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
-                    Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage(false, initialTransaction?.reportID));
-                    return;
-                }
                 navigateToParticipantPage(iouType, initialTransactionID, reportID);
             }
         },
@@ -480,9 +486,6 @@ function IOURequestStepScan({
             report,
             reportNameValuePairs,
             iouType,
-            initialTransaction?.participants,
-            initialTransaction?.currency,
-            initialTransaction?.reportID,
             activePolicy,
             initialTransactionID,
             navigateToConfirmationPage,
@@ -492,9 +495,13 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
+            initialTransaction?.currency,
+            initialTransaction?.participants,
+            initialTransaction?.reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
+            selfDMReportID,
         ],
     );
 
