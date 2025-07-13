@@ -28,9 +28,24 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Flag to indicate if the max height should be enabled */
+    shouldEnableMaxHeight?: boolean;
+
+    /** Flag to indicate if the scroll view should avoid scroll on virtual viewport */
+    shouldAvoidScrollOnVirtualViewport?: boolean;
 };
 
-function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: TwoFactorAuthWrapperProps) {
+function TwoFactorAuthWrapper({
+    stepName,
+    title,
+    stepCounter,
+    onBackButtonPress,
+    shouldEnableKeyboardAvoidingView = true,
+    shouldEnableMaxHeight = true,
+    shouldAvoidScrollOnVirtualViewport = true,
+    children,
+}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
@@ -76,7 +91,8 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
+            shouldAvoidScrollOnVirtualViewport={shouldAvoidScrollOnVirtualViewport}
             testID={stepName}
         >
             <FullPageNotFoundView
