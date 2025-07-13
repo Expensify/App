@@ -48,6 +48,7 @@ done
 if [[ ${#ERRORS[@]} -eq 0 ]]; then
   echo "✅  All changed patches are valid!"
 else
+  printf "Refer to https://github.com/Expensify/App/blob/main/contributingGuides/PATCHES.md to fix following errors:\n"
   printf "%s\n" "${ERRORS[@]}"
   exit 1
 fi
