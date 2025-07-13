@@ -1118,11 +1118,11 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID?: string) => {
+        getRoute: (policyID?: string, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED route');
             }
-            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {

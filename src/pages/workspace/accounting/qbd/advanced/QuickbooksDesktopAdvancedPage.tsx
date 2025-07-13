@@ -5,6 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -12,8 +14,11 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
+type QuickbooksDesktopAdvancedPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED>;
+
+function QuickbooksDesktopAdvancedPage({policy, route}: QuickbooksDesktopAdvancedPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
@@ -53,7 +58,7 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

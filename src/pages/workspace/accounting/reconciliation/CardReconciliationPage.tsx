@@ -100,7 +100,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
                 break;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
-                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID));
+                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             default:
                 break;
