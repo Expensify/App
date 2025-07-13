@@ -19,7 +19,7 @@ function DownloadAppBanner() {
     }
 
     return (
-        <View style={[styles.ph2, styles.mb2, styles.stickToBottom]}>
+        <View style={[styles.ph2, styles.mb2, styles.mtAuto]}>
             <BillingBanner
                 icon={ExpensifyMobileApp}
                 title={translate('common.getTheApp')}

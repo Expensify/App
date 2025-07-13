@@ -22,6 +22,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -972,9 +973,12 @@ function IOURequestStepScan({
     );
 
     const desktopUploadView = () => (
-        <>
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.pt10]}>
             {PDFValidationComponent}
-            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
+            <View
+                onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}
+                style={styles.mtAuto}
+            >
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
                     height={CONST.RECEIPT.ICON_SIZE}
@@ -1014,7 +1018,8 @@ function IOURequestStepScan({
                     />
                 )}
             </AttachmentPicker>
-        </>
+            <DownloadAppBanner />
+        </ScrollView>
     );
 
     return (
@@ -1032,7 +1037,7 @@ function IOURequestStepScan({
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth), !isMobile() && styles.p0]}
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
@@ -1062,8 +1067,6 @@ function IOURequestStepScan({
                             receiptImageTopPosition={receiptImageTopPosition}
                         />
                     )}
-                    {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
-                    {!isMobile() && <DownloadAppBanner />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal
