@@ -95,7 +95,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         });
     };
 
-    if (card?.isLoading) {
+    if (card?.isLoading && !card?.cardID) {
         return <FullScreenLoadingIndicator />;
     }
 
