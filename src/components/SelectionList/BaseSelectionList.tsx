@@ -87,6 +87,7 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionListStyle,
         disableKeyboardShortcuts = false,
         children,
+        autoCorrect,
         shouldStopPropagation = false,
         shouldPreventDefault = true,
         shouldShowTooltips = true,
@@ -681,6 +682,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     role={CONST.ROLE.PRESENTATION}
                     value={textInputValue}
                     placeholder={textInputPlaceholder}
+                    autoCorrect={autoCorrect}
                     maxLength={textInputMaxLength}
                     onChangeText={onChangeText}
                     inputMode={inputMode}
