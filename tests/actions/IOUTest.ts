@@ -3,6 +3,7 @@ import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxProvider from '@components/OnyxProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {
     addSplitExpenseField,
@@ -35,6 +36,7 @@ import {
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
@@ -153,6 +155,7 @@ describe('actions/IOU', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
+        initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
@@ -2646,7 +2649,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2775,7 +2778,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport);
+                        payMoneyRequest('ACH', chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2915,7 +2918,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, false);
+                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, undefined, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -2990,7 +2993,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5483,7 +5486,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scan failure transactions', async () => {
@@ -5538,7 +5542,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scan failure transaction', async () => {
@@ -5584,7 +5589,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
@@ -5635,7 +5641,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
             // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
