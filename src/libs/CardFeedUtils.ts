@@ -462,14 +462,11 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
         }
 
         Object.entries(getCompanyFeeds(cardFeeds, true, true)).forEach(([key, feedData]) => {
-            if (!('preferredPolicy' in feedData) || !feedData.preferredPolicy) {
-                return;
-            }
-
+            const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
 
-            (cardFeedsForDisplayPerPolicy[feedData.preferredPolicy] ||= []).push({
+            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
                 id,
                 feed,
                 fundID,
