@@ -559,7 +559,6 @@ function SettlementButton({
     const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isInvoiceReport || isExpenseReportUtil(iouReport)) && hasIntentToPay);
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
-    console.log({activeAdminPolicies, policies});
     return (
         <KYCWall
             onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
