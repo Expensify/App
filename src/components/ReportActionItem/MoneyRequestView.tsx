@@ -27,7 +27,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, hasDependentTags, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
 import {
@@ -254,7 +254,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
-    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
     const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -349,6 +349,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 return translate(translationPath);
             }
 
+            if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
+                return translate('violations.customUnitOutOfPolicy');
+            }
+
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
@@ -377,6 +381,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             canEditDate,
             canEditMerchant,
             canEdit,
+            isCustomUnitOutOfPolicy,
         ],
     );
 
@@ -456,11 +461,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
-        if (hasDependentTags(policy, policyTagList)) {
+        if (hasDependentTags) {
             if (index === 0) {
                 shouldShow = true;
             } else {
@@ -481,7 +487,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 tagListIndex: index,
                 tagListName: name,
             },
-            hasDependentTags(policy, policyTagList),
+            hasDependentTags,
             tagForDisplay,
         );
 
@@ -491,7 +497,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <MenuItemWithTopDescription
-                    highlighted={shouldShow && !getTagForDisplay(transaction, index)}
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index)}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
