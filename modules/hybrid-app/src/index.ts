@@ -32,9 +32,7 @@ const HybridAppModule: HybridAppModuleType = {
     getInitialURL() {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `getInitialURL` should never be called on web');
-        return new Promise((resolve) => {
-            resolve(null);
-        });
+        return Promise.resolve(null);
     },
 };
 
