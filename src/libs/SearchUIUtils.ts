@@ -1091,7 +1091,7 @@ function getSortedSections(
             case CONST.SEARCH.GROUP_BY.CARDS:
                 return getSortedCardData(data as TransactionCardGroupListItemType[]);
             case CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL:
-                return getSortedBankWidthdrawalData(data as TransactionBankWithdrawalGroupListItemType[]);
+                return getSortedBankWithdrawalData(data as TransactionBankWithdrawalGroupListItemType[]);
         }
     }
 
@@ -1204,7 +1204,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[]) {
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedBankWidthdrawalData(data: TransactionBankWithdrawalGroupListItemType[]) {
+function getSortedBankWithdrawalData(data: TransactionBankWithdrawalGroupListItemType[]) {
     return data ? [] : []; // s77rt TODO
 }
 
