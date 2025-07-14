@@ -13,6 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
@@ -110,14 +111,18 @@ function SettlementButton({
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserAccountID = getCurrentUserAccountID().toString();
-    const activeAdminPolicies = getActiveAdminWorkspaces(!isOnSearch ? policies : undefined, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    // Passing `undefined` to ensure we use the Onyx connection from PolicyUtils,
+    // since `useOnyx` only returns snapshot data on the SearchPage.
+    // By passing `undefined`, we fall back to the function's default value.
+    const activeAdminPolicies = getActiveAdminWorkspaces(undefined, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     const reportID = iouReport?.reportID;
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
-    const lastPaymentPolicy = isLastPaymentPolicy ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPaymentMethod}`] : undefined;
+    const lastPaymentPolicy = usePolicy(lastPaymentMethod);
+
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccount = bankAccountList[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const isExpenseReport = isExpenseReportUtil(iouReport);
