@@ -53,6 +53,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -538,16 +539,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [searchResults?.data]);
 
     const previousColumnsRef = useRef<Record<string, boolean>>({});
-
-    useEffect(() => {
-        // Only update if columns actually changed
-        if (shallowCompare(currentColumns, previousColumnsRef.current)) {
-            return;
-        }
-        triggerFadeAnimation();
-        previousColumnsRef.current = {...currentColumns};
-    }, [currentColumns, triggerFadeAnimation]);
-
     const columnsToShow = useMemo(() => {
         const columns = {...currentColumns};
 
@@ -563,6 +554,22 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
     }, [currentColumns]);
+
+    useEffect(() => {
+        // Only update if columns actually changed
+        if (shallowCompare(currentColumns, previousColumnsRef.current)) {
+            return;
+        }
+        previousColumnsRef.current = {...currentColumns};
+    }, [currentColumns, triggerFadeAnimation]);
+
+    const previousColumnsToShow = usePrevious(columnsToShow);
+    useEffect(() => {
+        if (!previousColumnsToShow || arraysEqual(columnsToShow, previousColumnsToShow)) {
+            return;
+        }
+        triggerFadeAnimation();
+    }, [previousColumnsToShow, columnsToShow, triggerFadeAnimation]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
@@ -739,6 +746,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     columns={columnsToShow}
                     onViewableItemsChanged={onViewableItemsChanged}
                     onLayout={onLayoutWithScrollRestore}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 />
             </Animated.View>
         </SearchScopeProvider>
