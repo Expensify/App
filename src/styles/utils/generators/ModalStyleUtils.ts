@@ -269,13 +269,13 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     ...modalStyle,
                     ...{
                         marginLeft: isSmallScreenWidth || (shouldUseReanimatedModal && shouldUseNarrowLayout) ? 0 : windowWidth - variables.sideBarWidth,
-                        width: isSmallScreenWidth || (shouldUseReanimatedModal && shouldUseNarrowLayout) ? '100%' : variables.sideBarWidth,
+                        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
                     },
                 };
                 modalContainerStyle = {
-                    width: isSmallScreenWidth || (shouldUseReanimatedModal && shouldUseNarrowLayout) ? '100%' : variables.sideBarWidth,
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                     height: '100%',
                     overflow: 'hidden',
                 };
