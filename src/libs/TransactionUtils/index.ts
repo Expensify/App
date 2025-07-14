@@ -411,6 +411,7 @@ function getUpdatedTransaction({
     }
     if (Object.hasOwn(transactionChanges, 'amount') && typeof transactionChanges.amount === 'number') {
         updatedTransaction.modifiedAmount = isFromExpenseReport || isUnReportedExpense ? -transactionChanges.amount : transactionChanges.amount;
+        shouldStopSmartscan = true;
     }
     if (Object.hasOwn(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;

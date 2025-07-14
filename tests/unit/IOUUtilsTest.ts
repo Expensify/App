@@ -384,7 +384,7 @@ describe('Check valid amount for IOU/Expense request', () => {
         expect(expenseAmount).toBeLessThan(0);
     });
 
-    test('Return correct unreported transaction amount with negative sign', () => {
+    test('Unreported expense amount should retain negative sign', () => {
         const unreportedTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
