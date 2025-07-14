@@ -339,7 +339,7 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
-type TransactionBankWithdrawalGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL} & SearchPersonalDetails & SearchBankWithdrawal;
+type TransactionBankWithdrawalGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL} & SearchBankWithdrawal;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
