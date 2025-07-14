@@ -1650,9 +1650,10 @@ const translations = {
             afterEmail: '他のアカウントに統合することはできません。代わりに他のアカウントをこのアカウントに統合してください。',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'マージできません',
-            afterEmail: '請求書発行済みアカウントの請求オーナーであるため、他のアカウントに統合することはできません。代わりに他のアカウントをこのアカウントに統合してください。',
+            beforeEmail: '次のアカウントには統合できません: ',
+            afterEmail: '。このアカウントには請求書が発行された請求関係があります。',
         },
+
         mergeFailureTooManyAttempts: {
             heading: '後でもう一度お試しください。',
             description: 'アカウントの統合を試みる回数が多すぎます。後でもう一度お試しください。',
@@ -1794,7 +1795,7 @@ const translations = {
         nameOnCard: 'カード名義人',
         paymentCardNumber: 'カード番号',
         expiration: '有効期限',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: '請求先住所',
         growlMessageOnSave: 'お支払いカードが正常に追加されました',
@@ -3223,6 +3224,17 @@ const translations = {
             certify: '情報が真実で正確であることを証明してください。',
             consent: 'プライバシー通知に同意してください',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusignフォーム',
+        pleaseComplete: '以下のDocusignリンクからACH認可フォームに記入し、署名済みのコピーをこちらにアップロードしてください。これにより、銀行口座から直接資金を引き落とすことができます。',
+        pleaseCompleteTheBusinessAccount: 'ビジネスアカウント申請書および口座振替契約を記入してください。',
+        pleaseCompleteTheDirect:
+            '以下のDocusignリンクを使用して口座振替契約を記入し、署名済みのコピーをこちらにアップロードしてください。これにより、銀行口座から直接資金を引き落とすことができます。',
+        takeMeTo: 'Docusignへ移動',
+        uploadAdditional: '追加書類をアップロード',
+        pleaseUpload: 'DEFTフォームおよびDocusign署名ページをアップロードしてください。',
+        pleaseUploadTheDirect: '口座振替契約およびDocusign署名ページをアップロードしてください。',
     },
     finishStep: {
         connect: '銀行口座を接続',
@@ -6409,8 +6421,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/人の制限を超えた金額`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/人の制限を超えた金額`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1日あたりのカテゴリ制限${formattedLimit}/人を超える金額`,
-        receiptNotSmartScanned:
-            '経費の詳細と領収書が手動で追加されました。詳細を確認してください。すべての領収書の自動監査について<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ</a>。',
+        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ。</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '領収書が必要です';
             if (formattedLimit ?? category) {

@@ -1803,7 +1803,7 @@ const translations = {
         nameOnCard: 'Name auf der Karte',
         paymentCardNumber: 'Kartennummer',
         expiration: 'Ablaufdatum',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Rechnungsadresse',
         growlMessageOnSave: 'Ihre Zahlungskarte wurde erfolgreich hinzugefügt',
@@ -3205,6 +3205,18 @@ const translations = {
             certify: 'Bitte bestätigen Sie, dass die Informationen wahr und korrekt sind.',
             consent: 'Bitte stimmen Sie der Datenschutzerklärung zu.',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign-Formular',
+        pleaseComplete:
+            'Bitte füllen Sie das ACH-Autorisierungsformular über den untenstehenden Docusign-Link aus und laden Sie anschließend die unterschriebene Kopie hier hoch, damit wir direkt von Ihrem Bankkonto abbuchen können.',
+        pleaseCompleteTheBusinessAccount: 'Bitte füllen Sie den Antrag für ein Geschäftskonto und die Vereinbarung zum Lastschrifteinzug aus.',
+        pleaseCompleteTheDirect:
+            'Bitte füllen Sie die Vereinbarung zum Lastschrifteinzug über den untenstehenden Docusign-Link aus und laden Sie anschließend die unterschriebene Kopie hier hoch, damit wir direkt von Ihrem Bankkonto abbuchen können.',
+        takeMeTo: 'Zu Docusign',
+        uploadAdditional: 'Zusätzliche Dokumente hochladen',
+        pleaseUpload: 'Bitte laden Sie das DEFT-Formular und die unterschriebene Docusign-Seite hoch.',
+        pleaseUploadTheDirect: 'Bitte laden Sie die Lastschriftvereinbarung und die Docusign-Unterschriftsseite hoch.',
     },
     finishStep: {
         connect: 'Bankkonto verbinden',
@@ -6437,7 +6449,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Betrag über dem täglichen ${formattedLimit}/Personen-Kategorielimit`,
         receiptNotSmartScanned:
-            'Ausgabendetails und Beleg manuell hinzugefügt. Bitte überprüfen Sie die Details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr</a> über die automatische Überprüfung aller Belege.',
+            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Beleg erforderlich';
             if (formattedLimit ?? category) {
