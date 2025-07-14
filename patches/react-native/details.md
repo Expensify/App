@@ -165,7 +165,7 @@
 
 ### [react-native+0.79.2+024+restore-old-line-height-algorithm.patch](react-native+0.79.2+024+restore-old-line-height-algorithm.patch)
 
-- Reason: Restores the old line height algorithm to fix text rendering issues
+- Reason: This patch fixes line height calculation issues in Android text rendering by replacing the web-based CSS implementation with a priority-based approach that properly handles cases where font metrics exceed the specified line height, ensuring better text display consistency and preventing text clipping
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR Introducing Patch: 🛑
+- PR Introducing Patch: https://github.com/Expensify/App/pull/60421
