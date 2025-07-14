@@ -276,6 +276,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
+    const wasReportAccessibleRef = useRef(false);
+
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -298,7 +300,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
-    const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
+    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
@@ -322,6 +325,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
+
+    useEffect(() => {
+        if (!report?.reportID) {
+            wasReportAccessibleRef.current = false;
+            return;
+        }
+        wasReportAccessibleRef.current = true;
+    }, [report]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
@@ -441,7 +452,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
@@ -754,7 +765,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions ?? []);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -818,7 +829,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         report={report}
                                         policy={policy}
                                         reportActions={reportActions}
-                                        transactions={reportTransactions}
+                                        transactions={visibleTransactions}
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
