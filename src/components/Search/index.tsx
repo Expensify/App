@@ -507,6 +507,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const columnsToShow = useMemo(() => {
         const columns = {...currentColumns};
 
+        if (!previousColumnsRef.current) {
+            return columns;
+        }
+
         const previouslyShownColumns = Object.keys(previousColumnsRef.current).filter((col) => previousColumnsRef.current[col] && !columns[col]);
 
         previouslyShownColumns.forEach((col) => {
