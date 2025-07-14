@@ -142,8 +142,8 @@ type WorkspacesListRouteParams = {
 };
 
 type BusinessBankAccountParams = {
-    amount?: string;
-    last4Digits?: string;
+    amount: string;
+    last4Digits: string;
 };
 
 type WorkspaceRouteParams = {
