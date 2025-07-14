@@ -65,6 +65,7 @@ function getTransactionItemHeight(item: TransactionListItemType, config: ItemHei
 /**
  * Calculates height for report list items (grouped transactions)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getReportListItemHeight(item: TransactionGroupListItemType, config: ItemHeightConfig): number {
     const {isLargeScreenWidth} = config;
 
