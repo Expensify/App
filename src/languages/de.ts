@@ -5271,7 +5271,7 @@ const translations = {
             addPaymentCardTitle: 'Geben Sie Ihre Zahlungskarte ein, um die Eigentümerschaft zu übertragen.',
             addPaymentCardButtonText: 'Bedingungen akzeptieren & Zahlungskarte hinzufügen',
             addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
-                `<comment><mtm issmall>Lesen und akzeptieren <a href="${termsURL}" style="text-decoration-line: none;">Bedingungen</a> & <a href=${privacyURL} style="text-decoration-line: none;">Datenschutz</a> Richtlinie zum Hinzufügen Ihrer Karte</mtm></comment>`,
+                `<comment><muted-micro-text issmall>Lesen und akzeptieren <a href="${termsURL}">Bedingungen</a> & <a href="${privacyURL}">Datenschutz</a> Richtlinie zum Hinzufügen Ihrer Karte</muted-micro-text></comment>`,
             addPaymentCardPciCompliant: 'PCI-DSS-konform',
             addPaymentCardBankLevelEncrypt: 'Verschlüsselung auf Bankniveau',
             addPaymentCardRedundant: 'Redundante Infrastruktur',

@@ -5283,7 +5283,7 @@ const translations = {
             addPaymentCardTitle: 'Inserisci la tua carta di pagamento per trasferire la proprietà',
             addPaymentCardButtonText: 'Accetta i termini e aggiungi una carta di pagamento',
             addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
-                `<comment><mtm issmall>Leggi e accetta <a href="${termsURL}" style="text-decoration-line: none;">termini</a> & <a href="${privacyURL}" style="text-decoration-line: none;">privacy</a> politica per aggiungere la tua carta</mtm></comment>`,
+                `<comment><muted-micro-text issmall>Leggi e accetta <a href="${termsURL}">termini</a> & <a href="${privacyURL}">privacy</a> politica per aggiungere la tua carta</muted-micro-text></comment>`,
             addPaymentCardPciCompliant: 'Conforme a PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Crittografia a livello bancario',
             addPaymentCardRedundant: 'Infrastruttura ridondante',

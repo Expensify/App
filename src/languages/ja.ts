@@ -5257,7 +5257,7 @@ const translations = {
             addPaymentCardTitle: '所有権を移転するために支払いカードを入力してください。',
             addPaymentCardButtonText: '利用規約に同意して支払いカードを追加',
             addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
-                `<comment><mtm issmall>読み取りと承認 <a href="${termsURL}" style="text-decoration-line: none;">利用規約</a> & <a href="${privacyURL}" style="text-decoration-line: none;">プライバシー</a> カードを追加するためのポリシー</mtm></comment>`,
+                `<comment><muted-micro-text issmall>読み取りと承認 <a href="${termsURL}">利用規約</a> & <a href="${privacyURL}">プライバシー</a> カードを追加するためのポリシー</muted-micro-text></comment>`,
             addPaymentCardPciCompliant: 'PCI-DSS 準拠',
             addPaymentCardBankLevelEncrypt: '銀行レベルの暗号化',
             addPaymentCardRedundant: '冗長インフラストラクチャー',
