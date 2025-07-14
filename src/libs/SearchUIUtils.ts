@@ -1008,6 +1008,16 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTy
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by card for display, for the TransactionBankWithdrawalGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getBankWithdrawalSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionBankWithdrawalGroupListItemType[] {
+    return data && metadata ? [] : []; // s77rt TODO
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -1044,6 +1054,8 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
                 return getMemberSections(data, metadata);
             case CONST.SEARCH.GROUP_BY.CARDS:
                 return getCardSections(data, metadata);
+            case CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL:
+                return getBankWithdrawalSections(data, metadata);
         }
     }
 
@@ -1078,6 +1090,8 @@ function getSortedSections(
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
             case CONST.SEARCH.GROUP_BY.CARDS:
                 return getSortedCardData(data as TransactionCardGroupListItemType[]);
+            case CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL:
+                return getSortedBankWidthdrawalData(data as TransactionBankWithdrawalGroupListItemType[]);
         }
     }
 
@@ -1183,6 +1197,14 @@ function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedCardData(data: TransactionCardGroupListItemType[]) {
+    return data ? [] : []; // s77rt TODO
+}
+
+/**
+ * @private
+ * Sorts report sections based on a specified column and sort order.
+ */
+function getSortedBankWidthdrawalData(data: TransactionBankWithdrawalGroupListItemType[]) {
     return data ? [] : []; // s77rt TODO
 }
 

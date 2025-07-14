@@ -1248,6 +1248,7 @@ describe('SearchUIUtils', () => {
         });
 
         // s77rt add test for group by card
+        // s77rt add test for group by bank withdrawal
     });
 
     describe('Test getSortedSections', () => {
@@ -1321,6 +1322,7 @@ describe('SearchUIUtils', () => {
         });
 
         // s77rt add test for group by card
+        // s77rt add test for group by bank withdrawal
     });
 
     describe('Test createTypeMenuItems', () => {
