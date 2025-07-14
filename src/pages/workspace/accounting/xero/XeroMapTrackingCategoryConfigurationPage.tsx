@@ -36,6 +36,9 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
     const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
+    const reportFieldTrackingCategories = Object.entries(mappings ?? {}).filter(
+        ([key, value]) => key.startsWith(CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX) && value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD,
+    );
 
     const optionsList = useMemo(
         () =>
@@ -77,16 +80,16 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
                 );
-                if (option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                if (!reportFieldTrackingCategories.length && option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
                     enablePolicyReportFields(policyID, true);
                 }
-                if (currentTrackingCategoryValue === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                if (reportFieldTrackingCategories.length === 1 && currentTrackingCategoryValue === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
                     enablePolicyReportFields(policyID, false);
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, currentTrackingCategoryValue, policy, policyID],
+        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories, policy, policyID],
     );
 
     return (
