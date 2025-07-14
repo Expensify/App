@@ -5990,6 +5990,7 @@ const translations = {
                 reports: 'Raport',
                 members: 'Członek',
                 cards: 'Karta',
+                'bank-withdrawal': 'Wypłata z banku',
             },
             feed: 'Kanal',
         },

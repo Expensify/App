@@ -5974,6 +5974,7 @@ const translations = {
                 reports: '報告',
                 members: 'メンバー',
                 cards: 'カード',
+                'bank-withdrawal': '銀行引き出し',
             },
             feed: 'フィード',
         },

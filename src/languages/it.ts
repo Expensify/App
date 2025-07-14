@@ -6013,6 +6013,7 @@ const translations = {
                 reports: 'Rapporto',
                 members: 'Membro',
                 cards: 'Carta',
+                'bank-withdrawal': 'Prelievo bancario',
             },
             feed: 'Feed',
         },

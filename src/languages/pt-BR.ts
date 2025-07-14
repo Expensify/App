@@ -6002,6 +6002,7 @@ const translations = {
                 reports: 'Relatório',
                 members: 'Membro',
                 cards: 'Cartão',
+                'bank-withdrawal': 'Saque bancário',
             },
             feed: 'Feed',
         },

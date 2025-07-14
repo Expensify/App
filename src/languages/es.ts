@@ -5993,6 +5993,7 @@ const translations = {
                 reports: 'Informe',
                 members: 'Miembro',
                 cards: 'Tarjeta',
+                'bank-withdrawal': 'Retiro bancario',
             },
             feed: 'Feed',
         },

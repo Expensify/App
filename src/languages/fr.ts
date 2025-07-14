@@ -6011,6 +6011,7 @@ const translations = {
                 reports: 'Rapport',
                 members: 'Membre',
                 cards: 'Carte',
+                'bank-withdrawal': 'Retrait bancaire',
             },
             feed: 'Flux',
         },

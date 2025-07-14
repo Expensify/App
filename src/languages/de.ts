@@ -5999,6 +5999,7 @@ const translations = {
                 reports: 'Bericht',
                 members: 'Mitglied',
                 cards: 'Karte',
+                'bank-withdrawal': 'Bankabhebung',
             },
             feed: 'Feed',
         },
