@@ -42,15 +42,21 @@ function InviteMemberListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
+    canShowProductTrainingTooltip = true,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && isSelectedManagerMcTest(item.login) && !item.isSelected,
+        canShowProductTrainingTooltip &&
+            !getIsUserSubmittedExpenseOrScannedReceipt() &&
+            isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) &&
+            isSelectedManagerMcTest(item.login) &&
+            !item.isSelected,
     );
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
