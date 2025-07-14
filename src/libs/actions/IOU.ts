@@ -9283,7 +9283,6 @@ function canSubmitReport(
         transactions.length > 0;
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
     const hasBeenReopened = hasReportBeenReopened(reportActions);
-    console.log('baseCanSubmit', baseCanSubmit, hasBeenReopened);
     if (baseCanSubmit && hasBeenReopened) {
         return true;
     }
