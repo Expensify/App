@@ -168,7 +168,12 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy', {termsURL, privacyURL})} />
+                    <Text
+                        style={[styles.chatItemMessageHeaderTimestamp]}
+                        numberOfLines={1}
+                    >
+                        <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy', {termsURL, privacyURL})} />
+                    </Text>
                 </View>
             </ScrollView>
         </ScreenWrapper>
