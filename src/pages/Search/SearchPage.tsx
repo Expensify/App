@@ -1,4 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -66,6 +68,7 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
@@ -496,6 +499,10 @@ function SearchPage({route}: SearchPageProps) {
             search(value);
         }
     }, []);
+
+    if (!isFocused) {
+        return null;
+    }
 
     if (shouldUseNarrowLayout) {
         return (
