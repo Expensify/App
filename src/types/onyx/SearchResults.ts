@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -468,11 +469,20 @@ type SearchCard = {
     accountID: number;
 };
 
-/** Model of bank search result */
+/** Model of bank withdrawal search result */
 // s77rt sync with BE
-type SearchBank = {
-    /** string like 'Account ending in XXXX' */
-    description?: string;
+type SearchBankWithdrawal = {
+    /** The bank name */
+    bankName: BankName;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+
+    /** Withdrawal date */
+    withdrawalDate: string;
+
+    /** Entry ID */
+    entryID: string;
 };
 
 /** Types of searchable transactions */
@@ -496,8 +506,10 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        // s77rt sync with BE
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
-        Partial<Record<typeof ONYXKEYS.BANK_ACCOUNT_LIST, Record<string, SearchBank>>> &
+        // s77rt sync with BE
+        Partial<Record<typeof ONYXKEYS.BANK_ACCOUNT_LIST, Record<string, SearchBankWithdrawal>>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
@@ -523,5 +535,5 @@ export type {
     SearchReportAction,
     SearchPolicy,
     SearchCard,
-    SearchBank,
+    SearchBankWithdrawal,
 };
