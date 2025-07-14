@@ -535,7 +535,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondaryText = getSecondaryText();
+    const secondaryText = truncate(getSecondaryText(), {length: 50});
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
