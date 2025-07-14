@@ -291,12 +291,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
                         throw new Error('Parent action does not exist');
                     }
 
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
 
-                changeMoneyRequestHoldStatus(parentReportAction);
+                    changeMoneyRequestHoldStatus(parentReportAction);
+                },
             },
             [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
                 text: translate('iou.split'),
