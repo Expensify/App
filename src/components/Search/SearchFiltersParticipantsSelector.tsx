@@ -112,7 +112,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             shouldShow: chatOptions.personalDetails.length > 0,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
+        const noResultsFound =
+            Object.values(formattedResults.section.data).length === 0 && chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {

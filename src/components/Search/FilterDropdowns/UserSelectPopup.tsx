@@ -1,4 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -13,7 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -63,9 +62,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
-    // Get a list of all options/personal details and filter them by the current search term
-    const listData = useMemo(() => {
-        const optionsList = getValidOptions(
+    const defaultOptions = useMemo(() => {
+        return getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -73,53 +71,69 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             {
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelectedOptions: true,
-                includeCurrentUser: true,
             },
         );
+    }, [options.personalDetails, options.reports, selectedOptions]);
 
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+    const chatOptions = useMemo(() => {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+            selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-
-        const personalDetailList = filteredOptionsList
-            .map((participant) => ({
-                ...participant,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-            }))
-            .sort((a, b) => {
-                // Put the current user at the top of the list
-                if (a.accountID === accountID) {
-                    return -1;
-                }
-                if (b.accountID === accountID) {
-                    return 1;
-                }
-                return 0;
-            });
-
-        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [
-            {
-                title: '',
-                data: listData,
-                shouldShow: !isEmpty(listData),
-            },
-        ];
+        const newSections: Section[] = [];
 
-        const noResultsFound = isEmpty(listData);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions as OptionData[],
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+        );
+        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+
+        if (chatOptions.currentUserOption) {
+            const formattedName = getDisplayNameForParticipant({
+                accountID: chatOptions.currentUserOption.accountID,
+                shouldAddCurrentUserPostfix: true,
+                personalDetailsData: personalDetails,
+            });
+            if (selectedCurrentUser) {
+                selectedCurrentUser.text = formattedName;
+            } else {
+                chatOptions.currentUserOption.text = formattedName;
+                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
+            }
+        }
+
+        newSections.push(formattedResults.section);
+
+        newSections.push({
+            title: '',
+            data: chatOptions.recentReports,
+            shouldShow: chatOptions.recentReports.length > 0,
+        });
+
+        newSections.push({
+            title: '',
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0,
+        });
+
+        const noResultsFound =
+            Object.values(formattedResults.section.data).length === 0 && chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [listData, translate]);
+    }, [cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
 
     const selectUser = useCallback(
         (option: Option) => {
