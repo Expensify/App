@@ -63,7 +63,7 @@ function BankWithdrawalListItemHeader<TItem extends ListItem>({
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip
-                                text={`${formattedBankName} (${translate('bankAccount.accountEnding')} ${bankWithdrawalItem.lastFourPAN})`}
+                                text={`${formattedBankName} xx${bankWithdrawalItem.lastFourPAN}`}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
