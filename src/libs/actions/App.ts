@@ -136,6 +136,15 @@ Onyx.connect({
     },
 });
 
+let allReportsDraftComment: OnyxCollection<string> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportsDraftComment = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -319,6 +328,21 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
             });
         });
     }
+
+    const reportsHaveDraftComments = Object.entries(allReportsDraftComment ?? {})
+        .filter(([, value]) => value !== null)
+        .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
+        .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+
+    reportsHaveDraftComments?.forEach((report) => {
+        result.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                ...report,
+            },
+        });
+    });
 
     return result;
 }
