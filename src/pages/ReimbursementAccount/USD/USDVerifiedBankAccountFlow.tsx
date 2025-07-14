@@ -3,6 +3,7 @@ import type {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PlaidData} from '@src/types/onyx';
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
@@ -18,6 +19,7 @@ type USDVerifiedBankAccountFlowProps = {
     onfidoToken: string;
     setUSDBankAccountStep: (step: string | null) => void;
     setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+    plaidData?: PlaidData;
 };
 
 function USDVerifiedBankAccountFlow({
@@ -28,6 +30,7 @@ function USDVerifiedBankAccountFlow({
     onfidoToken,
     setUSDBankAccountStep,
     setShouldShowConnectedVerifiedBankAccount,
+    plaidData,
 }: USDVerifiedBankAccountFlowProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
@@ -38,6 +41,7 @@ function USDVerifiedBankAccountFlow({
                     onBackButtonPress={onBackButtonPress}
                     policyID={policyID}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    plaidData={plaidData}
                 />
             );
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:

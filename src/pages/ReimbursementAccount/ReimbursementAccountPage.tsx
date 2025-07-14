@@ -68,6 +68,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -249,10 +250,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = () => {
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-            setShouldShowContinueSetupButton(false);
-            setUSDBankAccountStep(currentStep);
-        });
+        setShouldShowContinueSetupButton(false);
+        setUSDBankAccountStep(currentStep);
     };
 
     const continueNonUSDVBBASetup = () => {
@@ -297,7 +296,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 }
                 if (subStep) {
                     setUSDBankAccountStep(null);
-                    setBankAccountSubStep(null);
                     setPlaidEvent(null);
                 } else {
                     Navigation.goBack();
@@ -456,6 +454,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 onfidoToken={onfidoToken}
                 setUSDBankAccountStep={setUSDBankAccountStep}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
+                plaidData={plaidData}
             />
         );
     }
