@@ -2,6 +2,7 @@ import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-
 import {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -81,10 +82,11 @@ function usePreloadFullScreenNavigators() {
     const state = navigation.getState();
     const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
     const subscriptionPlan = useSubscriptionPlan();
+    const isAuthenticated = useIsAuthenticated();
 
     useFocusEffect(
         useCallback(() => {
-            if (isAnonymousUser()) {
+            if (isAnonymousUser() || !isAuthenticated) {
                 return;
             }
 
@@ -114,7 +116,7 @@ function usePreloadFullScreenNavigators() {
                         }
                     });
             });
-        }, [navigation, preloadedRoutes, route.name, subscriptionPlan]),
+        }, [navigation, preloadedRoutes, route.name, subscriptionPlan, isAuthenticated]),
     );
 }
 
