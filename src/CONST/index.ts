@@ -6482,6 +6482,7 @@ const CONST = {
             mapping: 'report-fields-mapping',
         },
     },
+    DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {
