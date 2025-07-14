@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -27,6 +28,7 @@ import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyU
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
+    getAutocompleteDatePresets,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -39,7 +41,9 @@ import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
@@ -154,7 +158,7 @@ function SearchAutocompleteList(
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
-    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -200,10 +204,11 @@ function SearchAutocompleteList(
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const cardAutocompleteList = Object.values(allCards);
     const feedAutoCompleteList = useMemo(() => {
-        // We don't want to show the "Expensify Card" feed in the autocomplete suggestion list
+        // We don't want to show the "Expensify Card" feeds in the autocomplete suggestion list as they don't have real "Statements"
         // Thus passing an empty object to the `allCards` parameter.
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
+    const datePresetAutoCompleteList = useMemo(() => getAutocompleteDatePresets(translate), [translate]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -248,7 +253,7 @@ function SearchAutocompleteList(
         return getAutocompleteRecentCategories(allRecentCategories);
     }, [allRecentCategories]);
 
-    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
 
     const workspaceList = useMemo(
@@ -406,7 +411,7 @@ function SearchAutocompleteList(
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
                     text: feed.name,
-                    autocompleteID: feed.feed,
+                    autocompleteID: feed.id,
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }
@@ -456,6 +461,19 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
+                const filteredDates = datePresetAutoCompleteList[autocompleteKey]
+                    .filter((date) => date.text.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(date.text.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+                return filteredDates.map((date) => ({
+                    filterKey: autocompleteKey,
+                    text: date.text,
+                    autocompleteID: date.value,
+                    mapKey: autocompleteKey,
+                }));
+            }
             default: {
                 return [];
             }
@@ -480,6 +498,7 @@ function SearchAutocompleteList(
         allCards,
         booleanTypes,
         workspaceList,
+        datePresetAutoCompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

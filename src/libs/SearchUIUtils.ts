@@ -1646,8 +1646,7 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
@@ -1693,10 +1692,9 @@ function getGroupByOptions() {
 }
 
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
-    // s77rt confirm if the feed value is just the feed key or if it should be prefixed with [fundID]_
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
-        value: cardFeed.feed,
+        value: cardFeed.id,
     }));
 }
 
