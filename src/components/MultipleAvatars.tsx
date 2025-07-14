@@ -48,7 +48,7 @@ type SingleAvatar = {
     personalDetails: PersonalDetailsList | undefined;
 
     /** Styles for the container */
-    containerStyles: ViewStyle[];
+    containerStyles?: ViewStyle[];
 
     /** The account ID of the actor */
     actorAccountID: number | null | undefined;

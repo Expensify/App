@@ -15,6 +15,8 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -42,6 +44,7 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -99,6 +102,11 @@ function OptionRowLHN({
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
@@ -111,6 +119,15 @@ function OptionRowLHN({
         () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
         [optionItem?.alternateText],
     );
+
+    const details = useReportAvatarDetails({
+        action: optionItem?.parentReportAction,
+        report: chatReport,
+        iouReport: report,
+        innerPolicies: policies,
+        personalDetails,
+        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionItem?.policyID}`],
+    });
 
     if (!optionItem && !isOptionFocused) {
         // rendering null as a render item causes the FlashList to render all
@@ -273,6 +290,13 @@ function OptionRowLHN({
                                                     isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
+                                                singleReportAvatar={{
+                                                    shouldShow: !!details.reportPreviewSenderID && !optionItem.shouldShowSubscript,
+                                                    personalDetails,
+                                                    reportPreviewDetails: details,
+                                                    actorAccountID: optionItem.accountID,
+                                                    containerStyles: [styles.actionAvatar, styles.mr3],
+                                                }}
                                                 shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                             />
                                         )}
