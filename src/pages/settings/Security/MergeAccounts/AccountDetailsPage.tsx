@@ -79,7 +79,7 @@ function AccountDetailsPage() {
                     return;
                 }
 
-                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
+                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
             });
 
             return () => task.cancel();
@@ -92,7 +92,7 @@ function AccountDetailsPage() {
                 if (!errorKey || !email) {
                     return;
                 }
-                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), errorKey));
             });
 
             return () => task.cancel();
@@ -151,9 +151,7 @@ function AccountDetailsPage() {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
                     onSubmit={(values) => {
-                        const login = values[INPUT_IDS.PHONE_OR_EMAIL].trim();
-                        setEmail(login);
-                        requestValidationCodeForAccountMerge(login);
+                        requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL])
                     }}
                     style={[styles.flexGrow1, styles.mh5]}
                     shouldTrimValues
