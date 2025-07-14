@@ -105,7 +105,7 @@ function BaseModal(
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
@@ -221,13 +221,27 @@ function BaseModal(
                     windowWidth,
                     windowHeight,
                     isSmallScreenWidth,
+                    shouldUseNarrowLayout,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                shouldUseReanimatedModal,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
+        [
+            StyleUtils,
+            type,
+            windowWidth,
+            windowHeight,
+            isSmallScreenWidth,
+            shouldUseNarrowLayout,
+            popoverAnchorPosition,
+            innerContainerStyle,
+            outerStyle,
+            shouldUseModalPaddingStyle,
+            shouldUseReanimatedModal,
+        ],
     );
 
     const modalPaddingStyles = useMemo(() => {

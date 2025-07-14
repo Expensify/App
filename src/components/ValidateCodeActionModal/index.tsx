@@ -73,8 +73,6 @@ function ValidateCodeActionModal({
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
             shouldUseReanimatedModal
-            animationIn="slideInRight"
-            animationOut="slideOutRight"
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
