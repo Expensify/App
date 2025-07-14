@@ -49,7 +49,7 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>

@@ -318,7 +318,7 @@ function IOURequestStepConfirmation({
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
-                const shouldUseNewScanFlow = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT);
+                const shouldUseNewScanFlow = iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT;
                 const backToReportID =
                     shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
                         ? reportID
@@ -1002,7 +1002,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
@@ -1035,20 +1035,15 @@ function IOURequestStepConfirmation({
                     </HeaderWithBackButton>
                     {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFValidationComponent}
-                    {/* TODO: remove beta check after the feature is enabled */}
-                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                        <DragAndDropConsumer onDrop={handleDroppingReceipt}>
-                            <DropZoneUI
-                                icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                                dropStyles={styles.receiptDropOverlay(true)}
-                                dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
-                                dropTextStyles={styles.receiptDropText}
-                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
-                            />
-                        </DragAndDropConsumer>
-                    ) : (
-                        <ReceiptDropUI onDrop={handleDroppingReceipt} />
-                    )}
+                    <DragAndDropConsumer onDrop={handleDroppingReceipt}>
+                        <DropZoneUI
+                            icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                        />
+                    </DragAndDropConsumer>
                     {ErrorModal}
                     {!!gpsRequired && (
                         <LocationPermissionModal

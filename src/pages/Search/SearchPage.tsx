@@ -500,7 +500,7 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                <DragAndDropProvider>
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
@@ -577,7 +577,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                            <DragAndDropProvider>
                                 {PDFValidationComponent}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}

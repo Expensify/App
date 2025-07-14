@@ -132,7 +132,7 @@ function IOURequestStepScan({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
-    const shouldAcceptMultipleFiles = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !isEditing && !backTo;
+    const shouldAcceptMultipleFiles = !isEditing && !backTo;
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 

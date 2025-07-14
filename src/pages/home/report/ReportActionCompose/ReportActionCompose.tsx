@@ -591,7 +591,7 @@ function ReportActionCompose({
                                     if (isAttachmentPreviewActive) {
                                         return;
                                     }
-                                    if (isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+                                    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
                                         const files = Array.from(event.dataTransfer?.files).map((file) => {
                                             // eslint-disable-next-line no-param-reassign
                                             file.uri = URL.createObjectURL(file);
@@ -668,8 +668,7 @@ function ReportActionCompose({
                                             onValueChange={onValueChange}
                                             didHideComposerInput={didHideComposerInput}
                                         />
-                                        {/* TODO: remove beta check after the feature is enabled */}
-                                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && shouldDisplayDualDropZone && (
+                                        {shouldDisplayDualDropZone && (
                                             <DualDropZone
                                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
                                                 onAttachmentDrop={handleAttachmentDrop}
@@ -677,7 +676,7 @@ function ReportActionCompose({
                                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                                             />
                                         )}
-                                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
+                                        {!shouldDisplayDualDropZone && (
                                             <DragAndDropConsumer onDrop={handleAttachmentDrop}>
                                                 <DropZoneUI
                                                     icon={Expensicons.MessageInABottle}
@@ -687,20 +686,6 @@ function ReportActionCompose({
                                                     dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(true)}
                                                 />
                                             </DragAndDropConsumer>
-                                        )}
-                                        {!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (
-                                            <ReportDropUI
-                                                onDrop={(event: DragEvent) => {
-                                                    if (isAttachmentPreviewActive) {
-                                                        return;
-                                                    }
-                                                    const data = event.dataTransfer?.files[0];
-                                                    if (data) {
-                                                        data.uri = URL.createObjectURL(data);
-                                                        displayFilesInModal([data]);
-                                                    }
-                                                }}
-                                            />
                                         )}
                                     </>
                                 );
