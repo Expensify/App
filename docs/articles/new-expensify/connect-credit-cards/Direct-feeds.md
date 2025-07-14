@@ -115,10 +115,16 @@ If your company uses cards from multiple banks, that’s no problem — just con
 
 ## Is there an extra cost?
 
-Nope — there’s no extra charge for using Plaid or direct feeds.
+Nope — there's no extra charge for using Plaid or direct feeds.
 
 - With the **Collect** plan, you can add one direct or Plaid feed at no cost.  
-- To connect more than one, you’ll need to upgrade to the **Control** plan.
+- To connect more than one, you'll need to upgrade to the **Control** plan.
+
+## Can I import debit card transactions?
+
+Yes! Debit card transactions can be imported by linking a checking/current account in any Plaid-supported country.
+
+This is especially helpful in the EU, where open banking rules often block access to credit card data via aggregators. Debit cards, however, are fully supported under these regulations.
 
 ## Which banks support direct feeds?
 

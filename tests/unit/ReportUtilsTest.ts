@@ -65,6 +65,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -441,6 +442,21 @@ describe('ReportUtils', () => {
                 },
             };
             expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(false);
+        });
+    });
+
+    describe('sortOutstandingReportsBySelected', () => {
+        it('should return -1 when report1 is selected and report2 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report1.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+        });
+        it('should return 1 when report2 is selected and report1 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report2.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
         });
     });
 
