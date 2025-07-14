@@ -23,4 +23,32 @@ function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction
     return transactions.every((transaction) => transaction?.receipt?.receiptID);
 }
 
-export {getSourceTransaction, shouldNavigateToReceiptReview};
+/**
+ * Get mergable data if one is missing, and conflict fields that need to be resolved by the user
+ * @param transactionID - The merge transaction id
+ * @param targetTransaction - The target transaction
+ * @param sourceTransaction - The source transaction
+ * @param fields - Array of field definitions {key, label}
+ * @returns mergeableData and conflictFields
+ */
+function getMergeableDataAndConflictFields(transactionID: string, targetTransaction: Transaction, sourceTransaction: Transaction, fields: Array<keyof MergeTransaction>) {
+    const conflictFields: string[] = [];
+    const mergeableData: Record<string, unknown> = {};
+
+    fields.forEach((field) => {
+        const targetValue = targetTransaction[field as keyof Transaction];
+        const sourceValue = sourceTransaction[field as keyof Transaction];
+
+        if (!targetValue || !sourceValue || targetValue === sourceValue) {
+            // We use the logical OR (||) here instead of ?? because some fields can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            mergeableData[field] = targetValue || sourceValue;
+        } else {
+            conflictFields.push(field);
+        }
+    });
+
+    return {mergeableData, conflictFields};
+}
+
+export {getSourceTransaction, shouldNavigateToReceiptReview, getMergeableDataAndConflictFields};

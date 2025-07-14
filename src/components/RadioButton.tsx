@@ -45,7 +45,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
                     hasError && styles.borderColorDanger,
                     disabled && styles.cursorDisabled,
                     isChecked && styles.checkedContainer,
-                    isChecked && styles.borderColorFocus
+                    isChecked && styles.borderColorFocus,
                 ]}
             >
                 {isChecked && (
@@ -57,7 +57,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
                     />
                 )}
             </PressableWithFeedback>
-        )
+        );
     }
 
     return (

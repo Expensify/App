@@ -1343,6 +1343,10 @@ const translations = {
         },
         detailsPage: {
             header: 'Select details',
+            pageTitle: 'Select the details you want to keep:',
+            noDifferences: 'No differences found between the transactions',
+            pleaseSelectError: ({field}: {field: string}) => `Please select a ${field}`,
+            selectAllDetailsError: 'Select all details before continuing.',
         },
         confirmationPage: {
             header: 'Confirm details',
