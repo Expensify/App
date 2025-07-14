@@ -32,7 +32,7 @@ function USDVerifiedBankAccountFlow({
     setShouldShowConnectedVerifiedBankAccount,
     plaidData,
 }: USDVerifiedBankAccountFlowProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
 
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
