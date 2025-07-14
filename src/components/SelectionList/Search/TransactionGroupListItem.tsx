@@ -148,6 +148,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: (
+                // s77rt BankWithdrawalListItemHeader
+                <View />
+            ),
         };
 
         if (!groupBy) {

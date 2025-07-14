@@ -17,6 +17,7 @@ import type {
     ReportActionListItemType,
     SearchListItem,
     TaskListItemType,
+    TransactionBankWithdrawalGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
@@ -323,6 +324,13 @@ function isTransactionMemberGroupListItemType(item: ListItem): item is Transacti
  */
 function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARDS;
+}
+
+/**
+ * Type guard that checks if something is a TransactionBankWithdrawalGroupListItemType
+ */
+function isTransactionBankWithdrawalGroupListItemType(item: ListItem): item is TransactionBankWithdrawalGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL;
 }
 
 /**
@@ -1707,6 +1715,7 @@ export {
     isTransactionReportGroupListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionCardGroupListItemType,
+    isTransactionBankWithdrawalGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
