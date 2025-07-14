@@ -2,7 +2,6 @@ import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import {parseExpensiMark} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
 import type {Extras} from 'expensify-common/dist/ExpensiMark';
-import {unescapeText} from 'expensify-common/dist/utils';
 import CONST from '@src/CONST';
 import Parser from './Parser';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
@@ -123,10 +122,7 @@ function getParsedMessageWithShortMentions({text, availableMentionLogins, userEm
         return mentionWithDomain ? `<mention-user>@${mentionWithDomain}</mention-user>` : shortMention;
     });
 
-    // Because in the call to `Parser.replace` we escape the text, we need to unescape it
-    const cleanedText = unescapeText(textWithHandledMentions);
-
-    return cleanedText;
+    return textWithHandledMentions;
 }
 
 export {parseExpensiMarkWithShortMentions, decorateRangesWithShortMentions, addDomainToShortMention, getParsedMessageWithShortMentions};
