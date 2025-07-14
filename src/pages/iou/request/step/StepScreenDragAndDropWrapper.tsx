@@ -4,10 +4,8 @@ import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenDragAndDropWrapperProps = {
@@ -34,9 +32,6 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
     const styles = useThemeStyles();
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-
-    // TODO: remove beta check after the feature is enabled
-    const {isBetaEnabled} = usePermissions();
 
     if (!shouldShowWrapper) {
         return callOrReturn(children, false);
