@@ -123,7 +123,7 @@ function SettlementButton({
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
+    const hasIntentToPay = formattedPaymentMethods.length === 1 && !lastPaymentMethod;
 
     useEffect(() => {
         if (isLoadingLastPaymentMethod) {
@@ -262,7 +262,7 @@ function SettlementButton({
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
-                    value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                     icon: Expensicons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
@@ -293,7 +293,7 @@ function SettlementButton({
             activeAdminPolicies.forEach((activePolicy) => {
                 const policyName = activePolicy.name;
                 buttonOptions.push({
-                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
+                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: 20}), formattedAmount: ''}),
                     icon: Expensicons.Building,
                     value: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
@@ -535,7 +535,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondaryText = truncate(getSecondaryText(), {length: CONST.FORM_CHARACTER_LIMIT});
+    const secondaryText = getSecondaryText();
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
