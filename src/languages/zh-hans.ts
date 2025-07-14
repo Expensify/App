@@ -1778,7 +1778,7 @@ const translations = {
         nameOnCard: '卡上的姓名',
         paymentCardNumber: '卡号',
         expiration: '到期日期',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: '账单地址',
         growlMessageOnSave: '您的支付卡已成功添加',

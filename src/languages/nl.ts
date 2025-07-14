@@ -1797,7 +1797,7 @@ const translations = {
         nameOnCard: 'Naam op kaart',
         paymentCardNumber: 'Kaartnummer',
         expiration: 'Vervaldatum',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Factuuradres',
         growlMessageOnSave: 'Uw betaalkaart is succesvol toegevoegd',

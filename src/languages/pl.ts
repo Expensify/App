@@ -1793,7 +1793,7 @@ const translations = {
         nameOnCard: 'Imię na karcie',
         paymentCardNumber: 'Numer karty',
         expiration: 'Data wygaśnięcia',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Adres rozliczeniowy',
         growlMessageOnSave: 'Twoja karta płatnicza została pomyślnie dodana',
