@@ -46,8 +46,6 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
 
-    policy?: OnyxTypes.Policy;
-
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
@@ -113,7 +111,6 @@ function MoneyRequestReportTransactionList({
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
-    policy,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -139,7 +136,7 @@ function MoneyRequestReportTransactionList({
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -276,7 +273,7 @@ function MoneyRequestReportTransactionList({
                                             return;
                                         }
 
-                                        if (selectionMode?.isEnabled) {
+                                        if (isMobileSelectionModeEnabled) {
                                             toggleTransaction(transaction.transactionID);
                                             return;
                                         }
@@ -298,7 +295,7 @@ function MoneyRequestReportTransactionList({
                                         if (!isSmallScreenWidth) {
                                             return;
                                         }
-                                        if (selectionMode?.isEnabled) {
+                                        if (isMobileSelectionModeEnabled) {
                                             toggleTransaction(transaction.transactionID);
                                             return;
                                         }
@@ -315,7 +312,7 @@ function MoneyRequestReportTransactionList({
                                         taxAmountColumnSize={taxAmountColumnSize}
                                         shouldShowTooltip
                                         shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                        shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
+                                        shouldShowCheckbox={isMobileSelectionModeEnabled || !isSmallScreenWidth}
                                         onCheckboxPress={toggleTransaction}
                                         columns={allReportColumns}
                                         scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
@@ -358,7 +355,7 @@ function MoneyRequestReportTransactionList({
                             title={translate('common.select')}
                             icon={Expensicons.CheckSquare}
                             onPress={() => {
-                                if (!selectionMode?.isEnabled) {
+                                if (!isMobileSelectionModeEnabled) {
                                     turnOnMobileSelectionMode();
                                 }
                                 toggleTransaction(selectedTransactionID);
@@ -368,10 +365,7 @@ function MoneyRequestReportTransactionList({
                     </Modal>
                 </>
             ) : (
-                <SearchMoneyRequestReportEmptyState
-                    reportId={report.reportID}
-                    policy={policy}
-                />
+                <SearchMoneyRequestReportEmptyState />
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
                 <Animated.Text
