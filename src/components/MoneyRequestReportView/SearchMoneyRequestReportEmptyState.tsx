@@ -25,7 +25,6 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
             text: translate('iou.createNewExpense'),
             icon: Expensicons.Plus,
             onSelected: () => {
-                debugger;
                 if (!reportId) {
                     return;
                 }
@@ -33,7 +32,6 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                debugger;
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
             },
         },
