@@ -1562,7 +1562,7 @@ const translations = {
         signOutConfirmationText: 'Sie verlieren alle Offline-Änderungen, wenn Sie sich abmelden.',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment><mtm issmall>Lesen Sie die <a href="${termsURL}" style="text-decoration-line: none;">Nutzungsbedingungen</a> und <a href="${privacyURL}" style="text-decoration-line: none;">Datenschutz</a>.</mtm></comment>`,
+            `<comment><muted-micro-text issmall>Lesen Sie die <a href="${termsURL}">Nutzungsbedingungen</a> und <a href="${privacyURL}">Datenschutz</a>.</muted-micro-text></comment>`,
         help: 'Hilfe',
         whatIsNew: 'Was ist neu',
         accountSettings: 'Kontoeinstellungen',

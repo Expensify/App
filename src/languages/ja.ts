@@ -1555,7 +1555,7 @@ const translations = {
         signOutConfirmationText: 'サインアウトすると、オフラインでの変更が失われます。',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment><mtm issmall>読む <a href="${termsURL}" style="text-decoration-line: none;">利用規約</a> および <a href="${privacyURL}" style="text-decoration-line: none;">プライバシー</a>.</mtm></comment>`,
+            `<comment><muted-micro-text issmall>読む <a href="${termsURL}">利用規約</a> および <a href="${privacyURL}">プライバシー</a>.</muted-micro-text></comment>`,
         help: '助けて',
         whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',

@@ -1552,7 +1552,7 @@ const translations = {
         signOutConfirmationText: 'Utracisz wszystkie zmiany offline, jeśli się wylogujesz.',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment><mtm issmall>Przeczytaj <a href="${termsURL}" style="text-decoration-line: none;">Warunki korzystania z usługi</a> i <a href="${privacyURL}" style="text-decoration-line: none;">Prywatność</a>.</mtm issmall></comment>`,
+            `<comment><muted-micro-text issmall>Przeczytaj <a href="${termsURL}">Warunki korzystania z usługi</a> i <a href="${privacyURL}">Prywatność</a>.</muted-micro-text issmall></comment>`,
         help: 'Pomoc',
         whatIsNew: 'Co nowego',
         accountSettings: 'Ustawienia konta',
