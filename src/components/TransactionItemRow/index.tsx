@@ -474,6 +474,7 @@ function TransactionItemRow({
                                             disabled={isPendingDelete}
                                             onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                             accessibilityLabel={CONST.ROLE.RADIO}
+                                            newRadioButtonStyle
                                         />
                                     </View>
                                 )}
@@ -536,6 +537,7 @@ function TransactionItemRow({
                                             disabled={isPendingDelete}
                                             onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                             accessibilityLabel={CONST.ROLE.RADIO}
+                                            newRadioButtonStyle
                                         />
                                     </View>
                                 )}

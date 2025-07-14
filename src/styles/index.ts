@@ -3337,6 +3337,17 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        newRadioButtonContainer: {
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: variables.iconSizeNormal,
+            width: variables.iconSizeNormal,
+            borderColor: theme.border,
+            borderWidth: 2,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
         toggleSwitchLockIcon: {
             width: variables.iconSizeExtraSmall,
             height: variables.iconSizeExtraSmall,

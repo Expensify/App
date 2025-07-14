@@ -21,11 +21,44 @@ type RadioButtonProps = {
 
     /** Should the input be disabled  */
     disabled?: boolean;
+
+    /** Where we want to use new radio button style */
+    // https://expensify.slack.com/archives/C07HPDRELLD/p1752500012040139?thread_ts=1751637205.950179&cid=C07HPDRELLD
+    newRadioButtonStyle?: boolean;
 };
 
-function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false}: RadioButtonProps) {
+function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, newRadioButtonStyle = false}: RadioButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    if (newRadioButtonStyle) {
+        return (
+            <PressableWithFeedback
+                disabled={disabled}
+                onPress={onPress}
+                hoverDimmingValue={1}
+                pressDimmingValue={1}
+                accessibilityLabel={accessibilityLabel}
+                role={CONST.ROLE.RADIO}
+                style={[
+                    styles.newRadioButtonContainer,
+                    hasError && styles.borderColorDanger,
+                    disabled && styles.cursorDisabled,
+                    isChecked && styles.checkedContainer,
+                    isChecked && styles.borderColorFocus
+                ]}
+            >
+                {isChecked && (
+                    <Icon
+                        src={Expensicons.Checkmark}
+                        fill={theme.textLight}
+                        height={14}
+                        width={14}
+                    />
+                )}
+            </PressableWithFeedback>
+        )
+    }
 
     return (
         <PressableWithFeedback
