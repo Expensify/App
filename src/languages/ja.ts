@@ -3224,6 +3224,17 @@ const translations = {
             consent: 'プライバシー通知に同意してください',
         },
     },
+    docusignStep: {
+        subheader: 'Docusignフォーム',
+        pleaseComplete: '以下のDocusignリンクからACH認可フォームに記入し、署名済みのコピーをこちらにアップロードしてください。これにより、銀行口座から直接資金を引き落とすことができます。',
+        pleaseCompleteTheBusinessAccount: 'ビジネスアカウント申請書および口座振替契約を記入してください。',
+        pleaseCompleteTheDirect:
+            '以下のDocusignリンクを使用して口座振替契約を記入し、署名済みのコピーをこちらにアップロードしてください。これにより、銀行口座から直接資金を引き落とすことができます。',
+        takeMeTo: 'Docusignへ移動',
+        uploadAdditional: '追加書類をアップロード',
+        pleaseUpload: 'DEFTフォームおよびDocusign署名ページをアップロードしてください。',
+        pleaseUploadTheDirect: '口座振替契約およびDocusign署名ページをアップロードしてください。',
+    },
     finishStep: {
         connect: '銀行口座を接続',
         letsFinish: 'チャットで終わらせましょう！',

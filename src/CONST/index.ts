@@ -429,6 +429,11 @@ const CONST = {
     SMS: {
         DOMAIN: '@expensify.sms',
     },
+    DOCUSIGN_POWERFORM_LINK: {
+        US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
@@ -541,6 +546,7 @@ const CONST = {
             BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
             FINISH: 'FinishStep',
         },
         BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
@@ -590,6 +596,7 @@ const CONST = {
             },
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        DOCUSIGN_REQUIRED_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
             SUBSTEP: {
