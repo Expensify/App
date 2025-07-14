@@ -42,7 +42,7 @@
 - Reason: Disables non-translucent status bar to fix UI issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR Introducing Patch:
+- PR Introducing Patch: 🛑
 
 ### [react-native+0.79.2+007+TextInput.patch](react-native+0.79.2+007+TextInput.patch)
 
@@ -158,10 +158,10 @@
 
 ### [react-native+0.79.2+023+publish-gradle.patch](react-native+0.79.2+023+publish-gradle.patch)
 
-- Reason: Fixes Gradle publishing issues
+- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR Introducing Patch: 🛑
+- PR Introducing Patch: https://github.com/Expensify/App/pull/59738
 
 ### [react-native+0.79.2+024+restore-old-line-height-algorithm.patch](react-native+0.79.2+024+restore-old-line-height-algorithm.patch)
 
