@@ -1254,7 +1254,6 @@ const translations = {
         unheldExpense: 'débloqué cette dépense',
         moveUnreportedExpense: 'Déplacer la dépense non déclarée',
         addUnreportedExpense: 'Ajouter une dépense non déclarée',
-        createNewExpense: 'Créer une nouvelle dépense',
         selectUnreportedExpense: 'Sélectionnez au moins une dépense à ajouter au rapport.',
         emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",

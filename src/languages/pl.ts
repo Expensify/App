@@ -1246,7 +1246,6 @@ const translations = {
         unheldExpense: 'odblokowano ten wydatek',
         moveUnreportedExpense: 'Przenieś niezgłoszony wydatek',
         addUnreportedExpense: 'Dodaj niezgłoszony wydatek',
-        createNewExpense: 'Utwórz nowy wydatek',
         selectUnreportedExpense: 'Wybierz co najmniej jeden wydatek do dodania do raportu.',
         emptyStateUnreportedExpenseTitle: 'Brak niezgłoszonych wydatków',
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
