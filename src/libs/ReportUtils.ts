@@ -5295,7 +5295,7 @@ function getReportNameInternal({
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
+    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName || (report?.reportName ?? '');
 }
 
 /**
@@ -10048,6 +10048,22 @@ function getOutstandingReportsForUser(
 }
 
 /**
+ * Sort outstanding reports by their name, while keeping the selected one at the beginning.
+ * @param report1 Details of the first report to be compared.
+ * @param report2 Details of the second report to be compared.
+ * @param selectedReportID ID of the selected report which needs to be at the beginning.
+ */
+function sortOutstandingReportsBySelected(report1: OnyxEntry<Report>, report2: OnyxEntry<Report>, selectedReportID: string | undefined): number {
+    if (report1?.reportID === selectedReportID) {
+        return -1;
+    }
+    if (report2?.reportID === selectedReportID) {
+        return 1;
+    }
+    return report1?.reportName?.localeCompare(report2?.reportName?.toLowerCase() ?? '') ?? 0;
+}
+
+/**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
 function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): OutstandingChildRequest {
@@ -11438,6 +11454,7 @@ export {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     getReportActionWithMissingSmartscanFields,
     shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
