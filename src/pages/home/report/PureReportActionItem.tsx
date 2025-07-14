@@ -821,7 +821,7 @@ function PureReportActionItem({
 
         const actionableMentionWhisperOptions = [];
 
-        if (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) {
+        if (isExpenseReport(report) && (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID))) {
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
