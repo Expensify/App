@@ -15,6 +15,7 @@ const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx,js,jsx}';
 const EXCLUDED_STYLE_DIRECTORIES = ['src/styles/utils/', 'src/styles/generators/', 'src/styles/theme/'];
 const VALID_IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 const SPREAD_PROPERTY_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+const SIMPLE_SPREAD_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\b(?!\s*\.)/g;
 const STYLE_KEY_SKIP_PATTERNS = ['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet'];
 
 // Comment removal patterns
@@ -99,6 +100,10 @@ class ComprehensiveStylesFinder {
                         if (returnObject && ts.isObjectLiteralExpression(returnObject)) {
                             // Process each property in the returned object
                             this.processObjectProperties(returnObject, sourceFile, file);
+
+                            // After processing style definitions, check for spread patterns within this styles file
+                            const fileContent = sourceFile.getFullText();
+                            this.checkSpreadPatternsInStylesFile(fileContent);
                         }
                     }
                     return; // Don't continue traversing for styles function
@@ -296,10 +301,7 @@ class ComprehensiveStylesFinder {
         // Remove comments to avoid false positives
         const cleanContent = this.removeComments(content);
 
-        // Check for specific spread patterns and mark only relevant styles
-        this.checkSpecificSpreadUsage(cleanContent);
-
-        // Now check individual style usage patterns - iterate over current definitions
+        // Check individual style usage patterns - iterate over current definitions
         const keysToCheck = Array.from(this.styleDefinitions.keys());
         for (const key of keysToCheck) {
             if (this.isStyleUsedInContent(key, cleanContent)) {
@@ -319,7 +321,7 @@ class ComprehensiveStylesFinder {
         return cleanContent;
     }
 
-    private checkSpecificSpreadUsage(content: string): void {
+    private checkSpreadPatternsInStylesFile(content: string): void {
         // Look for specific property spreads like ...positioning.pFixed
         const specificMatches = content.matchAll(SPREAD_PROPERTY_PATTERN);
         for (const match of specificMatches) {
@@ -333,6 +335,17 @@ class ComprehensiveStylesFinder {
 
             if (this.styleDefinitions.has(propertyName)) {
                 this.styleDefinitions.delete(propertyName);
+            }
+        }
+
+        // Look for simple spread patterns like ...baseStyle (excludes property spreads via negative lookahead)
+        const simpleMatches = content.matchAll(SIMPLE_SPREAD_PATTERN);
+        for (const match of simpleMatches) {
+            const objectName = match[1]; // e.g., "baseStyle"
+
+            // Mark the object name as used by removing from definitions
+            if (this.styleDefinitions.has(objectName)) {
+                this.styleDefinitions.delete(objectName);
             }
         }
     }
@@ -444,3 +457,6 @@ function main() {
 if (require.main === module) {
     main();
 }
+
+export {ComprehensiveStylesFinder};
+export type {StyleDefinition};
