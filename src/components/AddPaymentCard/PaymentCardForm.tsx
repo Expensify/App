@@ -160,18 +160,15 @@ function PaymentCardForm({
 
         if (value.length >= 2) {
             const month = parseInt(value.slice(0, 2), 10);
-
             if (value.startsWith('00')) {
                 value = '0';
             }
-
             if (month > 12) {
                 value = `0${value.charAt(0)}${value.charAt(1)}${value.charAt(2)}`;
             }
         }
 
-        const prevValue = previousvalueRef.current?.replace(CONST.REGEX.NON_NUMERIC, '') ?? '';
-
+        const prevValue = previousValueRef.current?.replace(CONST.REGEX.NON_NUMERIC, '') ?? '';
         let formattedValue = value;
 
         if (value.length === 2 && prevValue.length < 2) {
@@ -180,8 +177,7 @@ function PaymentCardForm({
             formattedValue = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
         }
 
-        previousvalueRef.current = formattedValue;
-
+        previousValueRef.current = formattedValue;
         setExpirationDate(formattedValue);
     }, []);
 
