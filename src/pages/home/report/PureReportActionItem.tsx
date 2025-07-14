@@ -148,7 +148,6 @@ import {
     isChatThread,
     isCompletedTaskReport,
     isExpenseReport,
-    isPolicyRelatedReport,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
