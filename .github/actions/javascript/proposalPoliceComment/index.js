@@ -11554,30 +11554,13 @@ const date_fns_tz_1 = __nccwpck_require__(99297);
 const ActionUtils_1 = __nccwpck_require__(96981);
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
-const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
+const proposalPolice_1 = __importDefault(__nccwpck_require__(67282));
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(23956));
 function isCommentCreatedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.CREATED;
 }
 function isCommentEditedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.EDITED;
-}
-class ProposalPoliceTemplates {
-    static getPromptForNewProposalTemplateCheck(commentBody) {
-        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
-    }
-    static getPromptForNewProposalDuplicateCheck(existingProposal, newProposalBody) {
-        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
-    }
-    static getPromptForEditedProposal(previousBody, editedBody) {
-        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
-    }
-    static getDuplicateCheckWithdrawMessage() {
-        return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
-    }
-    static getDuplicateCheckNoticeMessage(proposalAuthor) {
-        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
-    }
 }
 // Main function to process the workflow event
 async function run() {
@@ -11629,37 +11612,37 @@ async function run() {
         console.log('Get comments for issue #', issueNumber);
         const commentsResponse = await GithubUtils_1.default.getAllCommentDetails(issueNumber);
         console.log('commentsResponse', commentsResponse);
-        // Find previous proposals
-        const previousProposals = commentsResponse?.filter((comment) => new Date(comment.created_at).getTime() < newProposalCreatedAt && comment.body?.includes(CONST_1.default.PROPOSAL_KEYWORD));
         let didFindDuplicate = false;
-        for (const previousProposal of previousProposals) {
+        for (const previousProposal of commentsResponse) {
             const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
-            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
-            // Skip prompting if comment is author is the GH bot or comment is empty / not a proposal
-            if (isAuthorBot || !isProposal) {
+            const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
+            // Early continue if not a proposal or previous comment is newer than current one
+            if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const duplicateCheckPrompt = ProposalPoliceTemplates.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
+            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
+            // Skip prompting if comment author is the GH bot
+            if (isAuthorBot) {
+                continue;
+            }
+            const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
-            try {
-                const parsedDuplicateCheckResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(duplicateCheckResponse));
-                console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
+            console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            if (parsedDuplicateCheckResponse) {
                 const { similarity = 0 } = parsedDuplicateCheckResponse ?? {};
                 similarityPercentage = (0, ActionUtils_1.convertToNumber)(similarity);
-            }
-            catch (e) {
-                console.error('Failed to parse AI response:', duplicateCheckResponse);
-            }
-            if (similarityPercentage >= 90) {
-                console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
-                didFindDuplicate = true;
-                break;
+                if (similarityPercentage >= 90) {
+                    console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
+                    didFindDuplicate = true;
+                    break;
+                }
             }
         }
         if (didFindDuplicate) {
-            const duplicateCheckWithdrawMessage = ProposalPoliceTemplates.getDuplicateCheckWithdrawMessage();
-            const duplicateCheckNoticeMessage = ProposalPoliceTemplates.getDuplicateCheckNoticeMessage(newProposalAuthor);
+            const duplicateCheckWithdrawMessage = proposalPolice_1.default.getDuplicateCheckWithdrawMessage();
+            const duplicateCheckNoticeMessage = proposalPolice_1.default.getDuplicateCheckNoticeMessage(newProposalAuthor);
             // If a duplicate proposal is detected, update the comment to withdraw it
             console.log('ProposalPolice™ withdrawing duplicated proposal...');
             await GithubUtils_1.default.octokit.issues.updateComment({
@@ -11676,10 +11659,10 @@ async function run() {
         }
     }
     const prompt = isCommentCreatedEvent(payload)
-        ? ProposalPoliceTemplates.getPromptForNewProposalTemplateCheck(payload.comment?.body)
-        : ProposalPoliceTemplates.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
+        ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
+        : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
+    const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
     // fallback to empty strings to avoid crashing in case parsing fails
     const { action = '', message = '' } = parsedAssistantResponse ?? {};
@@ -12492,6 +12475,38 @@ exports["default"] = sanitizeJSONStringValues;
 
 /***/ }),
 
+/***/ 67282:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST_1 = __importDefault(__nccwpck_require__(29873));
+class ProposalPoliceTemplates {
+    static getPromptForNewProposalTemplateCheck(commentBody) {
+        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
+    }
+    static getPromptForNewProposalDuplicateCheck(existingProposal, newProposalBody) {
+        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
+    }
+    static getPromptForEditedProposal(previousBody, editedBody) {
+        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
+    }
+    static getDuplicateCheckWithdrawMessage() {
+        return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
+    }
+    static getDuplicateCheckNoticeMessage(proposalAuthor) {
+        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
+    }
+}
+exports["default"] = ProposalPoliceTemplates;
+
+
+/***/ }),
+
 /***/ 23956:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -12502,6 +12517,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const openai_1 = __importDefault(__nccwpck_require__(60047));
+const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
 const retryWithBackoff_1 = __importDefault(__nccwpck_require__(54583));
 class OpenAIUtils {
     /**
@@ -12512,6 +12528,18 @@ class OpenAIUtils {
      * The maximum amount of time to wait for a thread to produce a response.
      */
     static POLL_TIMEOUT = 90000;
+    /**
+     * The role of the `user` in the OpenAI model.
+     */
+    static USER = 'user';
+    /**
+     * The role of the `assistant` in the OpenAI model.
+     */
+    static ASSISTANT = 'assistant';
+    /**
+     * The status of a completed run in the OpenAI model.
+     */
+    static OPENAI_RUN_COMPLETED = 'completed';
     /**
      * The maximum number of requests to make when polling for thread completion.
      */
@@ -12546,29 +12574,30 @@ class OpenAIUtils {
      * Prompt a pre-defined assistant.
      */
     async promptAssistant(assistantID, userMessage) {
-        // start a thread run
-        let threadRun = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.createAndRun({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            assistant_id: assistantID,
-            thread: {
-                messages: [{ role: 'user', content: userMessage }],
-            },
+        // 1. Create a thread
+        const thread = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.create({
+            messages: [{ role: OpenAIUtils.USER, content: userMessage }],
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        // poll for completion
+        // 2. Create a run on the thread
+        let run = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.runs.create(thread.id, {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            assistant_id: assistantID,
+        }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
+        // 3. Poll for completion
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, { thread_id: threadRun.id });
-            if (threadRun.status !== 'completed') {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
+            if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
                 await new Promise((resolve) => {
                     setTimeout(resolve, OpenAIUtils.POLL_RATE);
                 });
                 continue;
             }
-            for await (const message of this.client.beta.threads.messages.list(threadRun.thread_id)) {
-                if (message.role !== 'assistant') {
+            for await (const message of this.client.beta.threads.messages.list(thread.id)) {
+                if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;
                 }
                 response += message.content
@@ -12609,6 +12638,22 @@ class OpenAIUtils {
             );
         }
         return false;
+    }
+    parseAssistantResponse(response) {
+        const sanitized = (0, sanitizeJSONStringValues_1.default)(response);
+        let parsed;
+        try {
+            parsed = JSON.parse(sanitized);
+        }
+        catch (e) {
+            console.error('Failed to parse AI response as JSON:', response);
+            return null;
+        }
+        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
+            console.error('AI response missing required fields:', parsed);
+            return null;
+        }
+        return parsed;
     }
 }
 exports["default"] = OpenAIUtils;

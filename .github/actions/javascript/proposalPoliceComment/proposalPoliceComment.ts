@@ -6,15 +6,9 @@ import {toZonedTime} from 'date-fns-tz';
 import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import type {ListCommentsResponse} from '@github/libs/GithubUtils';
-import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
+import ProposalPoliceTemplates from '@prompts/proposalPolice';
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
-
-type AssistantResponse = {
-    action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED;
-    message: string;
-    similarity?: number;
-};
+import type {AssistantResponse, DuplicateProposalResponse} from '@scripts/utils/OpenAIUtils';
 
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
@@ -22,28 +16,6 @@ function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueComm
 
 function isCommentEditedEvent(payload: IssueCommentEvent): payload is IssueCommentEditedEvent {
     return payload.action === CONST.ACTIONS.EDITED;
-}
-
-class ProposalPoliceTemplates {
-    static getPromptForNewProposalTemplateCheck(commentBody?: string): string {
-        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
-    }
-
-    static getPromptForNewProposalDuplicateCheck(existingProposal?: string, newProposalBody?: string): string {
-        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
-    }
-
-    static getPromptForEditedProposal(previousBody?: string, editedBody?: string): string {
-        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
-    }
-
-    static getDuplicateCheckWithdrawMessage(): string {
-        return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
-    }
-
-    static getDuplicateCheckNoticeMessage(proposalAuthor: string): string {
-        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
-    }
 }
 
 // Main function to process the workflow event
@@ -106,36 +78,34 @@ async function run() {
         console.log('Get comments for issue #', issueNumber);
         const commentsResponse = await GithubUtils.getAllCommentDetails(issueNumber);
         console.log('commentsResponse', commentsResponse);
-        // Find previous proposals
-        const previousProposals = commentsResponse?.filter(
-            (comment: ListCommentsResponse['data'][number]) => new Date(comment.created_at).getTime() < newProposalCreatedAt && comment.body?.includes(CONST.PROPOSAL_KEYWORD),
-        );
 
         let didFindDuplicate = false;
-        for (const previousProposal of previousProposals) {
+        for (const previousProposal of commentsResponse) {
             const isProposal = !!previousProposal.body?.includes(CONST.PROPOSAL_KEYWORD);
+            const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
+            // Early continue if not a proposal or previous comment is newer than current one
+            if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
+                continue;
+            }
             const isAuthorBot = previousProposal.user?.login === CONST.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST.COMMENT.TYPE_BOT;
-            // Skip prompting if comment is author is the GH bot or comment is empty / not a proposal
-            if (isAuthorBot || !isProposal) {
+            // Skip prompting if comment author is the GH bot
+            if (isAuthorBot) {
                 continue;
             }
 
             const duplicateCheckPrompt = ProposalPoliceTemplates.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
-            try {
-                const parsedDuplicateCheckResponse = JSON.parse(sanitizeJSONStringValues(duplicateCheckResponse)) as AssistantResponse;
-                console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
+            console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            if (parsedDuplicateCheckResponse) {
                 const {similarity = 0} = parsedDuplicateCheckResponse ?? {};
                 similarityPercentage = convertToNumber(similarity);
-            } catch (e) {
-                console.error('Failed to parse AI response:', duplicateCheckResponse);
-            }
-
-            if (similarityPercentage >= 90) {
-                console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
-                didFindDuplicate = true;
-                break;
+                if (similarityPercentage >= 90) {
+                    console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
+                    didFindDuplicate = true;
+                    break;
+                }
             }
         }
 
@@ -163,7 +133,7 @@ async function run() {
         : ProposalPoliceTemplates.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    const parsedAssistantResponse = JSON.parse(sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
+    const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
 
     // fallback to empty strings to avoid crashing in case parsing fails
