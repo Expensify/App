@@ -208,7 +208,7 @@ class CLI<TConfig extends CLIConfig> {
             // Validate that all required args are present, assign defaults where values are not parsed
             for (const [name, spec] of Object.entries(config.namedArgs ?? {})) {
                 if (!(name in parsedNamedArgs)) {
-                    if (spec.default) {
+                    if (spec.default !== undefined) {
                         parsedNamedArgs[name as keyof typeof parsedNamedArgs] = spec.default as ValueOf<typeof parsedNamedArgs>;
                     } else {
                         throw new Error(`Missing required named argument --${name}`);
@@ -217,7 +217,7 @@ class CLI<TConfig extends CLIConfig> {
             }
             for (const spec of config.positionalArgs ?? []) {
                 if (!(spec.name in parsedPositionalArgs)) {
-                    if (spec.default) {
+                    if (spec.default !== undefined) {
                         parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = spec.default as ValueOf<typeof parsedPositionalArgs>;
                     } else {
                         throw new Error(`Missing required positional argument --${spec.name}`);

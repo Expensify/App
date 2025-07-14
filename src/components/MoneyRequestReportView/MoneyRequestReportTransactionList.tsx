@@ -125,7 +125,7 @@ function MoneyRequestReportTransactionList({
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -193,7 +193,9 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}),
+                );
             });
         },
         [reportActions, sortedTransactions],
@@ -266,7 +268,7 @@ function MoneyRequestReportTransactionList({
                                             return;
                                         }
 
-                                        if (selectionMode?.isEnabled) {
+                                        if (isMobileSelectionModeEnabled) {
                                             toggleTransaction(transaction.transactionID);
                                             return;
                                         }
@@ -288,7 +290,7 @@ function MoneyRequestReportTransactionList({
                                         if (!isSmallScreenWidth) {
                                             return;
                                         }
-                                        if (selectionMode?.isEnabled) {
+                                        if (isMobileSelectionModeEnabled) {
                                             toggleTransaction(transaction.transactionID);
                                             return;
                                         }
@@ -305,7 +307,7 @@ function MoneyRequestReportTransactionList({
                                         taxAmountColumnSize={taxAmountColumnSize}
                                         shouldShowTooltip
                                         shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                        shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
+                                        shouldShowCheckbox={isMobileSelectionModeEnabled || !isSmallScreenWidth}
                                         onCheckboxPress={toggleTransaction}
                                         columns={columnsToShow}
                                         scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
@@ -348,7 +350,7 @@ function MoneyRequestReportTransactionList({
                             title={translate('common.select')}
                             icon={Expensicons.CheckSquare}
                             onPress={() => {
-                                if (!selectionMode?.isEnabled) {
+                                if (!isMobileSelectionModeEnabled) {
                                     turnOnMobileSelectionMode();
                                 }
                                 toggleTransaction(selectedTransactionID);
