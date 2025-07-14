@@ -551,7 +551,7 @@ function MoneyRequestReportActionsList({
     }, []);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
-
+    const keyExtractor = useCallback((item: OnyxEntry.ReportAction) => item.reportActionID, []);
     return (
         <View
             style={[styles.flex1]}
@@ -638,7 +638,7 @@ function MoneyRequestReportActionsList({
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.reportActionID}
+                        keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={0.75}
