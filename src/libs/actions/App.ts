@@ -136,13 +136,11 @@ Onyx.connect({
     },
 });
 
-let allReportsDraftComment: OnyxCollection<string> = {};
+let allReportsDraftComment: Record<string, string | undefined> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
-    callback: (value) => {
-        allReportsDraftComment = value;
-    },
+    callback: (value) => (allReportsDraftComment = value),
 });
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
