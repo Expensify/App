@@ -1651,9 +1651,10 @@ const translations = {
             afterEmail: 'in andere accounts. Voeg in plaats daarvan andere accounts samen in dit account.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'in andere accounts omdat het de factuureigenaar van een gefactureerd account is. Voeg in plaats daarvan andere accounts samen in dit account.',
+            beforeEmail: 'Je kunt accounts niet samenvoegen met ',
+            afterEmail: ' omdat dit account een gefactureerde factureringsrelatie heeft.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Probeer het later opnieuw',
             description: 'Er waren te veel pogingen om accounts samen te voegen. Probeer het later opnieuw.',
@@ -1796,7 +1797,7 @@ const translations = {
         nameOnCard: 'Naam op kaart',
         paymentCardNumber: 'Kaartnummer',
         expiration: 'Vervaldatum',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Factuuradres',
         growlMessageOnSave: 'Uw betaalkaart is succesvol toegevoegd',
@@ -3224,6 +3225,18 @@ const translations = {
             certify: 'Verklaar alstublieft dat de informatie waar en nauwkeurig is.',
             consent: 'Gelieve in te stemmen met de privacyverklaring.',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign-formulier',
+        pleaseComplete:
+            'Vul het ACH-autorisatieformulier in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        pleaseCompleteTheBusinessAccount: 'Vul de aanvraag voor een zakelijke rekening en de automatische incassoregeling in.',
+        pleaseCompleteTheDirect:
+            'Vul de automatische incassoregeling in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        takeMeTo: 'Ga naar Docusign',
+        uploadAdditional: 'Upload extra documentatie',
+        pleaseUpload: 'Upload het DEFT-formulier en de ondertekende Docusign-pagina.',
+        pleaseUploadTheDirect: 'Upload de automatische incassoregelingen en de Docusign-handtekeningenpagina.',
     },
     finishStep: {
         connect: 'Bankrekening koppelen',
@@ -6443,7 +6456,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned:
-            'Uitgavendetails en bon handmatig toegevoegd. Controleer de details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer informatie</a> over automatische controle van alle bonnen.',
+            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Bon vereist';
             if (formattedLimit ?? category) {
