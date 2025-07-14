@@ -55,7 +55,7 @@ type GetReportPrimaryActionParams = {
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
-    isChatReportArchived?: boolean;
+    isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
 };
 
