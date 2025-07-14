@@ -142,7 +142,7 @@ function PaymentCardForm({
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
     const [expirationDate, setExpirationDate] = useState(data?.expirationDate);
 
-    const previousvalueRef = useRef<string>('');
+    const previousValueRef = useRef<string>('');
 
     const onChangeExpirationDate = useCallback((newValue: string) => {
         if (typeof newValue !== 'string') {
