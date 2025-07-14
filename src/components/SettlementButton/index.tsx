@@ -9,6 +9,7 @@ import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -88,6 +89,8 @@ function SettlementButton({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isOnSearch} = useSearchContext();
+
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -107,7 +110,7 @@ function SettlementButton({
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserAccountID = getCurrentUserAccountID().toString();
-    const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const activeAdminPolicies = getActiveAdminWorkspaces(!isOnSearch ? policies : undefined, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     const reportID = iouReport?.reportID;
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
@@ -556,6 +559,7 @@ function SettlementButton({
     const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isInvoiceReport || isExpenseReportUtil(iouReport)) && hasIntentToPay);
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
+    console.log({activeAdminPolicies, policies});
     return (
         <KYCWall
             onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
