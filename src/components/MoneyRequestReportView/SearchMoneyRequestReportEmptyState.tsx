@@ -32,7 +32,7 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+                startMoneyRequest(CONST.IOU.TYPE.CREATE, reportId);
             },
         },
         {

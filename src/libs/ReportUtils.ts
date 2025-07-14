@@ -2427,6 +2427,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    debugger;
     if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
@@ -2434,6 +2435,9 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
 
+    let a = arePaymentsEnabled(policy);
+    let b = isInstantSubmitEnabled(policy);
+    let c = isSubmitAndClose(policy);
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy)) {
         return false;
     }
