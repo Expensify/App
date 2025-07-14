@@ -1,7 +1,6 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
-import type {AppProps} from '@src/App';
 import type {Route} from '@src/ROUTES';
 
 type InitialUrlContextType = {
@@ -15,7 +14,7 @@ const InitialURLContext = createContext<InitialUrlContextType>({
     setInitialURL: () => {},
 });
 
-type InitialURLContextProviderProps = AppProps & {
+type InitialURLContextProviderProps = {
     /** Children passed to the context provider */
     children: ReactNode;
 };
