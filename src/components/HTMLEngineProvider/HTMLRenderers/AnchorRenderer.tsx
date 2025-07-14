@@ -8,6 +8,9 @@ import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import useHover from '@hooks/useHover';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -19,9 +22,12 @@ type AnchorRendererProps = CustomRendererProps<TBlock> & {
 };
 
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
+    const {hovered, bind} = useHover();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
     const tNodeChild = tnode?.domNode?.children?.at(0);
@@ -36,7 +42,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
 
-    const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
+    const textDecorationLineStyle = isDeleted ? styles.lineThrough : {};
 
     const onLinkPress = useMemo(() => {
         if (internalNewExpensifyPath || internalExpensifyPath) {
@@ -86,6 +92,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
+    const hoverStyle = hovered ? StyleUtils.getColorStyle(theme.linkHover) : {};
     return (
         <AnchorForCommentsOnly
             href={attrHref}
@@ -99,15 +106,19 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             style={[
                 style,
                 parentStyle,
+                styles.textDecorationLineNone,
                 textDecorationLineStyle,
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
                 styles.dInlineFlex,
+                hoverStyle,
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...bind}
             linkHasImage={linkHasImage}
         >
             <TNodeChildrenRenderer
@@ -123,10 +134,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                 style={[
                                     props.childTnode.getNativeStyles(),
                                     parentStyle,
+                                    styles.textDecorationLineNone,
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
                                     styles.dInlineFlex,
+                                    hoverStyle,
                                 ]}
                             >
                                 {props.childTnode.data}

@@ -109,7 +109,7 @@ function KYCWall({
             }
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                openPersonalBankAccountSetupView();
+                openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: isIOUReport(iouReport)});
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
@@ -228,7 +228,7 @@ function KYCWall({
                 }
 
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (paymentMethod || policy) {
+                if ((paymentMethod || policy) && !hasActivatedWallet) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
                     return;

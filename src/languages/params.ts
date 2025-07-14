@@ -137,9 +137,13 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type WorkspacesListRouteParams = {
+    workspacesListRoute: string;
+};
+
 type BusinessBankAccountParams = {
-    amount: string;
-    last4Digits: string;
+    amount?: string;
+    last4Digits?: string;
 };
 
 type WorkspaceRouteParams = {
@@ -1072,6 +1076,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
 };

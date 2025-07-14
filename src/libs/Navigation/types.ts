@@ -585,6 +585,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
@@ -1767,6 +1768,8 @@ type ReportsSplitNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
+        parentReportID?: string;
+        parentReportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
@@ -2071,6 +2074,7 @@ type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
         reportActionID?: string;
+        backTo?: Routes;
     };
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         /** ID of the transaction the page was opened for */
