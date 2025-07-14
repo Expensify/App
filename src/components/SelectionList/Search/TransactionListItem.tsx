@@ -39,7 +39,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
 
-    const mergedListItemStyle = [
+    const pressableStyle = [
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
         item.isSelected && styles.activeComponentBG,
@@ -112,11 +112,12 @@ function TransactionListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
+                onMouseDown={(e) => e.preventDefault()}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 style={[
-                    mergedListItemStyle,
+                    pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}

@@ -76,7 +76,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const mergedListItemStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
+    const pressableStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
@@ -176,7 +176,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 style={[
-                    mergedListItemStyle,
+                    pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
