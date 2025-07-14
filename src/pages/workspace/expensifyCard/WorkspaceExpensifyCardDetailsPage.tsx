@@ -99,7 +99,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!card && !isLoadingOnyxValue(cardsListResult)) {
+    if (!card?.cardID && !isLoadingOnyxValue(cardsListResult)) {
         return <NotFoundPage />;
     }
 
