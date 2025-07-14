@@ -3320,7 +3320,7 @@ const translations = {
         departs: 'Départs',
         errorMessage: 'Un problème est survenu. Veuillez réessayer plus tard.',
         phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
-            `<comment><pat>S'il vous plaît <a href="${phoneErrorMethodsRoute}" style="text-decoration-line: none;">ajoutez un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.</pat></comment>`,
+            `<comment><phone-error>S'il vous plaît <a href="${phoneErrorMethodsRoute}">ajoutez un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.</phone-error></comment>`,
         domainSelector: {
             title: 'Domaine',
             subtitle: "Choisissez un domaine pour la configuration d'Expensify Travel.",

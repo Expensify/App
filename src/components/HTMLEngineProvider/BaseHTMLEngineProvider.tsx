@@ -58,11 +58,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
-            pat: HTMLElementModel.fromCustomModel({
-                tagName: 'pat',
+            'phone-error': HTMLElementModel.fromCustomModel({
+                tagName: 'phone-error',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.issmall === undefined) {
-                        return {...styles.formError, ...styles.mb0};
+                        return {...styles.formError, ...styles.mb0, textDecorationLine: 'none'};
                     }
                     return {...styles.formError, ...styles.mb0, ...styles.textMicro};
                 },
@@ -190,7 +190,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing
+            enableCSSInlineProcessing={false}
             systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
