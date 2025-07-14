@@ -11,8 +11,8 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 
 type BankWithdrawalListItemHeaderProps<TItem extends ListItem> = {
-    /** The bank currently being looked at */
-    bank: TransactionBankWithdrawalGroupListItemType;
+    /** The bank withdrawal currently being looked at */
+    bankWithdrawal: TransactionBankWithdrawalGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -20,25 +20,24 @@ type BankWithdrawalListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is hovered */
-    isHovered?: boolean;
-
-    /** Whether the item is focused */
-    isFocused?: boolean;
-
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
 };
 
-function BankWithdrawalListItemHeader<TItem extends ListItem>({bank: bankItem, onCheckboxPress, isDisabled, canSelectMultiple}: BankWithdrawalListItemHeaderProps<TItem>) {
+function BankWithdrawalListItemHeader<TItem extends ListItem>({
+    bankWithdrawal: bankWithdrawalItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+}: BankWithdrawalListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName: bankItem.bankName, styles});
-    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankItem.bankName];
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: bankWithdrawalItem.bankName, styles});
+    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankWithdrawalItem.bankName];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
-        bankItem.withdrawalDate,
-        DateUtils.doesDateBelongToAPastYear(bankItem.withdrawalDate) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        bankWithdrawalItem.withdrawalDate,
+        DateUtils.doesDateBelongToAPastYear(bankWithdrawalItem.withdrawalDate) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
 
     // s77rt add total cell, action cell and collapse/expand button
@@ -49,9 +48,9 @@ function BankWithdrawalListItemHeader<TItem extends ListItem>({bank: bankItem, o
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(bankItem as unknown as TItem)}
-                            isChecked={bankItem.isSelected}
-                            disabled={!!isDisabled || bankItem.isDisabledCheckbox}
+                            onPress={() => onCheckboxPress?.(bankWithdrawalItem as unknown as TItem)}
+                            isChecked={bankWithdrawalItem.isSelected}
+                            disabled={!!isDisabled || bankWithdrawalItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
@@ -64,11 +63,11 @@ function BankWithdrawalListItemHeader<TItem extends ListItem>({bank: bankItem, o
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip
-                                text={`${formattedBankName} (${translate('bankAccount.accountEnding')} ${bankItem.lastFourPAN})`}
+                                text={`${formattedBankName} (${translate('bankAccount.accountEnding')} ${bankWithdrawalItem.lastFourPAN})`}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
-                                text={`${formattedWithdrawalDate}  ${translate('common.entryID')}: ${bankItem.entryID}`}
+                                text={`${formattedWithdrawalDate}  ${translate('common.entryID')}: ${bankWithdrawalItem.entryID}`}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>

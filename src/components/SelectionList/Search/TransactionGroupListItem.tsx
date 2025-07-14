@@ -6,6 +6,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
+    TransactionBankWithdrawalGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
@@ -30,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import BankWithdrawalListItemHeader from './BankWithdrawalListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
@@ -149,8 +151,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
             [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: (
-                // s77rt BankWithdrawalListItemHeader
-                <View />
+                <BankWithdrawalListItemHeader
+                    bankWithdrawal={groupItem as TransactionBankWithdrawalGroupListItemType}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    canSelectMultiple={canSelectMultiple}
+                />
             ),
         };
 
