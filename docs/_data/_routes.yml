@@ -169,7 +169,7 @@ platforms:
         description: "Learn how to easily manage, modify, or cancel your trips."
 
       - href: company-setup
-        title: Setting up your company in Expensify travel
+        title: Setting up your company in Expensify Travel
         icon: /assets/images/gears.svg
         description: "Configure your company profile in Expensify Travel, and set your preferences, approval type, and more."
 
