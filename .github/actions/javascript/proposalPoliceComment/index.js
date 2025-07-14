@@ -12575,11 +12575,15 @@ class OpenAIUtils {
      */
     async promptAssistant(assistantID, userMessage) {
         // 1. Create a thread
-        const thread = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.create({
+        const thread = await (0, retryWithBackoff_1.default)(() => 
+        // eslint-disable-next-line deprecation/deprecation
+        this.client.beta.threads.create({
             messages: [{ role: OpenAIUtils.USER, content: userMessage }],
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         // 2. Create a run on the thread
-        let run = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.runs.create(thread.id, {
+        let run = await (0, retryWithBackoff_1.default)(() => 
+        // eslint-disable-next-line deprecation/deprecation
+        this.client.beta.threads.runs.create(thread.id, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             assistant_id: assistantID,
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
@@ -12587,7 +12591,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention, deprecation/deprecation
             run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
@@ -12596,6 +12600,7 @@ class OpenAIUtils {
                 });
                 continue;
             }
+            // eslint-disable-next-line deprecation/deprecation
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;
