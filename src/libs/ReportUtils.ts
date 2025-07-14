@@ -2396,11 +2396,17 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === session?.accountID;
+
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
+                // if there is a manager assigned we need to check if user is admin and manager to fix issue https://github.com/Expensify/App/issues/64825
+                if (iouReport?.managerID) {
+                    return isAdmin && isManager;
+                } 
+                // If we get here without a reimburser only show the pay button if we are the admin.
                 return isAdmin;
+
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
