@@ -3,7 +3,7 @@ import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -192,33 +192,28 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     // Custom animation for fade effect
-    const opacity = useSharedValue(1);
+    const opacity = useSharedValue(0);
     const animatedStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
 
     // Function to trigger fade animation manually
-    const triggerFadeAnimation = useCallback(() => {
-        console.log('animating');
-        opacity.value = withTiming(0, {duration: 300}, () => {
-            opacity.value = withTiming(1, {duration: 300});
-        });
-    }, [opacity]);
-
-    // Track when to trigger animation
-    const animationTrigger = useMemo(() => JSON.stringify(queryJSON) + JSON.stringify(searchResults?.search.columnsToShow), [queryJSON, searchResults?.search.columnsToShow]);
-    const previousAnimationTrigger = usePrevious(animationTrigger);
+    const triggerFadeAnimation = useCallback(
+        (initial = false) => {
+            if (initial) {
+                opacity.value = withTiming(1, {duration: 300});
+                return;
+            }
+            opacity.value = withTiming(0, {duration: 300}, () => {
+                opacity.value = withTiming(1, {duration: 300});
+            });
+        },
+        [opacity],
+    );
 
     useEffect(() => {
-        triggerFadeAnimation();
+        triggerFadeAnimation(true);
     }, [triggerFadeAnimation]);
-
-    // Trigger animation when query or columns change
-    useEffect(() => {
-        if (previousAnimationTrigger && previousAnimationTrigger !== animationTrigger) {
-            triggerFadeAnimation();
-        }
-    }, [animationTrigger, previousAnimationTrigger, triggerFadeAnimation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -549,8 +544,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (shallowCompare(currentColumns, previousColumnsRef.current)) {
             return;
         }
+        triggerFadeAnimation();
         previousColumnsRef.current = {...currentColumns};
-    }, [currentColumns]);
+    }, [currentColumns, triggerFadeAnimation]);
 
     const columnsToShow = useMemo(() => {
         const columns = {...currentColumns};
@@ -695,7 +691,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     return (
         <SearchScopeProvider isOnSearch>
-            <Animated.View style={[styles.flex1, animatedStyle]}>
+            <Animated.View
+                entering={FadeIn.duration(300)}
+                exiting={FadeOut.duration(300)}
+                style={[styles.flex1, animatedStyle]}
+            >
                 <SearchList
                     ref={searchListRef}
                     data={sortedSelectedData}
