@@ -267,12 +267,14 @@ function ButtonWithDropdownMenu<IValueType>({
                         ...item,
                         onSelected: item.onSelected
                             ? () => {
+                                  debugger;
                                   item.onSelected?.();
                                   if (item.shouldUpdateSelectedIndex) {
                                       setSelectedItemIndex(index);
                                   }
                               }
                             : () => {
+                                  debugger;
                                   onOptionSelected?.(item);
                                   if (item.shouldUpdateSelectedIndex === false) {
                                       return;
