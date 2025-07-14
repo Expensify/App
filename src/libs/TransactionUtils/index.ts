@@ -325,6 +325,10 @@ function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
 }
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.wasMerchantCleared) {
+        return true;
+    }
+
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
