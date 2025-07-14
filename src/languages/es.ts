@@ -1782,7 +1782,7 @@ const translations = {
         nameOnCard: 'Nombre en la tarjeta',
         paymentCardNumber: 'Número de la tarjeta',
         expiration: 'Fecha de vencimiento',
-        expirationDate: 'MMAA',
+        expirationDate: 'MM/AA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
         growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
@@ -7101,7 +7101,7 @@ const translations = {
                 subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `${numOfDays} días`}!`,
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
             trialEnded: {

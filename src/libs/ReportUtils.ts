@@ -4566,7 +4566,7 @@ function getReportPreviewMessage(
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-    const {totalDisplaySpend: totalAmount, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
 
     const parentReport = getParentReport(report);
     const policyName = getPolicyName({report: parentReport ?? report, policy});
@@ -4600,7 +4600,6 @@ function getReportPreviewMessage(
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
-        const formattedReimbursableAmount = convertToDisplayString(reimbursableSpend, report.currency);
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey: TranslationPaths = 'iou.paidElsewhere';
         if (isPreviewMessageForParentChatReport) {
@@ -4626,7 +4625,7 @@ function getReportPreviewMessage(
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
         return translateLocal(translatePhraseKey, {
-            amount: formattedReimbursableAmount,
+            amount: '',
             payer: payerDisplayName ?? '',
             last4Digits: reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '',
         });
@@ -5141,11 +5140,20 @@ function getReportNameInternal({
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 return translateLocal('iou.paidElsewhere');
             }
-            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA || originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                if (originalMessage.automaticAction) {
+                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', {last4Digits});
+                }
+                return translateLocal('iou.businessBankAccount', {last4Digits});
+            }
+            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
                     return translateLocal('iou.automaticallyPaidWithExpensify');
                 }
@@ -5292,7 +5300,7 @@ function getReportNameInternal({
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
+    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName || (report?.reportName ?? '');
 }
 
 /**
@@ -9211,12 +9219,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
-        // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
-        // property. If it does, it indicates that this is a 'Pay someone' action.
-        const {amount, currency} = originalMessage?.IOUDetails ?? originalMessage ?? {};
-        const formattedAmount = convertToDisplayString(Math.abs(amount), currency) ?? '';
-
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
 
@@ -9227,11 +9229,13 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
                 if (isInvoice) {
-                    return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount: formattedAmount, last4Digits});
+                    return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount: '', last4Digits});
                 }
                 translationKey = 'iou.businessBankAccount';
-                if (automaticAction) {
+                if (automaticAction && originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                     translationKey = 'iou.automaticallyPaidWithExpensify';
+                } else {
+                    translationKey = 'iou.automaticallyPaidWithBusinessBankAccount';
                 }
                 break;
             default:
@@ -9239,7 +9243,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 break;
         }
 
-        return translateLocal(translationKey, {amount: formattedAmount, payer: '', last4Digits});
+        return translateLocal(translationKey, {amount: '', payer: '', last4Digits});
     }
 
     const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
@@ -10042,6 +10046,22 @@ function getOutstandingReportsForUser(
     return Object.values(reports)
         .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
+}
+
+/**
+ * Sort outstanding reports by their name, while keeping the selected one at the beginning.
+ * @param report1 Details of the first report to be compared.
+ * @param report2 Details of the second report to be compared.
+ * @param selectedReportID ID of the selected report which needs to be at the beginning.
+ */
+function sortOutstandingReportsBySelected(report1: OnyxEntry<Report>, report2: OnyxEntry<Report>, selectedReportID: string | undefined): number {
+    if (report1?.reportID === selectedReportID) {
+        return -1;
+    }
+    if (report2?.reportID === selectedReportID) {
+        return 1;
+    }
+    return report1?.reportName?.localeCompare(report2?.reportName?.toLowerCase() ?? '') ?? 0;
 }
 
 /**
@@ -11435,6 +11455,7 @@ export {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     getReportActionWithMissingSmartscanFields,
     shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
