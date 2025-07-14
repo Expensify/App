@@ -1,5 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import {useCallback, useMemo} from 'react';
+import {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
@@ -83,13 +83,17 @@ function usePreloadFullScreenNavigators() {
     const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
+    const hasPreloadedRef = useRef(false);
 
     useFocusEffect(
         useCallback(() => {
+            if (hasPreloadedRef.current) {
+                return;
+            }
             if (isAnonymousUser() || !isAuthenticated) {
                 return;
             }
-
+            hasPreloadedRef.current = true;
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Object.values(NAVIGATION_TABS)
                     .filter((tabName) => {
