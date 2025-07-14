@@ -219,6 +219,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
      */
     const report = useMemo(
         () =>
+            // This is required to get the transaction data from the parent report, to render the optimistic transaction thread
             parentReportIDFromRoute && parentReportActionIDFromRoute
                 ? ({
                       ...reportOnyx,

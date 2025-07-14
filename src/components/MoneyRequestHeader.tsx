@@ -75,6 +75,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
     const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
         canBeMissing: false,
+        // We need to use a selector here to prevent the component from re-rendering on unused report properties changes
         selector: (onyxReport) =>
             onyxReport && {
                 reportID: onyxReport.reportID,
@@ -90,6 +91,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
         }`,
         {
             canBeMissing: true,
+            // We need to use a selector here to prevent the component from re-rendering on unused transaction properties changes
             selector: (onyxTransaction) =>
                 onyxTransaction && {
                     transactionID: onyxTransaction.transactionID,
