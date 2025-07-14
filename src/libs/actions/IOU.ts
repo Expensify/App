@@ -11225,6 +11225,18 @@ function updateLastLocationPermissionPrompt() {
     Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
 }
 
+function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<OnyxTypes.Report>) {
+    const participants = getMoneyRequestParticipantsFromReport(reportValue);
+    const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<OnyxTypes.Transaction>> = {};
+    transactionIDs.forEach((transactionID) => {
+        updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
+            participants,
+            participantsAutoAssigned: true,
+        };
+    });
+    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
+}
+
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
 function resolveDuplicates(params: MergeDuplicatesParams) {
     if (!params.transactionID) {
@@ -11685,7 +11697,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -11827,10 +11838,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
-                    ...originalTransactionViolations,
-                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
             },
         },
     });
@@ -11840,7 +11848,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransactionViolations,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
             },
         },
     });
@@ -11929,6 +11937,7 @@ export {
     setMoneyRequestParticipantsFromReport,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
+    setMultipleMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
