@@ -19,6 +19,7 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
+    shouldUseNarrowLayout?: boolean;
 };
 
 type GetModalStyles = {
@@ -42,12 +43,21 @@ type GetModalStylesStyleUtil = {
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
         shouldUseModalPaddingStyle?: boolean,
+        shouldUseReanimatedModal?: boolean,
     ) => GetModalStyles;
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}, shouldUseModalPaddingStyle = true): GetModalStyles => {
-        const {windowWidth, isSmallScreenWidth} = windowDimensions;
+    getModalStyles: (
+        type,
+        windowDimensions,
+        popoverAnchorPosition = {},
+        innerContainerStyle = {},
+        outerStyle = {},
+        shouldUseModalPaddingStyle = true,
+        shouldUseReanimatedModal = false,
+    ): GetModalStyles => {
+        const {windowWidth, isSmallScreenWidth, shouldUseNarrowLayout} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
@@ -258,7 +268,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalStyle = {
                     ...modalStyle,
                     ...{
-                        marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                        marginLeft: isSmallScreenWidth || (shouldUseReanimatedModal && shouldUseNarrowLayout) ? 0 : windowWidth - variables.sideBarWidth,
                         width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
@@ -270,22 +280,27 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                animationIn = {
-                    from: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                    to: {
-                        translateX: 0,
-                    },
-                };
-                animationOut = {
-                    from: {
-                        translateX: 0,
-                    },
-                    to: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                };
+                if (shouldUseReanimatedModal) {
+                    animationIn = 'slideInRight';
+                    animationOut = 'slideOutRight';
+                } else {
+                    animationIn = {
+                        from: {
+                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        },
+                        to: {
+                            translateX: 0,
+                        },
+                    };
+                    animationOut = {
+                        from: {
+                            translateX: 0,
+                        },
+                        to: {
+                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        },
+                    };
+                }
                 hideBackdrop = true;
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;

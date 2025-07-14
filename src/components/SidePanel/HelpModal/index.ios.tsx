@@ -14,8 +14,6 @@ function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
             propagateSwipe
             swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
             shouldUseReanimatedModal
-            animationIn="slideInRight"
-            animationOut="slideOutRight"
         >
             <HelpContent closeSidePanel={closeSidePanel} />
         </Modal>

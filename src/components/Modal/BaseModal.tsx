@@ -1,5 +1,7 @@
 import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+// Animated required for side panel navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
@@ -105,9 +107,10 @@ function BaseModal(
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {sidePanelOffset} = useSidePanel();
-    const sidePanelStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {sidePanelOffset, modalTranslateX} = useSidePanel();
+    const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
+    const sidePanelReanimatedStyle = shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: modalTranslateX.current}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const insets = useSafeAreaInsets();
@@ -221,13 +224,27 @@ function BaseModal(
                     windowWidth,
                     windowHeight,
                     isSmallScreenWidth,
+                    shouldUseNarrowLayout,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                shouldUseReanimatedModal,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
+        [
+            StyleUtils,
+            type,
+            windowWidth,
+            windowHeight,
+            isSmallScreenWidth,
+            shouldUseNarrowLayout,
+            popoverAnchorPosition,
+            innerContainerStyle,
+            outerStyle,
+            shouldUseModalPaddingStyle,
+            shouldUseReanimatedModal,
+        ],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -349,12 +366,12 @@ function BaseModal(
                                 initialFocus={initialFocus}
                                 shouldPreventScroll={shouldPreventScrollOnFocus}
                             >
-                                <View
-                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                                <Animated.View
+                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
                                     ref={ref}
                                 >
                                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                                </View>
+                                </Animated.View>
                             </FocusTrapForModal>
                         </ModalContent>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
