@@ -3189,6 +3189,16 @@ const translations = {
             consent: '请同意隐私声明',
         },
     },
+    docusignStep: {
+        subheader: 'Docusign 表格',
+        pleaseComplete: '请通过以下 Docusign 链接填写 ACH 授权表格，并将签署后的副本上传到此处，以便我们可以直接从您的银行账户扣款。',
+        pleaseCompleteTheBusinessAccount: '请填写企业账户申请表及直接借记协议。',
+        pleaseCompleteTheDirect: '请通过以下 Docusign 链接填写直接借记协议，并将签署后的副本上传到此处，以便我们可以直接从您的银行账户扣款。',
+        takeMeTo: '前往 Docusign',
+        uploadAdditional: '上传其他文件',
+        pleaseUpload: '请上传 DEFT 表格和 Docusign 签名页。',
+        pleaseUploadTheDirect: '请上传直接借记协议和 Docusign 签名页。',
+    },
     finishStep: {
         connect: '连接银行账户',
         letsFinish: '让我们在聊天中完成！',
