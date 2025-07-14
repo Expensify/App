@@ -31,6 +31,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchQueryJSON} from './types';
+import usePrevious from '@hooks/usePrevious';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
@@ -133,6 +134,7 @@ function SearchList(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const prevDataLength = usePrevious(data.length);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -146,6 +148,9 @@ function SearchList(
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+
+    // Track if there are items being removed to only enable layout animations during removal
+    const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -395,7 +400,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
-                itemLayoutAnimation={shouldAnimate ? LinearTransition.easing(easing) : undefined}
+                itemLayoutAnimation={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
