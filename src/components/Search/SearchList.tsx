@@ -93,6 +93,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** The estimated height of an item in the list */
     estimatedItemSize?: number;
+
+    /** Whether mobile selection mode is enabled */
+    isMobileSelectionModeEnabled: boolean;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -119,6 +122,7 @@ function SearchList(
         onViewableItemsChanged,
         onLayout,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
+        isMobileSelectionModeEnabled,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {

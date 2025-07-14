@@ -29,16 +29,9 @@ function transactionHasViolations(item: TransactionListItemType): boolean {
  * Calculates height for report action items (chat messages)
  */
 function getReportActionItemHeight(item: ReportActionListItemType, config: ItemHeightConfig): number {
-    const {isLargeScreenWidth} = config;
     const actionName = item.actionName;
-
     if (actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-        const heights = isLargeScreenWidth ? ITEM_HEIGHTS.CHAT.REPORT_PREVIEW.LARGE_SCREEN : ITEM_HEIGHTS.CHAT.REPORT_PREVIEW.SMALL_SCREEN;
-        return heights.BASE;
-    }
-
-    if (actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-        return ITEM_HEIGHTS.CHAT.STANDARD;
+        return ITEM_HEIGHTS.CHAT.REPORT_PREVIEW;
     }
 
     return ITEM_HEIGHTS.CHAT.STANDARD;
@@ -64,16 +57,15 @@ function getTransactionItemHeight(item: TransactionListItemType, config: ItemHei
         // For wide screens (desktop)
         heightConstants = ITEM_HEIGHTS.WIDE.STANDARD;
     }
-
     // Add extra height for violations (Review required marker)
     const violationHeightAdjustment = transactionHasViolations(item) ? variables.searchViolationWarningMarkHeight : 0;
-
     return heightConstants + violationHeightAdjustment;
 }
 
 /**
  * Calculates height for report list items (grouped transactions)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getReportListItemHeight(item: TransactionGroupListItemType, config: ItemHeightConfig): number {
     const {isLargeScreenWidth} = config;
 
@@ -85,14 +77,13 @@ function getReportListItemHeight(item: TransactionGroupListItemType, config: Ite
         ? variables.searchOptionRowMargin + variables.searchOptionRowBaseHeight + variables.searchOptionRowLargeFooterHeight
         : variables.searchOptionRowMargin + variables.searchOptionRowBaseHeight + variables.searchOptionRowSmallFooterHeight;
 
-    const transactionHeight = variables.searchOptionRowTransactionHeight;
+    const transactionHeight = isLargeScreenWidth ? variables.searchOptionRowTransactionHeightLargeScreen : variables.searchOptionRowTransactionHeightSmallScreen;
 
     const hasViolationsInReport = item.transactions.some(transactionHasViolations);
     const violationHeightAdjustment = hasViolationsInReport ? variables.searchViolationWarningMarkHeight : 0;
 
     const calculatedHeight =
         baseReportItemHeight + item.transactions.length * transactionHeight + variables.optionRowListItemPadding + variables.searchOptionRowMargin + violationHeightAdjustment;
-
     return Math.max(calculatedHeight, ITEM_HEIGHTS.HEADER, 1);
 }
 

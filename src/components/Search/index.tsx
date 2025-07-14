@@ -61,8 +61,9 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    searchResults?: SearchResults;
     contentContainerStyle?: ContentStyle;
+    // contentContainerStyle?: StyleProp<ViewStyle>; // TODO: remove this
+    searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
 };
@@ -244,6 +245,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
             if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
@@ -259,11 +264,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        if (isOffline) {
+        if (!isFocused || isOffline) {
             return;
         }
 
         handleSearch({queryJSON, offset});
+        // We don't need to run the effect on change of isFocused.
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -304,6 +310,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isRefreshingSelection = useRef(false);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
@@ -363,7 +373,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode]);
+    }, [data, setSelectedTransactions, isExportMode, isFocused]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -389,7 +399,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [selectedTransactions]);
 
     useEffect(() => {
-        if (!data.length || isRefreshingSelection.current || !isFocused) {
+        if (!isFocused) {
+            return;
+        }
+
+        if (!data.length || isRefreshingSelection.current) {
             return;
         }
         const areItemsGrouped = !!groupBy;
@@ -502,6 +516,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onViewableItemsChanged = useCallback(
         ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            if (!isFocused) {
+                return;
+            }
+
             const isFirstItemVisible = viewableItems.at(0)?.index === 1;
             // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
             if (shouldShowLoadingState || !isFirstItemVisible) {
@@ -514,7 +532,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             // Therefore, when the user scrolls to the top, we need to refresh the search results.
             setOffset(0);
         },
-        [shouldShowLoadingState],
+        [shouldShowLoadingState, isFocused],
     );
 
     const currentColumns = useMemo(() => {
@@ -580,7 +598,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     const fetchMoreResults = useCallback(() => {
-        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
