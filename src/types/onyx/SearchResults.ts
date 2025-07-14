@@ -470,7 +470,10 @@ type SearchCard = {
 
 /** Model of bank search result */
 // s77rt sync with BE
-type SearchBank = {};
+type SearchBank = {
+    /** string like 'Account ending in XXXX' */
+    description?: string;
+};
 
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
