@@ -137,9 +137,17 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type WorkspacesListRouteParams = {
+    workspacesListRoute: string;
+};
+
 type BusinessBankAccountParams = {
     amount: string;
     last4Digits: string;
+};
+
+type WorkspaceRouteParams = {
+    workspaceRoute: string;
 };
 
 type RequestAmountParams = {amount: string};
@@ -446,7 +454,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string; workspaceAccountingLink?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
@@ -680,6 +688,10 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
+type FileTypeParams = {
+    fileType: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -809,6 +821,7 @@ export type {
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
     AssignedCardParams,
@@ -1063,5 +1076,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspacesListRouteParams,
+    WorkspaceRouteParams,
     BusinessTaxIDParams,
 };

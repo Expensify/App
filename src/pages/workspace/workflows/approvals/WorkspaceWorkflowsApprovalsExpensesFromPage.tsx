@@ -1,6 +1,6 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -83,12 +84,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 const login = personalDetailLogins?.[accountID];
 
                 return {
-                    text: member.displayName,
+                    text: Str.removeSMSDomain(member.displayName),
                     alternateText: member.email,
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
@@ -113,12 +114,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     const login = personalDetailLogins?.[accountID];
 
                     return {
-                        text: member.displayName,
+                        text: Str.removeSMSDomain(member.displayName),
                         alternateText: member.email,
                         keyForList: member.email,
                         isSelected: false,
                         login: member.email,
-                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                         rightElement: (
                             <MemberRightIcon
                                 role={policy?.employeeList?.[member.email]?.role}
@@ -217,6 +218,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ScreenWrapper
                 testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}

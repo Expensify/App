@@ -558,6 +558,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
+                payload: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -950,6 +951,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
+        case 'wasMerchantCleared':
             return validateBoolean(value);
         case 'amount':
         case 'taxAmount':
@@ -1072,6 +1074,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    wasMerchantCleared: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );

@@ -223,6 +223,10 @@ function shouldStartLocationPermissionFlow() {
     );
 }
 
+function getLastUsedPaymentMethods() {
+    return lastUsedPaymentMethods;
+}
+
 function getLastUsedPaymentMethod(policyID?: string): LastPaymentMethodType | undefined {
     if (!policyID) {
         return;
@@ -243,5 +247,6 @@ export {
     formatCurrentUserToAttendee,
     shouldStartLocationPermissionFlow,
     navigateToParticipantPage,
+    getLastUsedPaymentMethods,
     getLastUsedPaymentMethod,
 };

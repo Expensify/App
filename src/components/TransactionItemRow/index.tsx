@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -25,11 +26,11 @@ import {
     getCreated as getTransactionCreated,
     getTransactionPendingAction,
     hasMissingSmartscanFields,
-    hasReceipt,
     isAmountMissing,
     isMerchantMissing,
-    isReceiptBeingScanned,
+    isScanning,
     isTransactionPendingDelete,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -115,11 +116,13 @@ function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSea
     if (merchantNameEmpty && shouldUseNarrowLayout) {
         merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
+
     let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+    if (isScanning(transactionItem) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
+
     const merchantName = StringUtils.getFirstLine(merchant);
     return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
@@ -152,7 +155,7 @@ function TransactionItemRow({
     const isPendingDelete = isTransactionPendingDelete(transactionItem);
     const viewRef = useRef<View>(null);
 
-    const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -179,7 +182,8 @@ function TransactionItemRow({
 
     const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
     const missingFieldError = useMemo(() => {
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem);
+        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -191,6 +195,8 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing) {
                 error = translate('iou.missingMerchant');
+            } else if (isCustomUnitOutOfPolicy) {
+                error = translate('violations.customUnitOutOfPolicy');
             }
             return error;
         }

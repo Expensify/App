@@ -2,15 +2,16 @@ import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
@@ -116,9 +117,10 @@ function SettlementButton({
     const lastPaymentPolicy = isLastPaymentPolicy ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPaymentMethod}`] : undefined;
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccount = bankAccountList[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    // whether the user has single policy and the expense isn't inside a workspace
-    const hasSinglePolicy = !policy && activeAdminPolicies.length === 1;
-    const hasMultiplePolicies = !policy && activeAdminPolicies.length > 1;
+    const isExpenseReport = isExpenseReportUtil(iouReport);
+    // whether the user has single policy and the expense is p2p
+    const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
+    const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
     const hasIntentToPay = formattedPaymentMethods.length === 1 && !lastPaymentMethod;
@@ -145,19 +147,23 @@ function SettlementButton({
                     const accountData = method?.accountData as AccountData;
                     return accountData?.type === requiredAccountType;
                 })
-                .map((formattedPaymentMethod) => ({
-                    text: formattedPaymentMethod?.title ?? '',
-                    description: formattedPaymentMethod?.description ?? '',
-                    icon: formattedPaymentMethod?.icon,
-                    shouldUpdateSelectedIndex: true,
-                    onSelected: () => {
-                        onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
-                    },
-                    iconStyles: formattedPaymentMethod?.iconStyles,
-                    iconHeight: formattedPaymentMethod?.iconSize,
-                    iconWidth: formattedPaymentMethod?.iconSize,
-                    value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                }));
+                .map((formattedPaymentMethod) => {
+                    const {icon, iconStyles, iconSize, title, description, accountType, methodID} = formattedPaymentMethod ?? {};
+
+                    return {
+                        text: title ?? '',
+                        description: description ?? '',
+                        icon: typeof icon === 'number' ? Bank : icon,
+                        shouldUpdateSelectedIndex: true,
+                        onSelected: () => {
+                            onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, methodID, accountType, undefined);
+                        },
+                        iconStyles,
+                        iconHeight: iconSize,
+                        iconWidth: iconSize,
+                        value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    };
+                });
         },
         [formattedPaymentMethods, onPress],
     );
@@ -168,14 +174,18 @@ function SettlementButton({
         }
         const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
 
-        return policyBankAccounts.map((formattedPaymentMethod) => ({
-            text: formattedPaymentMethod?.title ?? '',
-            description: formattedPaymentMethod?.description ?? '',
-            icon: formattedPaymentMethod?.icon,
-            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
-            methodID: formattedPaymentMethod?.methodID,
-            value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-        }));
+        return policyBankAccounts.map((formattedPaymentMethod) => {
+            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
+
+            return {
+                text: title ?? '',
+                description: description ?? '',
+                icon: typeof icon === 'number' ? Bank : icon,
+                onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
+                methodID,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            };
+        });
     }
 
     function getLatestPersonalBankAccount() {
@@ -203,7 +213,6 @@ function SettlementButton({
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
                 text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
@@ -293,7 +302,10 @@ function SettlementButton({
         }
 
         if (shouldShowPayElsewhereOption) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+            buttonOptions.push({
+                ...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE],
+                ...(!buttonOptions.length && shouldUseShortForm ? {text: translate('iou.pay')} : {}),
+            });
         }
 
         if (isInvoiceReport) {
@@ -365,6 +377,7 @@ function SettlementButton({
         onPress,
         onlyShowPayElsewhere,
         latestBankItem,
+        activeAdminPolicies,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
@@ -541,6 +554,7 @@ function SettlementButton({
     });
 
     const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isInvoiceReport || isExpenseReportUtil(iouReport)) && hasIntentToPay);
+    const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
     return (
         <KYCWall
@@ -575,9 +589,10 @@ function SettlementButton({
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => handlePaymentSelection(undefined, option.value, triggerKYCFlow)}
                     style={style}
+                    shouldUseShortForm={shouldUseShortForm}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton ? {minWidth: 90} : {}]}
+                    wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
