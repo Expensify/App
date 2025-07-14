@@ -51,14 +51,13 @@ function Text(
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal && shouldUseDefaultLineHeight) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
-
     const isOnlyCustomEmoji = useMemo(() => {
         if (typeof children === 'string') {
             return containsOnlyCustomEmoji(children);
         }
         if (Array.isArray(children)) {
             return children.every((child) => {
-                return child === null || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
             });
         }
         return false;
