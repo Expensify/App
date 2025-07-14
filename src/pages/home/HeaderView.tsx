@@ -18,7 +18,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
-import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -242,6 +241,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
+    const multipleAvatars = (
+        <MultipleAvatars
+            icons={icons}
+            subscript={{
+                fallbackIcon,
+                shouldShow: shouldShowSubscript,
+            }}
+            size={shouldShowSubscript ? defaultSubscriptSize : undefined}
+        />
+    );
+
     return (
         <>
             <View
@@ -282,17 +292,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     accessibilityLabel={title}
                                     role={CONST.ROLE.BUTTON}
                                 >
-                                    {shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={icons.at(0) ?? fallbackIcon}
-                                            secondaryAvatar={icons.at(1)}
-                                            size={defaultSubscriptSize}
-                                        />
-                                    ) : (
-                                        <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                                            <MultipleAvatars icons={icons} />
-                                        </OfflineWithFeedback>
-                                    )}
+                                    {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
                                         fsClass="fs-unmask"
                                         style={[styles.flex1, styles.flexColumn]}

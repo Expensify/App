@@ -11,7 +11,6 @@ import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
-import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -260,28 +259,23 @@ function OptionRowLHN({
                             >
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {!!optionItem.icons?.length &&
-                                            firstIcon &&
-                                            (optionItem.shouldShowSubscript ? (
-                                                <SubscriptAvatar
-                                                    backgroundColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    mainAvatar={firstIcon}
-                                                    secondaryAvatar={optionItem.icons.at(1)}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                />
-                                            ) : (
-                                                <MultipleAvatars
-                                                    icons={optionItem.icons}
-                                                    isFocusMode={isInFocusMode}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                    secondAvatarStyle={[
-                                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                        isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                        hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                                    ]}
-                                                    shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-                                                />
-                                            ))}
+                                        {!!optionItem.icons?.length && !!firstIcon && (
+                                            <MultipleAvatars
+                                                subscript={{
+                                                    shouldShow: !!optionItem.shouldShowSubscript,
+                                                    borderColor: hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor,
+                                                }}
+                                                icons={optionItem.icons}
+                                                isFocusMode={isInFocusMode}
+                                                size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                                secondAvatarStyle={[
+                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                    isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                    hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                                ]}
+                                                shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+                                            />
+                                        )}
                                         <View style={contentContainerStyles}>
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                                 <DisplayNames

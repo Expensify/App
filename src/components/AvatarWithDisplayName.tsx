@@ -42,7 +42,6 @@ import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SingleReportAvatar from './ReportActionItem/SingleReportAvatar';
 import type {TransactionListItemType} from './SelectionList/types';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -246,33 +245,27 @@ function AvatarWithDisplayName({
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
     const getAvatar = useCallback(() => {
-        if (shouldShowSubscriptAvatar) {
+        if (!!singleAvatarDetails?.reportPreviewSenderID && !singleAvatarDetails.shouldDisplayAllActors && !shouldShowSubscriptAvatar) {
             return (
-                <SubscriptAvatar
-                    backgroundColor={avatarBorderColor}
-                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                    secondaryAvatar={icons.at(1)}
-                    size={size}
-                />
-            );
-        }
-
-        if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
-            return (
-                <MultipleAvatars
-                    icons={icons}
-                    size={size}
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                <SingleReportAvatar
+                    reportPreviewDetails={singleAvatarDetails}
+                    personalDetails={personalDetails}
+                    containerStyles={[styles.actionAvatar, styles.mr3]}
+                    actorAccountID={singleAvatarDetails.reportPreviewSenderID}
                 />
             );
         }
 
         return (
-            <SingleReportAvatar
-                reportPreviewDetails={singleAvatarDetails}
-                personalDetails={personalDetails}
-                containerStyles={[styles.actionAvatar, styles.mr3]}
-                actorAccountID={singleAvatarDetails.reportPreviewSenderID}
+            <MultipleAvatars
+                icons={icons}
+                size={size}
+                subscript={{
+                    shouldShow: shouldShowSubscriptAvatar,
+                    borderColor: avatarBorderColor,
+                    fallbackIcon,
+                }}
+                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
             />
         );
     }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);

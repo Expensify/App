@@ -1,5 +1,5 @@
 import React, {memo, useMemo} from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,9 +11,28 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
+import SubscriptAvatar from './SubscriptAvatar';
+import type {SubIcon} from './SubscriptAvatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
+
+type Subscript = {
+    /** Whether to show the subscript avatar */
+    shouldShow: boolean;
+
+    /** Border color for the subscript avatar */
+    borderColor?: ColorValue;
+
+    /** Whether to show the subscript avatar without margin */
+    noMargin?: boolean;
+
+    /** Subscript icon to display */
+    subIcon?: SubIcon;
+
+    /** A fallback main avatar icon */
+    fallbackIcon?: Icon;
+};
 
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
@@ -60,6 +79,9 @@ type MultipleAvatarsProps = {
 
     /** Prop to limit the amount of avatars displayed horizontally */
     overlapDivider?: number;
+
+    /** Subscript avatar properties */
+    subscript?: Subscript;
 };
 
 type AvatarStyles = {
@@ -87,6 +109,7 @@ function MultipleAvatars({
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
     overlapDivider = 3,
+    subscript,
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -144,6 +167,24 @@ function MultipleAvatars({
         // Update the state with the two rows as an array
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
+
+    const subscriptMainAvatar = icons.at(0) ?? subscript?.fallbackIcon;
+
+    if (!!subscript?.shouldShow && subscriptMainAvatar) {
+        const {borderColor, noMargin, subIcon} = subscript;
+
+        return (
+            <SubscriptAvatar
+                showTooltip={shouldShowTooltip}
+                size={size}
+                mainAvatar={subscriptMainAvatar}
+                secondaryAvatar={icons.at(1)}
+                backgroundColor={borderColor}
+                noMargin={noMargin}
+                subscriptIcon={subIcon}
+            />
+        );
+    }
 
     if (!icons.length) {
         return null;

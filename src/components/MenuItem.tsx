@@ -38,7 +38,6 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -703,8 +702,12 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
+                                                    {shouldShowAvatar && (
                                                         <MultipleAvatars
+                                                            subscript={{
+                                                                shouldShow: shouldShowSubscriptAvatar,
+                                                                borderColor: getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG),
+                                                            }}
                                                             isHovered={isHovered}
                                                             isPressed={pressed}
                                                             icons={icon as IconType[]}
@@ -714,14 +717,6 @@ function MenuItem(
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
-                                                        />
-                                                    )}
-                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
-                                                        <SubscriptAvatar
-                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
-                                                            mainAvatar={firstIcon as IconType}
-                                                            secondaryAvatar={(icon as IconType[]).at(1)}
-                                                            size={avatarSize}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -898,24 +893,19 @@ function MenuItem(
                                                 )}
                                                 {floatRightAvatars?.length > 0 && !!firstRightIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                                        {shouldShowSubscriptRightAvatar ? (
-                                                            <SubscriptAvatar
-                                                                backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstRightIcon}
-                                                                secondaryAvatar={floatRightAvatars.at(1)}
-                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                            />
-                                                        ) : (
-                                                            <MultipleAvatars
-                                                                isHovered={isHovered}
-                                                                isPressed={pressed}
-                                                                icons={floatRightAvatars}
-                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                                fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                                                shouldStackHorizontally={shouldStackHorizontally}
-                                                                isFocusMode
-                                                            />
-                                                        )}
+                                                        <MultipleAvatars
+                                                            subscript={{
+                                                                shouldShow: shouldShowSubscriptRightAvatar,
+                                                                borderColor: isHovered ? theme.activeComponentBG : theme.componentBG,
+                                                            }}
+                                                            isHovered={isHovered}
+                                                            isPressed={pressed}
+                                                            icons={shouldShowSubscriptRightAvatar ? [firstRightIcon, ...floatRightAvatars.slice(1)] : floatRightAvatars}
+                                                            size={floatRightAvatarSize ?? fallbackAvatarSize}
+                                                            fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
+                                                            shouldStackHorizontally={shouldStackHorizontally}
+                                                            isFocusMode
+                                                        />
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (

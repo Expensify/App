@@ -58,7 +58,10 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CON
     const containerStyle = StyleUtils.getContainerStyles(size);
 
     return (
-        <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
+        <View
+            style={[containerStyle, noMargin ? styles.mr0 : {}]}
+            testID="SubscriptAvatar"
+        >
             <UserDetailsTooltip
                 shouldRender={showTooltip}
                 accountID={Number(mainAvatar?.id ?? CONST.DEFAULT_NUMBER_ID)}

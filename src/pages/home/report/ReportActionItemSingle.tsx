@@ -6,7 +6,6 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SingleReportAvatar from '@components/ReportActionItem/SingleReportAvatar';
-import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -168,33 +167,28 @@ function ReportActionItemSingle({
     };
 
     const getAvatar = () => {
-        if (shouldShowSubscriptAvatar) {
+        if (!shouldDisplayAllActors && !shouldShowSubscriptAvatar) {
             return (
-                <SubscriptAvatar
-                    mainAvatar={primaryAvatar}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
-                    backgroundColor={getBackgroundColor()}
-                />
-            );
-        }
-        if (shouldDisplayAllActors) {
-            return (
-                <MultipleAvatars
-                    icons={[primaryAvatar, secondaryAvatar]}
-                    isInReportAction
-                    shouldShowTooltip
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
+                <SingleReportAvatar
+                    reportPreviewDetails={reportPreviewDetails}
+                    personalDetails={personalDetails}
+                    containerStyles={[styles.actionAvatar]}
+                    actorAccountID={actorAccountID}
                 />
             );
         }
 
         return (
-            <SingleReportAvatar
-                reportPreviewDetails={reportPreviewDetails}
-                personalDetails={personalDetails}
-                containerStyles={[styles.actionAvatar]}
-                actorAccountID={actorAccountID}
+            <MultipleAvatars
+                icons={[primaryAvatar, secondaryAvatar]}
+                subscript={{
+                    shouldShow: shouldShowSubscriptAvatar,
+                    borderColor: getBackgroundColor(),
+                    noMargin: true,
+                }}
+                isInReportAction
+                shouldShowTooltip
+                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
             />
         );
     };
