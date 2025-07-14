@@ -322,13 +322,10 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
-                        !!item.isSelected,
-                        focusedIndex === menuIndex,
-                        item.disabled ?? false,
-                        theme.activeComponentBG,
-                        theme.hoverComponentBG,
-                    )}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        shouldUseScrollView && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
