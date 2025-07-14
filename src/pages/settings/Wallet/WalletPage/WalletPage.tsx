@@ -250,7 +250,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView();
+            openPersonalBankAccountSetupView({});
             return;
         }
 
@@ -479,13 +479,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     isCentralPane
                                     subtitleMuted
                                     titleStyles={styles.accountSettingsSectionTitle}
+                                    childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
                                 >
                                     <>
                                         {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                                style={[styles.mt7, styles.mb5]}
+                                                style={[styles.mb5]}
                                             />
                                         )}
                                         {!shouldShowLoadingSpinner && hasActivatedWallet && (
@@ -494,7 +495,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 errors={walletTerms?.errors}
                                                 onClose={clearWalletTermsError}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
-                                                style={[styles.mt4, styles.mb2]}
+                                                style={[styles.mb2]}
                                             >
                                                 <MenuItemWithTopDescription
                                                     description={translate('walletPage.balance')}

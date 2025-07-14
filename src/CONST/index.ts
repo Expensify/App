@@ -429,6 +429,11 @@ const CONST = {
     SMS: {
         DOMAIN: '@expensify.sms',
     },
+    DOCUSIGN_POWERFORM_LINK: {
+        US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
@@ -541,6 +546,7 @@ const CONST = {
             BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
             FINISH: 'FinishStep',
         },
         BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
@@ -590,6 +596,7 @@ const CONST = {
             },
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        DOCUSIGN_REQUIRED_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
             SUBSTEP: {
@@ -642,9 +649,7 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
-        NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
@@ -951,6 +956,7 @@ const CONST = {
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
+    BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
@@ -968,7 +974,7 @@ const CONST = {
     },
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
-        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
     },
@@ -6394,8 +6400,7 @@ const CONST = {
         get FILTER_DATE_PRESETS() {
             return {
                 // s77rt remove DEV lock
-                [this.SYNTAX_FILTER_KEYS.POSTED]:
-                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
+                [this.SYNTAX_FILTER_KEYS.POSTED]: (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [],
                 [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
             };
         },

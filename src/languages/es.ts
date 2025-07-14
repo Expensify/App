@@ -267,6 +267,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -663,6 +664,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Añadir archivos adjuntos',
+        addReceipt: 'Añadir recibo',
         scanReceipts: 'Escanear recibos',
         replaceReceipt: 'Reemplazar recibo',
     },
@@ -1055,6 +1057,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tome fotos de todos sus recibos a la vez y confirme los detalles usted mismo o deje que SmartScan se encargue.',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
+        removeFromReport: 'Eliminar del informe',
+        moveToPersonalSpace: 'Mover gastos a tu espacio personal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
@@ -1776,7 +1780,7 @@ const translations = {
         nameOnCard: 'Nombre en la tarjeta',
         paymentCardNumber: 'Número de la tarjeta',
         expiration: 'Fecha de vencimiento',
-        expirationDate: 'MMAA',
+        expirationDate: 'MM/AA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
         growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
@@ -3187,6 +3191,18 @@ const translations = {
             certify: 'Por favor certifique que la información es verdadera y exacta',
             consent: 'Por favor, acepte el aviso de privacidad',
         },
+    },
+    docusignStep: {
+        subheader: 'Formulario de Docusign',
+        pleaseComplete:
+            'Por favor, complete el formulario de autorización ACH utilizando el enlace de Docusign a continuación y luego cargue esa copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+        pleaseCompleteTheBusinessAccount: 'Por favor, complete la Solicitud de Cuenta Comercial y el Acuerdo de Débito Directo.',
+        pleaseCompleteTheDirect:
+            'Por favor, complete el Acuerdo de Débito Directo utilizando el enlace de Docusign a continuación y luego cargue esa copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+        takeMeTo: 'Llévame a Docusign',
+        uploadAdditional: 'Cargar documentación adicional',
+        pleaseUpload: 'Por favor, cargue el formulario DEFT y la página de firma de Docusign.',
+        pleaseUploadTheDirect: 'Por favor, cargue los Acuerdos de Débito Directo y la página de firma de Docusign.',
     },
     finishStep: {
         connect: 'Conectar cuenta bancaria',
@@ -7097,7 +7113,7 @@ const translations = {
                 subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `${numOfDays} días`}!`,
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
             trialEnded: {
@@ -7252,11 +7268,8 @@ const translations = {
                 title: 'Suscripción cancelada',
                 subtitle: 'Tu suscripción anual ha sido cancelada.',
                 info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
-                preventFutureActivity: {
-                    part1: 'Si quieres evitar actividad y cargos futuros, debes ',
-                    link: 'eliminar tu(s) espacio(s) de trabajo.',
-                    part2: ' Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Si quieres evitar actividad y cargos futuros, debes <a href="${workspacesListRoute}">eliminar tu(s) espacio(s) de trabajo.</a> Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.`,
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',
@@ -7422,66 +7435,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: '¡Comienza',
-            part2: ' aquí!',
-        },
-        saveSearchTooltip: {
-            part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Revisa lo que ',
-            part2: 'necesita tu atención',
-            part3: '\ny ',
-            part4: 'chatea sobre los gastos.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chatea con ',
-            part2: 'los aprobadores',
-        },
-        globalCreateTooltip: {
-            part1: 'Crea gastos',
-            part2: ', empieza a chatear',
-            part3: '\ny más.',
-            part4: ' ¡Pruébalo!',
-        },
-        GBRRBRChat: {
-            part1: 'Verás 🟢 en ',
-            part2: 'acciones a realizar',
-            part3: ',\ny 🔴 en ',
-            part4: 'elementos para revisar.',
-        },
-        accountSwitcher: {
-            part1: 'Accede a tus ',
-            part2: 'cuentas copiloto',
-            part3: ' aquí',
-        },
-        expenseReportsFilter: {
-            part1: '¡Bienvenido! Aquí encontrarás todos los',
-            part2: '\ninformes de tu empresa',
-            part3: '.',
-        },
+        conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Crea gastos</strong>, empieza a chatear\ny más. ¡Pruébalo!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Revisa lo que <strong>necesita tu atención</strong>\ny <strong>chatea sobre los gastos.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chatea con <strong>los aprobadores</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Verás 🟢 en <strong>acciones a realizar</strong>,\ny 🔴 en <strong>elementos para revisar.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
+        expenseReportsFilter: '<tooltip>¡Bienvenido! Aquí encontrarás todos los\n<strong>informes de tu empresa</strong>.</tooltip>',
         scanTestTooltip: {
-            part1: '¡Escanea nuestro recibo de prueba',
-            part2: ' para ver cómo funciona!',
-            part3: '¡Elige a',
-            part4: ' nuestro gerente',
-            part5: ' de prueba para probarlo!',
-            part6: 'Ahora,',
-            part7: ' envía tu gasto y',
-            part8: '\n¡observa cómo ocurre la magia!',
+            main: '<tooltip>¡<strong>Escanea nuestro recibo de prueba</strong> para ver cómo funciona!</tooltip>',
+            manager: '<tooltip>¡Elige a <strong>nuestro gerente</strong> de prueba para probarlo!</tooltip>',
+            confirmation: '<tooltip>Ahora, <strong>envía tu gasto y</strong>\n¡observa cómo ocurre la magia!</tooltip>',
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
-        outstandingFilter: {
-            part1: 'Filtra los gastos\nque ',
-            part2: 'necesitan aprobación',
-        },
-        scanTestDriveTooltip: {
-            part1: '¡Envía este recibo para\n',
-            part2: 'completar la prueba!',
-        },
+        outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
