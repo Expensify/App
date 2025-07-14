@@ -319,7 +319,7 @@ describe('canSubmitReport', () => {
             ownerAccountID: currentUserAccountID,
             areRulesEnabled: true,
             preventSelfApproval: false,
-            autoReportingFrequency: 'immediate',
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: false,
             },
