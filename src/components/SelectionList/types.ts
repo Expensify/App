@@ -215,6 +215,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -463,6 +466,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    policies?: OnyxCollection<Policy>;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -473,6 +477,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
 };
 
 type ValidListItem =
@@ -546,6 +553,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * Only use this if we're handling some non-standard items, most of the time the default value is correct
      */
     getItemHeight?: (item: TItem) => number;
+
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;

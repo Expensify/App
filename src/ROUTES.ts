@@ -1919,6 +1919,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+    },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
@@ -2222,8 +2226,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
-            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
@@ -2232,8 +2240,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
-            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/new',
@@ -2581,7 +2593,10 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
 
-    TEST_TOOLS_MODAL: 'test-tools',
+    TEST_TOOLS_MODAL: {
+        route: 'test-tools',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
 } as const;
 
 /**
