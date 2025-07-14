@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ -z "$GITHUB_TOKEN" ]; then
-    echo "GITHUB_TOKEN env variable is not set"
-    exit 1
-fi
-
 if [[ "$IS_HYBRID_BUILD" == "true" ]]; then
     readonly PACKAGE="react-hybrid"
 else
@@ -14,11 +9,14 @@ fi
 VERSION="$(jq -r '.dependencies["react-native"]' package.json)"
 readonly VERSION
 
-# List all versions of the package
-PACKAGE_VERSIONS="$(gh api "/orgs/Expensify/packages/maven/com.expensify.${PACKAGE}.react-android/versions" --paginate --jq '.[].name')"
 
-# Filter only versions matching the base React Native version
-PACKAGE_VERSIONS="$(echo "$PACKAGE_VERSIONS" | grep "$VERSION")"
+MAVEN_METADATA_URL=https://example.com/com/expensify/${PACKAGE}/react-android/maven-metadata.xml
+
+# Fetch the XML file using curl
+XML_CONTENT=$(curl -s "$MAVEN_METADATA_URL")
+
+# Extract versions from maven-metadata.xml with grep due to the absence of XML parsers on GitHub runners.
+PACKAGE_VERSIONS=$(echo "$XML_CONTENT" |  grep -o "${VERSION}-[0-9]\+")
 
 # Grab the highest patch version from there
 LATEST_PATCHED_VERSION="$(echo "$PACKAGE_VERSIONS" | sort -V | tail -n1)"
