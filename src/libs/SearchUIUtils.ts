@@ -84,6 +84,7 @@ import {
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -681,6 +682,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
+
+    const transaction = isTransaction ? data[key] : undefined;
+    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -690,7 +696,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
-    const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
@@ -1287,7 +1292,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
                     getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
                         return queryString;
                     },
                 },
@@ -1641,8 +1646,7 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
@@ -1688,10 +1692,9 @@ function getGroupByOptions() {
 }
 
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
-    // s77rt confirm if the feed value is just the feed key or if it should be prefixed with [fundID]_
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
-        value: cardFeed.feed,
+        value: cardFeed.id,
     }));
 }
 
