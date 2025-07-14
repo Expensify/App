@@ -112,7 +112,6 @@ import {
 } from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 import {
-    arePaymentsEnabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getForwardsToAccount,
