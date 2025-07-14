@@ -1525,7 +1525,7 @@ function createTypeMenuSections(
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        const isEligibleForStatementsSuggestion = policy.areCompanyCardsEnabled === true && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = false; // s77rt TODO
