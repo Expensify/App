@@ -20,16 +20,7 @@ const ITEM_HEIGHTS = {
 
     // Chat-specific heights
     CHAT: {
-        REPORT_PREVIEW: {
-            LARGE_SCREEN: {
-                BASE: variables.searchChatReportPreviewHeightLargeScreen + variables.searchItemBasePadding,
-                WITH_VIOLATIONS: variables.searchChatReportPreviewWithViolationsHeightLargeScreen + variables.searchItemBasePadding,
-            },
-            SMALL_SCREEN: {
-                BASE: variables.searchChatReportPreviewHeightSmallScreen + variables.searchItemBasePadding,
-                WITH_VIOLATIONS: variables.searchChatReportPreviewWithViolationsHeightSmallScreen + variables.searchItemBasePadding,
-            },
-        },
+        REPORT_PREVIEW: variables.searchChatReportPreviewHeight + variables.searchItemBasePadding,
         // Standard chat item heights (ADDCOMMENT, POLICYCHANGELOG_ADD_EMPLOYEE, etc.)
         STANDARD: variables.searchChatStandardItemHeight + variables.searchItemBasePadding,
     },
