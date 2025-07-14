@@ -35,7 +35,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: () => false,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -89,6 +89,11 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPAND,
+        translationKey: 'reportActionCompose.expand',
         isColumnSortable: false,
     },
 ];

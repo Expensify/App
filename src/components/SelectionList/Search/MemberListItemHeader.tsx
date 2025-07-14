@@ -23,9 +23,12 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** The expand button */
+    expandButton?: React.ReactNode;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
+function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple, expandButton}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -45,7 +48,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.flex1]}>
                         <UserDetailsTooltip accountID={memberItem.accountID}>
                             <View>
                                 <Avatar
@@ -67,6 +70,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                             />
                         </View>
                     </View>
+                    <View>{expandButton}</View>
                 </View>
             </View>
             <View style={[styles.pv2, styles.ph3]}>

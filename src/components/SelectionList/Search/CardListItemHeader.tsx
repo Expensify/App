@@ -36,9 +36,12 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** The expand button */
+    expandButton?: React.ReactNode;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isHovered, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isHovered, isFocused, canSelectMultiple, expandButton}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -82,7 +85,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.flex1]}>
                         <SubscriptAvatar
                             mainAvatar={memberAvatar}
                             subscriptIcon={cardIcon}
@@ -100,6 +103,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             />
                         </View>
                     </View>
+                    <View>{expandButton}</View>
                 </View>
             </View>
             <View style={[styles.pv2, styles.ph3]}>

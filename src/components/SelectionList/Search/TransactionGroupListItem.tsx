@@ -1,10 +1,9 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import Accordion from '@components/Accordion';
-import * as Expensicons from '@components/Icon/Expensicons';
+import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
@@ -18,7 +17,6 @@ import type {
 } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
-import IconButton from '@components/VideoPlayer/IconButton';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -61,7 +59,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const src = isExpanded.get() ? Expensicons.UpArrow : Expensicons.DownArrow;
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -122,7 +119,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.ACTION,
     ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
-    const getHeader = (isHovered: boolean) => {
+    const getHeader = (isHovered: boolean) => (expandButton: React.ReactNode) => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
@@ -134,6 +131,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isHovered={isHovered}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
+                    expandButton={expandButton}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.MEMBERS]: (
@@ -142,6 +140,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
+                    expandButton={expandButton}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARDS]: (
@@ -152,6 +151,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isHovered={isHovered}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
+                    expandButton={expandButton}
                 />
             ),
         };
@@ -185,21 +185,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <View style={[styles.flex1]}>{getHeader(hovered)}</View>
-                        <IconButton
-                            src={src}
-                            small
-                            onPress={() => {
-                                isExpanded.set(!isExpanded.get());
-                            }}
-                            style={[styles.p3]}
-                            hoverStyle={[styles.bgTransparent]}
-                        />
-                    </View>
-                    <Accordion
+                    <AnimatedCollapsible
                         isExpanded={isExpanded}
-                        isToggleTriggered={isExpanded}
+                        header={getHeader(hovered)}
+                        disabled={!!isDisabledOrEmpty}
+                        expandButtonStyle={[styles.bgTransparent, isLargeScreenWidth ? styles.pr0 : styles.pl0]}
                     >
                         {isEmpty ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -235,7 +225,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 </View>
                             ))
                         )}
-                    </Accordion>
+                    </AnimatedCollapsible>
                 </View>
             )}
         </BaseListItem>

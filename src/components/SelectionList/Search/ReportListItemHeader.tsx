@@ -42,6 +42,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** The expand button */
+    expandButton?: React.ReactNode;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -68,6 +71,9 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** The expand button */
+    expandButton?: React.ReactNode;
 };
 
 type ReportCellProps = {
@@ -107,12 +113,13 @@ function HeaderFirstRow<TItem extends ListItem>({
     handleOnButtonPress = () => {},
     shouldShowAction = false,
     avatarBorderColor,
+    expandButton,
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
@@ -156,6 +163,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                     />
                 </View>
             )}
+            {!!expandButton && <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPAND)]}>{expandButton}</View>}
         </View>
     );
 }
@@ -169,6 +177,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     isHovered,
     isFocused,
     canSelectMultiple,
+    expandButton,
 }: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -186,20 +195,23 @@ function ReportListItemHeader<TItem extends ListItem>({
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple);
     };
     return !isLargeScreenWidth ? (
-        <View>
-            <HeaderFirstRow
-                report={reportItem}
-                policy={policy}
-                onCheckboxPress={onCheckboxPress}
-                isDisabled={isDisabled}
-                canSelectMultiple={canSelectMultiple}
-                avatarBorderColor={avatarBorderColor}
-            />
-            <UserInfoAndActionButtonRow
-                item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
-                shouldShowUserInfo={showUserInfo}
-            />
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+            <View style={styles.flex1}>
+                <HeaderFirstRow
+                    report={reportItem}
+                    policy={policy}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabled}
+                    canSelectMultiple={canSelectMultiple}
+                    avatarBorderColor={avatarBorderColor}
+                />
+                <UserInfoAndActionButtonRow
+                    item={reportItem}
+                    handleActionButtonPress={handleOnButtonPress}
+                    shouldShowUserInfo={showUserInfo}
+                />
+            </View>
+            <View>{expandButton}</View>
         </View>
     ) : (
         <View>
@@ -212,6 +224,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
+                expandButton={expandButton}
             />
             <View style={[styles.pv2, styles.ph3]}>
                 <View style={[styles.borderBottom]} />
