@@ -256,7 +256,9 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
         return;
     }
 
-    return policy?.employeeList?.[currentUserLogin]?.role;
+    const employeeRole = policy?.employeeList?.[currentUserLogin];
+
+    return typeof employeeRole === 'string' ? employeeRole : employeeRole?.role;
 }
 
 function getPolicyNameByID(policyID: string): string {
@@ -410,6 +412,23 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
             orderWeight: 0,
         }
     );
+}
+
+/**
+ * Gets a tag list of a policy by a tag's orderWeight.
+ */
+function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): ValueOf<PolicyTagLists> {
+    const tagListEmpty = {
+        name: '',
+        required: false,
+        tags: {},
+        orderWeight: 0,
+    };
+    if (isEmptyObject(policyTagList)) {
+        return tagListEmpty;
+    }
+
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
 }
 
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
@@ -1466,6 +1485,7 @@ export {
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
+    getTagListByOrderWeight,
     getTagListName,
     getTagLists,
     getTaxByID,
