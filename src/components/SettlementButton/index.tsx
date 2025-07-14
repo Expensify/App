@@ -9,7 +9,6 @@ import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
