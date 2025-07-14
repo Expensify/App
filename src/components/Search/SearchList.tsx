@@ -35,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createItemHeightCalculator} from './itemHeightCalculator';
 import ITEM_HEIGHTS from './itemHeights';
-import type {SearchQueryJSON} from './types';
+import type {SearchColumnType, SearchQueryJSON} from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
@@ -78,6 +78,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** The search query */
     queryJSON: SearchQueryJSON;
+
+    /** The columns to show in the list */
+    columns?: SearchColumnType[];
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;

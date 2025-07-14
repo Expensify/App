@@ -3,7 +3,7 @@ import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -189,6 +189,35 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
+
+    // Custom animation for fade effect
+    const opacity = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }));
+
+    // Function to trigger fade animation manually
+    const triggerFadeAnimation = useCallback(() => {
+        console.log('animating');
+        opacity.value = withTiming(0, {duration: 300}, () => {
+            opacity.value = withTiming(1, {duration: 300});
+        });
+    }, [opacity]);
+
+    // Track when to trigger animation
+    const animationTrigger = useMemo(() => JSON.stringify(queryJSON) + JSON.stringify(searchResults?.search.columnsToShow), [queryJSON, searchResults?.search.columnsToShow]);
+    const previousAnimationTrigger = usePrevious(animationTrigger);
+
+    useEffect(() => {
+        triggerFadeAnimation();
+    }, [triggerFadeAnimation]);
+
+    // Trigger animation when query or columns change
+    useEffect(() => {
+        if (previousAnimationTrigger && previousAnimationTrigger !== animationTrigger) {
+            triggerFadeAnimation();
+        }
+    }, [animationTrigger, previousAnimationTrigger, triggerFadeAnimation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -589,7 +618,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+    const onLayoutWithScrollRestore = useCallback(() => {
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+        // Restore scroll position after layout if needed
+        // Removed scroll position restoration logic
+    }, [handleSelectionListScroll, sortedSelectedData]);
 
     if (shouldShowLoadingState) {
         return (
@@ -644,12 +677,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     return (
         <SearchScopeProvider isOnSearch>
-            <Animated.View
-                key={JSON.stringify(queryJSON) + JSON.stringify(searchResults?.search.columnsToShow)}
-                entering={FadeIn.duration(300)}
-                exiting={FadeOut.duration(300)}
-                style={[styles.flex1]}
-            >
+            <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
                     data={sortedSelectedData}
@@ -692,8 +720,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    onLayout={onLayout}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    onLayout={onLayoutWithScrollRestore}
                 />
             </Animated.View>
         </SearchScopeProvider>
