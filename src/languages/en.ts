@@ -23,6 +23,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -33,6 +34,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -265,6 +267,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -666,6 +669,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Add attachments',
+        addReceipt: 'Add receipt',
         scanReceipts: 'Scan receipts',
         replaceReceipt: 'Replace receipt',
     },
@@ -912,8 +916,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
+        import: 'Import spreadsheet',
         dragAndDrop: 'Drag and drop your spreadsheet here, or choose a file below. Supported formats: .csv, .txt, .xls, and .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Drag and drop your spreadsheet here, or choose a file below. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
         chooseSpreadsheet: 'Select a spreadsheet file to import. Supported formats: .csv, .txt, .xls, and .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Select a spreadsheet file to import. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
         fileContainsHeader: 'File contains column headers',
         column: ({name}: SpreadSheetColumnParams) => `Column ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oops! A required field ("${fieldName}") hasn't been mapped. Please review and try again.`,
@@ -1050,6 +1057,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Snap photos of all your receipts at once, then confirm details yourself or let SmartScan handle it.',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        removeFromReport: 'Remove from report',
+        moveToPersonalSpace: 'Move expenses to your personal space',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
@@ -1110,10 +1119,20 @@ const translations = {
         individual: 'Individual',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay with personal account`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with wallet` : `Pay with wallet`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay as a business`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with bank account ${last4Digits}` : `Paid with bank account ${last4Digits}`),
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `paid ${amount ? `${amount} ` : ''}with bank account ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Personal account • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
         finished: 'Finished',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
@@ -1142,14 +1161,14 @@ const translations = {
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the payment`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}paid elsewhere`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}paid with Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marked as paid`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}paid with wallet`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -1526,6 +1545,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: "What's new",
         accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',
@@ -1760,7 +1780,7 @@ const translations = {
         nameOnCard: 'Name on card',
         paymentCardNumber: 'Card number',
         expiration: 'Expiration date',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         growlMessageOnSave: 'Your payment card was successfully added',
@@ -1802,6 +1822,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
+        addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
@@ -2011,6 +2032,7 @@ const translations = {
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bank Account • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -5910,6 +5932,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
             status: 'Status',
@@ -6741,11 +6764,8 @@ const translations = {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
                 info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
-                preventFutureActivity: {
-                    part1: 'If you’d like to prevent future activity and charges, you must ',
-                    link: 'delete your workspace(s)',
-                    part2: '. Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `If you'd like to prevent future activity and charges, you must <a href="${workspacesListRoute}">delete your workspace(s)</a>. Note that when you delete your workspace(s), you'll be charged for any outstanding activity that was incurred during the current calendar month.`,
             },
             requestSubmitted: {
                 title: 'Request submitted',
@@ -6909,66 +6929,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Get started',
-            part2: ' here!',
-        },
-        saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Check what ',
-            part2: 'needs your attention',
-            part3: '\nand ',
-            part4: 'chat about expenses.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chat with ',
-            part2: 'approvers',
-        },
-        globalCreateTooltip: {
-            part1: 'Create expenses',
-            part2: ', start chatting,',
-            part3: '\nand more.',
-            part4: ' Try it out!',
-        },
-        GBRRBRChat: {
-            part1: 'You’ll see 🟢 on ',
-            part2: 'actions to take',
-            part3: ',\nand 🔴 on ',
-            part4: 'items to review.',
-        },
-        accountSwitcher: {
-            part1: 'Access your ',
-            part2: 'Copilot accounts',
-            part3: ' here',
-        },
-        expenseReportsFilter: {
-            part1: 'Welcome! Find all of your',
-            part2: "\ncompany's reports",
-            part3: ' here.',
-        },
+        conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Create expenses</strong>, start chatting,\nand more. Try it out!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Check what <strong>needs your attention</strong>\nand <strong>chat about expenses.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chat with <strong>approvers</strong></tooltip>',
+        GBRRBRChat: '<tooltip>You’ll see 🟢 on <strong>actions to take</strong>,\nand 🔴 on <strong>items to review.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        expenseReportsFilter: "<tooltip>Welcome! Find all of your\n<strong>company's reports</strong> here.</tooltip>",
         scanTestTooltip: {
-            part1: 'Scan our test receipt',
-            part2: ' to see how it works!',
-            part3: 'Choose our',
-            part4: ' test manager',
-            part5: ' to try it out!',
-            part6: 'Now,',
-            part7: ' submit your expense',
-            part8: ' and watch the\nmagic happen!',
+            main: '<tooltip><strong>Scan our test receipt</strong> to see how it works!</tooltip>',
+            manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
+            confirmation: '<tooltip>Now, <strong>submit your expense</strong> and watch the\nmagic happen!</tooltip>',
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
-        outstandingFilter: {
-            part1: 'Filter for expenses\nthat ',
-            part2: 'need approval',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Send this receipt to\n',
-            part2: 'complete the test drive!',
-        },
+        outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
