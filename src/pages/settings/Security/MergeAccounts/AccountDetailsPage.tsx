@@ -79,7 +79,8 @@ function AccountDetailsPage() {
                     return;
                 }
 
-                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
+                setEmail(email.trim());
             });
 
             return () => task.cancel();
@@ -92,7 +93,8 @@ function AccountDetailsPage() {
                 if (!errorKey || !email) {
                     return;
                 }
-                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), errorKey));
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), errorKey));
+                setEmail(email.trim());
             });
 
             return () => task.cancel();
