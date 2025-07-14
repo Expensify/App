@@ -82,6 +82,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionItemRowProps = {
@@ -290,6 +293,9 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
+                            reportID={transactionItem.reportID}
+                            hash={transactionItem.hash}
+                            amount={transactionItem.amount}
                         />
                     )}
                 </View>
@@ -389,6 +395,10 @@ function TransactionItemRow({
         ],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
+    const shouldRenderChatBubbleCell = useMemo(() => {
+        return columns?.includes(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) ?? false;
+    }, [columns]);
+
     return (
         <View
             style={[styles.flex1]}
@@ -492,11 +502,13 @@ function TransactionItemRow({
                                         />
                                     )}
                                 </View>
-                                <ChatBubbleCell
-                                    transaction={transactionItem}
-                                    containerStyles={[styles.mt2]}
-                                    isInSingleTransactionReport={isInSingleTransactionReport}
-                                />
+                                {shouldRenderChatBubbleCell && (
+                                    <ChatBubbleCell
+                                        transaction={transactionItem}
+                                        containerStyles={[styles.mt2]}
+                                        isInSingleTransactionReport={isInSingleTransactionReport}
+                                    />
+                                )}
                             </View>
                         </View>
                     </Animated.View>
