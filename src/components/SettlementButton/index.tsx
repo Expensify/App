@@ -123,7 +123,7 @@ function SettlementButton({
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-    const hasIntentToPay = formattedPaymentMethods.length === 1 && !lastPaymentMethod;
+    const hasIntentToPay = (formattedPaymentMethods.length === 1 && !isExpenseReport || !!policy?.achAccount) && !lastPaymentMethod;
 
     useEffect(() => {
         if (isLoadingLastPaymentMethod) {
