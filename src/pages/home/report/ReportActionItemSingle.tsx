@@ -5,7 +5,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import SingleReportAvatar from '@components/ReportActionItem/SingleReportAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -166,33 +165,6 @@ function ReportActionItemSingle({
         return theme.sidebar;
     };
 
-    const getAvatar = () => {
-        if (!shouldDisplayAllActors && !shouldShowSubscriptAvatar) {
-            return (
-                <SingleReportAvatar
-                    reportPreviewDetails={reportPreviewDetails}
-                    personalDetails={personalDetails}
-                    containerStyles={[styles.actionAvatar]}
-                    actorAccountID={actorAccountID}
-                />
-            );
-        }
-
-        return (
-            <MultipleAvatars
-                icons={[primaryAvatar, secondaryAvatar]}
-                subscript={{
-                    shouldShow: shouldShowSubscriptAvatar,
-                    borderColor: getBackgroundColor(),
-                    noMargin: true,
-                }}
-                isInReportAction
-                shouldShowTooltip
-                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-            />
-        );
-    };
-
     const hasEmojiStatus = !shouldDisplayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -209,7 +181,26 @@ function ReportActionItemSingle({
                 accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>{getAvatar()}</OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>
+                    <MultipleAvatars
+                        icons={[primaryAvatar, secondaryAvatar]}
+                        singleReportAvatar={{
+                            shouldShow: !shouldDisplayAllActors && !shouldShowSubscriptAvatar,
+                            personalDetails,
+                            reportPreviewDetails,
+                            containerStyles: [styles.actionAvatar],
+                            actorAccountID,
+                        }}
+                        subscript={{
+                            shouldShow: shouldShowSubscriptAvatar,
+                            borderColor: getBackgroundColor(),
+                            noMargin: true,
+                        }}
+                        isInReportAction
+                        shouldShowTooltip
+                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
+                    />
+                </OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (

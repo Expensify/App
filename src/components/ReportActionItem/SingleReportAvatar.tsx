@@ -15,7 +15,7 @@ function SingleReportAvatar({
 }: {
     reportPreviewDetails: ReportAvatarDetails;
     personalDetails: PersonalDetailsList | undefined;
-    containerStyles: ViewStyle[];
+    containerStyles?: ViewStyle[];
     actorAccountID: number | null | undefined;
 }) {
     const {primaryAvatar, isWorkspaceActor, fallbackIcon: reportFallbackIcon, reportPreviewAction} = reportPreviewDetails;

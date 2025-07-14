@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,7 +40,6 @@ import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import SingleReportAvatar from './ReportActionItem/SingleReportAvatar';
 import type {TransactionListItemType} from './SelectionList/types';
 import Text from './Text';
 
@@ -244,59 +243,52 @@ function AvatarWithDisplayName({
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
-    const getAvatar = useCallback(() => {
-        if (!!singleAvatarDetails?.reportPreviewSenderID && !singleAvatarDetails.shouldDisplayAllActors && !shouldShowSubscriptAvatar) {
-            return (
-                <SingleReportAvatar
-                    reportPreviewDetails={singleAvatarDetails}
-                    personalDetails={personalDetails}
-                    containerStyles={[styles.actionAvatar, styles.mr3]}
-                    actorAccountID={singleAvatarDetails.reportPreviewSenderID}
-                />
-            );
-        }
+    const multipleAvatarDetails = useMemo(
+        () => ({
+            singleReportAvatar: {
+                shouldShow: !!singleAvatarDetails?.reportPreviewSenderID && !singleAvatarDetails.shouldDisplayAllActors && !shouldShowSubscriptAvatar,
+                personalDetails,
+                reportPreviewDetails: singleAvatarDetails,
+                containerStyles: [styles.actionAvatar, styles.mr3],
+                actorAccountID: singleAvatarDetails?.reportPreviewSenderID,
+            },
+            subscript: {
+                shouldShow: shouldShowSubscriptAvatar,
+                borderColor: avatarBorderColor,
+                fallbackIcon,
+            },
+        }),
+        [avatarBorderColor, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, styles],
+    );
 
-        return (
-            <MultipleAvatars
-                icons={icons}
-                size={size}
-                subscript={{
-                    shouldShow: shouldShowSubscriptAvatar,
-                    borderColor: avatarBorderColor,
-                    fallbackIcon,
-                }}
-                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-            />
-        );
-    }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
-
-    const getWrappedAvatar = useCallback(() => {
-        const avatar = getAvatar();
-
-        if (!shouldEnableAvatarNavigation) {
-            return <View accessibilityLabel={title}>{avatar}</View>;
-        }
-
-        return (
-            <View accessibilityLabel={title}>
-                <PressableWithoutFeedback
-                    onPress={showActorDetails}
-                    accessibilityLabel={title}
-                    role={getButtonRole(true)}
-                >
-                    {avatar}
-                </PressableWithoutFeedback>
-            </View>
-        );
-    }, [getAvatar, shouldEnableAvatarNavigation, showActorDetails, title]);
-
-    const WrappedAvatar = getWrappedAvatar();
+    const multipleAvatars = (
+        <MultipleAvatars
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...multipleAvatarDetails}
+            icons={icons}
+            size={size}
+            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+        />
+    );
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {WrappedAvatar}
+                    <View accessibilityLabel={title}>
+                        {shouldEnableAvatarNavigation ? (
+                            <PressableWithoutFeedback
+                                onPress={showActorDetails}
+                                accessibilityLabel={title}
+                                role={getButtonRole(true)}
+                            >
+                                {multipleAvatars}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            multipleAvatars
+                        )}
+                    </View>
+
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,
