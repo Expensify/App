@@ -5901,7 +5901,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'No expenses to display',
-                subtitle: 'Nothing to display, edit the filters.',
+                subtitle: 'No results. Please try adjusting your filters.',
             },
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',

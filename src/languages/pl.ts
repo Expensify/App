@@ -5921,7 +5921,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'Brak wydatków do wyświetlenia',
-                subtitle: 'Nic do wyświetlenia, edytuj filtry.',
+                subtitle: 'Brak wyników. Spróbuj dostosować filtry.',
             },
             emptyUnapprovedResults: {
                 title: 'Brak wydatków do zatwierdzenia',

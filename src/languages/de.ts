@@ -5930,7 +5930,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'Keine Ausgaben zu sehen',
-                subtitle: 'Es wird nichts angezeigt, bearbeiten Sie die Filter.',
+                subtitle: 'Keine Ergebnisse. Bitte versuchen Sie, Ihre Filter anzupassen.',
             },
             emptyUnapprovedResults: {
                 title: 'Keine Ausgaben zur Genehmigung',

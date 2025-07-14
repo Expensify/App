@@ -5924,7 +5924,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'No hay gastos para mostrar',
-                subtitle: 'Nada para mostrar, edita los filtros.',
+                subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
             },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',

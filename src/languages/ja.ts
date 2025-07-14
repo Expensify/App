@@ -5905,7 +5905,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: '表示する経費がない',
-                subtitle: '表示するものがない場合は、フィルタを編集してください。',
+                subtitle: '結果がありません。フィルターを調整してください。',
             },
             emptyUnapprovedResults: {
                 title: '承認する経費はありません',

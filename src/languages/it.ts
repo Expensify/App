@@ -5944,7 +5944,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'Nessuna spesa da visualizzare',
-                subtitle: 'Niente da visualizzare, modificare i filtri.',
+                subtitle: 'Nessun risultato. Provare a regolare i filtri.',
             },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',

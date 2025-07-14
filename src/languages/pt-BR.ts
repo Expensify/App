@@ -5933,7 +5933,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'Nenhuma despesa a ser exibida',
-                subtitle: 'Não há nada para exibir, edite os filtros.',
+                subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
             },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',

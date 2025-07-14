@@ -5830,7 +5830,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: '无费用显示',
-                subtitle: '不显示任何费用，请编辑筛选器。',
+                subtitle: '无结果。请尝试调整过滤器。',
             },
             emptyUnapprovedResults: {
                 title: '没有费用需要批准',

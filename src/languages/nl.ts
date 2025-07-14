@@ -5936,7 +5936,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'Geen uitgaven om weer te geven',
-                subtitle: 'Niets om weer te geven, bewerk de filters.',
+                subtitle: 'Geen resultaten. Probeer uw filters aan te passen.',
             },
             emptyUnapprovedResults: {
                 title: 'Geen uitgaven om goed te keuren',

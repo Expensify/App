@@ -5942,7 +5942,7 @@ const translations = {
             },
             emptyStatementsResults: {
                 title: 'Aucun relevé à afficher',
-                subtitle: 'Rien à afficher, modifier les filtres.',
+                subtitle: "Aucun résultat. Veuillez essayer d'ajuster vos filtres.",
             },
             emptyUnapprovedResults: {
                 title: 'Aucune dépense à approuver',
