@@ -1176,7 +1176,7 @@ function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTy
         });
     }
 
-    return Object.keys(columns).filter((columnName: string) => columns[columnName]) as SortableColumnName[];
+    return columns;
 }
 
 /**

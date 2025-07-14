@@ -176,7 +176,8 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
     const columnsToShow = useMemo(() => {
-        return getColumnsToShow(transactions, true) as SortableColumnName[];
+        const columns = getColumnsToShow(transactions, true);
+        return Object.keys(columns).filter((column) => columns[column]) as SortableColumnName[];
     }, [transactions]);
 
     const navigateToTransaction = useCallback(

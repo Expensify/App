@@ -1,4 +1,5 @@
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {shallowEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
@@ -21,6 +22,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {shallowCompare} from '@libs/ObjectUtils';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
@@ -485,12 +487,34 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [shouldShowLoadingState],
     );
 
-    const columnsToShow = useMemo(() => {
+    const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
-            return [];
+            return {};
         }
         return getColumnsToShow(searchResults?.data);
     }, [searchResults?.data]);
+
+    const previousColumnsRef = useRef<Record<string, boolean>>({});
+
+    useEffect(() => {
+        // Only update if columns actually changed
+        if (shallowCompare(currentColumns, previousColumnsRef.current)) {
+            return;
+        }
+        previousColumnsRef.current = {...currentColumns};
+    }, [currentColumns]);
+
+    const columnsToShow = useMemo(() => {
+        const columns = {...currentColumns};
+
+        const previouslyShownColumns = Object.keys(previousColumnsRef.current).filter((col) => previousColumnsRef.current[col] && !columns[col]);
+
+        previouslyShownColumns.forEach((col) => {
+            columns[col] = true;
+        });
+
+        return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
+    }, [currentColumns]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
