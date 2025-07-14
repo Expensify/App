@@ -2403,10 +2403,9 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
                 // if there is a manager assigned we need to check if user is admin and manager to fix issue https://github.com/Expensify/App/issues/64825
                 if (iouReport?.managerID) {
                     return isAdmin && isManager;
-                } 
+                }
                 // If we get here without a reimburser only show the pay button if we are the admin.
                 return isAdmin;
-
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
