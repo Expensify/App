@@ -4621,16 +4621,10 @@ function updateMoneyRequestMerchant(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    wasMerchantCleared?: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
-
-    if (wasMerchantCleared !== undefined) {
-        transactionChanges.wasMerchantCleared = wasMerchantCleared;
-    }
-
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
