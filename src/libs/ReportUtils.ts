@@ -4566,7 +4566,7 @@ function getReportPreviewMessage(
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-    const {totalDisplaySpend: totalAmount, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
 
     const parentReport = getParentReport(report);
     const policyName = getPolicyName({report: parentReport ?? report, policy});
