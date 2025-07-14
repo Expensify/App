@@ -6,8 +6,6 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {FlatListPropsWithLayout} from 'react-native-reanimated';
-import {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -17,25 +15,19 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {
-    ExtendedTargetedEvent,
-    ReportActionListItemType,
-    SortableColumnName,
-    TaskListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
@@ -87,28 +79,17 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
-    columns?: SortableColumnName[];
-
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
 
-<<<<<<< HEAD
-    /** Whether mobile selection mode is enabled */
-    isMobileSelectionModeEnabled: boolean;
-};
-
-const keyExtractor = (item: SearchListItem, index: number) => {
-    return item.keyForList ?? `${index}`;
-=======
     /** Styles to apply to the content container */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
     /** The estimated height of an item in the list */
     estimatedItemSize?: number;
->>>>>>> @perunt/expenses-list-perf-on-web
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -134,7 +115,6 @@ function SearchList(
         columns,
         onViewableItemsChanged,
         onLayout,
-        isMobileSelectionModeEnabled,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
@@ -172,13 +152,50 @@ function SearchList(
     const {isSmallScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const {selectionMode} = useMobileSelectionMode();
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
+    // Check if selection should be on when the modal is opened
+    const wasSelectionOnRef = useRef(false);
+    // Keep track of the number of selected items to determine if we should turn off selection mode
+    const selectionRef = useRef(0);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+
+    useEffect(() => {
+        selectionRef.current = selectedItemsLength;
+
+        if (!isSmallScreenWidth) {
+            if (selectedItemsLength === 0) {
+                turnOffMobileSelectionMode();
+            }
+            return;
+        }
+        if (!isFocused) {
+            return;
+        }
+        if (!wasSelectionOnRef.current && selectedItemsLength > 0) {
+            wasSelectionOnRef.current = true;
+        }
+        if (selectedItemsLength > 0 && !selectionMode?.isEnabled) {
+            turnOnMobileSelectionMode();
+        } else if (selectedItemsLength === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
+            turnOffMobileSelectionMode();
+        }
+    }, [selectionMode, isSmallScreenWidth, isFocused, selectedItemsLength]);
+
+    useEffect(
+        () => () => {
+            if (selectionRef.current !== 0) {
+                return;
+            }
+            turnOffMobileSelectionMode();
+        },
+        [],
+    );
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -190,14 +207,14 @@ function SearchList(
             if ('transactions' in item && item.transactions.length === 0) {
                 return;
             }
-            if (isMobileSelectionModeEnabled) {
+            if (selectionMode?.isEnabled) {
                 onCheckboxPress(item);
                 return;
             }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
+        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode?.isEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -344,8 +361,8 @@ function SearchList(
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={hash}
-                    policies={policies}
                     columns={columns}
+                    policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
                     groupBy={groupBy}
@@ -363,10 +380,10 @@ function SearchList(
             policies,
             hash,
             groupBy,
+            columns,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
-            columns,
         ],
     );
 

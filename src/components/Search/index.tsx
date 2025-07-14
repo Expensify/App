@@ -1,10 +1,9 @@
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import {shallowEqual} from 'fast-equals';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -62,14 +61,8 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-<<<<<<< HEAD
-    contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
-=======
     contentContainerStyle?: ContentStyle;
-    currentSearchResults?: SearchResults;
-    lastNonEmptySearchResults?: SearchResults;
->>>>>>> @perunt/expenses-list-perf-on-web
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
 };
@@ -516,7 +509,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         const columns = {...currentColumns};
 
         if (!previousColumnsRef.current) {
-            return columns;
+            return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
         }
 
         const previouslyShownColumns = Object.keys(previousColumnsRef.current).filter((col) => previousColumnsRef.current[col] && !columns[col]);
@@ -651,51 +644,58 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     return (
         <SearchScopeProvider isOnSearch>
-            <SearchList
-                ref={searchListRef}
-                data={sortedSelectedData}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                onCheckboxPress={toggleTransaction}
-                onAllCheckboxPress={toggleAllTransactions}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                SearchTableHeader={
-                    !shouldShowTableHeader ? undefined : (
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            isAmountColumnWide={shouldShowAmountInWideColumn}
-                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                            shouldShowSorting={shouldShowSorting}
-                            columns={columnsToShow}
-                        />
-                    )
-                }
-                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-                queryJSON={queryJSON}
-                columns={columnsToShow}
-                onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-            />
+            <Animated.View
+                key={JSON.stringify(queryJSON) + JSON.stringify(searchResults?.search.columnsToShow)}
+                entering={FadeIn.duration(300)}
+                exiting={FadeOut.duration(300)}
+                style={[styles.flex1]}
+            >
+                <SearchList
+                    ref={searchListRef}
+                    data={sortedSelectedData}
+                    ListItem={ListItem}
+                    onSelectRow={openReport}
+                    onCheckboxPress={toggleTransaction}
+                    onAllCheckboxPress={toggleAllTransactions}
+                    canSelectMultiple={canSelectMultiple}
+                    shouldPreventLongPressRow={isChat || isTask}
+                    SearchTableHeader={
+                        !shouldShowTableHeader ? undefined : (
+                            <SearchTableHeader
+                                canSelectMultiple={canSelectMultiple}
+                                metadata={searchResults?.search}
+                                onSortPress={onSortPress}
+                                sortOrder={sortOrder}
+                                sortBy={sortBy}
+                                shouldShowYear={shouldShowYear}
+                                isAmountColumnWide={shouldShowAmountInWideColumn}
+                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                shouldShowSorting={shouldShowSorting}
+                                columns={columnsToShow}
+                            />
+                        )
+                    }
+                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    onScroll={onSearchListScroll}
+                    onEndReachedThreshold={0.75}
+                    onEndReached={fetchMoreResults}
+                    ListFooterComponent={
+                        shouldShowLoadingMoreItems ? (
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                fixedNumItems={5}
+                            />
+                        ) : undefined
+                    }
+                    queryJSON={queryJSON}
+                    columns={columnsToShow}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onLayout={onLayout}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                />
+            </Animated.View>
         </SearchScopeProvider>
     );
 }
