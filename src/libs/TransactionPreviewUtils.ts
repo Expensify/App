@@ -117,7 +117,7 @@ const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
 function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
     return violations?.reduce((acc, violation) => {
-        if (violation.type === CONST.VIOLATION_TYPES.VIOLATION && violation.name === 'someTagLevelsRequired') {
+        if (violation.type === CONST.VIOLATION_TYPES.VIOLATION && violation.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED) {
             const violationCount = violation?.data?.errorIndexes?.length ?? 0;
             return acc + violationCount;
         }
