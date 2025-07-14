@@ -80,7 +80,9 @@ function AccountDetailsPage() {
                 }
 
                 Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
-                setEmail(email.trim());
+                setTimeout(() => {
+                    setEmail(email.trim());
+                }, 300);
             });
 
             return () => task.cancel();
@@ -94,7 +96,9 @@ function AccountDetailsPage() {
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), errorKey));
-                setEmail(email.trim());
+                setTimeout(() => {
+                    setEmail(email.trim());
+                }, 300);
             });
 
             return () => task.cancel();
