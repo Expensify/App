@@ -302,6 +302,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             onSelectRow={addAttendeeToSelection}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}
+            autoCorrect={false}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
             showLoadingPlaceholder={showLoadingPlaceholder}

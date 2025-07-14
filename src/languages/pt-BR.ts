@@ -280,6 +280,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -1069,6 +1070,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tire fotos de todos os seus recibos de uma vez, depois confirme os detalhes você mesmo ou deixe o SmartScan cuidar disso.',
         receiptScanInProgress: 'Digitalização de recibo em andamento',
         receiptScanInProgressDescription: 'Digitalização do recibo em andamento. Verifique mais tarde ou insira os detalhes agora.',
+        removeFromReport: 'Remover do relatório',
+        moveToPersonalSpace: 'Mover despesas para o espaço pessoal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Despesas duplicadas potenciais identificadas. Revise as duplicatas para permitir o envio.'
@@ -1788,7 +1791,7 @@ const translations = {
         nameOnCard: 'Nome no cartão',
         paymentCardNumber: 'Número do cartão',
         expiration: 'Data de validade',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Endereço de cobrança',
         growlMessageOnSave: 'Seu cartão de pagamento foi adicionado com sucesso',
@@ -6795,11 +6798,8 @@ const translations = {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
                 info: 'Se você quiser continuar usando seu(s) espaço(s) de trabalho em uma base de pagamento por uso, está tudo certo.',
-                preventFutureActivity: {
-                    part1: 'Se você deseja evitar atividades e cobranças futuras, você deve',
-                    link: 'excluir seu(s) espaço(s) de trabalho',
-                    part2: '. Observe que, ao excluir seu(s) workspace(s), você será cobrado por qualquer atividade pendente que tenha ocorrido durante o mês corrente.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Se você deseja evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">excluir seu(s) espaço(s) de trabalho</a>. Observe que, ao excluir seu(s) workspace(s), você será cobrado por qualquer atividade pendente que tenha ocorrido durante o mês corrente.`,
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',
@@ -6964,66 +6964,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Comece agora',
-            part2: 'aqui!',
-        },
-        saveSearchTooltip: {
-            part1: 'Renomeie suas pesquisas salvas',
-            part2: 'aqui!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Verificar o quê?',
-            part2: 'precisa da sua atenção',
-            part3: 'e',
-            part4: 'conversar sobre despesas.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Converse com',
-            part2: 'aprovadores',
-        },
-        globalCreateTooltip: {
-            part1: 'Criar despesas',
-            part2: ', começar a conversar,',
-            part3: 'e mais.',
-            part4: 'Experimente!',
-        },
-        GBRRBRChat: {
-            part1: 'Você verá 🟢 em',
-            part2: 'ações a serem tomadas',
-            part3: ',\ne 🔴 em',
-            part4: 'itens para revisar.',
-        },
-        accountSwitcher: {
-            part1: 'Acesse seu',
-            part2: 'Contas Copilot',
-            part3: 'aqui',
-        },
-        expenseReportsFilter: {
-            part1: 'Bem-vindo! Encontre todos os seus',
-            part2: 'relatórios da empresa',
-            part3: 'aqui.',
-        },
+        conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Crie despesas</strong>, comece um bate-papo,\ne mais. Experimente!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Veja o que <strong>precisa da sua atenção</strong>\ne <strong>converse sobre despesas.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Converse com os <strong>aprovadores</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Você verá 🟢 nas <strong>ações a serem tomadas</strong>\ne 🔴 nos <strong>itens a revisar.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
+        expenseReportsFilter: '<tooltip>Bem-vindo! Encontre todos os\n<strong>relatórios da sua empresa</strong> aqui.</tooltip>',
         scanTestTooltip: {
-            part1: 'Quer ver como o Scan funciona?',
-            part2: 'Experimente um recibo de teste!',
-            part3: 'Escolha nosso(a)',
-            part4: 'gerente de teste',
-            part5: 'para experimentar!',
-            part6: 'Agora,',
-            part7: 'envie sua despesa',
-            part8: 'e veja a mágica acontecer!',
-            tryItOut: 'Experimente',
-            noThanks: 'Não, obrigado.',
+            main: '<tooltip><strong>Escaneie nosso recibo de teste</strong> para ver como funciona!</tooltip>',
+            manager: '<tooltip>Escolha nosso <strong>gerente de teste</strong> para experimentar!</tooltip>',
+            confirmation: '<tooltip>Agora, <strong>envie sua despesa</strong> e veja\na mágica acontecer!</tooltip>',
+            tryItOut: 'Experimentar',
+            noThanks: 'Não, obrigado',
         },
-        outstandingFilter: {
-            part1: 'Filtrar por despesas que',
-            part2: 'precisa de aprovação',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Enviar este recibo para',
-            part2: 'complete o test drive!',
-        },
+        outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o teste!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
