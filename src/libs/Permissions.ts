@@ -2,10 +2,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
+// eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
+// eslint-disable-next-line rulesdir/no-beta-handler
 function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     // Don't check for all betas or nobody can use test travel on dev
     return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
@@ -19,11 +21,11 @@ function canUseLinkPreviews(): boolean {
 }
 
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
-    // This beta has been released to everyone, but in case user does not have the NVP loaded, we need to return true here.
-    // Will be removed in this issue https://github.com/Expensify/App/issues/63254
-    if (beta === CONST.BETAS.TABLE_REPORT_VIEW) {
-        return true;
+    // Remove this check once the manual distance tracking feature is fully rolled out
+    if (beta === CONST.BETAS.MANUAL_DISTANCE) {
+        return false;
     }
+
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 

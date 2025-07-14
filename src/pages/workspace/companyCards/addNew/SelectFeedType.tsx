@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,8 +9,10 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +24,7 @@ function SelectFeedType() {
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_SUPPORT_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
     const submit = () => {
@@ -52,10 +53,10 @@ function SelectFeedType() {
             setTypeSelected(addNewCard?.data.selectedFeedType);
             return;
         }
-        if (isCountrySupportPlaid) {
+        if (doesCountrySupportPlaid) {
             setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
         }
-    }, [addNewCard?.data.selectedFeedType, isCountrySupportPlaid]);
+    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
@@ -84,7 +85,7 @@ function SelectFeedType() {
         if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             return data;
         }
-        if (isCountrySupportPlaid) {
+        if (doesCountrySupportPlaid) {
             return data.reverse();
         }
 

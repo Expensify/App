@@ -25,6 +25,8 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     const styles = useThemeStyles();
 
     const openAdminsReport = useCallback(() => {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const reportID = `${PolicyUtils.getPolicy(policyID)?.chatReportIDAdmins}` ?? '-1';
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));

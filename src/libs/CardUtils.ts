@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -400,7 +400,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames): string | undefined {
+function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames, shouldAddCardsSuffix = true): string | undefined {
     if (!feed) {
         return;
     }
@@ -411,7 +411,9 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
         return '';
     }
 
-    const formattedFeedName = translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
+    const feedName = getBankName(feed);
+    const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
+
     return customFeedName ?? formattedFeedName;
 }
 
@@ -432,8 +434,29 @@ function getPlaidInstitutionId(feedName?: string) {
     return feed.at(1);
 }
 
+function isPlaidSupportedCountry(selectedCountry?: string) {
+    if (!selectedCountry) {
+        return false;
+    }
+    return CONST.PLAID_SUPPORT_COUNTRIES.includes(selectedCountry);
+}
+
 function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
     return cardFeedData?.domainID ?? workspaceAccountID;
+}
+
+function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    const selectedCurrency = outputCurrency ? currencyList?.[outputCurrency] : null;
+    const countries = selectedCurrency?.countries;
+
+    if (outputCurrency === CONST.CURRENCY.EUR) {
+        if (countryByIp && countries?.includes(countryByIp)) {
+            return countryByIp;
+        }
+        return '';
+    }
+    const country = countries?.[0];
+    return country ?? '';
 }
 
 // We will simplify the logic below once we have #50450 #50451 implemented
@@ -693,8 +716,10 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,
+    getPlaidCountry,
     getCustomOrFormattedFeedName,
     isCardClosed,
+    isPlaidSupportedCountry,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,

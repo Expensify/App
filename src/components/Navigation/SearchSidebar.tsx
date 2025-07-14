@@ -1,11 +1,11 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,8 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
+import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
-import NavigationTabBarDummy from './NavigationTabBar/NavigationTabBarDummy';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -57,7 +57,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
 
     if (shouldUseNarrowLayout) {
@@ -76,7 +76,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 />
                 <SearchTypeMenu queryJSON={queryJSON} />
             </View>
-            <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.SEARCH} />
+            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
     );
 }

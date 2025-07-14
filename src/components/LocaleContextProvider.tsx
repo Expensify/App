@@ -1,18 +1,16 @@
-import React, {createContext, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumber as formatPhoneNumberLocalePhoneNumber} from '@libs/LocalePhoneNumber';
 import {translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
-import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
-
-type Locale = ValueOf<typeof CONST.LOCALES>;
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -35,9 +33,6 @@ type LocaleContextProps = {
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
 
-    /** Updates date-fns internal locale */
-    updateLocale: () => void;
-
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
     formatPhoneNumber: (phoneNumber: string) => string;
@@ -51,8 +46,8 @@ type LocaleContextProps = {
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
 
-    /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale: Locale;
+    /** The user's preferred locale e.g. 'en', 'es' */
+    preferredLocale: Locale | undefined;
 };
 
 const LocaleContext = createContext<LocaleContextProps>({
@@ -61,58 +56,68 @@ const LocaleContext = createContext<LocaleContextProps>({
     getLocalDateFromDatetime: () => new Date(),
     datetimeToRelative: () => '',
     datetimeToCalendarTime: () => '',
-    updateLocale: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
-    preferredLocale: CONST.LOCALES.DEFAULT,
+    preferredLocale: undefined,
 });
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
+    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+
+    useEffect(() => {
+        if (areTranslationsLoading) {
+            return;
+        }
+
+        const locale = IntlStore.getCurrentLocale();
+        if (!locale) {
+            return;
+        }
+
+        setCurrentLocale(locale);
+    }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
             (path, ...parameters) =>
-                translateLocalize(locale, path, ...parameters),
-        [locale],
+                translateLocalize(currentLocale, path, ...parameters),
+        [currentLocale],
     );
 
-    const numberFormat = useMemo<LocaleContextProps['numberFormat']>(() => (number, options) => format(locale, number, options), [locale]);
+    const numberFormat = useMemo<LocaleContextProps['numberFormat']>(() => (number, options) => format(currentLocale, number, options), [currentLocale]);
 
     const getLocalDateFromDatetime = useMemo<LocaleContextProps['getLocalDateFromDatetime']>(
-        () => (datetime, currentSelectedTimezone) => DateUtils.getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone ?? selectedTimezone),
-        [locale, selectedTimezone],
+        () => (datetime, currentSelectedTimezone) => DateUtils.getLocalDateFromDatetime(currentLocale, datetime, currentSelectedTimezone ?? selectedTimezone),
+        [currentLocale, selectedTimezone],
     );
 
-    const datetimeToRelative = useMemo<LocaleContextProps['datetimeToRelative']>(() => (datetime) => DateUtils.datetimeToRelative(locale, datetime), [locale]);
+    const datetimeToRelative = useMemo<LocaleContextProps['datetimeToRelative']>(() => (datetime) => DateUtils.datetimeToRelative(currentLocale, datetime), [currentLocale]);
 
     const datetimeToCalendarTime = useMemo<LocaleContextProps['datetimeToCalendarTime']>(
         () =>
             (datetime, includeTimezone, isLowercase = false) =>
-                DateUtils.datetimeToCalendarTime(locale, datetime, includeTimezone, selectedTimezone, isLowercase),
-        [locale, selectedTimezone],
+                DateUtils.datetimeToCalendarTime(currentLocale, datetime, includeTimezone, selectedTimezone, isLowercase),
+        [currentLocale, selectedTimezone],
     );
-
-    const updateLocale = useMemo<LocaleContextProps['updateLocale']>(() => () => DateUtils.setLocale(locale), [locale]);
 
     const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberLocalePhoneNumber(phoneNumber), []);
 
-    const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => toLocaleDigitLocaleDigitUtils(locale, digit), [locale]);
+    const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit), [currentLocale]);
 
     const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(
         () =>
             (number, writtenOrdinals = false) =>
-                toLocaleOrdinalLocaleDigitUtils(locale, number, writtenOrdinals),
-        [locale],
+                toLocaleOrdinalLocaleDigitUtils(currentLocale, number, writtenOrdinals),
+        [currentLocale],
     );
 
-    const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => fromLocaleDigitLocaleDigitUtils(locale, localeDigit), [locale]);
+    const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => fromLocaleDigitLocaleDigitUtils(currentLocale, localeDigit), [currentLocale]);
 
     const contextValue = useMemo<LocaleContextProps>(
         () => ({
@@ -121,26 +126,13 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             getLocalDateFromDatetime,
             datetimeToRelative,
             datetimeToCalendarTime,
-            updateLocale,
             formatPhoneNumber,
             toLocaleDigit,
             toLocaleOrdinal,
             fromLocaleDigit,
-            preferredLocale: locale,
+            preferredLocale: currentLocale,
         }),
-        [
-            translate,
-            numberFormat,
-            getLocalDateFromDatetime,
-            datetimeToRelative,
-            datetimeToCalendarTime,
-            updateLocale,
-            formatPhoneNumber,
-            toLocaleDigit,
-            toLocaleOrdinal,
-            fromLocaleDigit,
-            locale,
-        ],
+        [translate, numberFormat, getLocalDateFromDatetime, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, currentLocale],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;

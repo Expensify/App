@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
@@ -8,7 +8,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@libs/actions/Search';
+import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -30,7 +30,7 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
 
     const listItemPressableStyle = [
@@ -57,8 +57,12 @@ function TransactionListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const dateColumnSize = useMemo(() => {
-        return transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+        return {
+            amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+        };
     }, [transactionItem]);
 
     const columns = useMemo(
@@ -78,6 +82,14 @@ function TransactionListItem<TItem extends ListItem>({
             ] satisfies Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
         [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax],
     );
+
+    const handleActionButtonPress = useCallback(() => {
+        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
+    }, [canSelectMultiple, currentSearchHash, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
+
+    const handleCheckboxPress = useCallback(() => {
+        onCheckboxPress?.(item);
+    }, [item, onCheckboxPress]);
 
     return (
         <BaseListItem
@@ -103,25 +115,23 @@ function TransactionListItem<TItem extends ListItem>({
                     {!isLargeScreenWidth && (
                         <UserInfoAndActionButtonRow
                             item={transactionItem}
-                            handleActionButtonPress={() => {
-                                handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
-                            }}
+                            handleActionButtonPress={handleActionButtonPress}
                             shouldShowUserInfo={!!transactionItem?.from}
                         />
                     )}
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         shouldShowTooltip={showTooltip}
-                        onButtonPress={() => {
-                            handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
-                        }}
-                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        onButtonPress={handleActionButtonPress}
+                        onCheckboxPress={handleCheckboxPress}
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         columns={columns}
                         isParentHovered={hovered}
                         isActionLoading={isLoading ?? transactionItem.isActionLoading}
                         isSelected={!!transactionItem.isSelected}
                         dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowCheckbox={!!canSelectMultiple}
                     />
                 </>

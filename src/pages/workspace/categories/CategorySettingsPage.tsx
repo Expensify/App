@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Trashcan} from '@components/Icon/Expensicons';
@@ -14,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
@@ -50,6 +50,8 @@ function CategorySettingsPage({
     },
     navigation,
 }: CategorySettingsPageProps) {
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -126,7 +128,7 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
+        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, policyTagLists, allTransactionViolations);
     };
 
     const navigateToEditCategory = () => {
@@ -136,7 +138,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName]);
+        deleteWorkspaceCategories(policyID, [categoryName], policyTagLists, allTransactionViolations);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
@@ -17,7 +17,7 @@ import canCapturePerformanceMetrics from './Metrics';
 function diffObject(object: Record<string, unknown>, base: Record<string, unknown>): Record<string, unknown> {
     function changes(obj: Record<string, unknown>, comparisonObject: Record<string, unknown>): Record<string, unknown> {
         return lodashTransform(obj, (result, value, key) => {
-            if (isEqual(value, comparisonObject[key])) {
+            if (deepEqual(value, comparisonObject[key])) {
                 return;
             }
 

@@ -1,15 +1,15 @@
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -23,7 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -60,7 +60,6 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
-    const {isBetaEnabled} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated;
@@ -77,12 +76,9 @@ function SecuritySettingsPage() {
         horizontal: 0,
         vertical: 0,
     });
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
-    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
@@ -109,9 +105,6 @@ function SecuritySettingsPage() {
         setSelectedEmail(delegate.email);
     };
 
-    const showDelegateNoAccessMenu = () => {
-        setIsNoDelegateAccessMenuVisible(true);
-    };
     useLayoutEffect(() => {
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
@@ -130,17 +123,34 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
+                action: () => {
+                    if (isActingAsDelegate) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                },
             },
-        ];
-
-        if (isBetaEnabled(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS)) {
-            baseMenuItems.push({
+            {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
-            });
-        }
+                action: () => {
+                    if (isActingAsDelegate) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+                },
+            },
+        ];
 
         if (isAccountLocked) {
             baseMenuItems.push({
@@ -150,7 +160,7 @@ function SecuritySettingsPage() {
             });
         } else {
             baseMenuItems.push({
-                translationKey: 'lockAccountPage.lockAccount',
+                translationKey: 'lockAccountPage.reportSuspiciousActivity',
                 icon: Expensicons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
@@ -159,7 +169,18 @@ function SecuritySettingsPage() {
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
-            action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_CLOSE);
+            },
         });
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
@@ -170,7 +191,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -250,7 +271,11 @@ function SecuritySettingsPage() {
             icon: Expensicons.Pencil,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => showDelegateNoAccessModal());
+                    return;
+                }
+                if (isAccountLocked) {
+                    modalClose(() => showLockedAccountModal());
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
@@ -264,7 +289,11 @@ function SecuritySettingsPage() {
             icon: Expensicons.Trashcan,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => showDelegateNoAccessModal());
+                    return;
+                }
+                if (isAccountLocked) {
+                    modalClose(() => showLockedAccountModal());
                     return;
                 }
                 modalClose(() => {
@@ -347,6 +376,10 @@ function SecuritySettingsPage() {
                                                     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_DELEGATE));
                                                     return;
                                                 }
+                                                if (isAccountLocked) {
+                                                    showLockedAccountModal();
+                                                    return;
+                                                }
                                                 Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
                                             }}
                                             shouldShowRightIcon
@@ -398,10 +431,6 @@ function SecuritySettingsPage() {
                             />
                         </View>
                     </ScrollView>
-                    <DelegateNoAccessModal
-                        isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                        onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                    />
                 </>
             )}
         </ScreenWrapper>

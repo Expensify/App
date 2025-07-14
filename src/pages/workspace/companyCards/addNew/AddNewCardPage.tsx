@@ -1,14 +1,14 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -21,6 +21,7 @@ import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
+import StatementCloseDateStep from './StatementCloseDateStep';
 
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
@@ -32,6 +33,12 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
+
+    useEffect(() => {
+        return () => {
+            clearAddNewCardFlow();
+        };
+    }, []);
 
     useEffect(() => {
         // If the user only has a domain feed, a workspace account may not have been created yet.
@@ -77,6 +84,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             return <AmexCustomFeed />;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
             return <PlaidConnectionStep />;
+        case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
+            return <StatementCloseDateStep policyID={policyID} />;
         default:
             return isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }

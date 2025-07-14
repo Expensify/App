@@ -1,13 +1,12 @@
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -15,6 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -26,6 +26,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,7 +48,8 @@ import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultP
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Card} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */
@@ -55,18 +57,18 @@ type WalletPageProps = {
 };
 
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}, canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}, canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}, canBeMissing: true});
-    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true, canBeMissing: true});
+    const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}, canBeMissing: true});
+    const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
-    const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
-
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -140,7 +142,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const paymentMethodPressed = (
         nativeEvent?: GestureResponderEvent | KeyboardEvent,
         accountType?: string,
-        account?: AccountData,
+        account?: OnyxTypes.AccountData,
         icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
@@ -189,14 +191,18 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
         setShouldShowAddPaymentMenu(true);
         setMenuPosition();
     };
 
-    const assignedCardPressed = (nativeEvent?: GestureResponderEvent | KeyboardEvent, cardData?: Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => {
+    const assignedCardPressed = (nativeEvent?: GestureResponderEvent | KeyboardEvent, cardData?: OnyxTypes.Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
             return;
@@ -244,7 +250,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView();
+            openPersonalBankAccountSetupView({});
             return;
         }
 
@@ -289,11 +295,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID);
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
+    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, lastUsedPaymentMethods]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
@@ -473,13 +479,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     isCentralPane
                                     subtitleMuted
                                     titleStyles={styles.accountSettingsSectionTitle}
+                                    childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
                                 >
                                     <>
                                         {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                                style={[styles.mt7, styles.mb5]}
+                                                style={[styles.mb5]}
                                             />
                                         )}
                                         {!shouldShowLoadingSpinner && hasActivatedWallet && (
@@ -488,7 +495,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 errors={walletTerms?.errors}
                                                 onClose={clearWalletTermsError}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
-                                                style={[styles.mt4, styles.mb2]}
+                                                style={[styles.mb2]}
                                             >
                                                 <MenuItemWithTopDescription
                                                     description={translate('walletPage.balance')}
@@ -575,7 +582,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         onPress={() => {
                                                             if (isActingAsDelegate) {
-                                                                setIsNoDelegateAccessMenuVisible(true);
+                                                                showDelegateNoAccessModal();
+                                                                return;
+                                                            }
+                                                            if (isAccountLocked) {
+                                                                showLockedAccountModal();
                                                                 return;
                                                             }
 
@@ -643,8 +654,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     onPress={() => {
                                         if (isActingAsDelegate) {
                                             closeModal(() => {
-                                                setIsNoDelegateAccessMenuVisible(true);
+                                                showDelegateNoAccessModal();
                                             });
+                                            return;
+                                        }
+                                        if (isAccountLocked) {
+                                            closeModal(() => showLockedAccountModal());
                                             return;
                                         }
                                         makeDefaultPaymentMethod();
@@ -660,8 +675,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 onPress={() => {
                                     if (isActingAsDelegate) {
                                         closeModal(() => {
-                                            setIsNoDelegateAccessMenuVisible(true);
+                                            showDelegateNoAccessModal();
                                         });
+                                        return;
+                                    }
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
                                         return;
                                     }
                                     closeModal(() => setShowConfirmDeleteModal(true));
@@ -746,10 +765,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 onItemSelected={(method: string) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
                 shouldShowPersonalBankAccountOption
-            />
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
         </>
     );

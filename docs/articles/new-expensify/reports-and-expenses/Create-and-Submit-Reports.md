@@ -15,10 +15,9 @@ Follow these steps to build and submit an expense report manually.
 
 1. Tap the green **➕ Create** button at the bottom of your screen.
 2. Select **Create report**.
-3. Choose the workspace for your report:
-   - If you're in one workspace, it will be selected automatically.
-   - If you're in multiple, you’ll be prompted to choose one.
+3. The report will be created on your default workspace.
 4. A draft report will open with the workspace’s default title.
+5. Click **More** to change the workspace if needed.
 
 **Note:** The report will display *“This report is empty”* until expenses are added.
 
@@ -34,9 +33,13 @@ Inside the draft report, tap **Add expense** to include expense items.
 
 **Option B:** Add existing unreported expenses:
 
-1. Tap **Add expense** > **Add unreported expenses**.
+1. Tap **Add expense** > **Add unreported expense**.
 2. Select the expenses you want to include.
 3. Tap **Add to report**.
+
+**Add additional expenses:**
+
+Once the report includes at least one expense, the Add Expense option will be under the More menu. Tap **More** > **Add expense** to continue adding expenses
 
 ## Step 3: Submit the report
 
@@ -50,7 +53,7 @@ Inside the draft report, tap **Add expense** to include expense items.
 
 # Fix and Retract Submitted Reports
 
-Submitted a report too early? Need to add or remove an expense? You can **retract** submitted reports using the **Undo Submit** or **Undo Close** actions.
+Submitted a report too early? Need to add or remove an expense? You can **retract** submitted reports using the **More** > **Undo Submit** or **Undo Close** actions.
 
 **Retract** means returning a report from **closed** or **processing** back to the **open** state so you can edit it.
 

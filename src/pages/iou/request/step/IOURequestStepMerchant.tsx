@@ -1,16 +1,17 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction, setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,13 +61,16 @@ function IOURequestStepMerchant({
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
+            const {isValid, byteLength} = isValidInputLength(value.moneyRequestMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (value.moneyRequestMerchant.length > CONST.MERCHANT_NAME_MAX_LENGTH) {
+            } else if (isMerchantRequired && value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+                errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
+            } else if (!isValid) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', {
-                    length: value.moneyRequestMerchant.length,
-                    limit: CONST.MERCHANT_NAME_MAX_LENGTH,
+                    length: byteLength,
+                    limit: CONST.MERCHANT_NAME_MAX_BYTES,
                 });
             }
 
@@ -96,10 +100,26 @@ function IOURequestStepMerchant({
             navigateBack();
             return;
         }
-        // When creating/editing an expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
-        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
+
+        // Check if merchant was intentionally cleared by user
+        const existingMerchantValue = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
+        const wasMerchantCleared = newMerchant === '' && existingMerchantValue !== '';
+
+        // Determine the merchant value to save
+        let merchantValue: string;
+        if (wasMerchantCleared) {
+            if (isMerchantRequired) {
+                return;
+            }
+            merchantValue = '';
+        } else {
+            // Fallback to PARTIAL_TRANSACTION_MERCHANT only if merchant is null or undefined
+            merchantValue = newMerchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+        }
+
+        setMoneyRequestMerchant(transactionID, merchantValue, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
+            updateMoneyRequestMerchant(transactionID, reportID, merchantValue, policy, policyTags, policyCategories, wasMerchantCleared && !isMerchantRequired);
         }
         navigateBack();
     };

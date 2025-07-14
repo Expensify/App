@@ -37,13 +37,25 @@ type LHNOptionsListProps = CustomLHNOptionsListProps;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
-    isFocused?: boolean;
+    isOptionFocused?: boolean;
 
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
     /** The preferred language for the app */
     preferredLocale?: OnyxEntry<Locale>;
+
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    /** Whether the reports split navigator is last */
+    isReportsSplitNavigatorLast: boolean;
 
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
@@ -81,17 +93,6 @@ type OptionRowLHNDataProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 
-    /** The active policy ID */
-    activePolicyID?: string;
-
-    /** The onboarding purpose */
-    onboardingPurpose?: OnboardingPurpose;
-
-    /** Whether the fullscreen is visible */
-    isFullscreenVisible?: boolean;
-
-    isReportsSplitNavigatorLast: boolean;
-
     /**
      * Array of report actions for the IOU report related to the last action of this report.
      * If the last action is a report action preview, the last message of the report depends on
@@ -120,6 +121,9 @@ type OptionRowLHNDataProps = {
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
+
+    /** Whether the screen is focused */
+    isScreenFocused?: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -130,7 +134,7 @@ type OptionRowLHNProps = {
     report?: Report;
 
     /** Whether this option is currently in focus so we can modify its style */
-    isFocused?: boolean;
+    isOptionFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -153,6 +157,7 @@ type OptionRowLHNProps = {
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
 
+    /** Whether the reports split navigator is last */
     isReportsSplitNavigatorLast: boolean;
 
     /** Whether a report contains a draft */
@@ -162,6 +167,9 @@ type OptionRowLHNProps = {
 
     /** Whether to show the educational tooltip on the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
+
+    /** Whether the screen is focused */
+    isScreenFocused?: boolean;
 };
 
 type RenderItemProps = {item: Report};

@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,6 +11,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -22,9 +22,10 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getTagApproverRule,
-    getTagList,
+    getTagListByOrderWeight,
     getWorkflowApprovalsUnavailable,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    hasDependentTags as hasDependentTagsPolicyUtils,
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -43,10 +44,10 @@ type TagSettingsPageProps =
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`, {canBeMissing: true});
-    const {orderWeight, policyID, tagName, backTo} = route.params;
+    const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
+    const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
@@ -55,7 +56,14 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
     const approverText = approver?.displayName ?? tagApprover;
-    const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const currentPolicyTag = useMemo(() => {
+        if (hasDependentTags) {
+            return Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter);
+        }
+        return policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
+    }, [policyTag, tagName, parentTagsFilter, hasDependentTags]);
+
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
 
     useEffect(() => {
@@ -164,42 +172,47 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 />
 
                 <View style={styles.flexGrow1}>
-                    <OfflineWithFeedback
-                        errors={getLatestErrorMessageField(currentPolicyTag)}
-                        pendingAction={currentPolicyTag.pendingFields?.enabled}
-                        errorRowStyles={styles.mh5}
-                        onClose={() => clearPolicyTagErrors(policyID, tagName, orderWeight)}
-                    >
-                        <View style={[styles.mt2, styles.mh5]}>
-                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text>{translate('workspace.tags.enableTag')}</Text>
-                                <Switch
-                                    isOn={currentPolicyTag.enabled}
-                                    accessibilityLabel={translate('workspace.tags.enableTag')}
-                                    onToggle={updateWorkspaceTagEnabled}
-                                    showLockIcon={shouldPreventDisableOrDelete}
-                                />
+                    {!hasDependentTags && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorMessageField(currentPolicyTag)}
+                            pendingAction={currentPolicyTag.pendingFields?.enabled}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearPolicyTagErrors(policyID, tagName, orderWeight)}
+                        >
+                            <View style={[styles.mt2, styles.mh5]}>
+                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                    <Text>{translate('workspace.tags.enableTag')}</Text>
+                                    <Switch
+                                        isOn={currentPolicyTag.enabled}
+                                        accessibilityLabel={translate('workspace.tags.enableTag')}
+                                        onToggle={updateWorkspaceTagEnabled}
+                                        showLockIcon={shouldPreventDisableOrDelete}
+                                    />
+                                </View>
                             </View>
-                        </View>
-                    </OfflineWithFeedback>
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={getCleanedTagName(currentPolicyTag.name)}
                             description={translate(`common.name`)}
                             onPress={navigateToEditTag}
-                            shouldShowRightIcon
+                            interactive={!hasDependentTags}
+                            shouldShowRightIcon={!hasDependentTags}
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
-                        <MenuItemWithTopDescription
-                            description={translate(`workspace.tags.glCode`)}
-                            title={currentPolicyTag?.['GL Code']}
-                            onPress={navigateToEditGlCode}
-                            iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
-                            interactive={!hasAccountingConnections}
-                            shouldShowRightIcon
-                        />
-                    </OfflineWithFeedback>
+                    {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
+                        <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                            <MenuItemWithTopDescription
+                                description={translate(`workspace.tags.glCode`)}
+                                title={currentPolicyTag?.['GL Code']}
+                                onPress={navigateToEditGlCode}
+                                iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                                interactive={!hasAccountingConnections && !hasDependentTags}
+                                shouldShowRightIcon={!hasDependentTags}
+                            />
+                        </OfflineWithFeedback>
+                    )}
 
                     {!!policy?.areRulesEnabled && !isMultiLevelTags && (
                         <>

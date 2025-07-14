@@ -75,11 +75,13 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
     isIOUReport: boolean;
 };
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, isIOUReport}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, isIOUReport, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const shouldShowColumn = useCallback(
@@ -98,6 +100,8 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
                 dateColumnSize={dateColumnSize}
+                amountColumnSize={amountColumnSize}
+                taxAmountColumnSize={taxAmountColumnSize}
                 shouldShowSorting={shouldShowSorting}
                 sortBy={sortBy}
                 sortOrder={sortOrder}

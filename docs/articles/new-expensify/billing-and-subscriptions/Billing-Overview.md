@@ -43,7 +43,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 ## 🧾 Receipts
 
 - Your billing receipts show: `X Collect members @ $5.00`
-- View them in **Workspaces > Subscription**
+- View them in **Account > Subscription**
 
 ---
 
@@ -88,11 +88,11 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ## 🌍 Localized Pricing
 
-- Available in **GBP**, **AUD**, and **NZD**
+- Available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🧾 Receipts
 
-- View billing receipts under **Workspaces > Subscription**
+- View billing receipts under **Account > Subscription**
 - Each workspace can only have **one billing owner**
 
 ---

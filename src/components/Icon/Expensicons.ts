@@ -151,6 +151,7 @@ import Meter from '@assets/images/meter.svg';
 import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
@@ -214,6 +215,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
@@ -360,6 +362,7 @@ export {
     MoneyCircle,
     MoneySearch,
     MoneyWaving,
+    MoneyHourglass,
     Monitor,
     Mute,
     ExpensifyLogoNew,
@@ -382,6 +385,7 @@ export {
     QBOSquare,
     QrCode,
     QuestionMark,
+    TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
