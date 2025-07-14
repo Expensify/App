@@ -816,7 +816,7 @@ type OutstandingChildRequest = {
 type ParsingDetails = {
     /**
      * this param is deprecated
-     * Currently because of the way we parse short mentions we shouldn't ever NOT escape text - it will affect what mentions get parsed
+     * Currently there are no calls/reference that use this param
      * This should be removed after https://github.com/Expensify/App/issues/50724 as a followup
      */
     shouldEscapeText?: boolean;
