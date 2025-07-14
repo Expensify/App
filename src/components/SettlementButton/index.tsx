@@ -12,6 +12,7 @@ import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
@@ -88,6 +89,7 @@ function SettlementButton({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -107,14 +109,18 @@ function SettlementButton({
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserAccountID = getCurrentUserAccountID().toString();
-    const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    // Passing `undefined` to ensure we use the Onyx connection from PolicyUtils,
+    // since `useOnyx` only returns snapshot data on the SearchPage.
+    // By passing `undefined`, we fall back to the function's default value.
+    const activeAdminPolicies = getActiveAdminWorkspaces(undefined, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     const reportID = iouReport?.reportID;
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
-    const lastPaymentPolicy = isLastPaymentPolicy ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPaymentMethod}`] : undefined;
+    const lastPaymentPolicy = usePolicy(lastPaymentMethod);
+
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccount = bankAccountList[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const isExpenseReport = isExpenseReportUtil(iouReport);
@@ -123,7 +129,7 @@ function SettlementButton({
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-    const hasIntentToPay = formattedPaymentMethods.length === 1 && !lastPaymentMethod;
+    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
 
     useEffect(() => {
         if (isLoadingLastPaymentMethod) {
@@ -262,7 +268,7 @@ function SettlementButton({
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
-                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                    value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: Expensicons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
@@ -293,7 +299,7 @@ function SettlementButton({
             activeAdminPolicies.forEach((activePolicy) => {
                 const policyName = activePolicy.name;
                 buttonOptions.push({
-                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: 20}), formattedAmount: ''}),
+                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
                     icon: Expensicons.Building,
                     value: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
@@ -535,7 +541,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondaryText = getSecondaryText();
+    const secondaryText = truncate(getSecondaryText(), {length: CONST.FORM_CHARACTER_LIMIT});
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

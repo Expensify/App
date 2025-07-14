@@ -1057,6 +1057,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Snap photos of all your receipts at once, then confirm details yourself or let SmartScan handle it.',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        removeFromReport: 'Remove from report',
+        moveToPersonalSpace: 'Move expenses to your personal space',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
@@ -1633,8 +1635,8 @@ const translations = {
             afterEmail: ' into other accounts. Please merge other accounts into it instead.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'You can’t merge ',
-            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.',
+            beforeEmail: 'You can’t merge accounts into ',
+            afterEmail: ' because this account owns an invoiced billing relationship.',
         },
         mergeFailureTooManyAttempts: {
             heading: 'Try again later',
@@ -1778,7 +1780,7 @@ const translations = {
         nameOnCard: 'Name on card',
         paymentCardNumber: 'Card number',
         expiration: 'Expiration date',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         growlMessageOnSave: 'Your payment card was successfully added',
@@ -3196,6 +3198,18 @@ const translations = {
             certify: 'Please certify that the information is true and accurate',
             consent: 'Please consent to the privacy notice',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign Form',
+        pleaseComplete:
+            'Please complete the ACH authorization form with the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account',
+        pleaseCompleteTheBusinessAccount: 'Please complete the Business Account Application Direct Debit Arrangement',
+        pleaseCompleteTheDirect:
+            'Please complete the Direct Debit Arrangement using the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account.',
+        takeMeTo: 'Take me to Docusign',
+        uploadAdditional: 'Upload additional documentation',
+        pleaseUpload: 'Please upload the DEFT form and Docusign signature page',
+        pleaseUploadTheDirect: 'Please upload the Direct Debit Arrangements and Docusign signature page',
     },
     finishStep: {
         connect: 'Connect bank account',
@@ -6406,8 +6420,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
-        receiptNotSmartScanned:
-            'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.',
+        receiptNotSmartScanned: 'Receipt and expense details added manually. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Receipt required';
             if (formattedLimit ?? category) {
@@ -6932,66 +6945,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Get started',
-            part2: ' here!',
-        },
-        saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Check what ',
-            part2: 'needs your attention',
-            part3: '\nand ',
-            part4: 'chat about expenses.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chat with ',
-            part2: 'approvers',
-        },
-        globalCreateTooltip: {
-            part1: 'Create expenses',
-            part2: ', start chatting,',
-            part3: '\nand more.',
-            part4: ' Try it out!',
-        },
-        GBRRBRChat: {
-            part1: 'You’ll see 🟢 on ',
-            part2: 'actions to take',
-            part3: ',\nand 🔴 on ',
-            part4: 'items to review.',
-        },
-        accountSwitcher: {
-            part1: 'Access your ',
-            part2: 'Copilot accounts',
-            part3: ' here',
-        },
-        expenseReportsFilter: {
-            part1: 'Welcome! Find all of your',
-            part2: "\ncompany's reports",
-            part3: ' here.',
-        },
+        conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Create expenses</strong>, start chatting,\nand more. Try it out!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Check what <strong>needs your attention</strong>\nand <strong>chat about expenses.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chat with <strong>approvers</strong></tooltip>',
+        GBRRBRChat: '<tooltip>You’ll see 🟢 on <strong>actions to take</strong>,\nand 🔴 on <strong>items to review.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        expenseReportsFilter: "<tooltip>Welcome! Find all of your\n<strong>company's reports</strong> here.</tooltip>",
         scanTestTooltip: {
-            part1: 'Scan our test receipt',
-            part2: ' to see how it works!',
-            part3: 'Choose our',
-            part4: ' test manager',
-            part5: ' to try it out!',
-            part6: 'Now,',
-            part7: ' submit your expense',
-            part8: ' and watch the\nmagic happen!',
+            main: '<tooltip><strong>Scan our test receipt</strong> to see how it works!</tooltip>',
+            manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
+            confirmation: '<tooltip>Now, <strong>submit your expense</strong> and watch the\nmagic happen!</tooltip>',
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
-        outstandingFilter: {
-            part1: 'Filter for expenses\nthat ',
-            part2: 'need approval',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Send this receipt to\n',
-            part2: 'complete the test drive!',
-        },
+        outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
