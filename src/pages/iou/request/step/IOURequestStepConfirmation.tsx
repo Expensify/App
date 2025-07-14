@@ -81,7 +81,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport, backTo},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
     transaction: initialTransaction,
     isLoadingTransaction,
@@ -299,11 +299,6 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -322,8 +317,15 @@ function IOURequestStepConfirmation({
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
+                // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
+                const shouldUseNewScanFlow = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT);
+                const backToReportID =
+                    shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
+                        ? reportID
+                        : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                          transaction?.reportID || reportID;
+                const iouTypeForRoute = shouldUseNewScanFlow ? CONST.IOU.TYPE.CREATE : iouType;
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouTypeForRoute, initialTransactionID, backToReportID, undefined, action), {
                     compareParams: false,
                 });
                 return;
@@ -349,16 +351,16 @@ function IOURequestStepConfirmation({
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
         transaction?.receipt?.isTestDriveReceipt,
+        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
-        transaction?.participants,
         requestType,
         iouType,
         initialTransactionID,
         reportID,
-        participantsAutoAssignedFromRoute,
         isMovingTransactionFromTrackExpense,
-        backTo,
+        participantsAutoAssignedFromRoute,
+        isBetaEnabled,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {

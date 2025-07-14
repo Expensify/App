@@ -46,15 +46,6 @@ import './setup/backgroundTask';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
-/**
- * Properties passed to the top-level React Native component by HybridApp.
- * These will always be `undefined` in "pure" NewDot builds.
- */
-type AppProps = {
-    /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
-    hybridAppSettings?: string;
-};
-
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
@@ -68,7 +59,7 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({hybridAppSettings}: AppProps) {
+function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
@@ -76,7 +67,7 @@ function App({hybridAppSettings}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider>
-                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
+                    <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
@@ -85,10 +76,10 @@ function App({hybridAppSettings}: AppProps) {
                                 ThemeStylesProvider,
                                 ThemeIllustrationsProvider,
                                 SafeAreaProvider,
+                                HTMLEngineProvider,
                                 PortalProvider,
                                 SafeArea,
                                 LocaleContextProvider,
-                                HTMLEngineProvider,
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,
@@ -129,5 +120,3 @@ function App({hybridAppSettings}: AppProps) {
 App.displayName = 'App';
 
 export default App;
-
-export type {AppProps};

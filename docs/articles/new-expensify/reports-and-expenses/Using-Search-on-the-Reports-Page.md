@@ -1,33 +1,31 @@
 ---
-
-title: Suggested-Search.md
-description: Learn how Suggested Search simplifies submitting, approving, or paying expense reports in New Expensify.
-keywords: [Suggested Search, Submit, Approve, Pay, New Expensify, To-do, LHN, batch processing, filters, expense report actions]
-
+title: Using Search on the Reports Page
+description: Learn how role-based search simplifies submitting, approving, or paying expense reports in New Expensify.
+keywords: [New Expensify, search, Submit, Approve, Pay, To-do, LHN, batch processing, filters, expense report actions]
 ---
+
 <div id="new-expensify" markdown="1">
 
-Suggested Search helps you quickly take action on expense reports you need to submit, approve, or pay, all tailored to your role in a workspace.
+Using the search function on the reports page helps you quickly take action on reports you need to submit, approve, or pay, all tailored to your role in a workspace.
 
 ---
 
-# Suggested Search in New Expensify
+# Search on the Reports Page
 
-**Navigation: Left-hand Menu > Reports > Expense Reports > Suggested Search**.
+**Navigation: In the left-hand menu, select Reports > Expense Reports > To-do**.
 
-Suggested Search surfaces key report actions in your **Reports** page so you can:
+The **To-do** section surfaces key report actions so you can:
 - Submit expenses waiting on you
 - Approve reports that need your review
 - Pay approved reports ready for reimbursement
 
-
-These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches without an advanced search.
+These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches without manually building advanced searches.
 
 ---
 
-# How to Use Suggested Search
+# How to Use Search Shortcuts
 
-Suggested Search options appear under the **To-do** section in the **left-hand menu**, alongside an **Explore** section for general browsing.
+Search options appear under the **To-do** section in the left-hand menu.
 
 Depending on your role, you’ll see shortcuts like:
 - **Submit** – Reports you’ve drafted and need to submit.
@@ -40,7 +38,7 @@ Depending on your role, you’ll see shortcuts like:
 
 ## All members
 - Can access **Reports**, **Expenses**, and **Chats (Inbox tab)** from the **Explore** section.
-- If no reports exist, Suggested Search will prompt you to create one.
+- If no reports exist, the To-do section will prompt you to create one.
 
 ## Employees (Submitters)
 - See **Submit** when they have unsubmitted reports.
@@ -68,11 +66,11 @@ Depending on your role, you’ll see shortcuts like:
 
 ## What if I don't see the Submit, Approve, or Pay options?
 
-Suggested searches only appear when:
+These search shortcuts only appear when:
 - You have reports that require those actions.
 - You have the correct workspace permissions (e.g., Admin, Approver).
 
-## Can I use Suggested Search across multiple workspaces?
+## Can I use these searches across multiple workspaces?
 
 Not yet. The **Workspace filter** is currently single-select. Multi-workspace support is planned for a future update.
 

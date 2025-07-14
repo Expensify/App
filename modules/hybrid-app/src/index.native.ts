@@ -20,6 +20,9 @@ const HybridAppModule: HybridAppModuleType = {
     sendAuthToken({authToken}) {
         ReactNativeHybridApp.sendAuthToken(authToken);
     },
+    getHybridAppSettings() {
+        return ReactNativeHybridApp.getHybridAppSettings();
+    },
     getInitialURL() {
         return ReactNativeHybridApp.getInitialURL();
     },
