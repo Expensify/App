@@ -1,7 +1,10 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import Accordion from '@components/Accordion';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
@@ -15,6 +18,7 @@ import type {
 } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import IconButton from '@components/VideoPlayer/IconButton';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,10 +37,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
-import IconButton from '@components/VideoPlayer/IconButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Accordion from '@components/Accordion';
-import { useSharedValue } from 'react-native-reanimated';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -186,9 +186,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <View style={[styles.flex1]}>
-                            {getHeader(hovered)}
-                        </View>
+                        <View style={[styles.flex1]}>{getHeader(hovered)}</View>
                         <IconButton
                             src={src}
                             small
@@ -238,7 +236,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             ))
                         )}
                     </Accordion>
-                    
                 </View>
             )}
         </BaseListItem>
