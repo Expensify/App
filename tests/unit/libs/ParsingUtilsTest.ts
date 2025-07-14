@@ -219,6 +219,6 @@ describe('getParsedMessageWithShortMentions', () => {
 
     test("returns text with short mention that is followed by special ' char", () => {
         const result = getParsedMessageWithShortMentions({text: `this is @john.doe's mention`, availableMentionLogins, userEmailDomain: TEST_COMPANY_DOMAIN, parserOptions: {}});
-        expect(result).toEqual(`this is <mention-user>@john.doe@myCompany.com</mention-user>'s mention`);
+        expect(result).toEqual(`this is <mention-user>@john.doe@myCompany.com</mention-user>&#x27;s mention`);
     });
 });
