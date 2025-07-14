@@ -1253,8 +1253,8 @@ const isIOUActionMatchingTransactionList = (
 };
 
 /**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportAction(
     report: OnyxEntry<Report>,
@@ -1321,10 +1321,13 @@ function getOneTransactionThreadReportAction(
         return;
     }
 
-    // Ensure we have a childReportID associated with the IOU report action
     return singleAction;
 }
 
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
+ */
 function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
     return getOneTransactionThreadReportAction(...args)?.childReportID;
 }
