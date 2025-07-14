@@ -35,6 +35,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -45,6 +46,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -277,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -676,6 +679,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: '添付ファイルを追加',
+        addReceipt: '領収書を追加',
         scanReceipts: '領収書をスキャンする',
         replaceReceipt: '領収書を置き換える',
     },
@@ -925,8 +929,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
+        import: 'スプレッドシートをインポート',
         dragAndDrop: 'スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。対応フォーマット: .csv, .txt, .xls, および .xlsx。',
+        dragAndDropMultiLevelTag: `<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         chooseSpreadsheet: 'インポートするスプレッドシートファイルを選択してください。サポートされている形式: .csv, .txt, .xls, および .xlsx。',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています。',
         column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `おっと！必須フィールド（"${fieldName}"）がマッピングされていません。確認して再試行してください。`,
@@ -1064,6 +1071,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'すべての領収書を一度に撮影し、自分で詳細を確認するか、SmartScanに任せましょう。',
         receiptScanInProgress: '領収書のスキャン中',
         receiptScanInProgressDescription: '領収書のスキャン中です。後で確認するか、今すぐ詳細を入力してください。',
+        removeFromReport: '領収書を削除',
+        moveToPersonalSpace: '領収書を個人スペースに移動',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? '重複の可能性がある経費が特定されました。提出を有効にするために重複を確認してください。'
@@ -1124,10 +1133,21 @@ const translations = {
         individual: '個人',
         business: 'ビジネス',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Expensifyで${formattedAmount}を支払う` : `Expensifyで支払う`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `個人として${formattedAmount}を支払う` : `個人として支払う`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount}を個人として支払う` : `個人口座で支払う`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `ウォレットで${formattedAmount}を支払う` : `ウォレットで支払う`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `${formattedAmount}を支払う`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} をビジネスとして支払う` : `ビジネスとして支払う`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `他の場所で${formattedAmount}を支払う` : `他の場所で支払う`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount}をビジネスとして支払う` : `ビジネス口座で支払う`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount}を支払い済みにマーク` : `支払い済みにマーク`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount}を個人口座（${last4Digits}）で支払い済み` : `個人口座で支払い済み`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount}をビジネス口座（${last4Digits}）で支払い済み` : `ビジネス口座で支払い済み`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `${policyName}経由で${formattedAmount}を支払う` : `${policyName}経由で支払う`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            amount ? `${amount}を銀行口座（${last4Digits}）で支払い済み` : `を銀行口座（${last4Digits}）で支払い済み`,
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `${amount}円が銀行口座（下４桁：${last4Digits}）で支払われました <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースのルール</a>による`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `個人口座・${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `ビジネス口座・${lastFour}`,
         nextStep: '次のステップ',
         finished: '完了',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
@@ -1156,14 +1176,14 @@ const translations = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認済み`,
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを拒否しました',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `精算を開始しました。${submitterDisplayName} が銀行口座を追加するまで、支払いは保留されます。`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}が支払いをキャンセルしました`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName}が銀行口座を追加しました。${amount}の支払いが行われました。`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}は他で支払われました`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}はExpensifyで支払いました`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}支払い済みにマークされました`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}ウォレットで支払い済み`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>を通じてExpensifyで支払いました。`,
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',
@@ -1816,6 +1836,7 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         addBankAccountToSendAndReceive: 'ワークスペースに提出した経費の払い戻しを受ける。',
         addBankAccount: '銀行口座を追加',
+        addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         assignedCards: '割り当てられたカード',
         assignedCardsDescription: 'これらは、会社の支出を管理するためにワークスペース管理者によって割り当てられたカードです。',
         expensifyCard: 'Expensify Card',
@@ -2024,6 +2045,7 @@ const translations = {
         cardLastFour: '末尾が',
         addFirstPaymentMethod: 'アプリ内で直接送受金を行うために支払い方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `銀行口座・${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -5914,6 +5936,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最後の声明',
                 },
             },
             status: 'ステータス',
@@ -6234,8 +6257,7 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '経費の提出に招待する',
-        inviteToChat: 'チャットのみ招待',
+        invite: '招待する',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6749,11 +6771,8 @@ const translations = {
                 title: 'サブスクリプションがキャンセルされました',
                 subtitle: '年間サブスクリプションがキャンセルされました。',
                 info: 'ワークスペースを従量課金制で引き続き使用したい場合は、これで準備完了です。',
-                preventFutureActivity: {
-                    part1: '今後のアクティビティと請求を防ぎたい場合は、',
-                    link: 'ワークスペースを削除する',
-                    part2: 'ワークスペースを削除すると、現在のカレンダー月に発生した未払いの活動に対して請求されることに注意してください。',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `今後のアクティビティと請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除する</a> ワークスペースを削除すると、現在のカレンダー月に発生した未払いの活動に対して請求されることに注意してください。`,
             },
             requestSubmitted: {
                 title: 'リクエストが送信されました',
@@ -6917,66 +6936,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: '始めましょう',
-            part2: 'ここにいます！',
-        },
-        saveSearchTooltip: {
-            part1: '保存した検索の名前を変更する',
-            part2: 'ここにいます！',
-        },
-        bottomNavInboxTooltip: {
-            part1: '何を確認しますか？',
-            part2: 'あなたの注意が必要です',
-            part3: 'および',
-            part4: '経費についてチャットする。',
-        },
-        workspaceChatTooltip: {
-            part1: 'とチャット',
-            part2: '承認者',
-        },
-        globalCreateTooltip: {
-            part1: '経費を作成',
-            part2: ', チャットを開始,',
-            part3: 'その他。',
-            part4: '試してみてください！',
-        },
-        GBRRBRChat: {
-            part1: 'あなたは🟢を見るでしょう',
-            part2: '取るべき行動',
-            part3: '、\nおよび 🔴 に',
-            part4: 'レビューする項目。',
-        },
-        accountSwitcher: {
-            part1: 'アクセスする',
-            part2: 'Copilotアカウント',
-            part3: 'ここ',
-        },
-        expenseReportsFilter: {
-            part1: 'ようこそ！すべてのあなたの',
-            part2: '会社のレポート',
-            part3: 'here.',
-        },
+        conciergeLHNGBR: '<tooltip>ここから<strong>始めましょう！</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>保存した検索に名前を付け直す</strong>にはこちら！</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>経費を作成</strong>、チャットを開始、さらにいろいろ。試してみてください！</tooltip>',
+        bottomNavInboxTooltip: '<tooltip><strong>注意が必要なもの</strong>を確認して、<strong>経費についてチャット</strong>しましょう。</tooltip>',
+        workspaceChatTooltip: '<tooltip><strong>承認者とチャット</strong>しましょう</tooltip>',
+        GBRRBRChat: '<tooltip><strong>対応が必要なアクション</strong>には🟢、\n<strong>確認が必要な項目</strong>には🔴が表示されます。</tooltip>',
+        accountSwitcher: '<tooltip><strong>コパイロットアカウント</strong>にアクセスするにはこちら</tooltip>',
+        expenseReportsFilter: '<tooltip>ようこそ！<strong>会社のすべてのレポート</strong>をここで確認できます。</tooltip>',
         scanTestTooltip: {
-            part1: 'Scanの動作を確認しますか？',
-            part2: 'テスト領収書を試してみてください！',
-            part3: '私たちの〜を選んでください',
-            part4: 'テストマネージャー',
-            part5: '試してみてください！',
-            part6: '今、',
-            part7: '経費を提出する',
-            part8: 'そして魔法が起こるのを見てください！',
-            tryItOut: '試してみてください',
+            main: '<tooltip><strong>テスト用レシートをスキャン</strong>して仕組みを確認しましょう！</tooltip>',
+            manager: '<tooltip><strong>テストマネージャー</strong>を選んで試してみましょう！</tooltip>',
+            confirmation: '<tooltip>次に、<strong>経費を提出</strong>して魔法を見てみましょう！</tooltip>',
+            tryItOut: '試してみる',
             noThanks: '結構です',
         },
-        outstandingFilter: {
-            part1: '以下の条件に一致する経費をフィルタリング',
-            part2: '承認が必要です',
-        },
-        scanTestDriveTooltip: {
-            part1: 'この領収書を送信先',
-            part2: 'テストドライブを完了してください！',
-        },
+        outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費で絞り込みます</tooltip>',
+        scanTestDriveTooltip: '<tooltip>このレシートを送信して<strong>テストドライブを完了しましょう！</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
