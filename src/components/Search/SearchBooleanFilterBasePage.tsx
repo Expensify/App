@@ -23,7 +23,7 @@ type BooleanFilterItem = ListItem & {
     value: ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 };
 
-type SearchBooleanFilterBaseProps = {
+type SearchBooleanFilterBasePageProps = {
     /** Key used for the boolean filter */
     booleanKey: SearchBooleanFilterKeys;
 
@@ -31,7 +31,7 @@ type SearchBooleanFilterBaseProps = {
     titleKey: TranslationPaths;
 };
 
-function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBaseProps) {
+function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilterBasePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -67,7 +67,7 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
 
     return (
         <ScreenWrapper
-            testID={SearchBooleanFilterBase.displayName}
+            testID={SearchBooleanFilterBasePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -97,6 +97,6 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
     );
 }
 
-SearchBooleanFilterBase.displayName = 'SearchBooleanFilterBase';
+SearchBooleanFilterBasePage.displayName = 'SearchBooleanFilterBasePage';
 
-export default SearchBooleanFilterBase;
+export default SearchBooleanFilterBasePage;
