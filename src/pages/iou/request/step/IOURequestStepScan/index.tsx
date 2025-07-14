@@ -1047,7 +1047,10 @@ function IOURequestStepScan({
                                     isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')
                                 }
                                 dropTextStyles={styles.receiptDropText}
-                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                                dashedBorderStyles={styles.activeDropzoneDashedBorder({
+                                    isActive: true,
+                                    borderColor: theme.receiptDropBorderColorActive,
+                                })}
                             />
                         </DragAndDropConsumer>
                     ) : (

@@ -4030,6 +4030,22 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.fileDropUIBG,
         },
 
+        activeDropzoneDashedBorder: ({borderColor, isActive}) => ({
+            position: 'absolute' as const,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            ...(Platform.OS === 'web' && {
+                backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4' stroke-linecap='round' rx='8' ry='8'/%3e%3c/svg%3e")`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+            }),
+            width: '100%',
+            height: '100%',
+            opacity: isActive ? 1 : 0,
+        }),
+
         attachmentDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
             transition: 'background-color 0.2s ease-in',
