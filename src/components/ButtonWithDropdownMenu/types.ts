@@ -25,7 +25,7 @@ type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
     icon?: IconAsset;
-    shouldShowRightIcon?: boolean;
+    shouldShowButtonRightIcon?: boolean;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
@@ -41,6 +41,8 @@ type DropdownOption<TValueType> = {
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
+    /** Whether the selected index should be updated when the option is selected even if we have onSelected callback */
+    shouldUpdateSelectedIndex?: boolean;
     subMenuItems?: PopoverMenuItem[];
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -141,8 +143,17 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Icon for main button */
     icon?: IconAsset;
 
+    /** Whether the popover content should be scrollable */
+    shouldPopoverUseScrollView?: boolean;
+
+    /** Container style to be applied to the popover of the dropdown menu */
+    containerStyles?: StyleProp<ViewStyle>;
+
     /** Whether to use modal padding style for the popover menu */
     shouldUseModalPaddingStyle?: boolean;
+
+    /** Whether to use short form for the button */
+    shouldUseShortForm?: boolean;
 
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
