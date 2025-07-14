@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import cloneDeep from 'lodash/cloneDeep';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -47,6 +48,7 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
+    getLastUsedPaymentMethod,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
@@ -4618,10 +4620,16 @@ function updateMoneyRequestMerchant(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    wasMerchantCleared?: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
+
+    if (wasMerchantCleared !== undefined) {
+        transactionChanges.wasMerchantCleared = wasMerchantCleared;
+    }
+
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
@@ -7411,7 +7419,7 @@ function updateMoneyRequestAmountAndCurrency({
  * @param reportAction - The reportAction of the transaction in the IOU report
  * @return the url to navigate back once the money request is deleted
  */
-function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, shouldRemoveIOUTransactionID = true) {
+function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, shouldRemoveIOUTransactionID = true, transactionIDsPendingDeletion?: string[]) {
     // STEP 1: Get all collections we're updating
     const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
@@ -7459,12 +7467,12 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
     }
     // If we are deleting the last transaction on a report, then delete the report too
-    const shouldDeleteIOUReport = getReportTransactions(iouReportID).length === 1;
+    const shouldDeleteIOUReport = getReportTransactions(iouReportID).filter((trans) => !transactionIDsPendingDeletion?.includes(trans.transactionID)).length === 1;
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport: OnyxInputValue<OnyxTypes.Report>;
     const currency = getCurrency(transaction);
-    const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = {...reportPreviewAction};
+    const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     if (iouReport && isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
@@ -7775,7 +7783,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, transactionIDsPendingDeletion?: string[]) {
     if (!transactionID) {
         return;
     }
@@ -7794,7 +7802,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         transactionViolations,
         iouReport,
         reportPreviewAction,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, false);
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, false, transactionIDsPendingDeletion);
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
 
@@ -8795,6 +8803,8 @@ function getPayMoneyRequestParams(
     paymentMethodType: PaymentMethodType,
     full: boolean,
     payAsBusiness?: boolean,
+    bankAccountID?: number,
+    paymentPolicyID?: string | undefined,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -8861,6 +8871,8 @@ function getPayMoneyRequestParams(
         paymentType: paymentMethodType,
         iouReportID: iouReport?.reportID,
         isSettlingUp: true,
+        payAsBusiness,
+        bankAccountID,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -8933,12 +8945,24 @@ function getPayMoneyRequestParams(
     );
 
     if (iouReport?.policyID) {
+        const lastUsedPaymentMethod = (getLastUsedPaymentMethod(iouReport.policyID) ?? {}) as OnyxTypes.LastPaymentMethodType;
+        const prevLastUsedPaymentMethod = lastUsedPaymentMethod?.lastUsed?.name;
+        const usedPaymentOption = paymentPolicyID ?? paymentMethodType;
+
+        const optimisticLastPaymentMethod = {
+            [iouReport.policyID]: {
+                ...(iouReport.type ? {[iouReport.type]: {name: usedPaymentOption}} : {}),
+                ...(isInvoiceReport ? {invoice: {name: paymentMethodType, bankAccountID}} : {}),
+                lastUsed: {
+                    name: prevLastUsedPaymentMethod !== usedPaymentOption && !!prevLastUsedPaymentMethod ? prevLastUsedPaymentMethod : usedPaymentOption,
+                },
+            },
+        };
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: {
-                [iouReport.policyID]: paymentMethodType,
-            },
+            value: optimisticLastPaymentMethod,
         });
     }
 
@@ -10189,7 +10213,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         wasInvited: true,
     });
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -10199,7 +10223,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     completePaymentOnboarding(paymentSelected);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, undefined, paymentPolicyID);
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
@@ -10235,7 +10259,7 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
@@ -10548,10 +10572,14 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
  * Sets the participants for an IOU based on the attached report
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
+ * @param participantsAutoAssigned whether participants were auto assigned
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>, participantsAutoAssigned = true) {
     const participants = getMoneyRequestParticipantsFromReport(report);
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        participantsAutoAssigned,
+    });
 }
 
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
@@ -10993,9 +11021,17 @@ function checkIfScanFileCanBeRead(
     return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-/** Save the preferred payment method for a policy */
-function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
-    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: paymentMethod}} : paymentMethod});
+/** Save the preferred payment method for a policy or personal DM */
+function savePreferredPaymentMethod(policyID: string | undefined, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+    if (!policyID) {
+        return;
+    }
+
+    // to make it easier to revert to the previous last payment method, we will save it to this key
+    const prevPaymentMethod = (getLastUsedPaymentMethod(policyID) ?? {}) as OnyxTypes.LastPaymentMethodType;
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {
+        [policyID]: type ? {[type]: {name: paymentMethod}, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: prevPaymentMethod?.lastUsed?.name ?? paymentMethod}} : paymentMethod,
+    });
 }
 
 /** Get report policy id of IOU request */
@@ -11194,6 +11230,18 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
 
 function updateLastLocationPermissionPrompt() {
     Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+}
+
+function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<OnyxTypes.Report>) {
+    const participants = getMoneyRequestParticipantsFromReport(reportValue);
+    const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<OnyxTypes.Transaction>> = {};
+    transactionIDs.forEach((transactionID) => {
+        updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
+            participants,
+            participantsAutoAssigned: true,
+        };
+    });
+    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
@@ -11656,7 +11704,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -11798,10 +11845,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
-                    ...originalTransactionViolations,
-                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
             },
         },
     });
@@ -11811,7 +11855,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransactionViolations,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
             },
         },
     });
@@ -11900,6 +11944,7 @@ export {
     setMoneyRequestParticipantsFromReport,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
+    setMultipleMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
