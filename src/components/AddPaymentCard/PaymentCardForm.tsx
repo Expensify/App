@@ -144,8 +144,8 @@ function PaymentCardForm({
 
     const previousValueRef = useRef<string>('');
 
-// Formats user input into a valid expiration date (MM/YY) and automatically adds slash after the month.
-// Ensures the month is always between 01 and 12 by correcting invalid value to match the proper format.
+    // Formats user input into a valid expiration date (MM/YY) and automatically adds slash after the month.
+    // Ensures the month is always between 01 and 12 by correcting invalid value to match the proper format.
     const onChangeExpirationDate = useCallback((newValue: string) => {
         if (typeof newValue !== 'string') {
             return;
