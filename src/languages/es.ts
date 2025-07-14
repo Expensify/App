@@ -1633,8 +1633,8 @@ const translations = {
             afterEmail: ' en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'No puedes fusionar ',
-            afterEmail: ' en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.',
+            beforeEmail: 'No puedes fusionar cuentas en ',
+            afterEmail: ' porque esta cuenta tiene una relación de facturación con factura emitida.',
         },
         mergeFailureTooManyAttempts: {
             heading: 'Inténtalo de nuevo más tarde',
@@ -1780,7 +1780,7 @@ const translations = {
         nameOnCard: 'Nombre en la tarjeta',
         paymentCardNumber: 'Número de la tarjeta',
         expiration: 'Fecha de vencimiento',
-        expirationDate: 'MMAA',
+        expirationDate: 'MM/AA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
         growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
@@ -3191,6 +3191,18 @@ const translations = {
             certify: 'Por favor certifique que la información es verdadera y exacta',
             consent: 'Por favor, acepte el aviso de privacidad',
         },
+    },
+    docusignStep: {
+        subheader: 'Formulario de Docusign',
+        pleaseComplete:
+            'Por favor, complete el formulario de autorización ACH utilizando el enlace de Docusign a continuación y luego cargue esa copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+        pleaseCompleteTheBusinessAccount: 'Por favor, complete la Solicitud de Cuenta Comercial y el Acuerdo de Débito Directo.',
+        pleaseCompleteTheDirect:
+            'Por favor, complete el Acuerdo de Débito Directo utilizando el enlace de Docusign a continuación y luego cargue esa copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+        takeMeTo: 'Llévame a Docusign',
+        uploadAdditional: 'Cargar documentación adicional',
+        pleaseUpload: 'Por favor, cargue el formulario DEFT y la página de firma de Docusign.',
+        pleaseUploadTheDirect: 'Por favor, cargue los Acuerdos de Débito Directo y la página de firma de Docusign.',
     },
     finishStep: {
         connect: 'Conectar cuenta bancaria',
@@ -6893,7 +6905,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned:
-            'Detalles del gasto y recibo añadidos manualmente. Por favor, verifica los detalles. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Aprende más</a> sobre la auditoría automática para todos los recibos.',
+            'Detalles del recibo y del gasto añadidos manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Aprende más.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo obligatorio';
             if (formattedLimit ?? category) {
@@ -7102,7 +7114,7 @@ const translations = {
                 subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `${numOfDays} días`}!`,
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
             trialEnded: {

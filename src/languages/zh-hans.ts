@@ -1634,9 +1634,10 @@ const translations = {
             afterEmail: '到其他账户。请将其他账户合并到此账户中。',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: '无法合并',
-            afterEmail: '因为它是一个已开票账户的账单所有者，所以无法合并到其他账户。请将其他账户合并到它中。',
+            beforeEmail: '无法合并账户到 ',
+            afterEmail: '，因为该账户拥有已开具发票的计费关系。',
         },
+
         mergeFailureTooManyAttempts: {
             heading: '请稍后再试',
             description: '尝试合并账户的次数过多。请稍后再试。',
@@ -1777,7 +1778,7 @@ const translations = {
         nameOnCard: '卡上的姓名',
         paymentCardNumber: '卡号',
         expiration: '到期日期',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: '账单地址',
         growlMessageOnSave: '您的支付卡已成功添加',
@@ -3188,6 +3189,16 @@ const translations = {
             certify: '请确认信息真实准确。',
             consent: '请同意隐私声明',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign 表格',
+        pleaseComplete: '请通过以下 Docusign 链接填写 ACH 授权表格，并将签署后的副本上传到此处，以便我们可以直接从您的银行账户扣款。',
+        pleaseCompleteTheBusinessAccount: '请填写企业账户申请表及直接借记协议。',
+        pleaseCompleteTheDirect: '请通过以下 Docusign 链接填写直接借记协议，并将签署后的副本上传到此处，以便我们可以直接从您的银行账户扣款。',
+        takeMeTo: '前往 Docusign',
+        uploadAdditional: '上传其他文件',
+        pleaseUpload: '请上传 DEFT 表格和 Docusign 签名页。',
+        pleaseUploadTheDirect: '请上传直接借记协议和 Docusign 签名页。',
     },
     finishStep: {
         connect: '连接银行账户',
@@ -6327,8 +6338,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
-        receiptNotSmartScanned:
-            '费用详情和收据已手动添加。请核实详情。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多</a>关于所有收据的自动审核。',
+        receiptNotSmartScanned: '收据和费用详情手动添加。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多。</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '需要收据';
             if (formattedLimit ?? category) {

@@ -429,6 +429,11 @@ const CONST = {
     SMS: {
         DOMAIN: '@expensify.sms',
     },
+    DOCUSIGN_POWERFORM_LINK: {
+        US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
@@ -541,6 +546,7 @@ const CONST = {
             BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
             FINISH: 'FinishStep',
         },
         BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
@@ -590,6 +596,7 @@ const CONST = {
             },
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        DOCUSIGN_REQUIRED_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
             SUBSTEP: {
@@ -643,7 +650,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
-        NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
@@ -3347,63 +3353,75 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
+            INVOICING: 'invoicing2018',
         },
     },
+
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3000,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 800,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3200,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.EUR]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
         };
@@ -5191,7 +5209,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
 
     /**
      * Bank account names
@@ -6423,8 +6441,7 @@ const CONST = {
         get FILTER_DATE_PRESETS() {
             return {
                 // s77rt remove DEV lock
-                [this.SYNTAX_FILTER_KEYS.POSTED]:
-                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
+                [this.SYNTAX_FILTER_KEYS.POSTED]: (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [],
                 [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
             };
         },

@@ -133,6 +133,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
+    const handleBackButtonPress = useCallback(() => {
+        if (!backToRoute) {
+            goBackFromSearchMoneyRequest();
+            return;
+        }
+        Navigation.goBack(backToRoute);
+    }, [backToRoute]);
+
     const reportHeaderView = useMemo(
         () =>
             isTransactionThreadView ? (
@@ -140,13 +148,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     report={report}
                     policy={policy}
                     parentReportAction={parentReportAction}
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
+                    onBackButtonPress={handleBackButtonPress}
                 />
             ) : (
                 <MoneyReportHeader
@@ -156,16 +158,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     transactionThreadReportID={transactionThreadReportID}
                     isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
+                    onBackButtonPress={handleBackButtonPress}
                 />
             ),
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [handleBackButtonPress, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {

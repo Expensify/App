@@ -1636,8 +1636,8 @@ const translations = {
             afterEmail: ' into other accounts. Please merge other accounts into it instead.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'You can’t merge ',
-            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.',
+            beforeEmail: 'You can’t merge accounts into ',
+            afterEmail: ' because this account owns an invoiced billing relationship.',
         },
         mergeFailureTooManyAttempts: {
             heading: 'Try again later',
@@ -1781,7 +1781,7 @@ const translations = {
         nameOnCard: 'Name on card',
         paymentCardNumber: 'Card number',
         expiration: 'Expiration date',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         growlMessageOnSave: 'Your payment card was successfully added',
@@ -3199,6 +3199,18 @@ const translations = {
             certify: 'Please certify that the information is true and accurate',
             consent: 'Please consent to the privacy notice',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign Form',
+        pleaseComplete:
+            'Please complete the ACH authorization form with the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account',
+        pleaseCompleteTheBusinessAccount: 'Please complete the Business Account Application Direct Debit Arrangement',
+        pleaseCompleteTheDirect:
+            'Please complete the Direct Debit Arrangement using the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account.',
+        takeMeTo: 'Take me to Docusign',
+        uploadAdditional: 'Upload additional documentation',
+        pleaseUpload: 'Please upload the DEFT form and Docusign signature page',
+        pleaseUploadTheDirect: 'Please upload the Direct Debit Arrangements and Docusign signature page',
     },
     finishStep: {
         connect: 'Connect bank account',
@@ -6405,8 +6417,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
-        receiptNotSmartScanned:
-            'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.',
+        receiptNotSmartScanned: 'Receipt and expense details added manually. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Receipt required';
             if (formattedLimit ?? category) {

@@ -1657,9 +1657,10 @@ const translations = {
             afterEmail: "dans d'autres comptes. Veuillez fusionner les autres comptes avec celui-ci à la place.",
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Vous ne pouvez pas fusionner',
-            afterEmail: "dans d'autres comptes car c'est le propriétaire de facturation d'un compte facturé. Veuillez plutôt fusionner d'autres comptes avec celui-ci.",
+            beforeEmail: 'Vous ne pouvez pas fusionner des comptes avec ',
+            afterEmail: ' car ce compte possède une relation de facturation facturée.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Réessayez plus tard',
             description: 'Il y a eu trop de tentatives de fusion de comptes. Veuillez réessayer plus tard.',
@@ -1805,7 +1806,7 @@ const translations = {
         nameOnCard: 'Nom sur la carte',
         paymentCardNumber: 'Numéro de carte',
         expiration: "Date d'expiration",
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Adresse de facturation',
         growlMessageOnSave: 'Votre carte de paiement a été ajoutée avec succès',
@@ -3212,6 +3213,18 @@ const translations = {
             certify: "Veuillez certifier que l'information est vraie et exacte.",
             consent: "Veuillez consentir à l'avis de confidentialité",
         },
+    },
+    docusignStep: {
+        subheader: 'Formulaire Docusign',
+        pleaseComplete:
+            'Veuillez remplir le formulaire d’autorisation ACH via le lien Docusign ci-dessous, puis téléversez une copie signée ici afin que nous puissions prélever les fonds directement de votre compte bancaire.',
+        pleaseCompleteTheBusinessAccount: 'Veuillez remplir la demande de compte professionnel et l’accord de prélèvement automatique.',
+        pleaseCompleteTheDirect:
+            'Veuillez remplir l’accord de prélèvement automatique via le lien Docusign ci-dessous, puis téléversez une copie signée ici afin que nous puissions prélever les fonds directement de votre compte bancaire.',
+        takeMeTo: 'Aller à Docusign',
+        uploadAdditional: 'Téléverser des documents supplémentaires',
+        pleaseUpload: 'Veuillez téléverser le formulaire DEFT et la page de signature Docusign.',
+        pleaseUploadTheDirect: 'Veuillez téléverser les accords de prélèvement automatique et la page de signature Docusign.',
     },
     finishStep: {
         connect: 'Connecter un compte bancaire',
@@ -6450,7 +6463,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Montant au-delà de la limite de ${formattedLimit}/personne`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Montant dépassant la limite quotidienne de ${formattedLimit}/personne pour la catégorie`,
         receiptNotSmartScanned:
-            'Détails de la dépense et reçu ajoutés manuellement. Veuillez vérifier les détails. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus</a> sur l\'audit automatique pour tous les reçus.',
+            'Reçu et détails de la dépense ajoutés manuellement. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Reçu requis';
             if (formattedLimit ?? category) {
