@@ -27,7 +27,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, hasDependentTags, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
 import {
@@ -461,11 +461,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
-        if (hasDependentTags(policy, policyTagList)) {
+        if (hasDependentTags) {
             if (index === 0) {
                 shouldShow = true;
             } else {
@@ -486,7 +487,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 tagListIndex: index,
                 tagListName: name,
             },
-            hasDependentTags(policy, policyTagList),
+            hasDependentTags,
             tagForDisplay,
         );
 
@@ -496,7 +497,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <MenuItemWithTopDescription
-                    highlighted={shouldShow && !getTagForDisplay(transaction, index)}
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index)}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}

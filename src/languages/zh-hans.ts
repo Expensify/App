@@ -279,6 +279,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -1061,6 +1062,8 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
+        removeFromReport: '不在此报告中',
+        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -6673,11 +6676,8 @@ const translations = {
                 title: '订阅已取消',
                 subtitle: '您的年度订阅已被取消。',
                 info: '如果您想继续按使用量付费的方式使用您的工作区，您就准备好了。',
-                preventFutureActivity: {
-                    part1: '如果您想防止未来的活动和收费，您必须',
-                    link: '删除您的工作区',
-                    part2: '请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `如果您想防止未来的活动和收费，您必须 <a href="${workspacesListRoute}">删除您的工作区</a> 请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。`,
             },
             requestSubmitted: {
                 title: '请求已提交',
@@ -6841,66 +6841,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: '开始使用',
-            part2: '这里！',
-        },
-        saveSearchTooltip: {
-            part1: '重命名您保存的搜索',
-            part2: '这里！',
-        },
-        bottomNavInboxTooltip: {
-            part1: '检查什么',
-            part2: '需要您的注意',
-            part3: '和',
-            part4: '聊天关于费用。',
-        },
-        workspaceChatTooltip: {
-            part1: '与 交谈',
-            part2: '审批人',
-        },
-        globalCreateTooltip: {
-            part1: '创建费用',
-            part2: '，开始聊天，',
-            part3: '和更多。',
-            part4: '试试看！',
-        },
-        GBRRBRChat: {
-            part1: '您将在 🟢 上看到',
-            part2: '采取的行动',
-            part3: '，和🔴在',
-            part4: '待审核项目。',
-        },
-        accountSwitcher: {
-            part1: '访问您的',
-            part2: 'Copilot 账户',
-            part3: '这里',
-        },
-        expenseReportsFilter: {
-            part1: '欢迎！查找您的所有',
-            part2: '公司的报告',
-            part3: 'here.',
-        },
+        conciergeLHNGBR: '<tooltip><strong>从这里开始</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>在这里重命名你保存的搜索</strong></tooltip>',
+        globalCreateTooltip: '<tooltip><strong>创建报销</strong>、开始聊天，以及更多功能。试试看</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>查看<strong>需要你关注的事项</strong>\n并<strong>讨论报销事项。</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>与<strong>审批人聊天</strong></tooltip>',
+        GBRRBRChat: '<tooltip><strong>需要操作的项目</strong>会显示🟢，\n<strong>需要审核的项目</strong>会显示🔴。</tooltip>',
+        accountSwitcher: '<tooltip>在这里访问你的<strong>副账户</strong></tooltip>',
+        expenseReportsFilter: '<tooltip>欢迎！在这里查找你所有的\n<strong>公司报表</strong>。</tooltip>',
         scanTestTooltip: {
-            part1: '想看看扫描功能如何运作吗？',
-            part2: '试用测试收据！',
-            part3: '选择我们的',
-            part4: '测试经理',
-            part5: '试试看吧！',
-            part6: '现在，',
-            part7: '提交您的费用报销单',
-            part8: '并见证奇迹的发生！',
+            main: '<tooltip><strong>扫描我们的测试发票</strong>了解其运作方式！</tooltip>',
+            manager: '<tooltip>选择我们的<strong>测试经理</strong>来试用！</tooltip>',
+            confirmation: '<tooltip>现在，<strong>提交你的报销</strong>，看看会发生什么！</tooltip>',
             tryItOut: '试试看',
-            noThanks: '不，谢谢',
+            noThanks: '不用了',
         },
-        outstandingFilter: {
-            part1: '筛选符合以下条件的费用：',
-            part2: '需要批准',
-        },
-        scanTestDriveTooltip: {
-            part1: '将此收据发送给',
-            part2: '完成试驾！',
-        },
+        outstandingFilter: '<tooltip>筛选出\n<strong>需要审批</strong>的报销</tooltip>',
+        scanTestDriveTooltip: '<tooltip>发送此发票以\n<strong>完成测试流程！</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
