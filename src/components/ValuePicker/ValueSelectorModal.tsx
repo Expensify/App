@@ -28,6 +28,7 @@ function ValueSelectorModal({
             onBackdropPress={onBackdropPress}
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includePaddingTop={false}

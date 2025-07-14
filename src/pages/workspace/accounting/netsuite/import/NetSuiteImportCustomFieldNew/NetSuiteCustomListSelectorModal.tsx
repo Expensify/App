@@ -74,6 +74,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             useNativeDriver
             onBackdropPress={onBackdropPress}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includePaddingTop={false}
