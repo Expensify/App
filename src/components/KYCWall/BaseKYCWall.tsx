@@ -228,7 +228,7 @@ function KYCWall({
                 }
 
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (paymentMethod || policy) {
+                if ((paymentMethod || policy) && !hasActivatedWallet) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
                     return;

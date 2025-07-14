@@ -262,7 +262,7 @@ function SettlementButton({
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
-                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                    value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: Expensicons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
