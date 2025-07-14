@@ -69,7 +69,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
         const reportType = getHelpPaneReportType(report);
-        
+
         if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
             return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
         }
