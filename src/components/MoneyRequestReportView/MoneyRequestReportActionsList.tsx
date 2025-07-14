@@ -13,6 +13,7 @@ import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -623,13 +624,13 @@ function MoneyRequestReportActionsList({
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
-                    <>
+                    <ScrollView>
                         <MoneyRequestViewReportFields
                             report={report}
                             policy={policy}
                         />
                         <SearchMoneyRequestReportEmptyState />
-                    </>
+                    </ScrollView>
                 ) : (
                     <FlatList
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
@@ -658,6 +659,7 @@ function MoneyRequestReportActionsList({
                                     hasComments={reportHasComments}
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }
