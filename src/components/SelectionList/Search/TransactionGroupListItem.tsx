@@ -172,6 +172,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
+                isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
