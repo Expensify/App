@@ -293,7 +293,7 @@ function SettlementButton({
             activeAdminPolicies.forEach((activePolicy) => {
                 const policyName = activePolicy.name;
                 buttonOptions.push({
-                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: 20}), formattedAmount: ''}),
+                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
                     icon: Expensicons.Building,
                     value: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
@@ -535,7 +535,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondaryText = truncate(getSecondaryText(), {length: 50});
+    const secondaryText = truncate(getSecondaryText(), {length: CONST.FORM_CHARACTER_LIMIT});
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
