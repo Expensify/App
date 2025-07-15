@@ -187,11 +187,11 @@ describe('Unread Indicators', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-    
+
         global.fetch = TestHelper.getGlobalFetchMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
-    
+
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
