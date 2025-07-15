@@ -2,6 +2,7 @@ import type {Stats} from 'fs';
 import * as fs from 'fs';
 import {globSync} from 'glob';
 import {ComprehensiveStylesFinder} from '../../.github/scripts/findUnusedStyles';
+import dedent from '../../src/libs/StringUtils/dedent';
 
 jest.mock(
     'fs',
@@ -54,13 +55,13 @@ describe('findUnusedStyles', () => {
 
         it('should detect single unused style', () => {
             // Setup: One style file with one style, no usage
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     unusedStyle: {
                         color: 'red',
                     },
                 }) satisfies Styles;
-            `;
+            `);
 
             mockGlobSync
                 .mockReturnValueOnce(['src/styles/index.ts']) // Style files (first call)
@@ -79,20 +80,20 @@ describe('findUnusedStyles', () => {
         });
 
         test('should not report used styles', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     usedStyle: {
                         color: 'blue',
                     },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => (
                     <View style={styles.usedStyle} />
                 );
-            `;
+            `);
 
             mockGlobSync.mockReturnValueOnce(['src/styles/index.ts']).mockReturnValueOnce(['src/components/Test.tsx']);
 
@@ -107,18 +108,18 @@ describe('findUnusedStyles', () => {
 
     describe('Complex Usage Patterns', () => {
         it('should detect destructured style usage', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     destructuredStyle: { color: 'green' },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const { destructuredStyle } = styles;
                 const MyComponent = () => <View style={destructuredStyle} />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
@@ -129,7 +130,7 @@ describe('findUnusedStyles', () => {
         });
 
         it('should detect spread pattern usage', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     baseStyle: { padding: 10 },
                     extendedStyle: {
@@ -138,12 +139,12 @@ describe('findUnusedStyles', () => {
                     },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => <View style={styles.extendedStyle} />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
@@ -155,7 +156,7 @@ describe('findUnusedStyles', () => {
         });
 
         it('should detect object spread pattern usage', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     baseStyle: { p10: { padding: 10 } },
                     extendedStyle: {
@@ -164,12 +165,12 @@ describe('findUnusedStyles', () => {
                     },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => <View style={styles.extendedStyle} />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
@@ -181,17 +182,17 @@ describe('findUnusedStyles', () => {
         });
 
         test('should handle dynamic style access', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     dynamicStyle: { color: 'purple' },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => <View style={styles.dynamicStyle} />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
@@ -204,17 +205,17 @@ describe('findUnusedStyles', () => {
 
     describe('Utils/Generators/Themes Integration', () => {
         test('should detect styles used in utils files', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     utilUsedStyle: { fontWeight: 'bold' },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const utilContent = `
+            const utilContent = dedent(`
                 import styles from '../index';
                 export const getBoldText = () => styles.utilUsedStyle;
-            `;
+            `);
 
             mockGlobSync.mockReturnValueOnce(['src/styles/index.ts']).mockReturnValueOnce(['src/styles/utils/text.ts']);
 
@@ -230,19 +231,19 @@ describe('findUnusedStyles', () => {
 
     describe('Edge Cases', () => {
         test('should ignore styles mentioned in comments', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     commentedStyle: { color: 'orange' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 // This component uses styles.commentedStyle
                 /* 
                  * Also mentioning styles.commentedStyle here
                  */
                 const MyComponent = () => <View />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
@@ -253,7 +254,7 @@ describe('findUnusedStyles', () => {
         });
 
         test('should skip helper constants in styles/index.ts', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const touchCalloutNone = { WebkitTouchCallout: 'none' };
                 const lineHeightBadge = { lineHeight: 16 };
                 
@@ -263,12 +264,12 @@ describe('findUnusedStyles', () => {
                         color: 'blue' 
                     },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => <View style={styles.realStyle} />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
@@ -279,18 +280,18 @@ describe('findUnusedStyles', () => {
         });
 
         test('should handle malformed TypeScript files gracefully', () => {
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     validStyle: { color: 'blue' },
                 }) satisfies Styles;
-            `;
+            `);
 
-            const malformedContent = `
+            const malformedContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => {
                     // Syntax error - missing closing brace
                     return <View style={styles.validStyle}
-            `;
+            `);
 
             setupMockFiles(stylesContent, malformedContent);
 
@@ -337,17 +338,17 @@ describe('findUnusedStyles', () => {
         test('should handle large number of styles efficiently', () => {
             const manyStyles = Array.from({length: 1000}, (_, i) => `style${i}: { color: 'color${i}' },`).join('\n');
 
-            const stylesContent = `
+            const stylesContent = dedent(`
                 const styles = (theme: ThemeColors) => ({
                     ${manyStyles}
                 }) satisfies Styles;
-            `;
+            `);
 
             // Use only the first style
-            const componentContent = `
+            const componentContent = dedent(`
                 import styles from '@styles';
                 const MyComponent = () => <View style={styles.style0} />;
-            `;
+            `);
 
             setupMockFiles(stylesContent, componentContent);
 
