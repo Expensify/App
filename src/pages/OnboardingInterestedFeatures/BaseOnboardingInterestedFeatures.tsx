@@ -283,7 +283,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth && styles.flexBasis100, isSelected && styles.activeComponentBG]}
+                    style={[
+                        styles.onboardingInterestedFeaturesItem,
+                        isSmallScreenWidth && styles.flexBasis100,
+                        isSelected && styles.activeComponentBG,
+                        item.canDisabled && styles.buttonOpacityDisabled,
+                    ]}
                     disabled={item.canDisabled}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -300,6 +305,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                         onPress={() => {
                             handleFeatureSelect(item.id);
                         }}
+                        disabled={item.canDisabled}
+                        containerStyle={styles.opacity1}
                     />
                 </PressableWithoutFeedback>
             );
