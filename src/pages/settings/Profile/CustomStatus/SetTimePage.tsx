@@ -6,7 +6,7 @@ import TimePicker from '@components/TimePicker/TimePicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
+import {updateDraftCustomStatus} from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +21,7 @@ function SetTimePage() {
     const onSubmit = (time: string) => {
         const timeToUse = DateUtils.combineDateAndTime(time, clearAfter);
 
-        User.updateDraftCustomStatus({clearAfter: timeToUse});
+        updateDraftCustomStatus({clearAfter: timeToUse});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
