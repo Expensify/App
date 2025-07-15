@@ -1239,7 +1239,6 @@ const translations = {
         unheldExpense: 'deblokkeer deze uitgave',
         moveUnreportedExpense: 'Verplaats niet-gerapporteerde uitgave',
         addUnreportedExpense: 'Niet-gerapporteerde uitgave toevoegen',
-        createNewExpense: 'Nieuwe uitgave aanmaken',
         selectUnreportedExpense: 'Selecteer ten minste één uitgave om aan het rapport toe te voegen.',
         emptyStateUnreportedExpenseTitle: 'Geen niet-gerapporteerde uitgaven',
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',

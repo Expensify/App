@@ -1239,7 +1239,6 @@ const translations = {
         unheldExpense: 'この経費を未保留にする',
         moveUnreportedExpense: '未報告の経費を移動',
         addUnreportedExpense: '未報告の経費を追加',
-        createNewExpense: '新しい経費を作成',
         selectUnreportedExpense: 'レポートに追加する経費を少なくとも1つ選択してください。',
         emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
