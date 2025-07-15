@@ -12,7 +12,6 @@ type StyleDefinition = {
 
 // Static patterns and constants - created once
 const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx,js,jsx}';
-const EXCLUDED_STYLE_DIRECTORIES = ['src/styles/utils/', 'src/styles/generators/', 'src/styles/theme/'];
 const VALID_IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 const SPREAD_PROPERTY_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
 const SIMPLE_SPREAD_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\b(?!\s*\.)/g;
@@ -46,18 +45,18 @@ class ComprehensiveStylesFinder {
 
     private findAllStyleDefinitions(): void {
         const styleFilesPaths = `src/styles/${STYLE_FILE_EXTENSIONS}`;
+
+        // Use ignore parameter to exclude directories more cleanly
+        const ignorePatterns = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
+
         const styleFiles = globSync(styleFilesPaths, {
             cwd: this.rootDir,
+            ignore: ignorePatterns,
         });
 
-        // Filter out utils, generators, and themes - focus only on main style files
-        const mainStyleFiles = styleFiles.filter((file) => {
-            return !EXCLUDED_STYLE_DIRECTORIES.some((dir) => file.includes(dir));
-        });
+        console.log(`Scanning ${styleFiles.length} main style files (excluding utils/generators/themes)...`);
 
-        console.log(`Scanning ${mainStyleFiles.length} main style files (excluding ${styleFiles.length - mainStyleFiles.length} utils/generators/themes)...`);
-
-        for (const file of mainStyleFiles) {
+        for (const file of styleFiles) {
             const fullPath = path.join(this.rootDir, file);
             try {
                 const fileContent = fs.readFileSync(fullPath, 'utf8');
@@ -233,20 +232,16 @@ class ComprehensiveStylesFinder {
     }
 
     private loadAllFileContents(): void {
-        // Load all source files EXCEPT style definition files
+        // Load all source files EXCEPT the main style definition files
         const allFilesPaths = `src/**/${STYLE_FILE_EXTENSIONS}`;
-        const allFiles = globSync(allFilesPaths, {
-            cwd: this.rootDir,
-        });
 
-        // Filter out style definition files, BUT keep utils/generators/themes for usage checking
-        const sourceFiles = allFiles.filter((file) => {
-            // Keep utils/generators/themes to check for main style usage
-            if (EXCLUDED_STYLE_DIRECTORIES.some((dir) => file.includes(dir))) {
-                return true;
-            }
-            // Exclude other style definition files (like index.ts itself)
-            return !file.includes('src/styles/');
+        // Use ignore parameter to exclude only the main style definition files
+        // Keep utils/generators/themes for usage checking
+        const ignorePatterns = ['src/styles/index.ts', 'src/styles/variables.ts'];
+
+        const sourceFiles = globSync(allFilesPaths, {
+            cwd: this.rootDir,
+            ignore: ignorePatterns,
         });
 
         console.log(`Loading ${sourceFiles.length} source files (including utils/generators/themes for usage checking)...`);
