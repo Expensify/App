@@ -87,12 +87,16 @@ const ROUTES = {
         getRoute: ({
             reportID,
             reportActionID,
+            parentReportID,
+            parentReportActionID,
             backTo,
             moneyRequestReportActionID,
             transactionID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
+            parentReportID?: string;
+            parentReportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
@@ -110,6 +114,14 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+
+            if (parentReportID) {
+                queryParams.push(`parentReportID=${parentReportID}`);
+            }
+
+            if (parentReportActionID) {
+                queryParams.push(`parentReportActionID=${parentReportActionID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -905,7 +917,7 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/scan/${backToReport ?? ''}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
-        route: ':action/:iouType/start/:transactionID/:reportID/per-diem/:backToReport?',
+        route: 'per-diem/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
@@ -1118,7 +1130,12 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
@@ -1766,6 +1783,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/settings/feed-name',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/feed-name` as const,
     },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: {
+        route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
+    },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
         getRoute: (policyID: string | undefined) => {
@@ -1915,6 +1936,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+    },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
@@ -2218,8 +2243,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
-            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
@@ -2228,8 +2257,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
-            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/new',
@@ -2577,7 +2610,10 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
 
-    TEST_TOOLS_MODAL: 'test-tools',
+    TEST_TOOLS_MODAL: {
+        route: 'test-tools',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
 } as const;
 
 /**

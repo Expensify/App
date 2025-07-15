@@ -5,32 +5,44 @@ import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
+
+    /** The ID of the parent report that contains the transaction threads */
+    parentReportID?: string;
+
+    /** The route to navigate back to when the user clicks on the back button */
+    backTo?: string;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
+function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID, backTo}: MoneyRequestReportRHPNavigationButtonsProps) {
+    const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+        canBeMissing: true,
+        selector: (reportActions) => Object.values(reportActions ?? {}),
+    });
 
-    const {prevReportID, nextReportID} = useMemo(() => {
+    const {prevReportID, prevParentReportActionID, nextReportID, nextParentReportActionID} = useMemo(() => {
         if (!reportIDsList || reportIDsList.length < 2) {
-            return {prevReportID: undefined, nextReportID: undefined};
+            return {prevReportID: undefined, prevParentReportActionID: undefined, nextReportID: undefined, nextParentReportActionID: undefined};
         }
 
         const currentReportIndex = reportIDsList.findIndex((id) => id === currentReportID);
 
         const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
         const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
+        const prevReportActionID = currentReportIndex > 0 ? parentReportActions?.find((action) => action.childReportID === prevID)?.reportActionID : undefined;
+        const nextReportActionID = currentReportIndex <= reportIDsList.length - 1 ? parentReportActions?.find((action) => action.childReportID === nextID)?.reportActionID : undefined;
 
-        return {prevReportID: prevID, nextReportID: nextID};
-    }, [currentReportID, reportIDsList]);
+        return {prevReportID: prevID, prevParentReportActionID: prevReportActionID, nextReportID: nextID, nextParentReportActionID: nextReportActionID};
+    }, [currentReportID, parentReportActions, reportIDsList]);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -55,14 +67,22 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
             onNext={(e) => {
-                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID, backTo: backTo ?? Navigation.getActiveRoute()}),
+                    {
+                        forceReplace: true,
+                    },
+                );
             }}
             onPrevious={(e) => {
-                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID, backTo: backTo ?? Navigation.getActiveRoute()}),
+                    {
+                        forceReplace: true,
+                    },
+                );
             }}
         />
     );

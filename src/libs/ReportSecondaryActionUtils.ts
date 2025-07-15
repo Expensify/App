@@ -16,7 +16,7 @@ import {
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
-import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
+import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canEditReportPolicy,
@@ -108,6 +108,7 @@ function isSubmitAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
     isChatReportArchived = false,
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -160,7 +161,7 @@ function isSubmitAction(
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
-    return !!isScheduledSubmitEnabled;
+    return !!isScheduledSubmitEnabled || primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
@@ -192,6 +193,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
     }
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
@@ -293,7 +298,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
+    const isReportSettled = isSettled(report);
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
         return true;
     }
 
@@ -398,14 +404,14 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
     const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
     }
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
@@ -417,9 +423,14 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
+    const isInvoiceReport = isInvoiceReportUtils(report);
 
     if (isUnreported) {
         return isOwner;
+    }
+
+    if (isInvoiceReport) {
+        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
@@ -520,7 +531,18 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived)) {
+    const primaryAction = getReportPrimaryAction({
+        report,
+        chatReport,
+        reportTransactions,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        isChatReportArchived,
+    });
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -564,7 +586,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    if (isChangeWorkspaceAction(report, policies)) {
+    if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
