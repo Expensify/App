@@ -277,6 +277,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -677,6 +678,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Ajouter des pièces jointes',
+        addReceipt: 'Ajouter un reçu',
         scanReceipts: 'Scanner les reçus',
         replaceReceipt: 'Remplacer le reçu',
     },
@@ -927,8 +929,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Télécharger une feuille de calcul',
+        import: 'Importer une feuille de calcul',
         dragAndDrop: 'Faites glisser et déposez votre feuille de calcul ici, ou choisissez un fichier ci-dessous. Formats pris en charge : .csv, .txt, .xls et .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Faites glisser et déposez votre feuille de calcul ici, ou choisissez un fichier ci-dessous. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichier pris en charge.</muted-link>`,
         chooseSpreadsheet: 'Sélectionnez un fichier de feuille de calcul à importer. Formats pris en charge : .csv, .txt, .xls et .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Sélectionnez un fichier de feuille de calcul à importer. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichier pris en charge.</muted-link>`,
         fileContainsHeader: 'Le fichier contient des en-têtes de colonnes',
         column: ({name}: SpreadSheetColumnParams) => `Colonne ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oups ! Un champ requis (« ${fieldName} ») n'a pas été mappé. Veuillez vérifier et réessayer.`,
@@ -1037,6 +1042,9 @@ const translations = {
         createExpense: 'Créer une dépense',
         trackDistance: 'Suivre la distance',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Créer ${expensesNumber} dépenses`,
+        removeExpense: 'Supprimer une dépense',
+        removeThisExpense: 'Supprimer cette dépense',
+        removeExpenseConfirmation: 'Êtes-vous sûr de vouloir supprimer ce reçu ? Cette action est irréversible.',
         addExpense: 'Ajouter une dépense',
         chooseRecipient: 'Choisir le destinataire',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Créer une dépense de ${amount}`,
@@ -1066,6 +1074,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Prenez des photos de tous vos reçus en une seule fois, puis confirmez les détails vous-même ou laissez SmartScan s'en charger.",
         receiptScanInProgress: 'Numérisation du reçu en cours',
         receiptScanInProgressDescription: 'Numérisation du reçu en cours. Revenez plus tard ou saisissez les détails maintenant.',
+        removeFromReport: 'Supprimer du rapport',
+        moveToPersonalSpace: 'Déplacer les dépenses vers votre espace personnel',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Dépenses potentiellement en double identifiées. Vérifiez les doublons pour permettre la soumission.'
@@ -1158,8 +1168,7 @@ const translations = {
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: `approuvé`,
         rejectedThisReport: 'a rejeté ce rapport',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `a commencé à régler. Le paiement est en attente jusqu'à ce que ${submitterDisplayName} ajoute un compte bancaire.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} a annulé le paiement`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n'a pas activé leur Expensify Wallet dans les 30 jours`,
@@ -1234,7 +1243,6 @@ const translations = {
         unheldExpense: 'débloqué cette dépense',
         moveUnreportedExpense: 'Déplacer la dépense non déclarée',
         addUnreportedExpense: 'Ajouter une dépense non déclarée',
-        createNewExpense: 'Créer une nouvelle dépense',
         selectUnreportedExpense: 'Sélectionnez au moins une dépense à ajouter au rapport.',
         emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
@@ -1547,6 +1555,7 @@ const translations = {
             phrase4: 'Confidentialité',
         },
         help: 'Aide',
+        whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
@@ -1636,9 +1645,10 @@ const translations = {
             afterEmail: "dans d'autres comptes. Veuillez fusionner les autres comptes avec celui-ci à la place.",
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Vous ne pouvez pas fusionner',
-            afterEmail: "dans d'autres comptes car c'est le propriétaire de facturation d'un compte facturé. Veuillez plutôt fusionner d'autres comptes avec celui-ci.",
+            beforeEmail: 'Vous ne pouvez pas fusionner des comptes avec ',
+            afterEmail: ' car ce compte possède une relation de facturation facturée.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Réessayez plus tard',
             description: 'Il y a eu trop de tentatives de fusion de comptes. Veuillez réessayer plus tard.',
@@ -1784,7 +1794,7 @@ const translations = {
         nameOnCard: 'Nom sur la carte',
         paymentCardNumber: 'Numéro de carte',
         expiration: "Date d'expiration",
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Adresse de facturation',
         growlMessageOnSave: 'Votre carte de paiement a été ajoutée avec succès',
@@ -3189,6 +3199,18 @@ const translations = {
             certify: "Veuillez certifier que l'information est vraie et exacte.",
             consent: "Veuillez consentir à l'avis de confidentialité",
         },
+    },
+    docusignStep: {
+        subheader: 'Formulaire Docusign',
+        pleaseComplete:
+            'Veuillez remplir le formulaire d’autorisation ACH via le lien Docusign ci-dessous, puis téléversez une copie signée ici afin que nous puissions prélever les fonds directement de votre compte bancaire.',
+        pleaseCompleteTheBusinessAccount: 'Veuillez remplir la demande de compte professionnel et l’accord de prélèvement automatique.',
+        pleaseCompleteTheDirect:
+            'Veuillez remplir l’accord de prélèvement automatique via le lien Docusign ci-dessous, puis téléversez une copie signée ici afin que nous puissions prélever les fonds directement de votre compte bancaire.',
+        takeMeTo: 'Aller à Docusign',
+        uploadAdditional: 'Téléverser des documents supplémentaires',
+        pleaseUpload: 'Veuillez téléverser le formulaire DEFT et la page de signature Docusign.',
+        pleaseUploadTheDirect: 'Veuillez téléverser les accords de prélèvement automatique et la page de signature Docusign.',
     },
     finishStep: {
         connect: 'Connecter un compte bancaire',
@@ -5950,6 +5972,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernière relevé',
                 },
             },
             status: 'Statut',
@@ -6347,7 +6370,7 @@ const translations = {
         addressError: "L'adresse est requise",
         reasonError: 'La raison est requise',
         successTitle: 'Ihre neue Karte ist auf dem Weg!',
-        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
+        successDescription: "Vous devrez l'activer une fois qu'elle arrivera dans quelques jours ouvrables. En attendant, vous pouvez utiliser une carte virtuelle.",
     },
     eReceipt: {
         guaranteed: 'eReçu garanti',
@@ -6425,7 +6448,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Montant au-delà de la limite de ${formattedLimit}/personne`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Montant dépassant la limite quotidienne de ${formattedLimit}/personne pour la catégorie`,
         receiptNotSmartScanned:
-            'Détails de la dépense et reçu ajoutés manuellement. Veuillez vérifier les détails. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus</a> sur l\'audit automatique pour tous les reçus.',
+            'Reçu et détails de la dépense ajoutés manuellement. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Reçu requis';
             if (formattedLimit ?? category) {
@@ -6790,11 +6813,8 @@ const translations = {
                 title: 'Abonnement annulé',
                 subtitle: 'Votre abonnement annuel a été annulé.',
                 info: "Si vous souhaitez continuer à utiliser votre/vos espace(s) de travail sur une base de paiement à l'utilisation, vous êtes prêt.",
-                preventFutureActivity: {
-                    part1: 'Si vous souhaitez éviter toute activité et frais futurs, vous devez',
-                    link: 'supprimer votre/vos espace(s) de travail',
-                    part2: '. Notez que lorsque vous supprimez votre(vos) espace(s) de travail, vous serez facturé pour toute activité en cours qui a été engagée au cours du mois civil en cours.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Si vous souhaitez éviter toute activité et frais futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a>. Notez que lorsque vous supprimez votre(vos) espace(s) de travail, vous serez facturé pour toute activité en cours qui a été engagée au cours du mois civil en cours.`,
             },
             requestSubmitted: {
                 title: 'Demande soumise',
@@ -6959,66 +6979,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Commencer',
-            part2: 'ici !',
-        },
-        saveSearchTooltip: {
-            part1: 'Renommez vos recherches enregistrées',
-            part2: 'ici !',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Vérifier quoi',
-            part2: 'nécessite votre attention',
-            part3: 'et',
-            part4: 'discuter des dépenses.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Discuter avec',
-            part2: 'approbateurs',
-        },
-        globalCreateTooltip: {
-            part1: 'Créer des dépenses',
-            part2: ', commencer à discuter,',
-            part3: 'et plus.',
-            part4: 'Essayez-le !',
-        },
-        GBRRBRChat: {
-            part1: 'Vous verrez 🟢 sur',
-            part2: 'actions à entreprendre',
-            part3: ',\net 🔴 sur',
-            part4: 'éléments à examiner.',
-        },
-        accountSwitcher: {
-            part1: 'Accédez à votre',
-            part2: 'Comptes Copilot',
-            part3: 'ici',
-        },
-        expenseReportsFilter: {
-            part1: 'Bienvenue ! Trouvez tous vos',
-            part2: "rapports de l'entreprise",
-            part3: 'ici.',
-        },
+        conciergeLHNGBR: '<tooltip>Commencer <strong>ici !</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Créer des dépenses</strong>, commencer à discuter, et plus. Essayez-le !</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Vérifier quoi <strong>nécessite votre attention</strong> et <strong>discuter des dépenses.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Discuter avec <strong>approbateurs</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Vous verrez 🟢 sur <strong>actions à entreprendre</strong>,\net 🔴 sur <strong>éléments à examiner.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Accédez à votre <strong>Comptes Copilot</strong> ici</tooltip>',
+        expenseReportsFilter: "<tooltip>Bienvenue ! Trouvez tous vos <strong>rapports de l'entreprise</strong> ici.</tooltip>",
         scanTestTooltip: {
-            part1: 'Vous voulez voir comment fonctionne Scan ?',
-            part2: 'Essayez un reçu de test !',
-            part3: 'Choisissez notre',
-            part4: 'responsable des tests',
-            part5: "pour l'essayer !",
-            part6: 'Maintenant,',
-            part7: 'soumettez votre dépense',
-            part8: 'et regardez la magie opérer !',
+            main: '<tooltip><strong>Vous voulez voir comment fonctionne Scan ?</strong> Essayez un reçu de test !</tooltip>',
+            manager: "<tooltip>Choisissez notre <strong>responsable des tests</strong> pour l'essayer !</tooltip>",
+            confirmation: '<tooltip>Maintenant, <strong>soumettez votre dépense</strong> et regardez la magie opérer !</tooltip>',
             tryItOut: 'Essayez-le',
             noThanks: 'Non merci',
         },
-        outstandingFilter: {
-            part1: 'Filtrer les dépenses qui',
-            part2: "besoin d'approbation",
-        },
-        scanTestDriveTooltip: {
-            part1: 'Envoyer ce reçu à',
-            part2: "complétez l'essai !",
-        },
+        outstandingFilter: "<tooltip>Filtrer les dépenses qui <strong>besoin d'approbation</strong></tooltip>",
+        scanTestDriveTooltip: "<tooltip>Envoyer ce reçu à<strong>complétez l'essai !</strong></tooltip>",
     },
     discardChangesConfirmation: {
         title: 'Annuler les modifications ?',
