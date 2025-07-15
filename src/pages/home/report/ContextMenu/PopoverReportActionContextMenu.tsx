@@ -54,7 +54,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         vertical: 0,
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
-
+    const [allTransactionViolations = {}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    
     const instanceIDRef = useRef('');
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -86,7 +87,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
     const onConfirmDeleteModal = useRef(() => {});
-
+    
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
 
@@ -278,16 +279,16 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
     };
-
+    
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction);
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, allTransactionViolations, false);
             }
         } else if (reportAction) {
             deleteReportComment(reportIDRef.current, reportAction);

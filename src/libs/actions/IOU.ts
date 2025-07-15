@@ -7942,8 +7942,13 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-
-function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, transactionIDsPendingDeletion?: string[]) {
+function deleteMoneyRequest(
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    isSingleTransactionView = false,
+    transactionIDsPendingDeletion?: string[],
+) {
     if (!transactionID) {
         return;
     }
@@ -8236,8 +8241,8 @@ function deleteTrackExpense(
     chatReportID: string | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations> = {},
 ) {
     if (!chatReportID || !transactionID) {
         return;
@@ -8248,7 +8253,7 @@ function deleteTrackExpense(
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView, violations);
+        deleteMoneyRequest(transactionID, reportAction, violations, isSingleTransactionView);
         return urlToNavigateBack;
     }
 
