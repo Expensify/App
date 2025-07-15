@@ -65,6 +65,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -444,6 +445,21 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('sortOutstandingReportsBySelected', () => {
+        it('should return -1 when report1 is selected and report2 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report1.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+        });
+        it('should return 1 when report2 is selected and report1 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report2.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
+        });
+    });
+
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
             const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
@@ -723,6 +739,50 @@ describe('ReportUtils', () => {
                 };
 
                 expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
+            });
+        });
+
+        describe('Fallback scenarios', () => {
+            test('should fallback to report.reportName when primary name generation returns empty string', () => {
+                const reportWithFallbackName: Report = {
+                    reportID: '3',
+                    reportName: 'Custom Report Name',
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithFallbackName);
+                expect(result).toBe('Custom Report Name');
+            });
+
+            test('should return empty string when both primary name generation and reportName are empty', () => {
+                const reportWithoutName: Report = {
+                    reportID: '4',
+                    reportName: '',
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithoutName);
+                expect(result).toBe('');
+            });
+
+            test('should return empty string when reportName is undefined', () => {
+                const reportWithUndefinedName: Report = {
+                    reportID: '5',
+                    reportName: undefined,
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithUndefinedName);
+                expect(result).toBe('');
             });
         });
     });
@@ -4048,6 +4108,7 @@ describe('ReportUtils', () => {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
+                chatType: undefined,
             };
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
