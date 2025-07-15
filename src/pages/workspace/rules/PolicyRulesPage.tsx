@@ -44,7 +44,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <ExpenseReportRulesSection policyID={policyID} />
-                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? <CustomRulesSection policyID={policyID} /> : null}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
