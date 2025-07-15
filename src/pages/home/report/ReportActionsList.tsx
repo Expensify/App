@@ -605,21 +605,21 @@ function ReportActionsList({
             );
         },
         [
-            allReports,
-            sortedReportActions,
-            parentReportAction,
-            parentReportActionForTransactionThread,
             report,
-            transactionThreadReport,
+            allReports,
             policies,
             transactions,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            unreadMarkerReportActionID,
-            firstVisibleReportActionID,
+            parentReportAction,
+            sortedReportActions,
+            transactionThreadReport,
+            parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
+            firstVisibleReportActionID,
+            unreadMarkerReportActionID,
         ],
     );
 

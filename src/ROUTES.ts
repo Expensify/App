@@ -87,16 +87,12 @@ const ROUTES = {
         getRoute: ({
             reportID,
             reportActionID,
-            parentReportID,
-            parentReportActionID,
             backTo,
             moneyRequestReportActionID,
             transactionID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
-            parentReportID?: string;
-            parentReportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
@@ -114,14 +110,6 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-
-            if (parentReportID) {
-                queryParams.push(`parentReportID=${parentReportID}`);
-            }
-
-            if (parentReportActionID) {
-                queryParams.push(`parentReportActionID=${parentReportActionID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -1130,7 +1118,12 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
