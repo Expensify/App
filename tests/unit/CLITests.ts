@@ -212,4 +212,114 @@ describe('CLI', () => {
         expect(actualOutput).toBe(expectedOutput);
         expect(mockExit).toHaveBeenCalledWith(0);
     });
+
+    it('handles supercession when superseding arg is provided', () => {
+        process.argv.push('--paths', 'common.save,errors.generic');
+        const cli = new CLI({
+            namedArgs: {
+                compareRef: {
+                    description: 'Compare reference',
+                    default: 'main',
+                },
+                paths: {
+                    description: 'Specific paths to process',
+                    parse: (val) => val.split(','),
+                    supersedes: ['compareRef'],
+                    required: false,
+                },
+            },
+        });
+
+        expect(cli.namedArgs.paths).toEqual(['common.save', 'errors.generic']);
+        expect(cli.namedArgs.compareRef).toBeUndefined();
+    });
+
+    it('uses default value when superseding arg is not provided', () => {
+        const cli = new CLI({
+            namedArgs: {
+                compareRef: {
+                    description: 'Compare reference',
+                    default: 'main',
+                },
+                paths: {
+                    description: 'Specific paths to process',
+                    parse: (val) => val.split(','),
+                    supersedes: ['compareRef'],
+                    required: false,
+                },
+            },
+        });
+
+        expect(cli.namedArgs.paths).toBeUndefined();
+        expect(cli.namedArgs.compareRef).toBe('main');
+    });
+
+    it('shows supercession information in help message', () => {
+        process.argv.push('--help');
+        expect(
+            () =>
+                new CLI({
+                    namedArgs: {
+                        compareRef: {
+                            description: 'Compare reference',
+                            default: 'main',
+                        },
+                        paths: {
+                            description: 'Specific paths to process',
+                            supersedes: ['compareRef'],
+                            required: false,
+                        },
+                    },
+                }),
+        ).toThrow('exit');
+
+        const actualOutput = mockLog.mock.calls.flat().join('\n');
+        expect(actualOutput).toContain('(supersedes: compareRef)');
+        expect(mockExit).toHaveBeenCalledWith(0);
+    });
+
+    it('handles multiple superseded args', () => {
+        process.argv.push('--priority', 'high');
+        const cli = new CLI({
+            namedArgs: {
+                lowPriority: {
+                    description: 'Low priority mode',
+                    default: 'enabled',
+                },
+                mediumPriority: {
+                    description: 'Medium priority mode',
+                    default: 'enabled',
+                },
+                priority: {
+                    description: 'Priority level',
+                    supersedes: ['lowPriority', 'mediumPriority'],
+                    required: false,
+                },
+            },
+        });
+
+        expect(cli.namedArgs.priority).toBe('high');
+        expect(cli.namedArgs.lowPriority).toBeUndefined();
+        expect(cli.namedArgs.mediumPriority).toBeUndefined();
+    });
+
+    it('requires superseded args when superseding arg is not provided', () => {
+        expect(
+            () =>
+                new CLI({
+                    namedArgs: {
+                        compareRef: {
+                            description: 'Compare reference',
+                            // No default value
+                        },
+                        paths: {
+                            description: 'Specific paths to process',
+                            supersedes: ['compareRef'],
+                            required: false,
+                        },
+                    },
+                }),
+        ).toThrow();
+        expect(mockError).toHaveBeenCalledWith('Missing required named argument --compareRef');
+    });
 });
