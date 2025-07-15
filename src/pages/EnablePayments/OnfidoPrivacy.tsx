@@ -27,6 +27,7 @@ const DEFAULT_WALLET_ONFIDO_DATA = {
 };
 
 type OnfidoPrivacyProps = {
+    /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
 
