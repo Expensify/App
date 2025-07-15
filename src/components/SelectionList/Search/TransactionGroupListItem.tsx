@@ -181,7 +181,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle]}
+                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
             >
                 <View style={styles.flex1}>
                     {getHeader}
