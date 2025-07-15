@@ -192,30 +192,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    // Custom animation for fade effect
-    const opacity = useSharedValue(0);
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-    }));
-
-    // Function to trigger fade animation manually
-    const triggerFadeAnimation = useCallback(
-        (initial = false) => {
-            if (initial) {
-                opacity.value = withTiming(1, {duration: 300});
-                return;
-            }
-            opacity.value = withTiming(0, {duration: 300}, () => {
-                opacity.value = withTiming(1, {duration: 300});
-            });
-        },
-        [opacity],
-    );
-
-    useEffect(() => {
-        triggerFadeAnimation(true);
-    }, [triggerFadeAnimation]);
-
     useFocusEffect(
         useCallback(() => {
             clearSelectedTransactions(hash);
@@ -531,16 +507,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [shouldShowLoadingState, isFocused],
     );
 
+    const previousColumnsRef = useRef<SearchColumnType[]>(null);
+
+    // If a column was previously shown, keep it show
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
-            return {};
+            return [];
         }
-        return getColumnsToShow(searchResults?.data);
-    }, [searchResults?.data]);
-
-    const previousColumnsRef = useRef<Record<string, boolean>>({});
-    const columnsToShow = useMemo(() => {
-        const columns = {...currentColumns};
+        const columns = getColumnsToShow(searchResults?.data);
 
         if (!previousColumnsRef.current) {
             return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
@@ -553,23 +527,44 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         });
 
         return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
+    }, [searchResults?.data]);
+
+    // Only update if columns actually changed
+    useEffect(() => {
+        if (previousColumnsRef.current && arraysEqual(currentColumns, previousColumnsRef.current)) {
+            return;
+        }
+        previousColumnsRef.current = currentColumns;
     }, [currentColumns]);
 
-    useEffect(() => {
-        // Only update if columns actually changed
-        if (shallowCompare(currentColumns, previousColumnsRef.current)) {
-            return;
-        }
-        previousColumnsRef.current = {...currentColumns};
-    }, [currentColumns, triggerFadeAnimation]);
+    const previousColumns = usePrevious(currentColumns);
+    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
 
-    const previousColumnsToShow = usePrevious(columnsToShow);
+    // Custom animation for fade effect
+    const opacity = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }));
+
+    const isAnimating = useSharedValue(false);
     useEffect(() => {
-        if (!previousColumnsToShow || arraysEqual(columnsToShow, previousColumnsToShow)) {
+        if (isAnimating.get()) {
             return;
         }
-        triggerFadeAnimation();
-    }, [previousColumnsToShow, columnsToShow, triggerFadeAnimation]);
+        if (previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) {
+            setColumnsToShow(currentColumns);
+            return;
+        }
+
+        isAnimating.set(true);
+        opacity.value = withTiming(0, {duration: 200}, (finished) => {
+            if (finished) {
+                isAnimating.set(false);
+                setColumnsToShow(currentColumns);
+            }
+            opacity.value = withTiming(1, {duration: 200});
+        });
+    }, [previousColumns, isAnimating, currentColumns, setColumnsToShow, opacity]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
