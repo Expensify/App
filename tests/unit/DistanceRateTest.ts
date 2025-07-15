@@ -41,9 +41,9 @@ describe('DistanceRate', () => {
                 ...{
                     areDistanceRatesEnabled: true,
                     customUnits: {
-                        [Symbol(customUnitID)]: {
+                        [customUnitID]: {
                             attributes: {
-                                unit: 'mi',
+                                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                             },
                             customUnitID,
                             defaultCategory: 'Car',
@@ -56,7 +56,6 @@ describe('DistanceRate', () => {
                                     enabled: true,
                                     name: 'Default Rate',
                                     rate: 70,
-                                    attributes: [],
                                     subRates: [],
                                 },
                                 [customUnitRateID2]: {
@@ -65,7 +64,6 @@ describe('DistanceRate', () => {
                                     enabled: true,
                                     name: 'Default Rate',
                                     rate: 71,
-                                    attributes: [],
                                     subRates: [],
                                 },
                             },
