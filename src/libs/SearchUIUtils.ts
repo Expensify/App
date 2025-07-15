@@ -38,6 +38,7 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
+    SearchResultsInfo,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -718,9 +719,15 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
     const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
 
+    const reportNVP = getReportNameValuePairsFromKey(data, report);
+    const isIOUReportArchived = isArchivedReport(reportNVP);
+
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(chatReportRNVP);
+
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, policy, allReportTransactions)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             return CONST.SEARCH.ACTION_TYPES.VIEW;
         }
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
@@ -737,7 +744,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
@@ -760,11 +766,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isArchived = isArchivedReport(reportNVP);
-
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isArchived) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
@@ -1647,13 +1650,13 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
+function isSearchDataLoaded(searchResults: SearchResultsInfo | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
-        searchResults?.data !== undefined &&
-        searchResults?.search?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
+        (searchResults?.hasResults ?? searchResults?.hasMoreResults) &&
+        searchResults?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.status === status.join(',') : searchResults?.status === status);
 
     return isDataLoaded;
 }

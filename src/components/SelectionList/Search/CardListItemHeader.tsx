@@ -28,9 +28,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is hovered */
-    isHovered?: boolean;
-
     /** Whether the item is focused */
     isFocused?: boolean;
 
@@ -41,7 +38,7 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     expandButton?: React.ReactNode;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isHovered, isFocused, canSelectMultiple, expandButton}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isFocused, canSelectMultiple, expandButton}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -68,8 +65,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     }, [formattedDisplayName, illustrations, cardItem]);
 
     const backgroundColor =
-        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     // s77rt add total cell, action cell and collapse/expand button
 

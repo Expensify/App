@@ -215,9 +215,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionListItemType = ListItem &

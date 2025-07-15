@@ -56,7 +56,6 @@ type OnboardingTaskLinks = Partial<{
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
     workspaceConfirmationLink: string;
-    navatticURL: string;
     testDriveURL: string;
     corporateCardLink: string;
 }>;
