@@ -2,6 +2,7 @@ import React from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
@@ -22,6 +23,7 @@ function BaseTextInputWithCurrencySymbol(
         isCurrencyPressable = true,
         hideCurrencySymbol = false,
         extraSymbol,
+        isNegative = false,
         style,
         ...rest
     }: BaseTextInputWithCurrencySymbolProps,
@@ -41,8 +43,11 @@ function BaseTextInputWithCurrencySymbol(
         onChangeAmount(newAmount);
     };
 
+    const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
+
     return (
         <>
+            {isNegative && negativeSymbol}
             {!hideCurrencySymbol && (
                 <CurrencySymbolButton
                     currencySymbol={currencySymbol ?? ''}
