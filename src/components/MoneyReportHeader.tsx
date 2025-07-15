@@ -554,7 +554,6 @@ function MoneyReportHeader({
                 iouReport={moneyRequestReport}
                 onPress={confirmPayment}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                chatReport={chatReport}
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 shouldShowApproveButton={shouldShowApproveButton}
                 shouldDisableApproveButton={shouldDisableApproveButton}

@@ -524,7 +524,6 @@ function MoneyRequestReportPreviewContent({
                 onPaymentOptionsHide={onPaymentOptionsHide}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                chatReport={chatReport}
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
