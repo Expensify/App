@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -58,7 +59,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
-import {removeDraftTransactions} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,6 +90,7 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
+    const [isRemoveConfirmModalVisible, setRemoveConfirmModalVisible] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
@@ -317,8 +319,15 @@ function IOURequestStepConfirmation({
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
+                // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
+                const shouldUseNewScanFlow = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT);
+                const backToReportID =
+                    shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
+                        ? reportID
+                        : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                          transaction?.reportID || reportID;
+                const iouTypeForRoute = shouldUseNewScanFlow ? CONST.IOU.TYPE.CREATE : iouType;
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouTypeForRoute, initialTransactionID, backToReportID, undefined, action), {
                     compareParams: false,
                 });
                 return;
@@ -344,15 +353,16 @@ function IOURequestStepConfirmation({
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
         transaction?.receipt?.isTestDriveReceipt,
+        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
-        transaction?.participants,
         requestType,
         iouType,
         initialTransactionID,
         reportID,
-        participantsAutoAssignedFromRoute,
         isMovingTransactionFromTrackExpense,
+        participantsAutoAssignedFromRoute,
+        isBetaEnabled,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
@@ -984,6 +994,19 @@ function IOURequestStepConfirmation({
         }
     };
 
+    const removeCurrentTransaction = () => {
+        if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+            const nextTransaction = transactions.at(currentTransactionIndex + 1);
+            replaceDefaultDraftTransaction(nextTransaction);
+            setRemoveConfirmModalVisible(false);
+            return;
+        }
+
+        removeDraftTransaction(currentTransactionID);
+        setRemoveConfirmModalVisible(false);
+        showPreviousTransaction();
+    };
+
     const shouldShowThreeDotsButton =
         requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
@@ -1074,6 +1097,7 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
+                        showRemoveExpenseConfirmModal={() => setRemoveConfirmModalVisible(true)}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}
@@ -1095,6 +1119,16 @@ function IOURequestStepConfirmation({
                         isReceiptEditable
                     />
                 </View>
+                <ConfirmModal
+                    title={translate('iou.removeExpense')}
+                    isVisible={isRemoveConfirmModalVisible}
+                    onConfirm={removeCurrentTransaction}
+                    onCancel={() => setRemoveConfirmModalVisible(false)}
+                    prompt={translate('iou.removeExpenseConfirmation')}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </DragAndDropProvider>
         </ScreenWrapper>
     );

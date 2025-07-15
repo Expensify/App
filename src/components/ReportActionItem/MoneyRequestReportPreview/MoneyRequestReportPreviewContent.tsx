@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
@@ -114,6 +114,11 @@ function MoneyRequestReportPreviewContent({
     shouldShowBorder = false,
     onPress,
 }: MoneyRequestReportPreviewContentProps) {
+    const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
+    const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
+    // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
+    // so we defer the loading state update to ensure transactions are loaded
+    const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
@@ -405,7 +410,7 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_WIDTH
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
 
@@ -448,7 +453,7 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy);
+        return getReportPreviewAction(violations, isIouReportArchived || isChatReportArchived, iouReport, policy, transactions, reportActions, invoiceReceiverPolicy);
     }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -704,11 +709,14 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {!currentWidth ? (
+                                    {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
                                                 {
                                                     height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
+                                                    minWidth: shouldUseNarrowLayout
+                                                        ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH
+                                                        : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH,
                                                 },
                                                 styles.justifyContentCenter,
                                                 styles.mtn1,
