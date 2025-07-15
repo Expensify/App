@@ -44,14 +44,12 @@ class ComprehensiveStylesFinder {
     }
 
     private findAllStyleDefinitions(): void {
-        const styleFilesPaths = `src/styles/${STYLE_FILE_EXTENSIONS}`;
+        // Use excludedStyleDirs to clarify which directories are being ignored
+        const excludedStyleDirs = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
 
-        // Use ignore parameter to exclude directories more cleanly
-        const ignorePatterns = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
-
-        const styleFiles = globSync(styleFilesPaths, {
+        const styleFiles = globSync(`src/styles/${STYLE_FILE_EXTENSIONS}`, {
             cwd: this.rootDir,
-            ignore: ignorePatterns,
+            ignore: excludedStyleDirs,
         });
 
         console.log(`Scanning ${styleFiles.length} main style files (excluding utils/generators/themes)...`);
@@ -232,16 +230,13 @@ class ComprehensiveStylesFinder {
     }
 
     private loadAllFileContents(): void {
-        // Load all source files EXCEPT the main style definition files
-        const allFilesPaths = `src/**/${STYLE_FILE_EXTENSIONS}`;
-
-        // Use ignore parameter to exclude only the main style definition files
+        // Use excludeMainStyleFiles to exclude only the main style definition files
         // Keep utils/generators/themes for usage checking
-        const ignorePatterns = ['src/styles/index.ts', 'src/styles/variables.ts'];
+        const excludeMainStyleFiles = ['src/styles/index.ts', 'src/styles/variables.ts'];
 
-        const sourceFiles = globSync(allFilesPaths, {
+        const sourceFiles = globSync(`src/**/${STYLE_FILE_EXTENSIONS}`, {
             cwd: this.rootDir,
-            ignore: ignorePatterns,
+            ignore: excludeMainStyleFiles,
         });
 
         console.log(`Loading ${sourceFiles.length} source files (including utils/generators/themes for usage checking)...`);
