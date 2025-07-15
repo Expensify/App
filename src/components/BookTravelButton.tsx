@@ -151,10 +151,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         StyleUtils,
         translate,
         isUserValidated,
-        groupPaidPolicies.length,
-        isBetaEnabled,
         phoneErrorMethodsRoute,
-        travelSettings?.lastTravelSignupRequestTime,
     ]);
 
     return (
