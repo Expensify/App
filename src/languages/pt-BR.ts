@@ -5243,6 +5243,7 @@ const translations = {
             genericFailureMessage: 'Ocorreu um erro ao atualizar o espaço de trabalho. Por favor, tente novamente.',
             avatarUploadFailureMessage: 'Ocorreu um erro ao enviar o avatar. Por favor, tente novamente.',
             addressContext: 'Um Endereço de Espaço de Trabalho é necessário para habilitar o Expensify Travel. Por favor, insira um endereço associado ao seu negócio.',
+            policy: 'Política de despesas',
         },
         bankAccount: {
             continueWithSetup: 'Continuar configuração',

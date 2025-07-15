@@ -5247,6 +5247,7 @@ const translations = {
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento dello spazio di lavoro. Per favore riprova.",
             avatarUploadFailureMessage: "Si è verificato un errore durante il caricamento dell'avatar. Per favore riprova.",
             addressContext: 'È necessario un indirizzo Workspace per abilitare Expensify Travel. Si prega di inserire un indirizzo associato alla tua attività.',
+            policy: 'Politica di spesa',
         },
         bankAccount: {
             continueWithSetup: 'Continua configurazione',

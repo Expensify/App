@@ -5159,6 +5159,7 @@ const translations = {
             genericFailureMessage: '更新工作区时发生错误。请再试一次。',
             avatarUploadFailureMessage: '上传头像时发生错误。请再试一次。',
             addressContext: '启用 Expensify Travel 需要一个工作区地址。请输入与您的业务相关的地址。',
+            policy: '费用政策',
         },
         bankAccount: {
             continueWithSetup: '继续设置',

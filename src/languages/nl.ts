@@ -5247,6 +5247,7 @@ const translations = {
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de werkruimte. Probeer het opnieuw.',
             avatarUploadFailureMessage: 'Er is een fout opgetreden bij het uploaden van de avatar. Probeer het opnieuw.',
             addressContext: 'Een Werkruimteadres is vereist om Expensify Travel in te schakelen. Voer een adres in dat aan uw bedrijf is gekoppeld.',
+            policy: 'Kostenbeleid',
         },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',
