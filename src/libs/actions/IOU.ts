@@ -7964,17 +7964,18 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
             finalIouReport = updatedIOUReport;
         }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-        });
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: null,
+            },
+        );
 
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -8072,23 +8073,23 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
             [reportAction.reportActionID]: updatedReportAction,
         };
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: reportActionUpdates,
-        });
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedIOUReport,
-        });
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: getOutstandingChildRequest(updatedIOUReport),
-        });
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: reportActionUpdates,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                value: updatedIOUReport,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                value: getOutstandingChildRequest(updatedIOUReport),
+            },
+        );
 
         if (reportPreviewAction?.reportActionID) {
             optimisticData.push({
@@ -8159,26 +8160,27 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
                 reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
             )?.created;
 
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-                value: {
-                    hasOutstandingChildRequest: false,
-                    iouReportID: null,
-                    lastMessageText,
-                    lastVisibleActionCreated,
-                },
-            });
-
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: {
-                    pendingFields: {
-                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                    value: {
+                        hasOutstandingChildRequest: false,
+                        iouReportID: null,
+                        lastMessageText,
+                        lastVisibleActionCreated,
                     },
                 },
-            });
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                },
+            );
 
             successData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -8201,44 +8203,47 @@ function deleteMoneyRequests(transactions: Array<{transactionID: string; action:
             }
         }
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                      },
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [reportAction.reportActionID]: shouldDeleteIOUReport
+                        ? null
+                        : {
+                              pendingAction: null,
+                          },
+                },
             },
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: null,
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
-        });
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: null,
+            },
+        );
 
         const errorKey = DateUtils.getMicroseconds();
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    ...reportAction,
-                    pendingAction: null,
-                    errors: {
-                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: transactionViolations ?? null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [reportAction.reportActionID]: {
+                        ...reportAction,
+                        pendingAction: null,
+                        errors: {
+                            [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                        },
                     },
                 },
             },
-        });
+        );
 
         parameters.push({
             transactionID,
@@ -8585,7 +8590,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         });
     }
 
-    const parameters = {
+    const parameters: DeleteMoneyRequestParams = {
         transactionID,
         reportActionID: reportAction.reportActionID,
     };
