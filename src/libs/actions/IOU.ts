@@ -4340,12 +4340,13 @@ function getUpdateMoneyRequestParams(
         });
     }
     const hasModifiedComment = 'comment' in transactionChanges;
+    const hasModifiedReimbursable = 'reimbursable' in transactionChanges;
 
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
         updatedTransaction &&
-        (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
+        (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated || hasModifiedReimbursable)
     ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -4383,13 +4384,17 @@ function getUpdateMoneyRequestParams(
                 },
             });
         }
-        if (violationsOnyxData && (iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
+        if (
+            violationsOnyxData &&
+            ((iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN ||
+                (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
+        ) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
-                value: buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations),
+                value: buildNextStep(updatedMoneyRequestReport ?? iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations),
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
