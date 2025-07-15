@@ -2126,7 +2126,7 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES route');
             }
-            return `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const;
+            return `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const;
         },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
