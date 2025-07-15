@@ -289,7 +289,7 @@ function SearchList(
 
             return (
                 <Animated.View
-                    exiting={shouldAnimate ? FadeOutUp.easing(easing) : undefined}
+                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.ANIMATED_TRANSITION / 2).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
                 >
@@ -400,7 +400,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
-                itemLayoutAnimation={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(1.5 * CONST.ANIMATED_TRANSITION) : undefined}
+                itemLayoutAnimation={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(1.25 * CONST.ANIMATED_TRANSITION) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
