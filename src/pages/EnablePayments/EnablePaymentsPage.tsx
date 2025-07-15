@@ -21,7 +21,12 @@ import TermsStep from './TermsStep';
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true, initWithStoredValues: false});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
+        canBeMissing: true,
+        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
+        // stored values here.
+        initWithStoredValues: false,
+    });
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
 
