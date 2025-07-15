@@ -43,16 +43,16 @@ const useRootNavigatorScreenOptions = () => {
         },
         basicModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
-            contentStyle: {
-                ...StyleUtils.getNavigationModalCardStyle(),
-                backgroundColor: 'transparent',
-                width: '100%',
-                top: 0,
-                left: 0,
-                position: 'fixed',
-            },
             web: {
                 cardOverlayEnabled: false,
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                    backgroundColor: 'transparent',
+                    width: '100%',
+                    top: 0,
+                    left: 0,
+                    position: 'fixed',
+                },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isOnboardingModal: true}),
             },
         },
