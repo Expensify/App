@@ -24,10 +24,9 @@ type RNNavBarManagerModule = {
 };
 
 type PushNotificationBridge = {
-
     /** Signal to native code that we're done processing a push notification. */
     finishBackgroundProcessing: () => void;
-}
+};
 
 declare module 'react-native' {
     interface TextInputFocusEventData extends TargetedEvent {
