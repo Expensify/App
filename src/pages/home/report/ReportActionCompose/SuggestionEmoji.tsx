@@ -1,10 +1,10 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import useOnyx from '@hooks/useOnyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
