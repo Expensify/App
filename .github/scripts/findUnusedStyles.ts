@@ -92,7 +92,7 @@ class ComprehensiveStylesFinder {
 
                         if (returnObject && ts.isObjectLiteralExpression(returnObject)) {
                             // Process each property in the returned object
-                            this.processObjectProperties(returnObject, sourceFile, file);
+                            this.extractStyleDefinitionsFromObject(returnObject, sourceFile, file);
 
                             // After processing style definitions, check for spread patterns within this styles file
                             const fileContent = sourceFile.getFullText();
@@ -108,7 +108,7 @@ class ComprehensiveStylesFinder {
                 }
             } else {
                 // For other files, process all style-like nodes normally
-                this.processStyleNode(node, sourceFile, file);
+                this.extractStyleDefinitionFromNode(node, sourceFile, file);
             }
 
             ts.forEachChild(node, visit);
@@ -117,7 +117,22 @@ class ComprehensiveStylesFinder {
         visit(sourceFile);
     }
 
-    private processObjectProperties(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): void {
+    /**
+     * Extracts style definitions from a TypeScript object literal expression.
+     *
+     * This function scans through all properties in an object literal (typically the main styles object)
+     * and identifies valid style definitions. It captures both:
+     * - Property assignments with object literal values (e.g., `myStyle: { color: 'red' }`)
+     * - Method declarations that return styles (e.g., `myStyle: () => ({ color: 'red' })`)
+     *
+     * Valid style definitions are added to the styleDefinitions map with their source location
+     * for later unused style detection.
+     *
+     * @param objectLiteral - The TypeScript object literal expression to scan for style definitions
+     * @param sourceFile - The TypeScript source file containing the object literal
+     * @param file - The relative file path for tracking style definition locations
+     */
+    private extractStyleDefinitionsFromObject(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): void {
         for (const property of objectLiteral.properties) {
             if (ts.isPropertyAssignment(property) || ts.isMethodDeclaration(property)) {
                 const key = this.extractKeyFromPropertyNode(property);
@@ -163,7 +178,20 @@ class ComprehensiveStylesFinder {
         return undefined;
     }
 
-    private processStyleNode(node: ts.Node, sourceFile: ts.SourceFile, file: string): void {
+    /**
+     * Extracts a style definition from an individual TypeScript AST node.
+     *
+     * This function processes individual AST nodes (typically during tree traversal) to identify
+     * style definitions in non-main style files. It handles three types of style definitions:
+     * - Property assignments with object literal values (e.g., `myStyle: { color: 'red' }`)
+     * - Method declarations that return styles (e.g., `myStyle: () => ({ color: 'red' })`)
+     * - Variable declarations that define styles (e.g., `const myStyle = { color: 'red' }`)
+     *
+     * @param node - The TypeScript AST node to check for style definitions
+     * @param sourceFile - The TypeScript source file containing the node
+     * @param file - The relative file path for tracking style definition locations
+     */
+    private extractStyleDefinitionFromNode(node: ts.Node, sourceFile: ts.SourceFile, file: string): void {
         // Look for object literal properties (style definitions)
         if (ts.isPropertyAssignment(node) || ts.isMethodDeclaration(node)) {
             const key = this.extractKeyFromPropertyNode(node);
