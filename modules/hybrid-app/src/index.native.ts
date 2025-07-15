@@ -28,7 +28,7 @@ const HybridAppModule: HybridAppModuleType = {
     },
     onURLListenerAdded() {
         ReactNativeHybridApp.onURLListenerAdded();
-    }
+    },
 };
 
 export default HybridAppModule;

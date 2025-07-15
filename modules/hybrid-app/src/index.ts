@@ -37,7 +37,7 @@ const HybridAppModule: HybridAppModuleType = {
     onURLListenerAdded() {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `onURLListenerAdded` should never be called on web');
-    }
+    },
 };
 
 export default HybridAppModule;
