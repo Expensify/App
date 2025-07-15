@@ -4,8 +4,8 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import DropZoneUI from './DropZoneUI';
 import DropZoneWrapper from './DropZoneWrapper';
 
@@ -43,10 +43,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
                             dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder({
-                                isActive: isDraggingOver,
-                                borderColor: theme.attachmentDropBorderColorActive,
-                            })}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver)}
                         />
                     )}
                 </DropZoneWrapper>
@@ -57,10 +54,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                             dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder({
-                                isActive: isDraggingOver,
-                                borderColor: theme.receiptDropBorderColorActive,
-                            })}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)}
                         />
                     )}
                 </DropZoneWrapper>

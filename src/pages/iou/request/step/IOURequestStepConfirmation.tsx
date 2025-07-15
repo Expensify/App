@@ -1043,10 +1043,7 @@ function IOURequestStepConfirmation({
                                 dropStyles={styles.receiptDropOverlay(true)}
                                 dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
                                 dropTextStyles={styles.receiptDropText}
-                                dashedBorderStyles={styles.activeDropzoneDashedBorder({
-                                    isActive: true,
-                                    borderColor: theme.receiptDropBorderColorActive,
-                                })}
+                                dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                             />
                         </DragAndDropConsumer>
                     ) : (

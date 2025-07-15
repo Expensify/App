@@ -686,10 +686,7 @@ function ReportActionCompose({
                                                     dropTitle={translate('dropzone.addAttachments')}
                                                     dropStyles={styles.attachmentDropOverlay(true)}
                                                     dropTextStyles={styles.attachmentDropText}
-                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder({
-                                                        isActive: true,
-                                                        borderColor: theme.attachmentDropBorderColorActive,
-                                                    })}
+                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
                                                 />
                                             </DragAndDropConsumer>
                                         )}

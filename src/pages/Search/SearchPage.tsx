@@ -515,10 +515,7 @@ function SearchPage({route}: SearchPageProps) {
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder({
-                                isActive: true,
-                                borderColor: theme.receiptDropBorderColorActive,
-                            })}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
@@ -606,10 +603,7 @@ function SearchPage({route}: SearchPageProps) {
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dashedBorderStyles={styles.activeDropzoneDashedBorder({
-                                            isActive: true,
-                                            borderColor: theme.receiptDropBorderColorActive,
-                                        })}
+                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>

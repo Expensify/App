@@ -13,6 +13,7 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -4025,21 +4026,32 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.fileDropUIBG,
         },
 
-        activeDropzoneDashedBorder: ({borderColor, isActive}) => ({
-            position: 'absolute' as const,
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            ...(Platform.OS === 'web' && {
-                backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4' stroke-linecap='round' rx='8' ry='8'/%3e%3c/svg%3e")`,
-                backgroundSize: '100% 100%',
-                backgroundRepeat: 'no-repeat',
-            }),
-            width: '100%',
-            height: '100%',
-            opacity: isActive ? 1 : 0,
-        }),
+        activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
+            const browser = getBrowser();
+            const isSafariOrChromeBrowser = getPlatform() === 'web' && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
+
+            return {
+                position: 'absolute' as const,
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                height: '100%',
+                opacity: isActive ? 1 : 0,
+                ...(isSafariOrChromeBrowser && {
+                    backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4' stroke-linecap='round' rx='8' ry='8'/%3e%3c/svg%3e")`,
+                    backgroundSize: '100% 100%',
+                    backgroundRepeat: 'no-repeat',
+                }),
+                ...(!isSafariOrChromeBrowser && {
+                    borderWidth: 2,
+                    borderStyle: 'dashed',
+                    borderColor,
+                    borderRadius: variables.componentBorderRadiusNormal,
+                }),
+            };
+        },
 
         attachmentDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
