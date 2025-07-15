@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Wallet from '@userActions/Wallet';
+import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,7 +36,7 @@ function EnablePaymentsPage() {
             return;
         }
 
-        Wallet.openEnablePaymentsPage();
+        openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
     if (isEmptyObject(userWallet)) {
