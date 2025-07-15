@@ -75,15 +75,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
     const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
         canBeMissing: false,
-        // We need to use a selector here to prevent the component from re-rendering on unused report properties changes
-        selector: (onyxReport) =>
-            onyxReport && {
-                reportID: onyxReport.reportID,
-                ownerAccountID: onyxReport.ownerAccountID,
-                policyID: onyxReport.policyID,
-                parentReportID: onyxReport.parentReportID,
-                type: onyxReport.type,
-            },
     });
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
@@ -91,26 +82,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
         }`,
         {
             canBeMissing: true,
-            // We need to use a selector here to prevent the component from re-rendering on unused transaction properties changes
-            selector: (onyxTransaction) =>
-                onyxTransaction && {
-                    transactionID: onyxTransaction.transactionID,
-                    reportID: onyxTransaction.reportID,
-                    amount: onyxTransaction.amount,
-                    currency: onyxTransaction.currency,
-                    merchant: onyxTransaction.merchant,
-                    created: onyxTransaction.created,
-                    category: onyxTransaction.category,
-                    tag: onyxTransaction.tag,
-                    billable: onyxTransaction.billable,
-                    reimbursable: onyxTransaction.reimbursable,
-                    receipt: onyxTransaction.receipt,
-                    filename: onyxTransaction.filename,
-                    pendingAction: onyxTransaction.pendingAction,
-                    errors: onyxTransaction.errors,
-                    hasEReceipt: onyxTransaction.hasEReceipt,
-                    cardID: onyxTransaction.cardID,
-                },
         },
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
