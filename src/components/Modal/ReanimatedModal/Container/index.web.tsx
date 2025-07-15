@@ -34,7 +34,8 @@ function Container({
         initProgress.set(withTiming(1, {duration: animationInTiming, easing}, onOpenCallBack));
     }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
 
-    const animatedStyles = useAnimatedStyle(() => ({opacity: initProgress.get()}), [initProgress]);
+    // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
+    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
 
     const Exiting = useMemo(() => {
         const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
