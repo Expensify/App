@@ -224,9 +224,9 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // Then the report should appear in the sidebar because it’s pinned.
-            expect(getOptionRows()).toHaveLength(1);
             await waitForBatchedUpdatesWithAct();
+            
+            expect(getOptionRows()).toHaveLength(1);
 
             const expenseReport: Report = {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
@@ -245,6 +245,8 @@ describe('SidebarLinksData', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
