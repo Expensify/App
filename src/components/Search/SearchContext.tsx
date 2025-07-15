@@ -11,7 +11,8 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {SearchContext, SearchContextData} from './types';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchContext, SearchContextData, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
@@ -52,14 +53,20 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const setCurrentSearchHash = useCallback(
         (searchHash: number) => {
-            const suggestedSearches = getSuggestedSearches(session);
-            const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchHash);
+            setSearchContextData((prevState) => {
+                const suggestedSearches = getSuggestedSearches(session);
+                const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchHash);
 
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                currentSearchHash: searchHash,
-                currentSearchKey: currentSearch?.key,
-            }));
+                if (searchHash === prevState.currentSearchHash && currentSearch?.key === prevState.currentSearchKey) {
+                    return prevState;
+                }
+
+                return {
+                    ...prevState,
+                    currentSearchHash: searchHash,
+                    currentSearchKey: currentSearch?.key,
+                };
+            });
         },
         [session],
     );
@@ -124,6 +131,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
                 return;
             }
+
+            if (searchContextData.selectedReports.length === 0 && isEmptyObject(searchContextData.selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
+                return;
+            }
             setSearchContextData((prevState) => ({
                 ...prevState,
                 shouldTurnOffSelectionMode,
@@ -133,21 +144,45 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption(false);
             setExportMode(false);
         },
-        [searchContextData.currentSearchHash, setSelectedTransactions],
+        [
+            searchContextData.currentSearchHash,
+            searchContextData.selectedReports.length,
+            searchContextData.selectedTransactions,
+            searchContextData.shouldTurnOffSelectionMode,
+            setSelectedTransactions,
+        ],
     );
 
     const removeTransaction: SearchContext['removeTransaction'] = useCallback(
         (transactionID) => {
-            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
-            if (!transactionID || !selectedTransactionIDs.length) {
+            if (!transactionID) {
                 return;
             }
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
-            }));
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+
+            if (!isEmptyObject(searchContextData.selectedTransactions)) {
+                const newSelectedTransactions = Object.entries(searchContextData.selectedTransactions).reduce((acc, [key, value]) => {
+                    if (key === transactionID) {
+                        return acc;
+                    }
+                    acc[key] = value;
+                    return acc;
+                }, {} as SelectedTransactions);
+
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactions: newSelectedTransactions,
+                }));
+            }
+
+            if (selectedTransactionIDs.length > 0) {
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+                }));
+            }
         },
-        [searchContextData.selectedTransactionIDs],
+        [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
     const searchContext = useMemo<SearchContext>(
