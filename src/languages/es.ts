@@ -1055,7 +1055,7 @@ const translations = {
             other: 'Escaneando recibos...',
         }),
         scanMultipleReceipts: 'Escanea varios recibos',
-        scanMultipleReceiptsDescription: 'Tome fotos de todos sus recibos a la vez y confirme los detalles usted mismo o deje que SmartScan se encargue.',
+        scanMultipleReceiptsDescription: 'Haz fotos de todos tus recibos a la vez y confirma los detalles tú mismo o nosotros lo haremos por ti.',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
         removeFromReport: 'Eliminar del informe',
