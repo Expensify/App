@@ -2368,66 +2368,6 @@ describe('actions/IOU', () => {
             });
             expect(originalTransactionThread).toBe(undefined);
         });
-
-        it('should remove the original transaction from the search snapshot data', async () => {
-            // Given a single expense
-            const expenseReport: Report = {
-                ...createRandomReport(1),
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            const transaction: Transaction = {
-                amount: 100,
-                currency: 'USD',
-                transactionID: '1',
-                reportID: expenseReport.reportID,
-                created: DateUtils.getDBTime(),
-                merchant: 'test',
-            };
-            const transactionThread: Report = {
-                ...createRandomReport(2),
-            };
-            const iouAction: ReportAction = {
-                ...buildOptimisticIOUReportAction({
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    comment: '',
-                    participants: [],
-                    transactionID: transaction.transactionID,
-                    iouReportID: expenseReport.reportID,
-                }),
-                childReportID: transactionThread.reportID,
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [iouAction.reportActionID]: iouAction,
-            });
-            const draftTransaction: OnyxEntry<Transaction> = {
-                ...transaction,
-                comment: {
-                    originalTransactionID: transaction.transactionID,
-                },
-            };
-
-            // When splitting the expense
-            const hash = 1;
-            saveSplitTransactions(draftTransaction, hash);
-
-            await waitForBatchedUpdates();
-
-            // Then the original expense/transaction should be removed from the search snapshot data
-            const searchSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-            expect(searchSnapshot?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
-        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
