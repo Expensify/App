@@ -7,9 +7,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as WorkspaceSettingsUtils from '@libs/WorkspacesSettingsUtils';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {getOwnershipChecksDisplayText} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
-import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,7 +37,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const updateDisplayTexts = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -45,7 +45,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        const texts = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        const texts = getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
         setDisplayTexts(texts);
     }, [accountID, error, personalDetails, policy, translate]);
 
@@ -54,15 +54,18 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
     }, [updateDisplayTexts]);
 
     const confirm = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
-            MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
+            clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
             return;
         }
 
-        MemberActions.requestWorkspaceOwnerChange(policyID);
+        requestWorkspaceOwnerChange(policyID);
     }, [accountID, error, policyID]);
 
     return (
