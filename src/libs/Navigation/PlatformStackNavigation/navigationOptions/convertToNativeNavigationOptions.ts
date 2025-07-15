@@ -18,7 +18,7 @@ function convertToNativeNavigationOptions(
         };
     }
 
-    return {...buildPlatformSpecificNavigationOptions<NativeStackNavigationOptions>(screenOptions), contentStyle: screenOptions.contentStyle, ...screenOptions.native};
+    return {...buildPlatformSpecificNavigationOptions<NativeStackNavigationOptions>(screenOptions), ...screenOptions.native};
 }
 
 export default convertToNativeNavigationOptions;
