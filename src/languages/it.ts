@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1039,6 +1037,9 @@ const translations = {
         createExpense: 'Crea spesa',
         trackDistance: 'Traccia distanza',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
+        removeExpense: 'Rimuovi spesa',
+        removeThisExpense: 'Rimuovi questa spesa',
+        removeExpenseConfirmation: 'Sei sicuro di voler rimuovere questa ricevuta? Questa azione non può essere annullata.',
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Crea ${amount} spesa`,
@@ -1130,21 +1131,10 @@ const translations = {
         individual: 'Individuale',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} con Expensify` : `Paga con Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come individuo` : `Paga con conto personale`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} con portafoglio` : `Paga con portafoglio`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come individuo` : `Paga come individuo`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Paga ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga con conto aziendale`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagato`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagato ${amount} con conto aziendale ${last4Digits}` : `Pagato con conto aziendale`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `Pagato ${amount} con conto bancario ${last4Digits}` : `Pagato con conto bancario ${last4Digits}`,
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `pagato ${amount ? `${amount} ` : ''}con il conto bancario terminante con ${last4Digits} tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conto personale • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conto aziendale • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga come un'azienda`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} altrove` : `Paga altrove`),
         nextStep: 'Prossimi passi',
         finished: 'Finito',
         sendInvoice: ({amount}: RequestAmountParams) => `Invia fattura di ${amount}`,
@@ -1179,8 +1169,8 @@ const translations = {
             `annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha attivato il loro Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}segnato come pagato`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}pagato altrove`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagato con Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} ha pagato con Expensify tramite <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         noReimbursableExpenses: 'Questo rapporto ha un importo non valido',
@@ -1650,9 +1640,10 @@ const translations = {
             afterEmail: 'in altri account. Si prega di unire altri account in esso invece.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Non puoi unire',
-            afterEmail: 'in altri account perché è il proprietario della fatturazione di un account fatturato. Si prega di unire altri account in esso invece.',
+            beforeEmail: 'Non puoi unire account in ',
+            afterEmail: ' perché questo account possiede una relazione di fatturazione con fattura emessa.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Riprova più tardi',
             description: 'Ci sono stati troppi tentativi di unire gli account. Per favore riprova più tardi.',
@@ -1796,7 +1787,7 @@ const translations = {
         nameOnCard: 'Nome sulla carta',
         paymentCardNumber: 'Numero di carta',
         expiration: 'Data di scadenza',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Indirizzo di fatturazione',
         growlMessageOnSave: 'La tua carta di pagamento è stata aggiunta con successo',
@@ -1838,7 +1829,6 @@ const translations = {
         enableWallet: 'Abilita portafoglio',
         addBankAccountToSendAndReceive: "Ricevi il rimborso per le spese che invii a un'area di lavoro.",
         addBankAccount: 'Aggiungi conto bancario',
-        addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Queste sono carte assegnate da un amministratore del workspace per gestire le spese aziendali.',
         expensifyCard: 'Expensify Card',
@@ -2051,7 +2041,6 @@ const translations = {
         cardLastFour: 'Carta che termina con',
         addFirstPaymentMethod: "Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell'app.",
         defaultPaymentMethod: 'Predefinito',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conto bancario • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -3218,6 +3207,18 @@ const translations = {
             certify: 'Si prega di certificare che le informazioni sono veritiere e accurate',
             consent: "Si prega di acconsentire all'informativa sulla privacy",
         },
+    },
+    docusignStep: {
+        subheader: 'Modulo Docusign',
+        pleaseComplete:
+            'Completa il modulo di autorizzazione ACH tramite il link Docusign qui sotto e carica una copia firmata qui per consentirci di prelevare fondi direttamente dal tuo conto bancario.',
+        pleaseCompleteTheBusinessAccount: 'Completa la richiesta di conto aziendale e l’accordo di addebito diretto.',
+        pleaseCompleteTheDirect:
+            'Completa l’accordo di addebito diretto tramite il link Docusign qui sotto e carica una copia firmata qui per consentirci di prelevare fondi direttamente dal tuo conto bancario.',
+        takeMeTo: 'Vai a Docusign',
+        uploadAdditional: 'Carica documentazione aggiuntiva',
+        pleaseUpload: 'Carica il modulo DEFT e la pagina di firma Docusign.',
+        pleaseUploadTheDirect: 'Carica l’accordo di addebito diretto e la pagina di firma Docusign.',
     },
     finishStep: {
         connect: 'Collega conto bancario',
@@ -6450,7 +6451,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importo oltre il limite di ${formattedLimit}/persona`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importo oltre il limite giornaliero ${formattedLimit}/persona per categoria`,
         receiptNotSmartScanned:
-            'Dettagli della spesa e ricevuta aggiunti manualmente. Si prega di verificare i dettagli. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Scopri di più</a> sulla verifica automatica di tutte le ricevute.',
+            'Ricevuta e dettagli della spesa aggiunti manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Scopri di più.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Ricevuta richiesta';
             if (formattedLimit ?? category) {

@@ -256,9 +256,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
         return;
     }
 
-    const employeeRole = policy?.employeeList?.[currentUserLogin];
-
-    return typeof employeeRole === 'string' ? employeeRole : employeeRole?.role;
+    return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 function getPolicyNameByID(policyID: string): string {
