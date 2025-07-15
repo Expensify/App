@@ -2,7 +2,6 @@ import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, Linking, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
@@ -21,6 +20,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -209,7 +209,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                 if (
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+                    (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                 ) {
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -379,6 +380,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
+        introSelected?.inviteType,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,

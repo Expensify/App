@@ -2,15 +2,15 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -31,6 +31,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport} from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -62,8 +63,8 @@ type ReportActionsViewProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /** All transactions grouped by reportID */
-    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
+    /** If this report is a transaction thread report */
+    isReportTransactionThread?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -76,7 +77,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    transactionsAndViolationsByReport,
+    isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -99,9 +100,11 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const {transactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
-    const reportTransactions = getAllNonDeletedTransactions(Object.values(transactions ?? {}) ?? [], allReportActions ?? []);
-    const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const reportTransactionIDs = useMemo(
+        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
+        [reportTransactions, allReportActions],
+    );
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -132,6 +135,12 @@ function ReportActionsView({
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!isMoneyRequestReport(report) || !allReportActions?.length) {
+            if (!allReportActions?.length && isReportTransactionThread) {
+                const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+                optimisticCreatedReportAction.pendingAction = null;
+                return [optimisticCreatedReportAction];
+            }
+
             return allReportActions;
         }
 
@@ -178,7 +187,9 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
+        // We don't need to listen for changes in whole report and threadTransactionReport objects
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [allReportActions, report.reportID, reportPreviewAction?.childMoneyRequestCount, isReportTransactionThread]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -248,14 +259,7 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-        Timing.end(CONST.TIMING.OPEN_REPORT);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
-        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        markOpenReportEnd();
     }, []);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -309,7 +313,6 @@ function ReportActionsView({
                 hasNewerActions={hasNewerActions}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
-                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
             />
             <UserTypingEventListener report={report} />
         </>

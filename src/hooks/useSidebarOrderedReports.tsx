@@ -1,6 +1,7 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {deepEqual} from 'fast-equals';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -9,6 +10,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -53,13 +55,13 @@ function SidebarOrderedReportsContextProvider({
      */
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
+    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
@@ -68,6 +70,7 @@ function SidebarOrderedReportsContextProvider({
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -106,6 +109,11 @@ function SidebarOrderedReportsContextProvider({
                 .map(([key]) => key);
         }
 
+        // Make sure the previous and current reports are always included in the updates when we switch reports.
+        if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
+            reportsToUpdate.push(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+        }
+
         return reportsToUpdate;
     }, [
         reportUpdates,
@@ -120,6 +128,8 @@ function SidebarOrderedReportsContextProvider({
         priorityMode,
         prevBetas,
         prevPriorityMode,
+        prevDerivedCurrentReportID,
+        derivedCurrentReportID,
     ]);
 
     const reportsToDisplayInLHN = useMemo(() => {
@@ -216,6 +226,53 @@ function SidebarOrderedReportsContextProvider({
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
 
+    const currentDeps = {
+        priorityMode,
+        chatReports,
+        policies,
+        transactions,
+        transactionViolations,
+        reportNameValuePairs,
+        betas,
+        reportAttributes,
+        currentReportsToDisplay,
+        shouldUseNarrowLayout,
+        accountID,
+        currentReportIDValue,
+        derivedCurrentReportID,
+        prevDerivedCurrentReportID,
+        policyMemberAccountIDs,
+        prevBetas,
+        prevPriorityMode,
+        reportsToDisplayInLHN,
+        orderedReportIDs,
+        orderedReports,
+    };
+    const prevContextValue = usePrevious(contextValue);
+    const previousDeps = usePrevious(currentDeps);
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+        // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
+        // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
+
+        // Case 1: orderedReports goes from empty to non-empty
+        if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps);
+        }
+        // Case 2: orderedReports goes from non-empty to empty
+        if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
+        }
+
+        // Case 3: orderedReports are empty from the beginning
+        if (firstRender.current && contextValue.orderedReports.length === 0) {
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps);
+        }
+
+        firstRender.current = false;
+    });
+
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
 
@@ -225,3 +282,31 @@ function useSidebarOrderedReports() {
 
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
 export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
+
+function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
+    const depsKeys = Object.keys(deps);
+
+    return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
+}
+
+function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T) {
+    const startTime = performance.now();
+    const changedDeps = getChangedKeys(deps, prevDeps);
+    const parsedDeps = parseDepsForLogging(deps);
+    const processingDuration = performance.now() - startTime;
+    Log.info(msg, false, {
+        deps: parsedDeps,
+        changedDeps,
+        processingDuration,
+    });
+}
+
+/**
+ * @param deps - The dependencies to parse.
+ * @returns A simplified object with light-weight values.
+ */
+function parseDepsForLogging<T extends Record<string, unknown>>(deps: T) {
+    // If object or array, return the keys' length
+    // If primitive, return the value
+    return Object.fromEntries(Object.entries(deps).map(([key, value]) => [key, typeof value === 'object' && value !== null ? Object.keys(value).length : value]));
+}
