@@ -1237,7 +1237,6 @@ const translations = {
         unheldExpense: 'liberou esta despesa',
         moveUnreportedExpense: 'Mover despesa não relatada',
         addUnreportedExpense: 'Adicionar despesa não relatada',
-        createNewExpense: 'Criar nova despesa',
         selectUnreportedExpense: 'Selecione pelo menos uma despesa para adicionar ao relatório.',
         emptyStateUnreportedExpenseTitle: 'Nenhuma despesa não relatada',
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',

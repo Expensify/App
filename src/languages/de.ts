@@ -1243,7 +1243,6 @@ const translations = {
         unheldExpense: 'diese Ausgabe freigegeben',
         moveUnreportedExpense: 'Nicht gemeldete Ausgabe verschieben',
         addUnreportedExpense: 'Nicht gemeldete Ausgabe hinzufügen',
-        createNewExpense: 'Neue Ausgabe erstellen',
         selectUnreportedExpense: 'Wählen Sie mindestens eine Ausgabe aus, die dem Bericht hinzugefügt werden soll.',
         emptyStateUnreportedExpenseTitle: 'Keine nicht gemeldeten Ausgaben',
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
