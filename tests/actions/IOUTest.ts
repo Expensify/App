@@ -126,7 +126,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         hash: 12345,
         query: 'test',
         type: 'invoice',
-        status: 'all',
+        status: '',
         flatFilters: [],
     })),
     getTodoSearchQuery: jest.fn(),
