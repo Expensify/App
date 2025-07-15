@@ -58,6 +58,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             innerContainerStyle={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}
             onBackdropPress={Navigation.dismissModal}
             useNativeDriver
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}
