@@ -42,7 +42,7 @@ function SuggestionEmoji(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused}: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, selector: getPreferredSkinToneIndex});
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     // eslint-disable-next-line react-compiler/react-compiler
