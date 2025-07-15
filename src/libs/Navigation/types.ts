@@ -589,6 +589,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
@@ -1012,6 +1013,9 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
@@ -1726,6 +1730,10 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
+        token: string;
+        isTestAccount?: string;
+    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
@@ -1764,6 +1772,8 @@ type ReportsSplitNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
+        parentReportID?: string;
+        parentReportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
@@ -2068,6 +2078,7 @@ type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
         reportActionID?: string;
+        backTo?: Routes;
     };
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         /** ID of the transaction the page was opened for */
@@ -2187,7 +2198,9 @@ type ScheduleCallParamList = {
 };
 
 type TestToolsModalModalNavigatorParamList = {
-    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
