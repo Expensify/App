@@ -1002,6 +1002,15 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
+
+            it('the current user is an invited user of the expense report', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
         });
 
         describe('return only iou split option if', () => {
