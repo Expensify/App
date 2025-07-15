@@ -870,6 +870,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         report={report}
                                         reportActions={reportActions}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions && !isTransactionThreadView}
+                                        oldestUnreadReportActionID={oldestUnreadReportActionID}
                                         hasNewerActions={hasNewerActions}
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}

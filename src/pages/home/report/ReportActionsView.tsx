@@ -50,6 +50,9 @@ type ReportActionsViewProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** The oldest unread report action ID */
+    oldestUnreadReportActionID?: string;
+
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
@@ -77,6 +80,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    oldestUnreadReportActionID,
     isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -305,6 +309,7 @@ function ReportActionsView({
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
+                oldestUnreadReportActionID={oldestUnreadReportActionID}
                 sortedReportActions={reportActions}
                 sortedVisibleReportActions={visibleReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
