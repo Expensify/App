@@ -72,7 +72,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 const reports = getOutstandingReportsForUser(
                     policyID,
                     transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                    Object.values(allReports ?? {}),
+                    allReports ?? {},
                     reportNameValuePairs,
                 );
                 return reports;

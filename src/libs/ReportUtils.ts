@@ -863,7 +863,7 @@ type GetReportNameParams = {
     policies?: SearchPolicy[];
 };
 
-type ReportByPolicyMap = Record<string, Report[]>;
+type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
 
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
@@ -949,7 +949,7 @@ Onyx.connect({
             return;
         }
 
-        reportsByPolicyID = Object.values(value).reduce<ReportByPolicyMap>((acc, report) => {
+        reportsByPolicyID = Object.entries(value).reduce<ReportByPolicyMap>((acc, [reportID, report]) => {
             if (!report) {
                 return acc;
             }
@@ -962,9 +962,13 @@ Onyx.connect({
             // - Belong to the same workspace
             if (report.policyID && report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
                 if (!acc[report.policyID]) {
-                    acc[report.policyID] = [];
+                    acc[report.policyID] = {};
                 }
-                acc[report.policyID].push(report);
+
+                acc[report.policyID] = {
+                    ...acc[report.policyID],
+                    [reportID]: report,
+                };
             }
 
             return acc;
@@ -7935,8 +7939,12 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     }
 
     // If any report has a violation, then it should have a RBR
-    const potentialReports = reportsByPolicyID[report.policyID] ?? [];
+    const potentialReports = Object.values(reportsByPolicyID[report.policyID] ?? {}) ?? [];
     return potentialReports.some((potentialReport) => {
+        if (!potentialReport) {
+            return false;
+        }
+
         return (
             !isInvoiceReport(potentialReport) &&
             (hasViolations(potentialReport.reportID, transactionViolations, true) ||
@@ -9985,13 +9993,13 @@ function isReportOutstanding(
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
-    reports: Array<OnyxEntry<Report>> = Object.values(allReports ?? {}),
+    reports: OnyxCollection<Report> = allReports,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {
         return [];
     }
-    return reports
+    return Object.values(reports)
         .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
