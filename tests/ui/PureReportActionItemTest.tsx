@@ -26,7 +26,7 @@ jest.mock('@react-navigation/native');
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
-const createAutomaticAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
+const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
     ({
         reportActionID: '12345',
         actorAccountID: ACTOR_ACCOUNT_ID,
@@ -102,7 +102,7 @@ describe('PureReportActionItem', () => {
 
     describe('Automatic actions', () => {
         it('APPROVED action via workspace rules', async () => {
-            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
@@ -111,7 +111,7 @@ describe('PureReportActionItem', () => {
         });
 
         it('Automatic FORWARDED action', async () => {
-            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
@@ -120,7 +120,7 @@ describe('PureReportActionItem', () => {
         });
 
         it('SUBMITTED action via harvesting', async () => {
-            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
@@ -129,12 +129,50 @@ describe('PureReportActionItem', () => {
         });
 
         it('SUBMITTED_AND_CLOSED action via harvesting', async () => {
-            const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: true});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
+        });
+    });
+
+    describe('Manual actions', () => {
+        it('Manually APPROVED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: false});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.approvedMessage'))).toBeOnTheScreen();
+        });
+
+        it('Manually FORWARDED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: false});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
+        });
+
+        it('SUBMITTED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+        });
+
+        it('Instant SUBMITTED_AND_CLOSED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: false});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
     });
 });
