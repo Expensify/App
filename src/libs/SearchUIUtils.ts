@@ -38,6 +38,7 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
+    SearchResultsInfo,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -45,6 +46,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
+import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -83,6 +85,7 @@ import {
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -680,6 +683,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
+
+    const transaction = isTransaction ? data[key] : undefined;
+    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -689,7 +697,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
-    const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
@@ -711,9 +718,15 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
     const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
 
+    const reportNVP = getReportNameValuePairsFromKey(data, report);
+    const isIOUReportArchived = isArchivedReport(reportNVP);
+
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(chatReportRNVP);
+
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, policy, allReportTransactions)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             return CONST.SEARCH.ACTION_TYPES.VIEW;
         }
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
@@ -730,7 +743,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
@@ -753,11 +765,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isArchived = isArchivedReport(reportNVP);
-
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isArchived) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
@@ -914,13 +923,14 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
 
             const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+            const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
                 groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: getAction(data, allViolations, key),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
+                to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
             };
@@ -1285,7 +1295,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
                     getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
                         return queryString;
                     },
                 },
@@ -1362,6 +1372,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         };
 
         if (showSubmitSuggestion) {
+            const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1370,39 +1381,41 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: [
-                        {
-                            success: true,
-                            buttonText: 'report.newReport.createReport',
-                            buttonAction: () => {
-                                interceptAnonymousUser(() => {
-                                    const activePolicy = getActivePolicy();
-                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                    buttons:
+                        groupPoliciesWithChatEnabled.length > 0
+                            ? [
+                                  {
+                                      success: true,
+                                      buttonText: 'report.newReport.createReport',
+                                      buttonAction: () => {
+                                          interceptAnonymousUser(() => {
+                                              const activePolicy = getActivePolicy();
+                                              const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
 
-                                    let workspaceIDForReportCreation: string | undefined;
+                                              let workspaceIDForReportCreation: string | undefined;
 
-                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                        workspaceIDForReportCreation = activePolicy.id;
-                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                    }
+                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                                  workspaceIDForReportCreation = activePolicy.id;
+                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                              }
 
-                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                        });
-                                        return;
-                                    }
+                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  });
+                                                  return;
+                                              }
 
-                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                });
-                            },
-                        },
-                    ],
+                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                          });
+                                      },
+                                  },
+                              ]
+                            : [],
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
@@ -1430,7 +1443,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
                         to: [`${session.accountID}`],
                     });
                     return queryString;
@@ -1552,6 +1565,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                        // s77rt this should be update to use the default feed
                         feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
@@ -1593,6 +1607,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                    // s77rt this should be update to use the default feed
                     feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
@@ -1634,14 +1649,13 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+function isSearchDataLoaded(searchResults: SearchResultsInfo | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
-        searchResults?.data !== undefined &&
-        searchResults?.search?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
+        (searchResults?.hasResults ?? searchResults?.hasMoreResults) &&
+        searchResults?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.status === status.join(',') : searchResults?.status === status);
 
     return isDataLoaded;
 }
@@ -1664,11 +1678,11 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-        {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-        {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
-        {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
-        {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
-        {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+        {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
@@ -1677,7 +1691,14 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
 }
 
 function getGroupByOptions() {
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
+}
+
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
+        text: cardFeed.name,
+        value: cardFeed.id,
+    }));
 }
 
 export {
@@ -1707,6 +1728,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,

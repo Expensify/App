@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -12,11 +11,11 @@ import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccou
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -87,6 +86,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const workspaceRoute = isSmallScreenWidth
+        ? `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`
+        : `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
 
     /**
@@ -252,6 +256,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     };
 
     const continueNonUSDVBBASetup = () => {
+        const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
+        const allAgreementsChecked =
+            reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
+            reimbursementAccountDraft?.agreeToTermsAndConditions === true &&
+            reimbursementAccountDraft?.consentToPrivacyNotice === true &&
+            reimbursementAccountDraft?.provideTruthfulInformation === true;
+
         setShouldShowContinueSetupButton(false);
         if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
@@ -273,8 +284,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
+        if (isPastSignerStep && !allAgreementsChecked) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep && allAgreementsChecked) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+            return;
         }
 
         if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
@@ -397,19 +414,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (hasUnsupportedCurrency) {
         errorText = (
             <Text style={styles.flexRow}>
-                {translate('bankAccount.hasCurrencyError.phrase1')}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => {
-                        const routeToNavigate = isSmallScreenWidth
-                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
-                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
-                        Navigation.goBack(routeToNavigate);
-                    }}
-                >
-                    {translate('bankAccount.hasCurrencyError.link')}
-                </TextLink>
-                {translate('bankAccount.hasCurrencyError.phrase2')}
+                <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />
             </Text>
         );
     }
@@ -450,6 +455,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                 policyID={policyIDParam}
                 shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
+                policyCurrency={policyCurrency}
             />
         );
     }

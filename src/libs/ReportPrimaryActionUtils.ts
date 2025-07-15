@@ -41,6 +41,7 @@ import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
+    isPending,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -54,11 +55,11 @@ type GetReportPrimaryActionParams = {
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
-    isChatReportArchived?: boolean;
+    isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived = false) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
     if (isChatReportArchived) {
         return false;
     }
@@ -80,6 +81,10 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
 
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
     const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
@@ -119,6 +124,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -179,11 +188,11 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
     }
 
     const parentReport = getParentReport(report);
-    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
         return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
 
-    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
 function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
@@ -250,7 +259,7 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction));
 
     if (!hasDuplicates) {
         return false;
@@ -279,7 +288,7 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     }
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;

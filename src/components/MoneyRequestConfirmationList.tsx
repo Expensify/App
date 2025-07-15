@@ -3,11 +3,11 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,6 +61,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import FormHelpMessage from './FormHelpMessage';
@@ -183,6 +184,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** The PDF password callback */
     onPDFPassword?: () => void;
+
+    /** Show remove expense confirmation modal */
+    showRemoveExpenseConfirmModal?: () => void;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -224,6 +228,7 @@ function MoneyRequestConfirmationList({
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
+    showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -441,13 +446,16 @@ function MoneyRequestConfirmationList({
         if (!isDistanceRequest || !transactionID) {
             return;
         }
+        if (isReadOnly) {
+            return;
+        }
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         setMoneyRequestAmount(transactionID, amount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
+    }, [distance, rate, isReadOnly, unit, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount || !transactionID) {
+        if (!shouldCalculateDistanceAmount || !transactionID || isReadOnly) {
             return;
         }
 
@@ -459,7 +467,7 @@ function MoneyRequestConfirmationList({
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
             setSplitShares(transaction, amount, currency, participantAccountIDs);
         }
-    }, [shouldCalculateDistanceAmount, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
+    }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     const previousTaxCode = usePrevious(transaction?.taxCode);
 
@@ -780,7 +788,7 @@ function MoneyRequestConfirmationList({
     }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt]);
 
     useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID) {
+        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
             // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
             // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
             return;
@@ -809,6 +817,7 @@ function MoneyRequestConfirmationList({
         transaction,
         transactionID,
         action,
+        isReadOnly,
         isMovingTransactionFromTrackExpense,
     ]);
 
@@ -1004,16 +1013,26 @@ function MoneyRequestConfirmationList({
                 isLoading={isConfirmed || isConfirming}
             />
         ) : (
-            <ButtonWithDropdownMenu
-                pressOnEnter
-                onPress={(event, value) => confirm(value as PaymentMethodType)}
-                options={splitOrRequestOptions}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                enterKeyEventListenerPriority={1}
-                useKeyboardShortcuts
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                isLoading={isConfirmed || isConfirming}
-            />
+            <>
+                {expensesNumber > 1 && (
+                    <Button
+                        large
+                        text={translate('iou.removeThisExpense')}
+                        onPress={showRemoveExpenseConfirmModal}
+                        style={styles.mb3}
+                    />
+                )}
+                <ButtonWithDropdownMenu
+                    pressOnEnter
+                    onPress={(event, value) => confirm(value as PaymentMethodType)}
+                    options={splitOrRequestOptions}
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                    enterKeyEventListenerPriority={1}
+                    useKeyboardShortcuts
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isLoading={isConfirmed || isConfirming}
+                />
+            </>
         );
 
         return (
@@ -1051,6 +1070,10 @@ function MoneyRequestConfirmationList({
         isConfirmed,
         splitOrRequestOptions,
         errorMessage,
+        expensesNumber,
+        translate,
+        showRemoveExpenseConfirmModal,
+        styles.mb3,
         styles.ph1,
         styles.mb2,
         styles.productTrainingTooltipWrapper,
