@@ -191,6 +191,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                     item={reportItem}
                     handleActionButtonPress={handleOnButtonPress}
                     shouldShowUserInfo={showUserInfo}
+                    containerStyle={styles.pr0}
                 />
             </View>
         </View>

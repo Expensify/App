@@ -5,9 +5,10 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {PressableWithFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type AnimatedCollapsibleProps = {
     /** Element that is inside the collapsible area */
@@ -145,12 +146,12 @@ function AnimatedCollapsible({
     };
 
     const expandButton = (
-        <PressableWithoutFeedback
+        <PressableWithFeedback
             onPress={handleToggle}
             disabled={disabled}
             style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
-            accessibilityRole="button"
-            accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+            accessibilityRole={CONST.ROLE.BUTTON}
+            accessibilityLabel="Collapse"
         >
             <Animated.View style={iconAnimatedStyle}>
                 <Icon
@@ -159,7 +160,7 @@ function AnimatedCollapsible({
                     small
                 />
             </Animated.View>
-        </PressableWithoutFeedback>
+        </PressableWithFeedback>
     );
 
     return (

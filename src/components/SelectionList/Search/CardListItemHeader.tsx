@@ -33,9 +33,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
-
-    /** The expand button */
-    expandButton?: React.ReactNode;
 };
 
 function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {

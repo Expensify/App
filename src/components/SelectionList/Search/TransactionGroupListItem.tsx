@@ -188,7 +188,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     <AnimatedCollapsible
                         header={getHeader}
                         disabled={!!isDisabledOrEmpty}
-                        expandButtonStyle={[styles.bgTransparent]}
                     >
                         {isEmpty ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
