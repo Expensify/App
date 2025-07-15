@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1042,6 +1040,9 @@ const translations = {
         createExpense: 'Criar despesa',
         trackDistance: 'Rastrear distância',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Criar ${expensesNumber} despesas`,
+        removeExpense: 'Remover despesa',
+        removeThisExpense: 'Remover esta despesa',
+        removeExpenseConfirmation: 'Tem certeza de que deseja remover este recibo? Esta ação não pode ser desfeita.',
         addExpense: 'Adicionar despesa',
         chooseRecipient: 'Escolher destinatário',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Criar despesa de ${amount}`,
@@ -1133,20 +1134,10 @@ const translations = {
         individual: 'Individual',
         business: 'Negócio',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} com Expensify` : `Pague com Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar com conta pessoal`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} com carteira` : `Pagar com carteira`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar como indivíduo`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como empresa` : `Pagar com conta empresarial`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta empresarial ${last4Digits}` : `Pago com conta empresarial`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} como uma empresa` : `Pagar como empresa`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} em outro lugar` : `Pague em outro lugar`),
         nextStep: 'Próximos passos',
         finished: 'Concluído',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
@@ -1181,8 +1172,8 @@ const translations = {
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi realizado.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcado como pago`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pago com carteira`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} pago em outro lugar`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagou com Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} pagou com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         noReimbursableExpenses: 'Este relatório possui um valor inválido',
@@ -1248,7 +1239,6 @@ const translations = {
         unheldExpense: 'liberou esta despesa',
         moveUnreportedExpense: 'Mover despesa não relatada',
         addUnreportedExpense: 'Adicionar despesa não relatada',
-        createNewExpense: 'Criar nova despesa',
         selectUnreportedExpense: 'Selecione pelo menos uma despesa para adicionar ao relatório.',
         emptyStateUnreportedExpenseTitle: 'Nenhuma despesa não relatada',
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
@@ -1649,9 +1639,10 @@ const translations = {
             afterEmail: 'em outras contas. Por favor, mescle outras contas nela em vez disso.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas porque é o proprietário de faturamento de uma conta faturada. Por favor, mescle outras contas nele em vez disso.',
+            beforeEmail: 'Você não pode mesclar contas com ',
+            afterEmail: ' porque esta conta possui uma relação de faturamento com nota fiscal emitida.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Tente novamente mais tarde',
             description: 'Houve muitas tentativas de mesclar contas. Por favor, tente novamente mais tarde.',
@@ -1838,7 +1829,6 @@ const translations = {
         enableWallet: 'Ativar carteira',
         addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
         addBankAccount: 'Adicionar conta bancária',
-        addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -2051,7 +2041,6 @@ const translations = {
         cardLastFour: 'Cartão terminando em',
         addFirstPaymentMethod: 'Adicione um método de pagamento para enviar e receber pagamentos diretamente no aplicativo.',
         defaultPaymentMethod: 'Padrão',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conta bancária • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -3222,6 +3211,18 @@ const translations = {
             certify: 'Por favor, certifique-se de que as informações são verdadeiras e precisas.',
             consent: 'Por favor, consinta com o aviso de privacidade',
         },
+    },
+    docusignStep: {
+        subheader: 'Formulário Docusign',
+        pleaseComplete:
+            'Por favor, preencha o formulário de autorização ACH pelo link do Docusign abaixo e envie uma cópia assinada aqui para que possamos debitar diretamente da sua conta bancária.',
+        pleaseCompleteTheBusinessAccount: 'Por favor, preencha a Solicitação de Conta Empresarial e o Acordo de Débito Direto.',
+        pleaseCompleteTheDirect:
+            'Por favor, preencha o Acordo de Débito Direto usando o link do Docusign abaixo e envie uma cópia assinada aqui para que possamos debitar diretamente da sua conta bancária.',
+        takeMeTo: 'Ir para o Docusign',
+        uploadAdditional: 'Enviar documentação adicional',
+        pleaseUpload: 'Por favor, envie o formulário DEFT e a página de assinatura do Docusign.',
+        pleaseUploadTheDirect: 'Por favor, envie os Acordos de Débito Direto e a página de assinatura do Docusign.',
     },
     finishStep: {
         connect: 'Conectar conta bancária',
@@ -6439,7 +6440,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
         receiptNotSmartScanned:
-            'Detalhes da despesa e recibo adicionados manualmente. Por favor, verifique os detalhes. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais</a> sobre auditoria automática para todos os recibos.',
+            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo necessário';
             if (formattedLimit ?? category) {
