@@ -549,9 +549,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The inserted time of the transaction */
         inserted?: string;
 
-        /** Whether the merchant field was intentionally cleared by the user */
-        wasMerchantCleared?: boolean;
-
         /** The PolicyId of the transaction */
         policyID?: string;
     },
