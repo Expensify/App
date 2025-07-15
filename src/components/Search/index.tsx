@@ -81,22 +81,15 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-    hash?: number,
-) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
+function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
             shouldAnimateInHighlight,
-            hash,
         };
     }
 
@@ -104,22 +97,18 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
         return {
             ...item,
             shouldAnimateInHighlight,
-            hash,
         };
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) =>
-                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
-              ),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
               isSelected:
                   item?.transactions?.length > 0 &&
                   item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
-              hash,
           };
 }
 
@@ -249,7 +238,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults?.search, queryJSON) ?? false;
 
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -494,8 +483,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = baseKey === newSearchResultKey;
+
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
@@ -503,12 +494,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                         return transactionKey === newSearchResultKey;
                     });
+
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
+                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, hash],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
