@@ -503,7 +503,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const handleOpenReport = useCallback<typeof openReport>((...args) => {
-        // Reset the oldestUnreadReportActionID everytime the report is (newly) fetched
+        // Reset the oldestUnreadReportActionID every time the report is (newly) fetched
         setOldestUnreadReportActionID(undefined);
         openReport(...args);
     }, []);
