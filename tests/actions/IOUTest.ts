@@ -3970,7 +3970,7 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {});
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, true);
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
