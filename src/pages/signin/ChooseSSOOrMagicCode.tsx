@@ -6,16 +6,16 @@ import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+import {clearSignInData, resendValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useOnyx from '@hooks/useOnyx';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
@@ -70,12 +70,12 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     text={translate('samlSignIn.useMagicCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
-                        Session.resendValidateCode(credentials?.login);
+                        resendValidateCode(credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
                 />
-                {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
-                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
