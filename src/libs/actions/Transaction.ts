@@ -719,13 +719,11 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
-        const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : reportID;
-
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                reportID: targetReportID,
+                reportID,
             },
         });
 
@@ -733,7 +731,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                reportID: targetReportID,
+                reportID,
             },
         });
 
@@ -798,7 +796,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         }
 
         // 3. Keep track of the new report totals
+        const isUnreporting = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const targetReportID = isUnreporting ? selfDMReportID : reportID;
         const transactionAmount = getAmount(transaction);
+
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
         }
@@ -811,6 +812,11 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
 
         const newIOUAction = {
             ...oldIOUAction,
+            originalMessage: {
+                ...getOriginalMessage(oldIOUAction),
+                IOUReportID: reportID,
+                type: isUnreporting ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
             reportActionID: optimisticMoneyRequestReportActionID,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
