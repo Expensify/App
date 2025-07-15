@@ -61,6 +61,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import FormHelpMessage from './FormHelpMessage';
@@ -183,6 +184,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** The PDF password callback */
     onPDFPassword?: () => void;
+
+    /** Show remove expense confirmation modal */
+    showRemoveExpenseConfirmModal?: () => void;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -224,6 +228,7 @@ function MoneyRequestConfirmationList({
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
+    showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -1004,16 +1009,26 @@ function MoneyRequestConfirmationList({
                 isLoading={isConfirmed || isConfirming}
             />
         ) : (
-            <ButtonWithDropdownMenu
-                pressOnEnter
-                onPress={(event, value) => confirm(value as PaymentMethodType)}
-                options={splitOrRequestOptions}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                enterKeyEventListenerPriority={1}
-                useKeyboardShortcuts
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                isLoading={isConfirmed || isConfirming}
-            />
+            <>
+                {expensesNumber > 1 && (
+                    <Button
+                        large
+                        text={translate('iou.removeThisExpense')}
+                        onPress={showRemoveExpenseConfirmModal}
+                        style={styles.mb3}
+                    />
+                )}
+                <ButtonWithDropdownMenu
+                    pressOnEnter
+                    onPress={(event, value) => confirm(value as PaymentMethodType)}
+                    options={splitOrRequestOptions}
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                    enterKeyEventListenerPriority={1}
+                    useKeyboardShortcuts
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isLoading={isConfirmed || isConfirming}
+                />
+            </>
         );
 
         return (
@@ -1051,6 +1066,10 @@ function MoneyRequestConfirmationList({
         isConfirmed,
         splitOrRequestOptions,
         errorMessage,
+        expensesNumber,
+        translate,
+        showRemoveExpenseConfirmModal,
+        styles.mb3,
         styles.ph1,
         styles.mb2,
         styles.productTrainingTooltipWrapper,
