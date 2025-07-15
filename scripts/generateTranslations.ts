@@ -14,6 +14,7 @@ import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -88,6 +89,11 @@ class TranslationGenerator {
     private readonly compareRef: string;
 
     /**
+     * Specific paths to retranslate (supersedes compareRef).
+     */
+    private readonly paths: TranslationPaths[] | undefined;
+
+    /**
      * Should we print verbose logs?
      */
     private readonly verbose: boolean;
@@ -99,13 +105,22 @@ class TranslationGenerator {
      */
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
-    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef: string; verbose: boolean}) {
+    constructor(config: {
+        targetLanguages: TranslationTargetLocale[];
+        languagesDir: string;
+        sourceFile: string;
+        translator: Translator;
+        compareRef: string;
+        paths?: TranslationPaths[];
+        verbose: boolean;
+    }) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
+        this.paths = config.paths;
         this.verbose = config.verbose;
     }
 
@@ -115,8 +130,11 @@ class TranslationGenerator {
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        // If a compareRef is provided, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
-        if (this.compareRef) {
+        // If paths are specified, we only retranslate those paths and skip comparing with existing translations
+        const shouldUseExistingTranslations = !this.paths && this.compareRef;
+
+        // If a compareRef is provided and we're not filtering by paths, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
+        if (shouldUseExistingTranslations) {
             const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
 
             // An array of labeled "translation nodes", where "translations node" refers to the main object in en.ts and
@@ -192,6 +210,7 @@ class TranslationGenerator {
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
 
             // Extract strings to translate
+            // TODO: filter stringsToTranslate based on paths
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
@@ -597,6 +616,17 @@ async function main(): Promise<void> {
                     'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
                 default: '',
             },
+            paths: {
+                description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
+                parse: (val: string): TranslationPaths[] => {
+                    const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
+                    const validatedPaths: TranslationPaths[] = [];
+
+                    // TODO: validate paths
+                },
+                supersedes: ['compare-ref'],
+                required: false,
+            },
         },
     } as const);
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -626,6 +656,7 @@ async function main(): Promise<void> {
         sourceFile: enSourceFile,
         translator,
         compareRef: cli.namedArgs['compare-ref'],
+        paths: cli.namedArgs.paths,
         verbose: cli.flags.verbose,
     });
 
