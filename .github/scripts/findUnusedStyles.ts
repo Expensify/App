@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import {globSync} from 'glob';
 import * as path from 'path';
 import * as ts from 'typescript';
+import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
 
 type StyleDefinition = {
     key: string;
@@ -132,7 +133,7 @@ class ComprehensiveStylesFinder {
     private extractStyleDefinitionsFromObject(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): void {
         for (const property of objectLiteral.properties) {
             if (ts.isPropertyAssignment(property) || ts.isMethodDeclaration(property)) {
-                const key = this.extractKeyFromPropertyNode(property);
+                const key = TSCompilerUtils.extractKeyFromPropertyNode(property);
 
                 if (key && this.isStyleKey(key)) {
                     try {
@@ -164,17 +165,6 @@ class ComprehensiveStylesFinder {
         }
     }
 
-    private extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDeclaration): string | undefined {
-        if (ts.isPropertyAssignment(node)) {
-            if (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name)) {
-                return node.name.text;
-            }
-        } else if (ts.isMethodDeclaration(node) && ts.isIdentifier(node.name)) {
-            return node.name.text;
-        }
-        return undefined;
-    }
-
     /**
      * Extracts a style definition from an individual TypeScript AST node.
      *
@@ -191,7 +181,7 @@ class ComprehensiveStylesFinder {
     private extractStyleDefinitionFromNode(node: ts.Node, sourceFile: ts.SourceFile, file: string): void {
         // Look for object literal properties (style definitions)
         if (ts.isPropertyAssignment(node) || ts.isMethodDeclaration(node)) {
-            const key = this.extractKeyFromPropertyNode(node);
+            const key = TSCompilerUtils.extractKeyFromPropertyNode(node);
 
             if (key && this.isStyleKey(key)) {
                 try {
