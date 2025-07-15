@@ -2651,6 +2651,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.avatarSizeLarge,
         },
 
+        emptyAvatarXLarge: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
+        },
+
         emptyAvatarMargin: {
             marginRight: variables.avatarChatSpacing,
         },

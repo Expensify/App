@@ -143,6 +143,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.LARGE]: 4,
     [CONST.AVATAR_SIZE.X_LARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
+    [CONST.AVATAR_SIZE.HEADER]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
 
@@ -1735,6 +1736,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.AVATAR_SIZE.LARGE:
                 containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+                break;
+            case CONST.AVATAR_SIZE.X_LARGE:
+                containerStyles = [styles.emptyAvatarXLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];

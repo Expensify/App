@@ -47,9 +47,21 @@ type SubscriptAvatarProps = {
 
     /** Whether to show the tooltip */
     showTooltip?: boolean;
+
+    /** Size of the secondary avatar */
+    secondaryAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
-function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({
+    mainAvatar,
+    secondaryAvatar,
+    subscriptIcon,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    backgroundColor,
+    noMargin = false,
+    showTooltip = true,
+    secondaryAvatarSize = CONST.AVATAR_SIZE.SUBSCRIPT,
+}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -96,11 +108,11 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CON
                     >
                         <Avatar
                             iconAdditionalStyles={[
-                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : secondaryAvatarSize),
                                 StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
                             ]}
                             source={secondaryAvatar.source}
-                            size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                            size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : secondaryAvatarSize}
                             fill={secondaryAvatar.fill}
                             name={secondaryAvatar.name}
                             avatarID={secondaryAvatar.id}

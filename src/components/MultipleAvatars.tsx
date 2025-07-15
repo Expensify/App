@@ -35,6 +35,9 @@ type Subscript = {
 
     /** A fallback main avatar icon */
     fallbackIcon?: Icon;
+
+    /** Size of the secondary avatar */
+    secondaryAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
 type SingleAvatar = {
@@ -52,6 +55,9 @@ type SingleAvatar = {
 
     /** The account ID of the actor */
     actorAccountID: number | null | undefined;
+
+    /** Size of the avatar */
+    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
 type MultipleAvatarsProps = {
@@ -194,7 +200,7 @@ function MultipleAvatars({
     const subscriptMainAvatar = icons.at(0) ?? subscript?.fallbackIcon;
 
     if (!!singleReportAvatar?.shouldShow && !!singleReportAvatar.reportPreviewDetails) {
-        const {reportPreviewDetails, personalDetails, containerStyles, actorAccountID} = singleReportAvatar;
+        const {reportPreviewDetails, personalDetails, containerStyles, actorAccountID, size: singleAvatarSize} = singleReportAvatar;
 
         return (
             <SingleReportAvatar
@@ -202,12 +208,13 @@ function MultipleAvatars({
                 personalDetails={personalDetails}
                 containerStyles={containerStyles}
                 actorAccountID={actorAccountID}
+                size={singleAvatarSize ?? size}
             />
         );
     }
 
     if (!!subscript?.shouldShow && subscriptMainAvatar) {
-        const {borderColor, noMargin, subIcon} = subscript;
+        const {borderColor, noMargin, subIcon, secondaryAvatarSize} = subscript;
 
         return (
             <SubscriptAvatar
@@ -218,6 +225,7 @@ function MultipleAvatars({
                 backgroundColor={borderColor}
                 noMargin={noMargin}
                 subscriptIcon={subIcon}
+                secondaryAvatarSize={secondaryAvatarSize}
             />
         );
     }

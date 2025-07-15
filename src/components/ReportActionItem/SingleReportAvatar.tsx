@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
+import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -12,11 +13,13 @@ function SingleReportAvatar({
     personalDetails,
     containerStyles,
     actorAccountID,
+    size,
 }: {
     reportPreviewDetails: ReportAvatarDetails;
     personalDetails: PersonalDetailsList | undefined;
     containerStyles?: ViewStyle[];
     actorAccountID: number | null | undefined;
+    size?: AvatarSizeName;
 }) {
     const {primaryAvatar, isWorkspaceActor, fallbackIcon: reportFallbackIcon, reportPreviewAction} = reportPreviewDetails;
     const delegatePersonalDetails = reportPreviewAction?.delegateAccountID ? personalDetails?.[reportPreviewAction?.delegateAccountID] : undefined;
@@ -34,6 +37,7 @@ function SingleReportAvatar({
                     type={primaryAvatar.type}
                     name={primaryAvatar.name}
                     avatarID={primaryAvatar.id}
+                    size={size}
                     fallbackIcon={reportFallbackIcon}
                 />
             </View>
