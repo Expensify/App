@@ -155,7 +155,6 @@ import {
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
-    isInvoiceReport,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -4307,10 +4306,11 @@ function getUpdateMoneyRequestParams(
     }
     const hasModifiedComment = 'comment' in transactionChanges;
 
+    const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
-        !isInvoiceReport(iouReport) &&
+        !isInvoice &&
         updatedTransaction &&
         (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
     ) {
@@ -4322,7 +4322,7 @@ function getUpdateMoneyRequestParams(
             policyTagList ?? {},
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
-            isInvoiceReportReportUtils(iouReport),
+            isInvoice,
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
