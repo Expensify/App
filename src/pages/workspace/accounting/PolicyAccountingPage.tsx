@@ -514,7 +514,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         // Else, display the following and link to their Concierge DM.
         return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
-    }, [account, conciergeReportID, translate]);
+    }, [account?.accountManagerAccountID, account?.accountManagerReportID, conciergeReportID, policy?.chatReportIDAdmins, translate]);
 
     return (
         <AccessOrNotFoundWrapper

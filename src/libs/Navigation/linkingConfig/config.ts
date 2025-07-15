@@ -1485,6 +1485,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE.route,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
@@ -1803,7 +1804,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
-                    path: ROUTES.TEST_TOOLS_MODAL,
+                    path: ROUTES.TEST_TOOLS_MODAL.route,
                     exact: true,
                 },
             },
