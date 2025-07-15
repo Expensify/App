@@ -26,6 +26,7 @@ import {
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
+    isPolicyMember as isPolicyMemberPolicyUtils,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -45,7 +46,19 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    OnyxInputOrEntry,
+    Policy,
+    RecentWaypoint,
+    Report,
+    ReviewDuplicates,
+    TaxRate,
+    TaxRates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -658,6 +671,25 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 }
 
 /**
+ * Verify that the transaction is in Self DM and that its distance rate is invalid.
+ */
+function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
+    if (transaction && isDistanceRequest(transaction)) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        // eslint-disable-next-line deprecation/deprecation
+        const policy = policyParam ?? getPolicy(report?.policyID);
+        const {rate} = DistanceRequestUtils.getRate({transaction, policy});
+        const isUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        if (isUnreported && !rate) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
@@ -669,9 +701,11 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-        );
+        if (!isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
+            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            );
+        }
     }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
@@ -948,6 +982,33 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+/**
+ * Check if the user should see the violation
+ */
+function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
+    const isSubmitter = isCurrentUserSubmitter(iouReport?.reportID);
+    const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
+    const isReportOpen = isOpenExpenseReport(iouReport);
+
+    if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
+        return isSubmitter;
+    }
+
+    if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
+        return isPolicyAdmin(policy) && !isSubmitter;
+    }
+
+    if (violationName === CONST.VIOLATIONS.RTER) {
+        return isSubmitter || isInstantSubmitEnabled(policy);
+    }
+
+    if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+        return isPolicyMember && !isSubmitter && !isReportOpen;
+    }
+
+    return true;
 }
 
 /**
@@ -1740,6 +1801,8 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
+    shouldShowViolation,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
 };
 
 export type {TransactionChanges};
