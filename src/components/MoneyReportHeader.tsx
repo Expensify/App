@@ -190,7 +190,12 @@ function MoneyReportHeader({
     );
 
     const isExported = isExportedUtils(reportActions);
-    const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
+    const integrationNameFromExportMessage = useMemo(() => {
+        if (!isExported) {
+            return null;
+        }
+        return getIntegrationNameFromExportMessageUtils(reportActions);
+    }, [isExported, reportActions]);
 
     const [reportPreviewAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`, {
         canBeMissing: true,
@@ -249,7 +254,7 @@ function MoneyReportHeader({
     }, [reportPDFFilename, translate]);
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
+    const hasAllPendingRTERViolations = useMemo(() => allHavePendingRTERViolation(transactions, violations), [transactions, violations]);
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
