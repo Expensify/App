@@ -108,12 +108,20 @@ function useFastSearchFromOptions(
                 // Dispose existing tree if present
                 if (prevFastSearchRef.current) {
                     const disposeStartTime = Date.now();
-                    prevFastSearchRef.current.dispose();
-                    Log.info('[CMD_K_DEBUG] FastSearch tree disposed', false, {
-                        actionId,
-                        disposeTime: Date.now() - disposeStartTime,
-                        timestamp: Date.now(),
-                    });
+                    try {
+                        prevFastSearchRef.current.dispose();
+                        Log.info('[CMD_K_DEBUG] FastSearch tree disposed (reason: recreate)', false, {
+                            actionId,
+                            disposeTime: Date.now() - disposeStartTime,
+                            timestamp: Date.now(),
+                        });
+                    } catch (error) {
+                        Log.alert('[CMD_K_FREEZE] FastSearch tree disposed (reason: recreate) failed', {
+                            actionId,
+                            error: String(error),
+                            timestamp: Date.now(),
+                        });
+                    }
                 }
 
                 newFastSearch = FastSearch.createFastSearch(
@@ -162,7 +170,22 @@ function useFastSearchFromOptions(
         });
     }, [options]);
 
-    useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
+    useEffect(
+        () => () => {
+            try {
+                Log.info('[CMD_K_DEBUG] FastSearch tree cleanup (reason: unmount)', false, {
+                    timestamp: Date.now(),
+                });
+                prevFastSearchRef.current?.dispose();
+            } catch (error) {
+                Log.alert('[CMD_K_FREEZE] FastSearch tree cleanup (reason: unmount) failed', {
+                    error: String(error),
+                    timestamp: Date.now(),
+                });
+            }
+        },
+        [],
+    );
 
     const findInSearchTree = useCallback(
         (searchInput: string): OptionsListType => {
