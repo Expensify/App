@@ -130,6 +130,7 @@ const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+    WORKSPACE: 'workspace',
 } as const;
 
 const onboardingCompanySize = {
@@ -965,18 +966,15 @@ const CONST = {
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    NAVATTIC: {
-        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
-        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
-        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
-        COMPLETED: 'completed',
-    },
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
+
+        // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_MOBILE: 'https://expensify.navattic.com/35609gb',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
