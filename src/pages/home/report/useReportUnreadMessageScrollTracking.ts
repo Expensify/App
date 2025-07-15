@@ -1,5 +1,5 @@
+import type {RefObject} from 'react';
 import {useState} from 'react';
-import type {MutableRefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -9,10 +9,10 @@ type Args = {
     reportID: string;
 
     /** The current offset of scrolling from either top or bottom of chat list */
-    currentVerticalScrollingOffsetRef: MutableRefObject<number>;
+    currentVerticalScrollingOffsetRef: RefObject<number>;
 
     /** Ref for whether read action was skipped */
-    readActionSkippedRef: MutableRefObject<boolean>;
+    readActionSkippedRef: RefObject<boolean>;
 
     /** The initial value for visibility of floating message button */
     floatingMessageVisibleInitialValue: boolean;
