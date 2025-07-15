@@ -5,7 +5,8 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
-import type { OnyxEntry, useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -289,7 +290,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             if (isTrackExpenseAction(reportAction)) {
                 deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, allTransactionViolations, false);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
             }
         } else if (reportAction) {
             deleteReportComment(reportIDRef.current, reportAction);
