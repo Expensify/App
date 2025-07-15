@@ -19,6 +19,9 @@ type CountryProps = {
 
     /** Array of step names */
     stepNames?: readonly string[];
+
+    /** Method to set the state of setUSDBankAccountStep */
+    setUSDBankAccountStep?: (step: string | null) => void;
 };
 
 type CountryStepProps = {
@@ -28,10 +31,15 @@ type CountryStepProps = {
 
 const bodyContent: Array<ComponentType<CountryStepProps>> = [CountryConfirmationSubStep];
 
-function Country({onBackButtonPress, policyID, stepNames}: CountryProps) {
+function Country({onBackButtonPress, policyID, stepNames, setUSDBankAccountStep}: CountryProps) {
     const {translate} = useLocalize();
 
     const submit = () => {
+        if (!setUSDBankAccountStep) {
+            return;
+        }
+
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     };
 

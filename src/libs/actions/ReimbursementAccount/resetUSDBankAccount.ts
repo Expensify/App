@@ -18,9 +18,6 @@ Onyx.connect({
  * Reset user's USD reimbursement account. This will delete the bank account
  */
 function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
-    if (!bankAccountID) {
-        throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
-    }
     if (!session?.email) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }

@@ -55,9 +55,11 @@ function WorkspaceResetBankAccountModal({
                 setNonUSDBankAccountStep(null);
             }
         } else {
-            if (bankAccountID) {
-                resetUSDBankAccount(bankAccountID, session, policyID);
-            }
+            // if (bankAccountID) {
+            resetUSDBankAccount(bankAccountID, session, policyID);
+            // } else {
+            //     cancelResetBankAccount();
+            // }
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);

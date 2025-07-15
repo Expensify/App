@@ -47,7 +47,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
@@ -265,11 +265,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = useCallback(() => {
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+        const subStep = achData?.subStep !== undefined ? achData.subStep : CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+
+        setBankAccountSubStep(subStep).then(() => {
             setShouldShowContinueSetupButton(false);
             setUSDBankAccountStep(currentStep);
         });
-    }, [currentStep]);
+    }, [achData?.subStep, currentStep]);
 
     const continueNonUSDVBBASetup = useCallback(() => {
         const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
