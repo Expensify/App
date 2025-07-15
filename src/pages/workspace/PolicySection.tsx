@@ -7,12 +7,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-type PolicySectionProprs = {
+type PolicySectionProps = {
     policyID: string;
     interactive?: boolean;
 };
 
-function PolicySection({policyID, interactive = true}: PolicySectionProprs) {
+function PolicySection({policyID, interactive = true}: PolicySectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
