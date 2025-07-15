@@ -62,7 +62,6 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
     const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
-    console.log('over here', shouldShowRemoveFromReport);
 
     const expenseReports = useMemo(
         () =>

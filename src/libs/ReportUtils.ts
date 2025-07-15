@@ -4243,7 +4243,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
               ).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 || isOwner;
+              ).length > 1 || (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
 
     return true;
