@@ -128,12 +128,12 @@ function Checkbox(
                 <View
                     style={[
                         StyleUtils.getCheckboxContainerStyle(containerSize, containerBorderRadius),
+                        containerStyle,
                         (isChecked || isIndeterminate) && styles.checkedContainer,
                         hasError && styles.borderColorDanger,
                         disabled && styles.cursorDisabled,
                         disabled && styles.buttonOpacityDisabled,
                         (isChecked || isIndeterminate) && styles.borderColorFocus,
-                        containerStyle,
                     ]}
                 >
                     {(isChecked || isIndeterminate) && (

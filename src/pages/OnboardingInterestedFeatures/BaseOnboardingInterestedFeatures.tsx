@@ -6,6 +6,7 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
@@ -43,6 +45,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const theme = useTheme();
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -283,12 +286,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[
-                        styles.onboardingInterestedFeaturesItem,
-                        isSmallScreenWidth && styles.flexBasis100,
-                        isSelected && styles.activeComponentBG,
-                        item.canDisabled && styles.buttonOpacityDisabled,
-                    ]}
+                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth && styles.flexBasis100, isSelected && styles.activeComponentBG]}
                     disabled={item.canDisabled}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -299,15 +297,22 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                         />
                         <Text style={[styles.textStrong]}>{item.title}</Text>
                     </View>
-                    <Checkbox
-                        accessibilityLabel={item.title}
-                        isChecked={isSelected}
-                        onPress={() => {
-                            handleFeatureSelect(item.id);
-                        }}
-                        disabled={item.canDisabled}
-                        containerStyle={styles.opacity1}
-                    />
+                    {item.canDisabled ? (
+                        <Icon
+                            src={Expensicons.Checkmark}
+                            fill={theme.icon}
+                            additionalStyles={styles.alignSelfCenter}
+                        />
+                    ) : (
+                        <Checkbox
+                            accessibilityLabel={item.title}
+                            isChecked={isSelected}
+                            onPress={() => {
+                                handleFeatureSelect(item.id);
+                            }}
+                            disabled={item.canDisabled}
+                        />
+                    )}
                 </PressableWithoutFeedback>
             );
         },
