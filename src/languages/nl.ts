@@ -277,6 +277,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -675,6 +676,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Bijlagen toevoegen',
+        addReceipt: 'Bon toevoegen',
         scanReceipts: 'Bonnen scannen',
         replaceReceipt: 'Bon vervangen',
     },
@@ -1065,6 +1067,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
+        removeFromReport: 'Verwijder uit rapport',
+        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
@@ -1634,9 +1638,10 @@ const translations = {
             afterEmail: 'in andere accounts. Voeg in plaats daarvan andere accounts samen in dit account.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'in andere accounts omdat het de factuureigenaar van een gefactureerd account is. Voeg in plaats daarvan andere accounts samen in dit account.',
+            beforeEmail: 'Je kunt accounts niet samenvoegen met ',
+            afterEmail: ' omdat dit account een gefactureerde factureringsrelatie heeft.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Probeer het later opnieuw',
             description: 'Er waren te veel pogingen om accounts samen te voegen. Probeer het later opnieuw.',
@@ -1779,7 +1784,7 @@ const translations = {
         nameOnCard: 'Naam op kaart',
         paymentCardNumber: 'Kaartnummer',
         expiration: 'Vervaldatum',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Factuuradres',
         growlMessageOnSave: 'Uw betaalkaart is succesvol toegevoegd',
@@ -3205,6 +3210,18 @@ const translations = {
             certify: 'Verklaar alstublieft dat de informatie waar en nauwkeurig is.',
             consent: 'Gelieve in te stemmen met de privacyverklaring.',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign-formulier',
+        pleaseComplete:
+            'Vul het ACH-autorisatieformulier in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        pleaseCompleteTheBusinessAccount: 'Vul de aanvraag voor een zakelijke rekening en de automatische incassoregeling in.',
+        pleaseCompleteTheDirect:
+            'Vul de automatische incassoregeling in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        takeMeTo: 'Ga naar Docusign',
+        uploadAdditional: 'Upload extra documentatie',
+        pleaseUpload: 'Upload het DEFT-formulier en de ondertekende Docusign-pagina.',
+        pleaseUploadTheDirect: 'Upload de automatische incassoregelingen en de Docusign-handtekeningenpagina.',
     },
     finishStep: {
         connect: 'Bankrekening koppelen',
@@ -6424,7 +6441,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned:
-            'Uitgavendetails en bon handmatig toegevoegd. Controleer de details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer informatie</a> over automatische controle van alle bonnen.',
+            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Bon vereist';
             if (formattedLimit ?? category) {
@@ -6786,11 +6803,8 @@ const translations = {
                 title: 'Abonnement geannuleerd',
                 subtitle: 'Uw jaarlijkse abonnement is geannuleerd.',
                 info: 'Als je je werkruimte(s) op een pay-per-use basis wilt blijven gebruiken, ben je helemaal klaar.',
-                preventFutureActivity: {
-                    part1: 'Als je toekomstige activiteiten en kosten wilt voorkomen, moet je',
-                    link: 'verwijder je werkruimte(s)',
-                    part2: '. Let op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die in de huidige kalendermaand zijn gemaakt.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Als je toekomstige activiteiten en kosten wilt voorkomen, moet je <a href="${workspacesListRoute}">verwijder je werkruimte(s)</a>. Let op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die in de huidige kalendermaand zijn gemaakt.`,
             },
             requestSubmitted: {
                 title: 'Verzoek ingediend',
@@ -6955,66 +6969,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Aan de slag',
-            part2: 'hier!',
-        },
-        saveSearchTooltip: {
-            part1: 'Hernoem uw opgeslagen zoekopdrachten',
-            part2: 'hier!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Check wat',
-            part2: 'heeft uw aandacht nodig',
-            part3: 'en',
-            part4: 'chat over uitgaven.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chat met',
-            part2: 'goedkeurders',
-        },
-        globalCreateTooltip: {
-            part1: 'Maak onkosten aan',
-            part2: ', begin met chatten,',
-            part3: 'en meer.',
-            part4: 'Probeer het uit!',
-        },
-        GBRRBRChat: {
-            part1: 'Je zult 🟢 zien op',
-            part2: 'acties om te ondernemen',
-            part3: ',\nen 🔴 op',
-            part4: 'items om te beoordelen.',
-        },
-        accountSwitcher: {
-            part1: 'Toegang tot uw',
-            part2: 'Copilot-accounts',
-            part3: 'hier',
-        },
-        expenseReportsFilter: {
-            part1: 'Welkom! Vind al uw',
-            part2: 'rapporten van het bedrijf',
-            part3: 'hier.',
-        },
+        conciergeLHNGBR: '<tooltip>Aan de slag <strong>hier!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Hernoem uw opgeslagen zoekopdrachten</strong> hier!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Maak onkosten aan</strong>, begin met chatten,\nen meer. Probeer het uit!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Bekijk wat <strong>jouw aandacht nodig heeft</strong>\nen <strong>chat over onkosten.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chat met <strong>goedkeurders</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Je ziet 🟢 bij <strong>acties die je moet uitvoeren</strong>,\nen 🔴 bij <strong>items die je moet beoordelen.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Toegang tot je <strong>Copilot-accounts</strong> hier</tooltip>',
+        expenseReportsFilter: '<tooltip>Welkom! Vind hier al je\n<strong>bedrijfsrapporten</strong>.</tooltip>',
         scanTestTooltip: {
-            part1: 'Wil je zien hoe Scan werkt?',
-            part2: 'Probeer een testbon!',
-            part3: 'Kies onze',
-            part4: 'testmanager',
-            part5: 'om het uit te proberen!',
-            part6: 'Nu,',
-            part7: 'dien uw onkostennota in',
-            part8: 'en zie de magie gebeuren!',
+            main: '<tooltip><strong>Scan ons testbonnetje</strong> om te zien hoe het werkt!</tooltip>',
+            manager: '<tooltip>Kies onze <strong>testmanager</strong> om het uit te proberen!</tooltip>',
+            confirmation: '<tooltip><strong>Dien nu je onkosten in</strong> en zie\nwat er gebeurt!</tooltip>',
             tryItOut: 'Probeer het uit',
             noThanks: 'Nee, bedankt',
         },
-        outstandingFilter: {
-            part1: 'Filter voor uitgaven die',
-            part2: 'goedkeuring nodig',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Verzend deze bon naar',
-            part2: 'voltooi de proefrit!',
-        },
+        outstandingFilter: '<tooltip>Filter op onkosten\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Stuur dit bonnetje om de\n<strong>test uit te voeren!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
