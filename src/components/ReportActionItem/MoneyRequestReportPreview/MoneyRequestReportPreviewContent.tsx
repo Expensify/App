@@ -50,11 +50,13 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
+    hasReportBeenReopened,
     hasUpdatedTotal,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
+    isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
@@ -192,10 +194,16 @@ function MoneyRequestReportPreviewContent({
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
 
-    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
-    const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
+
+    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
+    // Or if the report has been reopened
+    const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
+        const isOwnAndReportHasBeenReopened = hasReportBeenReopened(reportActions) && isReportOwner(iouReport);
+        return isOwnAndReportHasBeenReopened || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
+    }, [chatReport, policy, reportActions, iouReport]);
+
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
