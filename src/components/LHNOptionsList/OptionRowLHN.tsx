@@ -323,7 +323,7 @@ function OptionRowLHN({
                                                         <TextWithEmojiFragment
                                                             message={Parser.htmlToText(optionItem.alternateText)}
                                                             style={[alternateTextStyle, styles.mh0]}
-                                                            isAlternateText
+                                                            alignCustomEmoji
                                                         />
                                                     ) : (
                                                         Parser.htmlToText(optionItem.alternateText)
