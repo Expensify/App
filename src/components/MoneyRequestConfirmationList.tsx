@@ -124,9 +124,6 @@ type MoneyRequestConfirmationListProps = {
     /** Number of expenses to be created */
     expensesNumber?: number;
 
-    /** Chat report for calculating bank account routes */
-    chatReport?: OnyxEntry<OnyxTypes.Report>;
-
     /** The policyID of the request */
     policyID?: string;
 
@@ -208,7 +205,6 @@ function MoneyRequestConfirmationList({
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     isReadOnly = false,
-    chatReport,
     policyID,
     reportID = '',
     receiptPath = '',
@@ -989,7 +985,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                chatReport={chatReport}
+                chatReportID={reportID}
                 shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
@@ -1059,7 +1055,6 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         iouType,
         confirm,
-        chatReport,
         iouCurrencyCode,
         policyID,
         isConfirmed,
@@ -1075,6 +1070,7 @@ function MoneyRequestConfirmationList({
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
         isConfirming,
+        reportID,
     ]);
 
     const listFooterContent = (
@@ -1170,7 +1166,6 @@ export default memo(
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         deepEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.chatReport === nextProps.chatReport &&
         prevProps.policyID === nextProps.policyID &&
         prevProps.reportID === nextProps.reportID &&
         prevProps.receiptPath === nextProps.receiptPath &&

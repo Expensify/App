@@ -978,7 +978,7 @@ function PureReportActionItem({
                             <KYCWall
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                chatReport={report}
+                                chatReport={targetReport}
                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                 chatReportID={targetReport?.reportID}
                                 iouReport={iouReport}
