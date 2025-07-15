@@ -60,13 +60,13 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
-            mtm: HTMLElementModel.fromCustomModel({
-                tagName: 'mtm',
+            'micro-text': HTMLElementModel.fromCustomModel({
+                tagName: 'micro-text',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.issmall === undefined) {
                         return {...styles.mutedNormalTextLabel, ...styles.mb0};
                     }
-                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, color: themeColors.textSupporting};
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, color: themeColors.textSupporting, textDecorationLine: 'none'};
                 },
                 contentModel: HTMLContentModel.block,
             }),
@@ -90,7 +90,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
                         if (tnode.attributes.center === undefined) {
-                            return {whiteSpace: 'pre', color: themeColors.link};
+                            return {whiteSpace: 'pre'};
                         }
                         return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }

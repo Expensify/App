@@ -2100,9 +2100,9 @@ const translations = {
     },
     termsOfUse: {
         terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
-            `<comment><mtm issmall>ログインすることにより、あなたは以下に同意したことになります <a href="${termsURL}" style="color: #5ab0ff; text-decoration-line: none;">利用規約</a> および <a href="${privacyURL}" style="color: #5ab0ff; text-decoration-line: none;">プライバシー</a>.</mtm></comment>`,
+            `<comment><micro-text issmall>ログインすることにより、あなたは以下に同意したことになります <a href="${termsURL}" style="color: #5ab0ff;">利用規約</a> および <a href="${privacyURL}" style="color: #5ab0ff;">プライバシー</a>.</micro-text></comment>`,
         licenses: ({licensesURL}: LicensesParams) =>
-            `<comment><mtm issmall>送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)によって、その <a href="${licensesURL}" style="color: #5ab0ff; text-decoration-line: none;">ライセンス</a>.</mtm></comment>`,
+            `<comment><micro-text issmall>送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)によって、その <a href="${licensesURL}" style="color: #5ab0ff;">ライセンス</a>.</micro-text></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',

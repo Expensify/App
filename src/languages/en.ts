@@ -2087,9 +2087,9 @@ const translations = {
     },
     termsOfUse: {
         terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
-            `<comment><mtm issmall>By logging in, you agree to the <a href="${termsURL}" style="color: #5ab0ff; text-decoration-line: none;">Terms of Service</a> and <a href="${privacyURL}" style="color: #5ab0ff; text-decoration-line: none;">Privacy</a>.</mtm></comment>`,
+            `<comment><micro-text issmall>By logging in, you agree to the <a href="${termsURL}" style="color: #5ab0ff;">Terms of Service</a> and <a href="${privacyURL}" style="color: #5ab0ff;">Privacy</a>.</micro-text></comment>`,
         licenses: ({licensesURL}: LicensesParams) =>
-            `<comment><mtm issmall>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${licensesURL}" style="color: #5ab0ff; text-decoration-line: none;">licenses</a>.</mtm></comment>`,
+            `<comment><micro-text issmall>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${licensesURL}" style="color: #5ab0ff;">licenses</a>.</micro-text></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",

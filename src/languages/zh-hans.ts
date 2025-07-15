@@ -2083,9 +2083,9 @@ const translations = {
     },
     termsOfUse: {
         terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
-            `<comment><mtm issmall>通过登录，您同意 <a href="${termsURL}" style="color: #5ab0ff; text-decoration-line: none;">服务条款</a> 和 <a href="${privacyURL}" style="color: #5ab0ff; text-decoration-line: none;">隐私</a>.</mtm></comment>`,
+            `<comment><micro-text issmall>通过登录，您同意 <a href="${termsURL}" style="color: #5ab0ff;">服务条款</a> 和 <a href="${privacyURL}" style="color: #5ab0ff;">隐私</a>.</micro-text></comment>`,
         licenses: ({licensesURL}: LicensesParams) =>
-            `<comment><mtm issmall>资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)根据其提供 <a href="${licensesURL}" style="color: #5ab0ff; text-decoration-line: none;">许可证</a>.</mtm></comment>`,
+            `<comment><mtm issmall>资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)根据其提供 <a href="${licensesURL}" style="color: #5ab0ff;">许可证</a>.</mtm></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到魔法代码？',
