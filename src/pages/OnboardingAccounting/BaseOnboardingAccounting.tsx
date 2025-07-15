@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -112,6 +113,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
@@ -223,6 +225,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             onboardingPolicyID: policyID,
             companySize: onboardingCompanySize,
             userReportedIntegration,
+            firstName: currentUserPersonalDetails?.firstName,
+            lastName: currentUserPersonalDetails?.lastName,
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)) {
@@ -260,6 +264,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         session?.email,
         translate,
         userReportedIntegration,
+        currentUserPersonalDetails?.firstName,
+        currentUserPersonalDetails?.lastName,
     ]);
 
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
