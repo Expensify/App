@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
@@ -12,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -190,14 +190,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
                                 </TextLink>
                                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                                <TextLink
-                                    onPress={() => {
-                                        // TODO: Add link to tag levels documentation
-                                        return null;
-                                    }}
-                                >
-                                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}
-                                </TextLink>
+                                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
                                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
                             </>
                         )}

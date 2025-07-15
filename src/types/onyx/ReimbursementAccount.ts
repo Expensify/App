@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -108,6 +109,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
     /** Indicates that the PDS and FSD document has been downloaded */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DOWNLOADED_PDS_AND_FSG]?: boolean;
+    /** Powerform required for US and CA workspaces */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]?: FileObject[];
 };
 
 /** Model of ACH data */
