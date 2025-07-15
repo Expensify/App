@@ -1,29 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import type {Stats} from 'fs';
 import * as fs from 'fs';
 import {globSync} from 'glob';
 import {ComprehensiveStylesFinder} from '../../.github/scripts/findUnusedStyles';
 
-// Mock fs module
-jest.mock('fs', () => {
-    const actualFs = jest.requireActual('fs');
-    return {
-        ...actualFs,
-        readFileSync: jest.fn(),
-        lstatSync: jest.fn(),
-    };
-});
+jest.mock(
+    'fs',
+    () =>
+        ({
+            ...jest.requireActual('fs'),
+            readFileSync: jest.fn(),
+            lstatSync: jest.fn(),
+        }) as typeof fs,
+);
 
-// Mock glob module
-jest.mock('glob', () => {
-    const actualGlob = jest.requireActual('glob');
-    return {
-        ...actualGlob,
-        globSync: jest.fn(),
-    };
-});
+jest.mock(
+    'glob',
+    () =>
+        ({
+            ...jest.requireActual('glob'),
+            globSync: jest.fn(),
+        }) as unknown as typeof globSync,
+);
 
-// Get the mocked functions with proper typing
 const mockReadFileSync = jest.mocked(fs.readFileSync);
 const mockLstatSync = jest.mocked(fs.lstatSync);
 const mockGlobSync = jest.mocked(globSync);
@@ -32,21 +30,13 @@ describe('findUnusedStyles', () => {
     let finder: ComprehensiveStylesFinder;
 
     beforeEach(() => {
-        // Suppress console output for cleaner test runs
-        jest.spyOn(console, 'log').mockImplementation();
-        jest.spyOn(console, 'warn').mockImplementation();
-
-        // Reset all mocks before each test
         jest.clearAllMocks();
-
-        // Mock lstatSync to return file stats
         mockLstatSync.mockReturnValue({
             isFile: () => true,
         } as Stats);
     });
 
     afterEach(() => {
-        // Restore console mocks
         jest.restoreAllMocks();
     });
 
@@ -84,8 +74,8 @@ describe('findUnusedStyles', () => {
             const result = finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('unusedStyle');
-            expect(result[0]?.file).toBe('src/styles/index.ts');
+            expect(result.at(0)?.key).toBe('unusedStyle');
+            expect(result.at(0)?.file).toBe('src/styles/index.ts');
         });
 
         test('should not report used styles', () => {
@@ -135,7 +125,7 @@ describe('findUnusedStyles', () => {
             const result = finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('unusedStyle');
+            expect(result.at(0)?.key).toBe('unusedStyle');
         });
 
         it('should detect spread pattern usage', () => {
@@ -161,7 +151,7 @@ describe('findUnusedStyles', () => {
 
             // When extendedStyle is used, baseStyle should not be unused since it's spread into extendedStyle
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('unusedStyle');
+            expect(result.at(0)?.key).toBe('unusedStyle');
         });
 
         it('should detect object spread pattern usage', () => {
@@ -187,7 +177,7 @@ describe('findUnusedStyles', () => {
 
             // When extendedStyle is used, baseStyle should not be unused since it's spread into extendedStyle
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('unusedStyle');
+            expect(result.at(0)?.key).toBe('unusedStyle');
         });
 
         test('should handle dynamic style access', () => {
@@ -208,7 +198,7 @@ describe('findUnusedStyles', () => {
             const result = finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('unusedStyle');
+            expect(result.at(0)?.key).toBe('unusedStyle');
         });
     });
 
@@ -234,7 +224,7 @@ describe('findUnusedStyles', () => {
             const result = finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('unusedStyle');
+            expect(result.at(0)?.key).toBe('unusedStyle');
         });
     });
 
@@ -259,7 +249,7 @@ describe('findUnusedStyles', () => {
             const result = finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
-            expect(result[0]?.key).toBe('commentedStyle');
+            expect(result.at(0)?.key).toBe('commentedStyle');
         });
 
         test('should skip helper constants in styles/index.ts', () => {
