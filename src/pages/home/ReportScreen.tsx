@@ -67,6 +67,7 @@ import {
     isPolicyExpenseChat,
     isReportTransactionThread,
     isTaskReport,
+    isUnread,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
@@ -77,6 +78,7 @@ import {
     navigateToConciergeChat,
     openReport,
     readNewestAction,
+    resetOldestUnreadReportActionID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
@@ -142,7 +144,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const firstRenderRef = useRef(true);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
-    const flatListRef = useRef<FlatList>(null);
+    const flatListRef = useRef<FlatList<unknown> | null>(null);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -269,7 +271,28 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+
+    const [oldestUnreadReportActionID, setOldestUnreadReportActionID] = useState<string>();
+    const [oldestUnreadReportActionIDValueFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
+
+    // Set the oldestUnreadReportActionID in state once loaded from Onyx, and clear Onyx state to prevent stale data.
+    useEffect(() => {
+        if (!!oldestUnreadReportActionID || !oldestUnreadReportActionIDValueFromOnyx) {
+            return;
+        }
+
+        setOldestUnreadReportActionID(oldestUnreadReportActionIDValueFromOnyx);
+        resetOldestUnreadReportActionID(reportID);
+    }, [oldestUnreadReportActionID, oldestUnreadReportActionIDValueFromOnyx, reportID]);
+
+    const {
+        reportActions: unfilteredReportActions,
+        linkedAction,
+        sortedAllReportActions,
+        hasNewerActions,
+        hasOlderActions,
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === String(CONST.DEFAULT_NUMBER_ID) ? undefined : oldestUnreadReportActionID));
+
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
@@ -306,6 +329,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
     });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -463,6 +487,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
     );
 
+    const handleOpenReport = useCallback<typeof openReport>((...args) => {
+        // Reset the oldestUnreadReportActionID every time the report is (newly) fetched
+        setOldestUnreadReportActionID(undefined);
+        openReport(...args);
+    }, []);
+
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
@@ -478,10 +508,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
+            handleOpenReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
-        openReport(reportIDFromRoute, reportActionIDFromRoute);
+        handleOpenReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
         report?.type,
@@ -490,6 +520,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         route.params?.moneyRequestReportActionID,
         route.params?.transactionID,
         currentUserEmail,
+        handleOpenReport,
         reportIDFromRoute,
         reportActionIDFromRoute,
     ]);
@@ -576,7 +607,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport(reportID);
+        handleOpenReport(reportID);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
@@ -756,6 +787,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
     const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
 
+    // When opening an unread report, it is very likely that the message we will open to is not the latest, which is the
+    // only one we will have in cache.
+    const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && reportActions.length <= 1;
+    const isInitiallyLoadingReportWhileOffline = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && isOffline;
+    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline && !!oldestUnreadReportActionID;
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -812,8 +849,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                {(!report || !isReportReady || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                {!!report && isReportReady && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions && (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -823,8 +860,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                )}
+                                {!!report && isReportReady && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions && (
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         policy={policy}
@@ -835,8 +872,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasNewerActions={hasNewerActions}
                                         showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                     />
-                                ) : null}
-                                {isCurrentReportLoadedFromOnyx ? (
+                                )}
+                                {isCurrentReportLoadedFromOnyx && (
                                     <ReportFooter
                                         onComposerFocus={onComposerFocus}
                                         onComposerBlur={onComposerBlur}
@@ -848,7 +885,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         lastReportAction={lastReportAction}
                                         reportTransactions={reportTransactions}
                                     />
-                                ) : null}
+                                )}
                             </View>
                             <PortalHost name="suggestions" />
                         </DragAndDropProvider>
