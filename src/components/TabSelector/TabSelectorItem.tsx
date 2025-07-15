@@ -48,8 +48,11 @@ type TabSelectorItemProps = {
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
 
-    /** Parent tab selector, for computing tooltip placement */
-    parentView?: View | null;
+    /** Parent horizontal location, for computing tooltip placement */
+    parentX?: number;
+
+    /** Parent width, for computing tooltip placement */
+    parentWidth: number;
 };
 
 function TabSelectorItem({
@@ -64,7 +67,8 @@ function TabSelectorItem({
     testID,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
-    parentView,
+    parentX = 0,
+    parentWidth = 0,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -90,19 +94,17 @@ function TabSelectorItem({
 
         // must allow animation to complete before taking measurement
         const timerID = setTimeout(() => {
-            parentView?.measureInWindow((parentX, _parentY, parentWidth) => {
-                childRef.current?.measureInWindow((x, _y, width) => {
-                    // To center tooltip in parent:
-                    const parentCenter = parentX + parentWidth / 2; // ... where it should be...
-                    const currentCenter = x + width / 2; // ... minus where it is now...
-                    setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
-                });
+            childRef.current?.measureInWindow((x, _y, width) => {
+                // To center tooltip in parent:
+                const parentCenter = parentX + parentWidth / 2; // ... where it should be...
+                const currentCenter = x + width / 2; // ... minus where it is now...
+                setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
             });
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
-    }, [isActive, parentView, childRef, isSmallScreenWidth]);
+    }, [isActive, childRef, isSmallScreenWidth, parentX, parentWidth]);
 
     const children = (
         <AnimatedPressableWithFeedback

@@ -1,5 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -74,7 +74,9 @@ function TabSelector({
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-    const [view, setView] = useState<View | null>(null);
+    const viewRef = useRef<View>(null);
+    const [selectorWidth, setSelectorWidth] = React.useState(0);
+    const [selectorX, setSelectorX] = React.useState(0);
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -83,11 +85,21 @@ function TabSelector({
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
+    useLayoutEffect(() => {
+        // measure location/width after animation completes
+        setTimeout(() => {
+            viewRef.current?.measureInWindow((x, _y, width) => {
+                setSelectorX(x);
+                setSelectorWidth(width);
+            });
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
+    }, [viewRef]);
+
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
             <View
                 style={styles.tabSelector}
-                ref={setView}
+                ref={viewRef}
             >
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
@@ -130,7 +142,8 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
-                            parentView={view}
+                            parentWidth={selectorWidth}
+                            parentX={selectorX}
                         />
                     );
                 })}
