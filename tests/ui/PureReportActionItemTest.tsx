@@ -110,7 +110,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.automaticallyApproved'))).toBeOnTheScreen();
         });
 
-        it('Automatic FORWARDED action', async () => {
+        it('FORWARDED action via workspace rules', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
@@ -139,7 +139,7 @@ describe('PureReportActionItem', () => {
     });
 
     describe('Manual actions', () => {
-        it('Manually APPROVED action', async () => {
+        it('APPROVED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: false});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
@@ -148,7 +148,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.approvedMessage'))).toBeOnTheScreen();
         });
 
-        it('Manually FORWARDED action', async () => {
+        it('FORWARDED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: false});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
@@ -166,7 +166,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
 
-        it('Instant SUBMITTED_AND_CLOSED action', async () => {
+        it('SUBMITTED_AND_CLOSED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: false});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
