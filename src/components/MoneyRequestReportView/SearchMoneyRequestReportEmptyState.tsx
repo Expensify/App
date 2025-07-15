@@ -5,6 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canAddTransaction} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -12,13 +13,15 @@ import {openUnreportedExpense} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 
 const minModalHeight = 380;
 
-function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: string; policy?: Policy}) {
+function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: Policy}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const reportId = report.reportID;
+    const canAddTransactionToReport = canAddTransaction(report);
     const addExpenseDropdownOptions = [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
@@ -57,12 +60,16 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                 headerMedia={LottieAnimations.GenericEmptyState}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
+                subtitle={canAddTransactionToReport ? translate('search.moneyRequestReport.emptyStateSubtitle') : ''}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                 headerContentStyles={styles.emptyStateFolderWebStyles}
                 minModalHeight={minModalHeight}
-                buttons={[{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]}
+                buttons={
+                    canAddTransactionToReport
+                        ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
+                        : []
+                }
             />
         </View>
     );

@@ -2442,6 +2442,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
 
+    // Check if the report is closed if so, adding or deleting transactions is not allowed
     if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return false;
     }
@@ -9360,10 +9361,6 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
-function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdminPolicyUtils(policy);
-}
-
 function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
@@ -11214,7 +11211,6 @@ export {
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canEditPolicyDescription,
     canEditReportAction,
     canEditReportDescription,
     canEditRoomVisibility,

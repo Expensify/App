@@ -369,7 +369,7 @@ function MoneyRequestReportTransactionList({
                 </>
             ) : (
                 <SearchMoneyRequestReportEmptyState
-                    reportId={report.reportID}
+                    report={report}
                     policy={policy}
                 />
             )}

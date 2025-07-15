@@ -630,7 +630,7 @@ function MoneyRequestReportActionsList({
                             policy={policy}
                         />
                         <SearchMoneyRequestReportEmptyState
-                            reportId={report.reportID}
+                            report={report}
                             policy={policy}
                         />
                     </ScrollView>
