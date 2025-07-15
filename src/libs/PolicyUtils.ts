@@ -256,9 +256,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
         return;
     }
 
-    const employeeRole = policy?.employeeList?.[currentUserLogin];
-
-    return typeof employeeRole === 'string' ? employeeRole : employeeRole?.role;
+    return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 function getPolicyNameByID(policyID: string): string {
@@ -755,8 +753,8 @@ function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy
 }
 
 /** Return active policies where current user is an admin */
-function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null | undefined, currentUserLogin: string | undefined): Policy[] {
-    const activePolicies = getActivePolicies(policies === undefined ? allPolicies : policies, currentUserLogin);
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
