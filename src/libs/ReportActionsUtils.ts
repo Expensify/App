@@ -1198,7 +1198,7 @@ function isTagModificationAction(actionName: string): boolean {
  * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
  * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
  */
-function getSendMoneyFlowOneTransactionReportAction(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>): ReportAction<'IOU'> | undefined {
+function getSendMoneyFlowAction(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>): ReportAction<'IOU'> | undefined {
     if (!chatReport) {
         return undefined;
     }
@@ -1273,7 +1273,7 @@ function getOneTransactionThreadReportAction(
         return;
     }
 
-    const sendMoneyFlow = getSendMoneyFlowOneTransactionReportAction(reportActions, chatReport);
+    const sendMoneyFlow = getSendMoneyFlowAction(reportActions, chatReport);
 
     if (sendMoneyFlow?.childReportID) {
         return sendMoneyFlow;
@@ -3099,7 +3099,7 @@ export {
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitRateAddedMessage,
-    getSendMoneyFlowOneTransactionReportAction,
+    getSendMoneyFlowAction,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

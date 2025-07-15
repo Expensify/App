@@ -50,12 +50,13 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         selector: (actions) =>
             Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
+                .filter(isMoneyRequestAction)
                 .at(0),
     });
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
-        return getOriginalMessage(isMoneyRequestAction(parentIOUReportAction) ? parentIOUReportAction : transactionThreadReportAction)?.IOUTransactionID;
+        return getOriginalMessage(parentIOUReportAction ?? transactionThreadReportAction)?.IOUTransactionID;
     }, [report, chatReport, reportActions, parentIOUReportAction]);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
