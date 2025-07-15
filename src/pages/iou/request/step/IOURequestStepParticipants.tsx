@@ -266,7 +266,7 @@ function IOURequestStepParticipants({
             newReportID,
             undefined,
             undefined,
-            Navigation.getActiveRoute(),
+            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
         );
 
         const route = isCategorizing
