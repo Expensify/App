@@ -1055,7 +1055,7 @@ const translations = {
             other: 'Receipts scanning...',
         }),
         scanMultipleReceipts: 'Scan multiple receipts',
-        scanMultipleReceiptsDescription: 'Snap photos of all your receipts at once, then confirm details yourself or we\'ll do it for you.',
+        scanMultipleReceiptsDescription: "Snap photos of all your receipts at once, then confirm details yourself or we'll do it for you.",
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         removeFromReport: 'Remove from report',
