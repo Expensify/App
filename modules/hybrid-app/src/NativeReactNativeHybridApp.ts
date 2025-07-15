@@ -11,6 +11,7 @@ export interface Spec extends TurboModule {
     sendAuthToken: (authToken: string) => void;
     getHybridAppSettings: () => Promise<string | null>;
     getInitialURL(): Promise<string | null>;
+    onURLListenerAdded: () => void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('ReactNativeHybridApp');

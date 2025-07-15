@@ -4,6 +4,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -210,6 +211,9 @@ function Expensify() {
         Linking.addEventListener('url', (state) => {
             Report.openReportFromDeepLink(state.url);
         });
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.onURLListenerAdded();
+        }
 
         return () => {
             if (!appStateChangeListener.current) {

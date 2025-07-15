@@ -39,6 +39,10 @@ RCT_EXPORT_MODULE()
     reject(@"NOT_IMPLEMENTED", @"This method is not available in standalone New Expensify app", nil);
 }
 
+- (void)onURLListenerAdded {
+    NSLog(@"[ReactNativeHybridApp] `onURLListenerAdded` should never be called in standalone `New Expensify` app");
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
