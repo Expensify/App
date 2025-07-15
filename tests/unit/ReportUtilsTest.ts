@@ -741,6 +741,50 @@ describe('ReportUtils', () => {
                 expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
         });
+
+        describe('Fallback scenarios', () => {
+            test('should fallback to report.reportName when primary name generation returns empty string', () => {
+                const reportWithFallbackName: Report = {
+                    reportID: '3',
+                    reportName: 'Custom Report Name',
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithFallbackName);
+                expect(result).toBe('Custom Report Name');
+            });
+
+            test('should return empty string when both primary name generation and reportName are empty', () => {
+                const reportWithoutName: Report = {
+                    reportID: '4',
+                    reportName: '',
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithoutName);
+                expect(result).toBe('');
+            });
+
+            test('should return empty string when reportName is undefined', () => {
+                const reportWithUndefinedName: Report = {
+                    reportID: '5',
+                    reportName: undefined,
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithUndefinedName);
+                expect(result).toBe('');
+            });
+        });
     });
 
     describe('requiresAttentionFromCurrentUser', () => {
@@ -2675,6 +2719,50 @@ describe('ReportUtils', () => {
 
             expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
         });
+
+        it('should return true for demo transaction', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    isDemoTransaction: true,
+                },
+            };
+
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            const moneyRequestAction = {
+                ...parentReportAction,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
+        });
     });
 
     describe('getPolicyExpenseChat', () => {
@@ -4064,6 +4152,7 @@ describe('ReportUtils', () => {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
+                chatType: undefined,
             };
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
