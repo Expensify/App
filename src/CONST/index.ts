@@ -6398,8 +6398,8 @@ const CONST = {
         },
         DATE_MODIFIERS: {
             ON: 'On',
-            BEFORE: 'Before',
             AFTER: 'After',
+            BEFORE: 'Before',
         },
         DATE_PRESETS: {
             NEVER: 'never',
