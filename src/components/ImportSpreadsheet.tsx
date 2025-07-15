@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
+import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -155,7 +156,9 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{spreadsheet?.isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
-                <RenderHTML html={getTextForImportModal()} />
+                <Text style={[styles.subTextFileUpload, styles.textSupporting]}>
+                    <RenderHTML html={getTextForImportModal()} />
+                </Text>
             </View>
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
@@ -195,7 +198,12 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.goBack(backTo)}
+                            onBackButtonPress={() => {
+                                if (spreadsheet?.isImportingMultiLevelTags) {
+                                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                                }
+                                Navigation.goBack(backTo);
+                            }}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>
