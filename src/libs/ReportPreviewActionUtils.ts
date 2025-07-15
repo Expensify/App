@@ -1,7 +1,7 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled,
@@ -17,16 +17,13 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
-    hasExportError as hasExportErrorUtil,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
-    hasReportBeenReopened,
     hasViolations,
     hasWarningTypeViolations,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
-    isExported as isExportedUtil,
     isInvoiceReport,
     isIOUReport,
     isOpenExpenseReport,
@@ -40,14 +37,7 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function canSubmit(
-    report: Report,
-    violations: OnyxCollection<TransactionViolation[]>,
-    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
-    policy?: Policy,
-    transactions?: Transaction[],
-    isReportArchived = false,
-) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], isReportArchived = false) {
     if (isReportArchived) {
         return false;
     }
@@ -57,7 +47,7 @@ function canSubmit(
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasBeenReopened = hasReportBeenReopened(reportActions);
+    const hasBeenReopened = report.hasReportBeenReopened ?? false;
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
@@ -175,7 +165,7 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy) : false;
     const isReimbursed = isSettled(report);
@@ -190,12 +180,12 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    const isExported = isExportedUtil(reportActions);
+    const isExported = report.isExportedToIntegration ?? false;
     if (isExported) {
         return false;
     }
 
-    const hasExportError = hasExportErrorUtil(reportActions);
+    const hasExportError = report.hasExportError ?? false;
     if (syncEnabled && !hasExportError) {
         return false;
     }
@@ -250,7 +240,6 @@ function getReportPreviewAction(
     policy?: Policy,
     transactions?: Transaction[],
     isReportArchived = false,
-    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     invoiceReceiverPolicy?: Policy,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
@@ -259,7 +248,7 @@ function getReportPreviewAction(
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
-    if (canSubmit(report, violations, reportActions, policy, transactions, isReportArchived)) {
+    if (canSubmit(report, violations, policy, transactions, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, policy, transactions)) {
@@ -268,7 +257,7 @@ function getReportPreviewAction(
     if (canPay(report, violations, policy, isReportArchived, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, violations, policy, reportActions)) {
+    if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canReview(report, violations, policy, transactions, isReportArchived)) {
