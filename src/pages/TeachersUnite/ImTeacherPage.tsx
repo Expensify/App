@@ -1,12 +1,12 @@
 import React from 'react';
 import {useSession} from '@components/OnyxProvider';
-import * as LoginUtils from '@libs/LoginUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import ImTeacherUpdateEmailPage from './ImTeacherUpdateEmailPage';
 import IntroSchoolPrincipalPage from './IntroSchoolPrincipalPage';
 
 function ImTeacherPage() {
     const session = useSession();
-    const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(session?.email ?? '');
+    const isLoggedInEmailPublicDomain = isEmailPublicDomain(session?.email ?? '');
     return isLoggedInEmailPublicDomain ? <ImTeacherUpdateEmailPage /> : <IntroSchoolPrincipalPage />;
 }
 
