@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -65,28 +66,30 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('connectBankAccountStep.connectBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />
-            {maxAttemptsReached && (
-                <View style={[styles.m5, styles.flex1]}>
-                    <Text>
-                        {translate('connectBankAccountStep.maxAttemptsReached')} {translate('common.please')}{' '}
-                        <TextLink onPress={handleNavigateToConciergeChat}>{translate('common.contactUs')}</TextLink>.
-                    </Text>
-                </View>
-            )}
-            {!maxAttemptsReached && isBankAccountPending && (
-                <BankAccountValidationForm
-                    requiresTwoFactorAuth={requiresTwoFactorAuth}
-                    reimbursementAccount={reimbursementAccount}
-                    policy={policy}
-                />
-            )}
-            {isBankAccountVerifying && (
-                <FinishChatCard
-                    requiresTwoFactorAuth={requiresTwoFactorAuth}
-                    reimbursementAccount={reimbursementAccount}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                />
-            )}
+            <FullPageOfflineBlockingView>
+                {maxAttemptsReached && (
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text>
+                            {translate('connectBankAccountStep.maxAttemptsReached')} {translate('common.please')}{' '}
+                            <TextLink onPress={handleNavigateToConciergeChat}>{translate('common.contactUs')}</TextLink>.
+                        </Text>
+                    </View>
+                )}
+                {!maxAttemptsReached && isBankAccountPending && (
+                    <BankAccountValidationForm
+                        requiresTwoFactorAuth={requiresTwoFactorAuth}
+                        reimbursementAccount={reimbursementAccount}
+                        policy={policy}
+                    />
+                )}
+                {isBankAccountVerifying && (
+                    <FinishChatCard
+                        requiresTwoFactorAuth={requiresTwoFactorAuth}
+                        reimbursementAccount={reimbursementAccount}
+                        setUSDBankAccountStep={setUSDBankAccountStep}
+                    />
+                )}
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

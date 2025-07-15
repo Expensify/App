@@ -77,6 +77,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}
