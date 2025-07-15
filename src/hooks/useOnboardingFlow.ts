@@ -21,6 +21,8 @@ function useOnboardingFlowRouter() {
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         canBeMissing: true,
     });
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const startedOnboardingFlowRef = useRef(false);
@@ -81,6 +83,8 @@ function useOnboardingFlowRouter() {
                         onboardingValuesParam: onboardingValues,
                         isUserFromPublicDomain: !!account?.isFromPublicDomain,
                         hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                        currentOnboardingCompanySize,
+                        currentOnboardingPurposeSelected,
                     });
                 }
             }
@@ -92,6 +96,8 @@ function useOnboardingFlowRouter() {
                     onboardingValuesParam: onboardingValues,
                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                    currentOnboardingCompanySize,
+                    currentOnboardingPurposeSelected,
                 });
             }
         });
@@ -109,6 +115,8 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining,
         account?.isFromPublicDomain,
         account?.hasAccessibleDomainPolicies,
+        currentOnboardingCompanySize,
+        currentOnboardingPurposeSelected,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

@@ -360,6 +360,22 @@ Onyx.connect({
     },
 });
 
+let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
+Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    callback: (value) => {
+        currentOnboardingPurposeSelected = value;
+    },
+});
+
+let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
+Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+    callback: (value) => {
+        currentOnboardingCompanySize = value;
+    },
+});
+
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -3457,6 +3473,8 @@ function openReportFromDeepLink(url: string) {
                                     onboardingValuesParam: val,
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
                                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                                    currentOnboardingPurposeSelected,
+                                    currentOnboardingCompanySize,
                                 }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,

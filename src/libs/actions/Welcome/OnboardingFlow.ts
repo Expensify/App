@@ -1,5 +1,6 @@
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
@@ -38,14 +39,16 @@ Onyx.connect({
     },
 });
 
+type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
+type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+
 type GetOnboardingInitialPathParamsType = {
     isUserFromPublicDomain: boolean;
     hasAccessiblePolicies: boolean;
     onboardingValuesParam?: Onboarding;
+    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
+    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 };
-
-type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
-type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
 type OnboardingTaskLinks = Partial<{
     onboardingCompanySize: OnboardingCompanySize;
@@ -100,12 +103,14 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
 }
 
 function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
-    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam} = getOnboardingInitialPathParams;
+    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam, currentOnboardingPurposeSelected, currentOnboardingCompanySize} = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+    const isCurrentOnboardingCompanySizeMicro = currentOnboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -135,6 +140,14 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
+    }
+
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
+        return '';
+    }
+
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !isCurrentOnboardingCompanySizeMicro)) {
+        return '';
     }
 
     return onboardingInitialPath;
