@@ -76,7 +76,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -1264,43 +1264,6 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function getTodoSearchQuery(action: 'submit' | 'approve' | 'pay' | 'export', userAccountID: number | undefined) {
-    switch (action) {
-        case 'submit':
-            return buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                from: [`${userAccountID}`],
-            });
-        case 'approve':
-            return buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                to: [`${userAccountID}`],
-            });
-        case 'pay':
-            return buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                payer: userAccountID?.toString(),
-            });
-        case 'export':
-            return buildQueryStringFromFilterFormValues({
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                exporter: [`${userAccountID}`],
-                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-            });
-
-        default:
-            return '';
-    }
-}
-
 function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
     const email = session?.email;
 
@@ -1744,6 +1707,5 @@ export {
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
-    getTodoSearchQuery,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};

@@ -129,7 +129,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         status: 'all',
         flatFilters: [],
     })),
-    buildQueryStringFromFilterFormValues: jest.fn(),
+    getTodoSearchQuery: jest.fn(),
     buildSearchQueryJSON: jest.fn(),
 }));
 

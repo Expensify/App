@@ -178,8 +178,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getTodoSearchQuery} from '@libs/SearchUIUtils';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -11549,8 +11548,12 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         return false;
     }
 
-    const submitQueryJSON = buildSearchQueryJSON(getTodoSearchQuery('submit', currentUserPersonalDetails?.accountID));
-    const approveQueryJSON = buildSearchQueryJSON(getTodoSearchQuery('approve', currentUserPersonalDetails?.accountID));
+    const submitQueryString = getTodoSearchQuery('submit', userAccountID);
+
+    const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
+
+    const approveQueryString = getTodoSearchQuery('approve', userAccountID);
+    const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
