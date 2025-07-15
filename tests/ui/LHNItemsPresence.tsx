@@ -266,6 +266,8 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
+            await waitForBatchedUpdatesWithAct();
+
             // Then the report should appear in the sidebar because it requires attention from the user
             expect(getOptionRows()).toHaveLength(1);
 
@@ -307,6 +309,8 @@ describe('SidebarLinksData', () => {
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the selfDM report should appear in the sidebar by default
             expect(getOptionRows()).toHaveLength(1);
