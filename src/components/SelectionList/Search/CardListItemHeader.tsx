@@ -38,7 +38,7 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     expandButton?: React.ReactNode;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isFocused, canSelectMultiple, expandButton}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -99,11 +99,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             />
                         </View>
                     </View>
-                    <View>{expandButton}</View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
             </View>
         </View>
     );

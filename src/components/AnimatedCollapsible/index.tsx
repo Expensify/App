@@ -1,8 +1,7 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,14 +10,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type AnimatedCollapsibleProps = {
-    /** Whether the component is expanded */
-    isExpanded: SharedValue<boolean>;
-
     /** Element that is inside the collapsible area */
     children: ReactNode;
 
     /** Header function that receives the toggle button as a parameter */
-    header: (expandButton: ReactNode) => ReactNode;
+    header: ReactNode;
 
     /** Duration of expansion animation */
     duration?: number;
@@ -43,7 +39,6 @@ type AnimatedCollapsibleProps = {
 };
 
 function AnimatedCollapsible({
-    isExpanded,
     children,
     header,
     duration = 300,
@@ -59,11 +54,12 @@ function AnimatedCollapsible({
     const height = useSharedValue(0);
     const isAnimating = useSharedValue(false);
     const hasBeenToggled = useSharedValue(false);
+    const [isExpanded, setIsExpanded] = useState(true);
 
     // Animation for content height and opacity
     const derivedHeight = useDerivedValue(() => {
         const shouldAnimate = shouldAnimateOnMount || hasBeenToggled.get();
-        const targetHeight = height.get() * Number(isExpanded.get());
+        const targetHeight = height.get() * Number(isExpanded);
 
         if (!shouldAnimate) {
             return targetHeight;
@@ -86,7 +82,7 @@ function AnimatedCollapsible({
 
     const derivedOpacity = useDerivedValue(() => {
         const shouldAnimate = shouldAnimateOnMount || hasBeenToggled.get();
-        const targetOpacity = isExpanded.get() ? 1 : 0;
+        const targetOpacity = isExpanded ? 1 : 0;
 
         if (!shouldAnimate) {
             return targetOpacity;
@@ -102,7 +98,7 @@ function AnimatedCollapsible({
     // Animation for icon rotation
     const iconRotation = useDerivedValue(() => {
         const shouldAnimate = shouldAnimateOnMount || hasBeenToggled.get();
-        const targetRotation = isExpanded.get() ? 0 : 180; // 0 degrees for up arrow, 180 for down arrow
+        const targetRotation = isExpanded ? 0 : 180; // 0 degrees for up arrow, 180 for down arrow
 
         if (!shouldAnimate) {
             return targetRotation;
@@ -115,7 +111,7 @@ function AnimatedCollapsible({
     });
 
     const contentAnimatedStyle = useAnimatedStyle(() => {
-        if (!isExpanded.get() && derivedHeight.get() === 0) {
+        if (!isExpanded && derivedHeight.get() === 0) {
             return {
                 height: 0,
                 opacity: 0,
@@ -145,7 +141,7 @@ function AnimatedCollapsible({
             return;
         }
         hasBeenToggled.set(true);
-        isExpanded.set(!isExpanded.get());
+        setIsExpanded(!isExpanded);
     };
 
     const expandButton = (
@@ -154,7 +150,7 @@ function AnimatedCollapsible({
             disabled={disabled}
             style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
             accessibilityRole="button"
-            accessibilityLabel={isExpanded.get() ? 'Collapse' : 'Expand'}
+            accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
         >
             <Animated.View style={iconAnimatedStyle}>
                 <Icon
@@ -168,11 +164,14 @@ function AnimatedCollapsible({
 
     return (
         <View style={style}>
-            {/* Header with toggle button */}
-            <View style={headerStyle}>{header(expandButton)}</View>
-
-            {/* Collapsible content */}
+            <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flex1]}>{header}</View>
+                {expandButton}
+            </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
+                <View style={[styles.pv2, styles.ph3]}>
+                    <View style={[styles.borderBottom]} />
+                </View>
                 <View
                     onLayout={(e) => {
                         height.set(e.nativeEvent.layout.height);

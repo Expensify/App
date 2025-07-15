@@ -324,4 +324,5 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w16: 16,
 } as const;
