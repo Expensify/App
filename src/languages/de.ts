@@ -277,6 +277,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -676,6 +677,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Anhänge hinzufügen',
+        addReceipt: 'Beleg hinzufügen',
         scanReceipts: 'Belege scannen',
         replaceReceipt: 'Beleg ersetzen',
     },
@@ -924,8 +926,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Eine Tabelle hochladen',
+        import: 'Tabellenkalkulation importieren',
         dragAndDrop: 'Ziehen Sie Ihre Tabelle hierher oder wählen Sie unten eine Datei aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Ziehen Sie Ihre Tabelle hierher oder wählen Sie unten eine Datei aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         chooseSpreadsheet: 'Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         fileContainsHeader: 'Datei enthält Spaltenüberschriften',
         column: ({name}: SpreadSheetColumnParams) => `Spalte ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ups! Ein erforderliches Feld ("${fieldName}") wurde nicht zugeordnet. Bitte überprüfen und erneut versuchen.`,
@@ -1036,6 +1041,9 @@ const translations = {
         createExpense: 'Ausgabe erstellen',
         trackDistance: 'Entfernung verfolgen',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Erstelle ${expensesNumber} Ausgaben`,
+        removeExpense: 'Ausgabe entfernen',
+        removeThisExpense: 'Diese Ausgabe entfernen',
+        removeExpenseConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
         addExpense: 'Ausgabe hinzufügen',
         chooseRecipient: 'Empfänger auswählen',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Erstelle ${amount} Ausgabe`,
@@ -1065,6 +1073,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Machen Sie Fotos von all Ihren Belegen auf einmal, dann bestätigen Sie die Details selbst oder lassen Sie SmartScan dies übernehmen.',
         receiptScanInProgress: 'Belegscan läuft',
         receiptScanInProgressDescription: 'Belegscan läuft. Später erneut prüfen oder die Details jetzt eingeben.',
+        removeFromReport: 'Ausgabe aus Bericht entfernen',
+        moveToPersonalSpace: 'Ausgaben in persönlichen Bereich verschieben',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Mögliche doppelte Ausgaben erkannt. Überprüfen Sie die Duplikate, um die Einreichung zu ermöglichen.'
@@ -1157,8 +1167,7 @@ const translations = {
         automaticallyForwarded: `genehmigt über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Arbeitsbereichsregeln</a>`,
         forwarded: `genehmigt`,
         rejectedThisReport: 'diesen Bericht abgelehnt',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `hat begonnen, die Abrechnung zu erledigen. Die Zahlung wird zurückgehalten, bis ${submitterDisplayName} ein Bankkonto hinzufügt.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} hat die Zahlung storniert`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `hat die Zahlung von ${amount} storniert, weil ${submitterDisplayName} ihre Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -1549,6 +1558,7 @@ const translations = {
             phrase4: 'Datenschutz',
         },
         help: 'Hilfe',
+        whatIsNew: 'Was ist neu',
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
@@ -1784,7 +1794,7 @@ const translations = {
         nameOnCard: 'Name auf der Karte',
         paymentCardNumber: 'Kartennummer',
         expiration: 'Ablaufdatum',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Rechnungsadresse',
         growlMessageOnSave: 'Ihre Zahlungskarte wurde erfolgreich hinzugefügt',
@@ -3184,6 +3194,18 @@ const translations = {
             certify: 'Bitte bestätigen Sie, dass die Informationen wahr und korrekt sind.',
             consent: 'Bitte stimmen Sie der Datenschutzerklärung zu.',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign-Formular',
+        pleaseComplete:
+            'Bitte füllen Sie das ACH-Autorisierungsformular über den untenstehenden Docusign-Link aus und laden Sie anschließend die unterschriebene Kopie hier hoch, damit wir direkt von Ihrem Bankkonto abbuchen können.',
+        pleaseCompleteTheBusinessAccount: 'Bitte füllen Sie den Antrag für ein Geschäftskonto und die Vereinbarung zum Lastschrifteinzug aus.',
+        pleaseCompleteTheDirect:
+            'Bitte füllen Sie die Vereinbarung zum Lastschrifteinzug über den untenstehenden Docusign-Link aus und laden Sie anschließend die unterschriebene Kopie hier hoch, damit wir direkt von Ihrem Bankkonto abbuchen können.',
+        takeMeTo: 'Zu Docusign',
+        uploadAdditional: 'Zusätzliche Dokumente hochladen',
+        pleaseUpload: 'Bitte laden Sie das DEFT-Formular und die unterschriebene Docusign-Seite hoch.',
+        pleaseUploadTheDirect: 'Bitte laden Sie die Lastschriftvereinbarung und die Docusign-Unterschriftsseite hoch.',
     },
     finishStep: {
         connect: 'Bankkonto verbinden',
@@ -5940,6 +5962,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Niemals',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzte Erklärung',
                 },
             },
             status: 'Status',
@@ -5978,6 +6001,7 @@ const translations = {
                 members: 'Mitglied',
                 cards: 'Karte',
             },
+            feed: 'Feed',
         },
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
@@ -6336,7 +6360,7 @@ const translations = {
         addressError: 'Adresse ist erforderlich',
         reasonError: 'Grund ist erforderlich',
         successTitle: 'Ihre neue Karte ist auf dem Weg!',
-        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
+        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit können Sie eine virtuelle Karte verwenden.',
     },
     eReceipt: {
         guaranteed: 'Garantierter eReceipt',
@@ -6414,7 +6438,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Betrag über dem täglichen ${formattedLimit}/Personen-Kategorielimit`,
         receiptNotSmartScanned:
-            'Ausgabendetails und Beleg manuell hinzugefügt. Bitte überprüfen Sie die Details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr</a> über die automatische Überprüfung aller Belege.',
+            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Beleg erforderlich';
             if (formattedLimit ?? category) {
@@ -6781,11 +6805,8 @@ const translations = {
                 title: 'Abonnement storniert',
                 subtitle: 'Ihr Jahresabonnement wurde storniert.',
                 info: 'Wenn Sie Ihre Arbeitsbereiche weiterhin auf Pay-per-Use-Basis nutzen möchten, sind Sie startklar.',
-                preventFutureActivity: {
-                    part1: 'Wenn Sie zukünftige Aktivitäten und Gebühren verhindern möchten, müssen Sie',
-                    link: 'löschen Sie Ihren Arbeitsbereich/Ihre Arbeitsbereiche',
-                    part2: 'Beachten Sie, dass Ihnen beim Löschen Ihrer Arbeitsbereiche alle ausstehenden Aktivitäten, die im aktuellen Kalendermonat angefallen sind, in Rechnung gestellt werden.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Wenn Sie zukünftige Aktivitäten und Gebühren verhindern möchten, müssen Sie <a href="${workspacesListRoute}">löschen Sie Ihren Arbeitsbereich/Ihre Arbeitsbereiche</a> Beachten Sie, dass Ihnen beim Löschen Ihrer Arbeitsbereiche alle ausstehenden Aktivitäten, die im aktuellen Kalendermonat angefallen sind, in Rechnung gestellt werden.`,
             },
             requestSubmitted: {
                 title: 'Anfrage eingereicht',
@@ -6951,66 +6972,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Loslegen',
-            part2: 'hier!',
-        },
-        saveSearchTooltip: {
-            part1: 'Benennen Sie Ihre gespeicherten Suchen um',
-            part2: 'hier!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Überprüfen Sie was',
-            part2: 'benötigt Ihre Aufmerksamkeit',
-            part3: 'und',
-            part4: 'über Ausgaben chatten.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chatten mit',
-            part2: 'Genehmiger',
-        },
-        globalCreateTooltip: {
-            part1: 'Ausgaben erstellen',
-            part2: ', beginnen Sie zu chatten,',
-            part3: 'und mehr.',
-            part4: 'Probieren Sie es aus!',
-        },
-        GBRRBRChat: {
-            part1: 'Du wirst 🟢 auf sehen',
-            part2: 'Maßnahmen ergreifen',
-            part3: ',\nund 🔴 auf',
-            part4: 'Elemente zur Überprüfung.',
-        },
-        accountSwitcher: {
-            part1: 'Zugriff auf Ihre',
-            part2: 'Copilot-Konten',
-            part3: 'hier',
-        },
-        expenseReportsFilter: {
-            part1: 'Willkommen! Finden Sie alle Ihre',
-            part2: 'Berichte des Unternehmens',
-            part3: 'here.',
-        },
+        conciergeLHNGBR: '<tooltip>Loslegen <strong>hier!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Benennen Sie Ihre gespeicherten Suchen um</strong> hier!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Ausgaben erstellen</strong>, beginnen Sie zu chatten, und mehr. Probieren Sie es aus!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Überprüfen Sie was <strong>benötigt Ihre Aufmerksamkeit</strong> und <strong>über Ausgaben chatten.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chatten mit <strong>Genehmigern</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong>, und 🔴 auf <strong>Elemente zur Überprüfung.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Zugriff auf Ihre <strong>Copilot-Konten</strong> hier</tooltip>',
+        expenseReportsFilter: '<tooltip>Willkommen! Finden Sie alle Ihre <strong>Berichte des Unternehmens</strong> hier.</tooltip>',
         scanTestTooltip: {
-            part1: 'Möchten Sie sehen, wie Scan funktioniert?',
-            part2: 'Probieren Sie einen Testbeleg aus!',
-            part3: 'Wählen Sie unsere',
-            part4: 'Testmanager',
-            part5: 'um es auszuprobieren!',
-            part6: 'Jetzt,',
-            part7: 'Reichen Sie Ihre Ausgaben ein',
-            part8: 'und sieh zu, wie die Magie geschieht!',
+            main: '<tooltip><strong>Möchten Sie sehen, wie Scan funktioniert?</strong> Probieren Sie einen Testbeleg aus!</tooltip>',
+            manager: '<tooltip>Wählen Sie unsere <strong>Testmanager</strong>, um es auszuprobieren!</tooltip>',
+            confirmation: '<tooltip>Jetzt, <strong>Reichen Sie Ihre Ausgaben ein</strong> und sieh zu, wie die Magie geschieht!</tooltip>',
             tryItOut: 'Probieren Sie es aus',
             noThanks: 'Nein danke',
         },
-        outstandingFilter: {
-            part1: 'Filter für Ausgaben, die',
-            part2: 'Genehmigung erforderlich',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Diesen Beleg senden an',
-            part2: 'Beenden Sie die Probefahrt!',
-        },
+        outstandingFilter: '<tooltip>Filter für Ausgaben, die <strong>Genehmigung erforderlich</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Diesen Beleg senden an <strong>Beenden Sie die Probefahrt!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

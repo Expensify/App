@@ -832,19 +832,43 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     );
 }
 
-function openCardDetailsPage(cardID: number) {
+function openCardDetailsPage(cardID: number, fundID: number) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
         return;
     }
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: true,
+                },
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
     const parameters: OpenCardDetailsPageParams = {
         authToken,
         cardID,
     };
 
-    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
+    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters, {optimisticData, finallyData});
 }
 
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
