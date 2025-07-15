@@ -1,11 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as WorkspaceSettingsUtils from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
@@ -15,12 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceOwnerChangeCheckOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-};
-
-type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
+type WorkspaceOwnerChangeCheckProps = {
     /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -31,7 +26,7 @@ type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
 };
 
-function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
+function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [displayTexts, setDisplayTexts] = useState({
@@ -39,7 +34,9 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         text: '',
         buttonText: '',
     });
-
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
     const policyID = policy?.id ?? '-1';
 
     const updateDisplayTexts = useCallback(() => {
@@ -86,8 +83,4 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
 WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
 
-export default withOnyx<WorkspaceOwnerChangeCheckProps, WorkspaceOwnerChangeCheckOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(WorkspaceOwnerChangeCheck);
+export default WorkspaceOwnerChangeCheck;
