@@ -140,6 +140,8 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    arrowButtons?: {goToNext: () => void; goToPrev: () => void};
 };
 
 function MoneyReportHeader({
@@ -150,6 +152,7 @@ function MoneyReportHeader({
     isLoadingInitialReportActions,
     shouldDisplayBackButton = false,
     onBackButtonPress,
+    arrowButtons,
 }: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -429,6 +432,10 @@ function MoneyReportHeader({
     };
 
     const statusBarProps = getStatusBarProps();
+
+    const shouldDisplayNavigationArrows = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+
+    debugger;
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1003,7 +1010,8 @@ function MoneyReportHeader({
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
-                shouldDisplayNavigationArrows={!shouldUseNarrowLayout}
+                shouldDisplayNavigationArrows={shouldDisplayNavigationArrows}
+                arrowButtons={arrowButtons}
             >
                 {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>

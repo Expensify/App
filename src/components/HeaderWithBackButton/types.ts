@@ -25,6 +25,8 @@ type ThreeDotsMenuItem = {
 };
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
+    arrowButtons?: {goToNext: () => void; goToPrev: () => void};
+
     /** Title of the Header */
     title?: string;
 

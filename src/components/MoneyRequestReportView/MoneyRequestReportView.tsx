@@ -158,6 +158,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         goToReportId(allReports.at(nextIndex));
     };
 
+    const goToPrevReport = () => {
+        const currentIndex = allReports.indexOf(report?.reportID ?? '');
+
+        if (currentIndex === -1 || allReports.length === 0) {
+            return '';
+        }
+
+        const nextIndex = (currentIndex - 1) % allReports.length;
+        goToReportId(allReports.at(nextIndex));
+    };
+
     const reportHeaderView = useMemo(
         () =>
             isTransactionThreadView ? (
@@ -187,6 +198,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             return;
                         }
                         Navigation.goBack(backToRoute);
+                    }}
+                    arrowButtons={{
+                        goToNext: goToNextReport,
+                        goToPrev: goToPrevReport,
                     }}
                 />
             ),

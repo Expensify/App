@@ -11,9 +11,11 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import PrevNextButtons from '@components/PrevNextButtons';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import UseOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +24,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
 
@@ -78,12 +81,47 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
+    arrowButtons,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    const rawReports = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
+    const allReports = rawReports?.[0] ?? [];
+    const currentIndex = allReports.indexOf(report?.reportID ?? '');
+    const allReportsCount = allReports?.length ?? 0;
+
+    const goToReportId = (reportId?: string) => {
+        if (!reportId) {
+            return;
+        }
+        const backTo = Navigation.getActiveRoute();
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportId, backTo}));
+    };
+
+    const goToNextReport = () => {
+        const currentIndex = allReports.indexOf(report?.reportID ?? '');
+
+        if (currentIndex === -1 || allReports.length === 0) {
+            return '';
+        }
+
+        const nextIndex = (currentIndex + 1) % allReports.length;
+        goToReportId(allReports.at(nextIndex));
+    };
+
+    const goToPrevReport = () => {
+        const currentIndex = allReports.indexOf(report?.reportID ?? '');
+
+        if (currentIndex === -1 || allReports.length === 0) {
+            return '';
+        }
+
+        const nextIndex = (currentIndex - 1) % allReports.length;
+        goToReportId(allReports.at(nextIndex));
+    };
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -310,12 +348,15 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {shouldDisplayNavigationArrows && (
-                    <PrevNextButtons
-                        isPrevButtonDisabled={false}
-                        isNextButtonDisabled={false}
-                        onNext={() => {}}
-                        onPrevious={() => {}}
-                    />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>
+                        <PrevNextButtons
+                            isPrevButtonDisabled={false}
+                            isNextButtonDisabled={false}
+                            onNext={goToNextReport}
+                            onPrevious={goToPrevReport}
+                        />
+                    </View>
                 )}
                 {shouldDisplayHelpButton && <HelpButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
