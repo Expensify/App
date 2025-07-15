@@ -5,7 +5,7 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
-import {type OnyxEntry, useOnyx} from 'react-native-onyx';
+import type { OnyxEntry, useOnyx} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
