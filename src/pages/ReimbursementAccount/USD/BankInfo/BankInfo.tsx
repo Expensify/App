@@ -105,23 +105,19 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            if (bankAccountID) {
-                onBackButtonPress();
-            } else {
-                const bankAccountData = {
-                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
-                    [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
-                };
-                updateReimbursementAccountDraft(bankAccountData);
-                hideBankAccountErrors();
-                setBankAccountSubStep(null);
-                setUSDBankAccountStep(null);
-            }
+            onBackButtonPress();
+            const bankAccountData = {
+                [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
+                [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
+                [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
+                [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
+                [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
+                [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
+                [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
+            };
+            updateReimbursementAccountDraft(bankAccountData);
+            hideBankAccountErrors();
+            setBankAccountSubStep(null);
         } else {
             prevScreen();
         }
@@ -133,7 +129,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
             shouldEnablePickerAvoiding={false}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
-            startStepIndex={0}
+            startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

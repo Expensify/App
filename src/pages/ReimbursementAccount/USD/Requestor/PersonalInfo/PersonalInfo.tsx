@@ -75,7 +75,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
             shouldEnableMaxHeight
             headerTitle={translate('personalInfoStep.personalInfo')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={1}
+            startStepIndex={2}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

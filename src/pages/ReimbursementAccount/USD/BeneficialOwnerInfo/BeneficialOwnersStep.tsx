@@ -215,7 +215,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
+            startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (

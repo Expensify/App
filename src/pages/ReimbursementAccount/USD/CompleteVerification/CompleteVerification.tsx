@@ -63,7 +63,7 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
             shouldEnableMaxHeight
             headerTitle={translate('completeVerificationStep.completeVerification')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={5}
+            startStepIndex={6}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

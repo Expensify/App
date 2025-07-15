@@ -8,6 +8,7 @@ import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
+import Country from './Country/Country';
 import RequestorStep from './Requestor/RequestorStep';
 
 type USDVerifiedBankAccountFlowProps = {
@@ -32,6 +33,15 @@ function USDVerifiedBankAccountFlow({
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     switch (USDBankAccountStep) {
+        case CONST.BANK_ACCOUNT.STEP.COUNTRY:
+            return (
+                <Country
+                    onBackButtonPress={onBackButtonPress}
+                    policyID={policyID}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                />
+            );
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             return (
                 <BankInfo

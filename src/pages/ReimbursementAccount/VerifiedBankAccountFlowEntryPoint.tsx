@@ -23,7 +23,7 @@ import {getEarliestErrorField, getLatestError, getLatestErrorField, getMicroSeco
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
+import {goToWithdrawalAccountSetupStep, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
 import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep} from '@userActions/ReimbursementAccount';
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
@@ -129,36 +129,22 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
-        if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
+        if (optionPressed.current === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             if (isNonUSDWorkspace) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+                optionPressed.current = ''; // Clear after processing
                 return;
             }
 
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-        } else if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+            optionPressed.current = ''; // Clear after processing
+        } else if (optionPressed.current === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-            openPlaidView();
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+            optionPressed.current = ''; // Clear after processing
         }
-    }, [isAccountValidated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
-
-    const handleConnectPlaid = () => {
-        if (isPlaidDisabled) {
-            return;
-        }
-        if (!isAccountValidated) {
-            optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
-            toggleValidateCodeActionModal?.(true);
-            return;
-        }
-
-        removeExistingBankAccountDetails();
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-        openPlaidView();
-    };
+    }, [isAccountValidated, isNonUSDWorkspace]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
@@ -174,6 +160,22 @@ function VerifiedBankAccountFlowEntryPoint({
 
         removeExistingBankAccountDetails();
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+    };
+
+    const handleConnectPlaid = () => {
+        if (isPlaidDisabled) {
+            return;
+        }
+
+        if (!isAccountValidated) {
+            optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+            toggleValidateCodeActionModal?.(true);
+            return;
+        }
+
+        removeExistingBankAccountDetails();
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
         setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     };
 

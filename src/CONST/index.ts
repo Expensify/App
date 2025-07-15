@@ -474,6 +474,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the VBA flow
+            COUNTRY: 'CountryStep',
             BANK_ACCOUNT: 'BankAccountStep',
             REQUESTOR: 'RequestorStep',
             COMPANY: 'CompanyStep',
@@ -482,7 +483,7 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
-        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEPS_HEADER_HEIGHT: 40,
         SUBSTEP: {
             MANUAL: 'manual',

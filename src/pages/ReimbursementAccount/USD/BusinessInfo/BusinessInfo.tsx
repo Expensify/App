@@ -114,7 +114,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
+            startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep
