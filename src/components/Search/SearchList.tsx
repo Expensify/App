@@ -400,7 +400,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
-                itemLayoutAnimation={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing) : undefined}
+                itemLayoutAnimation={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(1.5 * CONST.ANIMATED_TRANSITION) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
