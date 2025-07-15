@@ -203,7 +203,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                 if (
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+                    (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                 ) {
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -373,6 +374,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
+        introSelected?.inviteType,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,

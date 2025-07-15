@@ -130,6 +130,7 @@ const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+    WORKSPACE: 'workspace',
 } as const;
 
 const onboardingCompanySize = {
@@ -965,18 +966,15 @@ const CONST = {
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    NAVATTIC: {
-        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
-        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
-        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
-        COMPLETED: 'completed',
-    },
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
+
+        // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_MOBILE: 'https://expensify.navattic.com/35609gb',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -3353,63 +3351,75 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
+            INVOICING: 'invoicing2018',
         },
     },
+
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3000,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 800,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3200,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.EUR]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
         };
@@ -5197,7 +5207,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
 
     /**
      * Bank account names
@@ -6389,8 +6399,8 @@ const CONST = {
         },
         DATE_MODIFIERS: {
             ON: 'On',
-            BEFORE: 'Before',
             AFTER: 'After',
+            BEFORE: 'Before',
         },
         DATE_PRESETS: {
             NEVER: 'never',
@@ -6866,9 +6876,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'iou',
-        EXPENSE: 'expense',
-        INVOICE: 'invoice',
+        IOU: 'Iou',
+        EXPENSE: 'Expense',
+        INVOICE: 'Invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',

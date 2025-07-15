@@ -338,7 +338,7 @@ function MoneyReportHeader({
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
         [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
@@ -428,7 +428,6 @@ function MoneyReportHeader({
     };
 
     const statusBarProps = getStatusBarProps();
-    const shouldAddGapToContents = shouldUseNarrowLayout && shouldShowSelectedTransactionsButton && (!!statusBarProps || shouldShowNextStep);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -549,7 +548,6 @@ function MoneyReportHeader({
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
-                formattedAmount={totalAmount}
                 canIOUBePaid
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={moneyRequestReport?.currency}
@@ -886,8 +884,6 @@ function MoneyReportHeader({
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
-    const isMoreContentShown = shouldShowNextStep || !!statusBarProps;
-
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
         () => (
@@ -958,6 +954,41 @@ function MoneyReportHeader({
         </KYCWall>
     );
 
+    const moreContentUnfiltered = [
+        shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
+            <View
+                style={[styles.dFlex, styles.w100, styles.pb3]}
+                key="1"
+            >
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    options={selectedTransactionsOptions}
+                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                    isSplitButton={false}
+                    shouldAlwaysShowDropdownMenu
+                    wrapperStyle={styles.w100}
+                />
+            </View>
+        ),
+        shouldShowNextStep && !!optimisticNextStep?.message?.length && (
+            <MoneyReportHeaderStatusBar
+                nextStep={optimisticNextStep}
+                key="2"
+            />
+        ),
+        shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton key="3" />,
+        !!statusBarProps && (
+            <MoneyRequestHeaderStatusBar
+                icon={statusBarProps.icon}
+                description={statusBarProps.description}
+                key="4"
+            />
+        ),
+    ];
+    const moreContent = moreContentUnfiltered.filter(Boolean);
+    const isMoreContentShown = moreContent.length > 0;
+    const shouldAddGapToContents = moreContent.length > 1;
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -996,30 +1027,7 @@ function MoneyReportHeader({
                     {!!applicableSecondaryActions.length && KYCMoreDropdown}
                 </View>
             )}
-            {isMoreContentShown && (
-                <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
-                    {shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
-                        <View style={[styles.dFlex, styles.w100, styles.pb3]}>
-                            <ButtonWithDropdownMenu
-                                onPress={() => null}
-                                options={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                isSplitButton={false}
-                                shouldAlwaysShowDropdownMenu
-                                wrapperStyle={styles.w100}
-                            />
-                        </View>
-                    )}
-                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
-                    {!!statusBarProps && (
-                        <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
-                            description={statusBarProps.description}
-                        />
-                    )}
-                </View>
-            )}
+            {isMoreContentShown && <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>{moreContent}</View>}
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
