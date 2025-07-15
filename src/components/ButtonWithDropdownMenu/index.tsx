@@ -114,10 +114,10 @@ function ButtonWithDropdownMenu<IValueType>({
                 option.onSelected();
             } else {
                 onOptionSelected?.(option);
+                onPress(event, option.value);
             }
-
+            
             onSubItemSelected?.(option, 0, event);
-            onPress(event, option.value);
         },
         [options, onPress, onOptionSelected, onSubItemSelected],
     );

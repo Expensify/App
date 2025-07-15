@@ -47,7 +47,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
         expect(mockOnSelected).toHaveBeenCalled();
         expect(mockOnOptionSelected).not.toHaveBeenCalled(); // onSelected takes precedence
         expect(mockOnSubItemSelected).toHaveBeenCalledWith(expect.objectContaining(option), 0, undefined);
-        expect(mockOnPress).toHaveBeenCalledWith(undefined, 'test');
+        expect(mockOnPress).not.toHaveBeenCalled(); // onPress should not be called when onSelected exists to prevent double execution
     });
 
     it('renders the icon from the option along with the text', () => {
