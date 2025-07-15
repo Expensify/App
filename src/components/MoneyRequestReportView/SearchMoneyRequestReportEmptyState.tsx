@@ -12,12 +12,11 @@ import {startMoneyRequest} from '@userActions/IOU';
 import {openUnreportedExpense} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const minModalHeight = 380;
 
-function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: Policy}) {
+function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: OnyxTypes.Policy}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const reportId = report.reportID;
