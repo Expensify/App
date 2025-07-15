@@ -8,7 +8,7 @@ type TextWithEmojiFragmentProps = {
     style: StyleProp<TextStyle>;
 
     /** Whether the text is alternate text */
-    isAlternateText?: boolean;
+    alignCustomEmoji?: boolean;
 };
 
 export default TextWithEmojiFragmentProps;
