@@ -67,7 +67,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {getLastUsedPaymentMethod} from '@libs/IOUUtils';
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -464,33 +463,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
-
-        Object.values(allReports ?? {})
-            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
-            .forEach((iouReport) => {
-                const lastUsedPaymentMethod = getLastUsedPaymentMethod(iouReport?.policyID);
-
-                if (!lastUsedPaymentMethod || !iouReport?.policyID) {
-                    return;
-                }
-
-                if (lastUsedPaymentMethod?.iou?.name === policyID) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                        value: {
-                            [iouReport?.policyID]: {
-                                iou: {
-                                    name: policyID !== lastUsedPaymentMethod?.iou?.name ? lastUsedPaymentMethod?.iou?.name : '',
-                                },
-                                lastUsed: {
-                                    name: policyID !== lastUsedPaymentMethod?.iou?.name ? lastUsedPaymentMethod?.iou?.name : '',
-                                },
-                            },
-                        },
-                    });
-                }
-            });
 
         if (report?.iouReportID) {
             const reportTransactions = ReportUtils.getReportTransactions(report.iouReportID);
@@ -2199,34 +2171,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
 
     if (optimisticCategoriesData.successData) {
         successData.push(...optimisticCategoriesData.successData);
-    }
-
-    if (getAdminPolicies().length === 0) {
-        Object.values(allReports ?? {})
-            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
-            .forEach((iouReport) => {
-                const lastUsedPaymentMethod = getLastUsedPaymentMethod(iouReport?.policyID);
-
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
-                    return;
-                }
-
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                    value: {
-                        [iouReport?.policyID]: {
-                            iou: {
-                                name: policyID,
-                            },
-                            lastUsed: {
-                                name: policyID,
-                            },
-                        },
-                    },
-                });
-            });
     }
 
     // We need to clone the file to prevent non-indexable errors.
