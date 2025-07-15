@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import RecordTroubleshootDataToolMenu from './RecordTroubleshootDataToolMenu';
+import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';
 import TestToolMenu from './TestToolMenu';
 import TestToolRow from './TestToolRow';
@@ -31,32 +32,33 @@ function TestToolsModalPage() {
     const maxHeight = windowHeight;
 
     return (
-        <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer]}>
-            <ScrollView
-                style={[styles.flex1, styles.flexGrow1, styles.ph5]}
-                addBottomSafeAreaPadding
-            >
-                <Text
-                    style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
-                    numberOfLines={1}
-                >
-                    {translate('initialSettingsPage.troubleshoot.releaseOptions')}
-                </Text>
-                <RecordTroubleshootDataToolMenu />
-                {!!shouldStoreLogs && (
-                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
-                        <Button
-                            small
-                            text={translate('initialSettingsPage.debugConsole.viewConsole')}
-                            onPress={() => {
-                                Navigation.navigate(route);
-                            }}
-                        />
-                    </TestToolRow>
-                )}
-                <TestToolMenu />
-            </ScrollView>
-        </View>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, safeAreaPaddingBottomStyle]}>
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, styles.ph5]}>
+                        <Text
+                            style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
+                            numberOfLines={1}
+                        >
+                            {translate('initialSettingsPage.troubleshoot.releaseOptions')}
+                        </Text>
+                        <RecordTroubleshootDataToolMenu />
+                        {!!shouldStoreLogs && (
+                            <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
+                                <Button
+                                    small
+                                    text={translate('initialSettingsPage.debugConsole.viewConsole')}
+                                    onPress={() => {
+                                        Navigation.navigate(route);
+                                    }}
+                                />
+                            </TestToolRow>
+                        )}
+                        <TestToolMenu />
+                    </ScrollView>
+                </View>
+            )}
+        </SafeAreaConsumer>
     );
 }
 
