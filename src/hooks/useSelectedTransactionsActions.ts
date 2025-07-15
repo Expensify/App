@@ -63,7 +63,7 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
-    
+
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
     if (isTrackExpenseThread) {

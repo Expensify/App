@@ -3579,7 +3579,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, );
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {});
             }
             await waitForBatchedUpdates();
 
@@ -3653,7 +3653,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, );
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {});
             }
             await waitForBatchedUpdates();
 
@@ -3804,7 +3804,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, );
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {});
             }
             await waitForBatchedUpdates();
 
@@ -3895,7 +3895,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, );
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {});
             }
             await waitForBatchedUpdates();
 
