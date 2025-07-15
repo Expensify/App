@@ -169,14 +169,14 @@ function AnimatedCollapsible({
                 {expandButton}
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
-                <View style={[styles.pv2, styles.ph3]}>
-                    <View style={[styles.borderBottom]} />
-                </View>
                 <View
                     onLayout={(e) => {
                         height.set(e.nativeEvent.layout.height);
                     }}
                 >
+                    <View style={[styles.pv2, styles.ph3]}>
+                        <View style={[styles.borderBottom]} />
+                    </View>
                     {children}
                 </View>
             </Animated.View>
