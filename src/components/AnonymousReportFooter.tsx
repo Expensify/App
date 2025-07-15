@@ -24,7 +24,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 
     return (
         <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
