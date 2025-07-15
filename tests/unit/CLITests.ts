@@ -9,6 +9,7 @@ describe('CLI', () => {
     let mockExit: jest.SpyInstance;
     let mockLog: jest.SpyInstance;
     let mockError: jest.SpyInstance;
+    let mockWarn: jest.SpyInstance;
 
     beforeEach(() => {
         process.argv = ['ts-node', 'script.ts'];
@@ -17,6 +18,7 @@ describe('CLI', () => {
         });
         mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
         mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+        mockWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -321,5 +323,82 @@ describe('CLI', () => {
                 }),
         ).toThrow();
         expect(mockError).toHaveBeenCalledWith('Missing required named argument --compareRef');
+    });
+
+    it('warns when superseded arg is provided alongside superseding arg', () => {
+        process.argv.push('--paths', 'common.save', '--compare-ref', 'main');
+        /* eslint-disable @typescript-eslint/naming-convention */
+        const cli = new CLI({
+            namedArgs: {
+                'compare-ref': {
+                    description: 'Compare reference',
+                    default: 'main',
+                },
+                paths: {
+                    description: 'Specific paths to process',
+                    parse: (val) => val.split(','),
+                    supersedes: ['compare-ref'],
+                    required: false,
+                },
+            },
+        });
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        expect(mockWarn).toHaveBeenCalledWith('⚠️  Warning: --compare-ref is superseded by --paths and will be ignored.');
+        expect(cli.namedArgs.paths).toEqual(['common.save']);
+        expect(cli.namedArgs['compare-ref']).toBeUndefined();
+    });
+
+    it('warns for multiple superseded args when provided', () => {
+        process.argv.push('--priority', 'high', '--low-priority', 'disabled', '--medium-priority', 'enabled');
+        /* eslint-disable @typescript-eslint/naming-convention */
+        const cli = new CLI({
+            namedArgs: {
+                'low-priority': {
+                    description: 'Low priority mode',
+                    default: 'enabled',
+                },
+                'medium-priority': {
+                    description: 'Medium priority mode',
+                    default: 'enabled',
+                },
+                priority: {
+                    description: 'Priority level',
+                    supersedes: ['low-priority', 'medium-priority'],
+                    required: false,
+                },
+            },
+        });
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        expect(mockWarn).toHaveBeenCalledWith('⚠️  Warning: --low-priority is superseded by --priority and will be ignored.');
+        expect(mockWarn).toHaveBeenCalledWith('⚠️  Warning: --medium-priority is superseded by --priority and will be ignored.');
+        expect(cli.namedArgs.priority).toBe('high');
+        expect(cli.namedArgs['low-priority']).toBeUndefined();
+        expect(cli.namedArgs['medium-priority']).toBeUndefined();
+    });
+
+    it('does not warn when only superseding arg is provided', () => {
+        process.argv.push('--paths', 'common.save');
+        /* eslint-disable @typescript-eslint/naming-convention */
+        const cli = new CLI({
+            namedArgs: {
+                'compare-ref': {
+                    description: 'Compare reference',
+                    default: 'main',
+                },
+                paths: {
+                    description: 'Specific paths to process',
+                    parse: (val) => val.split(','),
+                    supersedes: ['compare-ref'],
+                    required: false,
+                },
+            },
+        });
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        expect(mockWarn).not.toHaveBeenCalled();
+        expect(cli.namedArgs.paths).toEqual(['common.save']);
+        expect(cli.namedArgs['compare-ref']).toBeUndefined();
     });
 });

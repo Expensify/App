@@ -218,25 +218,30 @@ class CLI<TConfig extends CLIConfig> {
                 if (providedNamedArgs.has(name) && spec.supersedes) {
                     for (const supersededArg of spec.supersedes) {
                         supersededArgs.add(supersededArg);
+                        if (providedNamedArgs.has(supersededArg)) {
+                            console.warn(`⚠️  Warning: --${supersededArg} is superseded by --${name} and will be ignored.`);
+                        }
                     }
                 }
             }
 
             // Validate that all required args are present, assign defaults where values are not parsed
             for (const [name, spec] of Object.entries(config.namedArgs ?? {})) {
-                if (!(name in parsedNamedArgs)) {
+                if (name in parsedNamedArgs) {
                     if (supersededArgs.has(name)) {
-                        // This arg was superseded, so don't require it and don't assign a default
-                        continue;
-                    } else if (spec.default !== undefined) {
-                        parsedNamedArgs[name as keyof typeof parsedNamedArgs] = spec.default as ValueOf<typeof parsedNamedArgs>;
-                    } else if (spec.required === false) {
-                        // Explicitly marked as optional, leave undefined
-                        continue;
-                    } else {
-                        // Arguments without defaults are required by default (unless explicitly marked as optional)
-                        throw new Error(`Missing required named argument --${name}`);
+                        parsedNamedArgs[name as keyof typeof parsedNamedArgs] = undefined as ValueOf<typeof parsedNamedArgs>;
                     }
+                } else if (supersededArgs.has(name)) {
+                    // This arg was superseded, so don't require it and don't assign a default
+                    continue;
+                } else if (spec.default !== undefined) {
+                    parsedNamedArgs[name as keyof typeof parsedNamedArgs] = spec.default as ValueOf<typeof parsedNamedArgs>;
+                } else if (spec.required === false) {
+                    // Explicitly marked as optional, leave undefined
+                    continue;
+                } else {
+                    // Arguments without defaults are required by default (unless explicitly marked as optional)
+                    throw new Error(`Missing required named argument --${name}`);
                 }
             }
 
