@@ -62,6 +62,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
     const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
+    console.log('over here', shouldShowRemoveFromReport);
 
     const expenseReports = useMemo(
         () =>
@@ -105,6 +106,19 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     };
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
+    const removeFromReportContent = useMemo(() => {
+        if (!shouldShowRemoveFromReport) {
+            return undefined;
+        }
+        return (
+            <MenuItem
+                onPress={removeFromReport}
+                title={translate('iou.removeFromReport')}
+                description={translate('iou.moveToPersonalSpace')}
+                icon={Expensicons.Close}
+            />
+        );
+    }, [shouldShowRemoveFromReport, translate, removeFromReport]);
 
     return (
         <StepScreenWrapper
@@ -113,7 +127,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             shouldShowWrapper
             testID="IOURequestEditReportCommon"
             includeSafeAreaPaddingBottom
-            shouldShowNotFoundPage={expenseReports.length === 0}
+            shouldShowNotFoundPage={expenseReports.length === 0 && !shouldShowRemoveFromReport}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}
@@ -125,16 +139,8 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
-                listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={Expensicons.Close}
-                        />
-                    ) : undefined
-                }
+                listFooterContent={removeFromReportContent}
+                listEmptyContent={removeFromReportContent}
             />
         </StepScreenWrapper>
     );
