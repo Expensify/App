@@ -179,6 +179,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getTodoSearchQuery} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -11548,22 +11549,8 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         return false;
     }
 
-    const submitQueryString = buildQueryStringFromFilterFormValues({
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-        from: [`${currentUserPersonalDetails?.accountID}`],
-    });
-
-    const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
-
-    const approveQueryString = buildQueryStringFromFilterFormValues({
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-        to: [`${currentUserPersonalDetails?.accountID}`],
-    });
-    const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
+    const submitQueryJSON = buildSearchQueryJSON(getTodoSearchQuery('submit', currentUserPersonalDetails?.accountID));
+    const approveQueryJSON = buildSearchQueryJSON(getTodoSearchQuery('approve', currentUserPersonalDetails?.accountID));
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);

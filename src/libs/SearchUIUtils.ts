@@ -1264,6 +1264,43 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+function getTodoSearchQuery(action: 'submit' | 'approve' | 'pay' | 'export', userAccountID: number | undefined) {
+    switch (action) {
+        case 'submit':
+            return buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                from: [`${userAccountID}`],
+            });
+        case 'approve':
+            return buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                to: [`${userAccountID}`],
+            });
+        case 'pay':
+            return buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                payer: userAccountID?.toString(),
+            });
+        case 'export':
+            return buildQueryStringFromFilterFormValues({
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
+                exporter: [`${userAccountID}`],
+                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+            });
+
+        default:
+            return '';
+    }
+}
+
 function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
     const email = session?.email;
 
@@ -1418,13 +1455,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                             : [],
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${session.accountID}`],
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('submit', session?.accountID);
                 },
             });
         }
@@ -1440,13 +1471,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${session.accountID}`],
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('approve', session?.accountID);
                 },
             });
         }
@@ -1462,14 +1487,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: session.accountID?.toString(),
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('pay', session?.accountID);
                 },
             });
         }
@@ -1485,13 +1503,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${session.accountID}`],
-                        exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('export', session?.accountID);
                 },
             });
         }
@@ -1732,5 +1744,6 @@ export {
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
+    getTodoSearchQuery,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};
