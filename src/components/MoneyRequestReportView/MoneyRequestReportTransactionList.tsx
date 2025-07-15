@@ -46,8 +46,6 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
 
-    policy?: OnyxTypes.Policy;
-
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
@@ -113,7 +111,6 @@ function MoneyRequestReportTransactionList({
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
-    policy,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -203,7 +200,9 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}),
+                );
             });
         },
         [reportActions, sortedTransactions],
@@ -368,10 +367,7 @@ function MoneyRequestReportTransactionList({
                     </Modal>
                 </>
             ) : (
-                <SearchMoneyRequestReportEmptyState
-                    reportId={report.reportID}
-                    policy={policy}
-                />
+                <SearchMoneyRequestReportEmptyState />
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
                 <Animated.Text
