@@ -958,15 +958,6 @@ const styles = (theme: ThemeColors) =>
                 },
             }) satisfies CustomPickerStyle,
 
-        badge: {
-            backgroundColor: theme.border,
-            borderRadius: 14,
-            height: variables.iconSizeNormal,
-            flexDirection: 'row',
-            paddingHorizontal: 7,
-            alignItems: 'center',
-        },
-
         defaultBadge: {
             backgroundColor: theme.transparent,
             borderWidth: 1,

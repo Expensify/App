@@ -12,9 +12,6 @@ type StyleDefinition = {
 
 // Static patterns and constants - created once
 const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx,js,jsx}';
-const VALID_IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
-const SPREAD_PROPERTY_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
-const SIMPLE_SPREAD_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\b(?!\s*\.)/g;
 const STYLE_KEY_SKIP_PATTERNS = ['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet'];
 
 class ComprehensiveStylesFinder {
@@ -96,7 +93,7 @@ class ComprehensiveStylesFinder {
 
                             // After processing style definitions, check for spread patterns within this styles file
                             const fileContent = sourceFile.getFullText();
-                            this.checkSpreadPatternsInStylesFile(fileContent);
+                            this.checkSpreadPatternsInStylesFile(fileContent, file);
                         }
                     }
                     return; // Don't continue traversing for styles function
@@ -249,11 +246,6 @@ class ComprehensiveStylesFinder {
             return false;
         }
 
-        // Must be a valid identifier
-        if (!VALID_IDENTIFIER_PATTERN.test(key)) {
-            return false;
-        }
-
         return true;
     }
 
@@ -322,7 +314,7 @@ class ComprehensiveStylesFinder {
             // Check individual style usage patterns - iterate over current definitions
             const keysToCheck = Array.from(this.styleDefinitions.keys());
             for (const key of keysToCheck) {
-                if (this.isStyleUsedInContent(key, cleanContent)) {
+                if (this.isStyleUsedInContent(key, cleanContent, file)) {
                     // Remove the key from definitions since it's used
                     this.styleDefinitions.delete(key);
                 }
@@ -332,96 +324,195 @@ class ComprehensiveStylesFinder {
             console.warn(`Warning: Could not parse ${file} with AST, using original content`);
             const keysToCheck = Array.from(this.styleDefinitions.keys());
             for (const key of keysToCheck) {
-                if (this.isStyleUsedInContent(key, content)) {
+                if (this.isStyleUsedInContent(key, content, file)) {
                     this.styleDefinitions.delete(key);
                 }
             }
         }
     }
 
-    private checkSpreadPatternsInStylesFile(content: string): void {
-        // Look for specific property spreads like ...positioning.pFixed
-        const specificMatches = content.matchAll(SPREAD_PROPERTY_PATTERN);
-        for (const match of specificMatches) {
-            const objectName = match[1]; // e.g., "text", "positioning", "colors"
-            const propertyName = match[2]; // e.g., "textMatch", "pFixed", "primary"
+    private checkSpreadPatternsInStylesFile(content: string, file: string): void {
+        try {
+            const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
 
-            // Mark BOTH the object name and property name as used by removing from definitions
-            if (this.styleDefinitions.has(objectName)) {
-                this.styleDefinitions.delete(objectName);
-            }
+            const visit = (node: ts.Node) => {
+                // Handle object spread assignments (in object literals)
+                if (ts.isSpreadAssignment(node)) {
+                    this.handleSpreadExpression(node.expression);
+                }
 
-            if (this.styleDefinitions.has(propertyName)) {
-                this.styleDefinitions.delete(propertyName);
-            }
-        }
+                // Handle array/function spread elements
+                else if (ts.isSpreadElement(node)) {
+                    this.handleSpreadExpression(node.expression);
+                }
 
-        // Look for simple spread patterns like ...baseStyle (excludes property spreads via negative lookahead)
-        const simpleMatches = content.matchAll(SIMPLE_SPREAD_PATTERN);
-        for (const match of simpleMatches) {
-            const objectName = match[1]; // e.g., "baseStyle"
+                ts.forEachChild(node, visit);
+            };
 
-            // Mark the object name as used by removing from definitions
-            if (this.styleDefinitions.has(objectName)) {
-                this.styleDefinitions.delete(objectName);
-            }
+            visit(sourceFile);
+        } catch (error) {
+            console.warn(`Warning: Could not parse ${file} for spread detection:`, error);
         }
     }
 
-    private isStyleUsedInContent(key: string, content: string): boolean {
+    private handleSpreadExpression(expression: ts.Expression): void {
+        // Simple spreads like ...baseStyle
+        if (ts.isIdentifier(expression)) {
+            const objectName = expression.text;
+            if (this.styleDefinitions.has(objectName)) {
+                this.styleDefinitions.delete(objectName);
+            }
+        }
+
+        // Property access spreads like ...positioning.pFixed
+        else if (ts.isPropertyAccessExpression(expression)) {
+            if (ts.isIdentifier(expression.expression) && ts.isIdentifier(expression.name)) {
+                const objectName = expression.expression.text;
+                const propertyName = expression.name.text;
+
+                // Mark BOTH the object name and property name as used
+                if (this.styleDefinitions.has(objectName)) {
+                    this.styleDefinitions.delete(objectName);
+                }
+                if (this.styleDefinitions.has(propertyName)) {
+                    this.styleDefinitions.delete(propertyName);
+                }
+            }
+            // For complex property access (e.g., ...theme.styles.button)
+            else {
+                this.extractIdentifiersFromExpression(expression);
+            }
+        }
+
+        // Element access spreads like ...styles['key']
+        else if (ts.isElementAccessExpression(expression)) {
+            if (ts.isIdentifier(expression.expression)) {
+                const objectName = expression.expression.text;
+                if (this.styleDefinitions.has(objectName)) {
+                    this.styleDefinitions.delete(objectName);
+                }
+            }
+            // Also check if the key is a string literal
+            if (ts.isStringLiteral(expression.argumentExpression)) {
+                const key = expression.argumentExpression.text;
+                if (this.styleDefinitions.has(key)) {
+                    this.styleDefinitions.delete(key);
+                }
+            }
+        }
+
+        // For all other complex expressions, extract any identifiers
+        else {
+            this.extractIdentifiersFromExpression(expression);
+        }
+    }
+
+    private extractIdentifiersFromExpression(expression: ts.Expression): void {
+        const visit = (node: ts.Node) => {
+            if (ts.isIdentifier(node)) {
+                const name = node.text;
+                if (this.styleDefinitions.has(name)) {
+                    this.styleDefinitions.delete(name);
+                }
+            }
+            ts.forEachChild(node, visit);
+        };
+
+        visit(expression);
+    }
+
+    private isStyleUsedInContent(key: string, content: string, file: string): boolean {
         // Fast check: if the key doesn't appear at all in the content, it's not used
         if (!content.includes(key)) {
             return false;
         }
 
-        // Most common usage patterns - check these first for performance
-        const commonPatterns = [
-            // Direct property access (90% of cases)
-            new RegExp(`\\w+\\.${key}\\b`, 'g'), // styles.key, theme.key, etc.
+        try {
+            const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
 
-            // Destructuring (common in React)
-            new RegExp(`\\{[^}]*\\b${key}\\b[^}]*\\}`, 'g'), // {key} or {other, key}
+            let found = false;
 
-            // Object key access
-            new RegExp(`\\[['"\`]${key}['"\`]\\]`, 'g'), // ['key'] or ["key"]
+            const visit = (node: ts.Node) => {
+                if (found) {
+                    return; // Early termination for performance
+                }
 
-            // Object property definition
-            new RegExp(`\\b${key}\\s*:`, 'g'), // key: value
+                // Property access: obj.key, styles.key, theme.key
+                if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.name) && node.name.text === key) {
+                    found = true;
+                    return;
+                }
 
-            // Import/export
-            new RegExp(`(import|export)\\s+.*\\b${key}\\b`, 'g'),
-        ];
+                // Identifier: key (in destructuring, assignments, etc.)
+                if (ts.isIdentifier(node) && node.text === key) {
+                    // Exclude property names in object literals (e.g., {key: value} where key is the property name)
+                    const parent = node.parent;
+                    if (ts.isPropertyAssignment(parent) && parent.name === node) {
+                        // This is a property name, not a usage
+                        ts.forEachChild(node, visit);
+                        return;
+                    }
+                    if (ts.isMethodDeclaration(parent) && parent.name === node) {
+                        // This is a method name, not a usage
+                        ts.forEachChild(node, visit);
+                        return;
+                    }
+                    if (ts.isGetAccessorDeclaration(parent) && parent.name === node) {
+                        // This is a getter name, not a usage
+                        ts.forEachChild(node, visit);
+                        return;
+                    }
+                    if (ts.isSetAccessorDeclaration(parent) && parent.name === node) {
+                        // This is a setter name, not a usage
+                        ts.forEachChild(node, visit);
+                        return;
+                    }
 
-        // Test common patterns first
-        for (const pattern of commonPatterns) {
-            if (pattern.test(content)) {
-                return true;
-            }
+                    found = true;
+                    return;
+                }
+
+                // Element access: obj["key"], obj['key']
+                if (ts.isElementAccessExpression(node) && ts.isStringLiteral(node.argumentExpression) && node.argumentExpression.text === key) {
+                    found = true;
+                    return;
+                }
+
+                // Template literal usage: `${key}` or `text-${key}-more`
+                if (ts.isTemplateExpression(node)) {
+                    for (const span of node.templateSpans) {
+                        if (ts.isIdentifier(span.expression) && span.expression.text === key) {
+                            found = true;
+                            return;
+                        }
+                        // Also check for property access in template spans
+                        if (ts.isPropertyAccessExpression(span.expression) && ts.isIdentifier(span.expression.name) && span.expression.name.text === key) {
+                            found = true;
+                            return;
+                        }
+                    }
+                }
+
+                // Tagged template literals: css`${key}`
+                if (ts.isTaggedTemplateExpression(node) && ts.isTemplateExpression(node.template)) {
+                    for (const span of node.template.templateSpans) {
+                        if (ts.isIdentifier(span.expression) && span.expression.text === key) {
+                            found = true;
+                            return;
+                        }
+                    }
+                }
+
+                ts.forEachChild(node, visit);
+            };
+
+            visit(sourceFile);
+            return found;
+        } catch (error) {
+            // Fallback to simple text search if AST parsing fails
+            console.warn(`Warning: Could not parse ${file} for usage detection, falling back to text search`);
+            return content.includes(key);
         }
-
-        // Less common patterns (only check if not found above)
-        const rarePatterns = [
-            // Function calls
-            new RegExp(`\\b${key}\\s*\\(`, 'g'), // key(...)
-
-            // Assignments and conditionals
-            new RegExp(`[=?&|]\\s*${key}\\b`, 'g'), // = key, ? key, && key, || key
-            new RegExp(`\\b${key}\\s*[?&|=]`, 'g'), // key =, key ?, key &&, key ||
-
-            // Template literals
-            new RegExp(`\\\`[^\\\`]*\\$\\{[^}]*${key}[^}]*\\}[^\\\`]*\\\``, 'g'),
-
-            // Array/function parameters
-            new RegExp(`[\\[\\(,]\\s*${key}\\s*[\\]\\),]`, 'g'),
-        ];
-
-        for (const pattern of rarePatterns) {
-            if (pattern.test(content)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private getUnusedStyles(): StyleDefinition[] {
