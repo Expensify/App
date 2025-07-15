@@ -87,10 +87,7 @@ function usePreloadFullScreenNavigators() {
 
     useFocusEffect(
         useCallback(() => {
-            if (hasPreloadedRef.current) {
-                return;
-            }
-            if (isAnonymousUser() || !isAuthenticated) {
+            if (isAnonymousUser() || !isAuthenticated || hasPreloadedRef.current) {
                 return;
             }
             hasPreloadedRef.current = true;
