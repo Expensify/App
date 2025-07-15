@@ -585,6 +585,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
@@ -1767,6 +1768,8 @@ type ReportsSplitNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
+        parentReportID?: string;
+        parentReportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
