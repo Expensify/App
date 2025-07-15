@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -135,6 +136,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isBetaEnabled} = usePermissions();
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -376,6 +378,19 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 </View>
                             </OfflineWithFeedback>
                         )}
+
+                        {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                            <MenuItemWithTopDescription
+                                title={policy?.customRules ?? ''}
+                                description={translate('workspace.editor.policy')}
+                                shouldShowRightIcon={!readOnly}
+                                interactive={!readOnly}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                shouldRenderAsHTML
+                            />
+                        ) : null}
+
                         {!readOnly && (
                             <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                 {isPolicyAdmin && (
