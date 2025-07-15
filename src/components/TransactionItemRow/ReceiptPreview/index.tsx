@@ -3,20 +3,24 @@ import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import BaseImage from '@components/Image/BaseImage';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isDistanceRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
+import type {Transaction} from '@src/types/onyx';
 
 const showPreviewDelay = 270;
 const animationDuration = 200;
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
 
-type ReceiptPreviewProps = {source: string; hovered: boolean; isEReceipt: boolean; transactionID: string};
+type ReceiptPreviewProps = {source: string; hovered: boolean; isEReceipt: boolean; transactionItem: Transaction};
 
-function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''}: ReceiptPreviewProps) {
+function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
+    const isDistanceEReceipt = isDistanceRequest(transactionItem);
     const [shouldShow, setShouldShow] = useState(false);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
     const styles = useThemeStyles();
@@ -67,11 +71,12 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
         };
     }, [hovered]);
 
-    if (shouldUseNarrowLayout || !shouldShow || (!source && !isEReceipt)) {
+    if (shouldUseNarrowLayout || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt)) {
         return null;
     }
 
-    const shouldShowEReceipt = !source && isEReceipt;
+    const shouldShowImage = source && !(isEReceipt || isDistanceEReceipt);
+    const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt;
 
     return ReactDOM.createPortal(
         <Animated.View
@@ -79,20 +84,20 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
             exiting={FadeOut.duration(animationDuration)}
             style={[styles.receiptPreview, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentStart]}
         >
-            {shouldShowEReceipt ? (
-                <View
-                    onLayout={onLayout}
-                    style={[styles.w100, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
-                >
-                    <EReceipt transactionID={transactionID} />
-                </View>
-            ) : (
+            {shouldShowImage ? (
                 <View style={[styles.w100]}>
                     <BaseImage
                         source={{uri: source}}
                         style={[styles.w100, {aspectRatio: imageAspectRatio}]}
                         onLoad={handleLoad}
                     />
+                </View>
+            ) : (
+                <View
+                    onLayout={onLayout}
+                    style={[styles.w100, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
+                >
+                    {shouldShowDistanceEReceipt ? <DistanceEReceipt transaction={transactionItem} /> : <EReceipt transactionID={transactionItem.transactionID} />}
                 </View>
             )}
         </Animated.View>,

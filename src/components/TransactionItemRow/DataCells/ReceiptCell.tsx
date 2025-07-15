@@ -23,7 +23,6 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
     const {hovered, bind} = useHover();
     const isEReceipt = transactionItem.hasEReceipt && !hasReceiptSource(transactionItem);
     let source = transactionItem?.receipt?.source ?? '';
-
     if (source) {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
@@ -61,7 +60,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 source={source}
                 hovered={hovered}
                 isEReceipt={!!isEReceipt}
-                transactionID={transactionItem.transactionID}
+                transactionItem={transactionItem}
             />
         </View>
     );
