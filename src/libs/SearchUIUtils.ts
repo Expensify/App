@@ -1532,7 +1532,7 @@ function createTypeMenuSections(
 
         // The default feed must be based on an eligible policy
         if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
-            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.toSorted((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
+            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
         }
 
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
