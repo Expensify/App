@@ -731,6 +731,9 @@ function ReportActionsList({
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     initialScrollKey={reportActionID}
+                    onContentSizeChange={() => {
+                        trackVerticalScrolling(undefined);
+                    }}
                 />
             </View>
         </>
