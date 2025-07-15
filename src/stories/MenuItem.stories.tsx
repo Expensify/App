@@ -1,6 +1,6 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
-import Chase from '@assets/images/bankicons/chase.svg';
+import Chase from '@assets/images/bank-icons/chase.svg';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import variables from '@styles/variables';

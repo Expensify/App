@@ -11,10 +11,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -33,6 +35,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
@@ -50,7 +53,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
     icon: AvatarSource | IconType[];
 };
@@ -83,6 +86,9 @@ type MenuItemBaseProps = {
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles to apply on the title wrapper */
+    titleWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Any additional styles to apply on the outer element */
     containerStyle?: StyleProp<ViewStyle>;
@@ -372,6 +378,9 @@ type MenuItemBaseProps = {
 
     /** The value to copy on secondary interaction */
     copyValue?: string;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -391,6 +400,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        titleWrapperStyle,
         outerWrapperStyle,
         containerStyle,
         titleStyle,
@@ -491,6 +501,7 @@ function MenuItem(
         pressableTestID,
         shouldTeleportPortalToModalLayer,
         copyValue,
+        plaidUrl,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -502,10 +513,12 @@ function MenuItem(
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
 
+    const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const fallbackAvatarSize = isCompact ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const firstRightIcon = floatRightAvatars.at(0);
+
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -590,6 +603,18 @@ function MenuItem(
             );
         }
 
+        const titleContainsTextAndCustomEmoji = containsCustomEmoji(title ?? '') && !containsOnlyCustomEmoji(title ?? '');
+
+        if (title && titleContainsTextAndCustomEmoji) {
+            return (
+                <TextWithEmojiFragment
+                    message={convertToLTR(title) || ''}
+                    style={combinedTitleTextStyle}
+                    alignCustomEmoji
+                />
+            );
+        }
+
         return title ? convertToLTR(title) : '';
     };
 
@@ -663,6 +688,8 @@ function MenuItem(
                                         containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
+                                        isCompact && styles.alignItemsCenter,
+                                        isCompact && styles.optionRowCompact,
                                         !shouldRemoveBackground &&
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
@@ -741,12 +768,12 @@ function MenuItem(
                                                                         fill={
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : iconFill ??
+                                                                                : (iconFill ??
                                                                                   StyleUtils.getIconFillColor(
                                                                                       getButtonState(focused || isHovered, pressed, success, disabled, interactive),
                                                                                       true,
                                                                                       isPaneMenu,
-                                                                                  )
+                                                                                  ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -777,6 +804,7 @@ function MenuItem(
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
                                                         </View>
                                                     )}
                                                     {!!secondaryIcon && (
@@ -797,7 +825,7 @@ function MenuItem(
                                                         style={[
                                                             styles.justifyContentCenter,
                                                             styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
+                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
                                                             titleContainerStyle,
                                                         ]}
                                                     >
@@ -810,7 +838,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />
@@ -869,7 +897,7 @@ function MenuItem(
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
+                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
@@ -919,7 +947,11 @@ function MenuItem(
                                                 )}
                                                 {shouldShowRightIcon && (
                                                     <View
-                                                        style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}
+                                                        style={[
+                                                            styles.pointerEventsAuto,
+                                                            StyleUtils.getMenuItemIconStyle(isCompact),
+                                                            disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                        ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}

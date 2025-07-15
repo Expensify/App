@@ -48,6 +48,21 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            rbr: HTMLElementModel.fromCustomModel({
+                tagName: 'rbr',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.formError, ...styles.mb0};
+                    }
+                    return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
+            'muted-link': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-link',
+                mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -79,6 +94,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     }
                     return {whiteSpace: 'normal', ...styles.onlyEmojisText};
                 },
+                contentModel: HTMLContentModel.block,
+            }),
+            tooltip: HTMLElementModel.fromCustomModel({
+                tagName: 'tooltip',
+                mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
@@ -129,29 +149,32 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
         }),
         [
+            styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
             styles.colorMuted,
+            styles.mutedNormalTextLabel,
+            styles.productTrainingTooltipText,
             styles.textLabelSupporting,
             styles.lh16,
             styles.textSupporting,
             styles.textLineThrough,
-            styles.mutedNormalTextLabel,
+            styles.textMicro,
             styles.onlyEmojisText,
-            styles.onlyEmojisTextLineHeight,
-            styles.taskTitleMenuItem,
+            styles.strong,
             styles.taskTitleMenuItemItalic,
             styles.em,
-            styles.strong,
             styles.h1,
             styles.blockquote,
+            styles.onlyEmojisTextLineHeight,
+            styles.subTextFileUpload,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps: TextProps = useMemo(() => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [textSelectable]);
-    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}

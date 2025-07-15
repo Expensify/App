@@ -1,34 +1,39 @@
 ---
 title: Connect to Xero
-description: Integrate Xero with Expensify
-keywords: [New Expensify, Xero, set up Xero, connect to Xero]
+description: Learn how to integrate Xero with Expensify to sync expenses and accounting data.
+keywords: [New Expensify, Xero integration, connect Xero, accounting sync, Xero setup]
 order: 1
 ---
 
 <div id="new-expensify" markdown="1">
 
-Connecting Expensify to Xero lets you sync expenses and financial data automatically between the two platforms. This guide walks you through everything you need to get started.
-
-# Requirements to connect Expensify to Xero
-
-- You must log in to Xero as an administrator.
-- Your Expensify Workspace must be on the **Collect** or **Control** plan.
-- Two-factor authentication must be enabled in Expensify — [learn how to enable it here](https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication).
+Connect your Workspace to Xero to sync expense data directly into your accounting system. This article walks you through setup and disconnection steps.
 
 ---
 
-# Connect Expensify to Xero
+# Requirements to connect to Xero
 
-To link your Expensify Workspace to Xero:
+Make sure the following requirements are met before you start:
 
-1. Click your **Settings** icon in the bottom-left menu.
-2. Scroll down and select **Workspaces**.
-3. Choose the Workspace you want to connect.
-4. Click **More features** in the left-hand menu.
-5. Scroll to the **Integrate** section and toggle on **Accounting**.
-6. Click **Accounting** in the left-hand menu.
-7. Click **Set up** next to Xero.
-8. Enter your Xero login credentials to complete the connection and import your settings.
+- You’re logged into Xero as an administrator
+- Your Workspace is on the **Collect** or **Control** plan
+- Two-factor authentication is enabled in Expensify — [learn how to enable it](https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication)
+
+---
+
+# How to connect Expensify to Xero
+
+To connect your Workspace:
+
+1. From the left-hand menu, select **Settings**.
+2. Choose **Workspaces**, then select your Workspace.
+3. Select **More features** from the Workspace menu.
+4. In the **Integrate** section, toggle on **Accounting**.
+5. Click **Accounting** in the menu.
+6. Click **Set up** next to **Xero**.
+7. Log in to your Xero account to complete the connection.
+
+This will import your Xero settings into Expensify.
 
 ![The toggle location to enable accounting integrations like QuickBooks Online]({{site.url}}/assets/images/ExpensifyHelp-Xero-1.png){:width="100%"}
 
@@ -36,20 +41,17 @@ To link your Expensify Workspace to Xero:
 
 ![The QuickBooks Online Connect button]({{site.url}}/assets/images/ExpensifyHelp-Xero-3.png){:width="100%"}
 
-
 ---
 
 # FAQ
 
 ## How do I disconnect Xero from Expensify?
 
-1. Click your profile image in the bottom-left menu.
-2. Scroll down and select **Workspaces**.
-3. Choose the Workspace connected to Xero.
-4. Click **Accounting** in the left-hand menu.
-5. Click the three-dot menu next to Xero and choose **Disconnect**.
-6. Click **Disconnect** again to confirm.
+1. From the left-hand menu, select **Settings > Workspaces**, then choose your Workspace.
+2. Click **Accounting** in the Workspace menu.
+3. Click the three-dot menu next to **Xero**.
+4. Select **Disconnect**, then click **Disconnect** again to confirm.
 
-Once disconnected, imported options from Xero will no longer appear.
+After disconnecting, data previously imported from Xero will no longer appear in your Workspace.
 
 </div>

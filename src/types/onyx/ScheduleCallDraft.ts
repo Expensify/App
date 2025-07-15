@@ -1,5 +1,5 @@
 /**
- * Schedule a call flow darft
+ * Schedule a call flow draft
  */
 type ScheduleCallDraft = {
     /**

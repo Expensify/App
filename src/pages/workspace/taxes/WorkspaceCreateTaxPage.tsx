@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -113,7 +113,7 @@ function WorkspaceCreateTaxPage({
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
                                     hideCurrencySymbol
-                                    // The default currency uses 2 decimal places, so we substract it
+                                    // The default currency uses 2 decimal places, so we subtract it
                                     extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
                                     // We increase the amount max length to support the extra decimals.
                                     amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}

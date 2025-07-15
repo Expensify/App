@@ -13,7 +13,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-jest.mock('@components/DelegateNoAccessModal');
+jest.mock('@components/DelegateNoAccessModalProvider');
 
 jest.mock('@libs/actions/User', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -24,7 +24,6 @@ jest.mock('@libs/actions/User', () => {
         resetContactMethodValidateCodeSentState: jest.fn(),
     };
 });
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const fakeEmail = 'fake@gmail.com';
 const mockRoute = {

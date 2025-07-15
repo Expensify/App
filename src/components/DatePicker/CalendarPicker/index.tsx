@@ -28,7 +28,7 @@ type CalendarPickerProps = {
     maxDate?: Date;
 
     /** Restrict selection to only specific dates */
-    selectedableDates?: string[];
+    selectableDates?: string[];
 
     /** Day component to render for dates */
     DayComponent?: typeof Day;
@@ -55,13 +55,13 @@ function CalendarPicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
     DayComponent = Day,
-    selectedableDates,
+    selectableDates,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {preferredLocale, translate} = useLocalize();
+    const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
@@ -150,8 +150,8 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.recapitalize(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
+    const monthNames = DateUtils.getMonthNames().map((month) => Str.recapitalize(month));
+    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
@@ -191,6 +191,7 @@ function CalendarPicker({
                     style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}
                     wrapperStyle={[themeStyles.alignItemsCenter]}
                     hoverDimmingValue={1}
+                    disabled={years.length <= 1}
                     testID="currentYearButton"
                     accessibilityLabel={translate('common.currentYear')}
                 >
@@ -201,7 +202,7 @@ function CalendarPicker({
                     >
                         {currentYearView}
                     </Text>
-                    <ArrowIcon />
+                    <ArrowIcon disabled={years.length <= 1} />
                 </PressableWithFeedback>
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd, themeStyles.mrn2]}>
                     <Text
@@ -257,7 +258,7 @@ function CalendarPicker({
                             const currentDate = new Date(currentYearView, currentMonthView, day);
                             const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                            const isSelectable = selectedableDates ? selectedableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
+                            const isSelectable = selectableDates ? selectableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
                             const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                             const handleOnPress = () => {

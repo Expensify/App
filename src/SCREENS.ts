@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -42,6 +43,9 @@ const SCREENS = {
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
+        ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
+        ADVANCED_FILTERS_GROUP_BY_RHP: 'Search_Advanced_Filters_GroupBy_RHP',
+        ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
         ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
         ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
@@ -63,13 +67,13 @@ const SCREENS = {
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         ADVANCED_FILTERS_TITLE_RHP: 'Search_Advanced_Filters_Title_RHP',
         ADVANCED_FILTERS_ASSIGNEE_RHP: 'Search_Advanced_Filters_Assignee_RHP',
-        ADVANCED_FILTERS_CREATED_BY_RHP: 'Search_Advanced_Filters_Created_By_RHP',
         ADVANCED_FILTERS_REIMBURSABLE_RHP: 'Search_Advanced_Filters_Reimbursable_RHP',
         ADVANCED_FILTERS_BILLABLE_RHP: 'Search_Advanced_Filters_Billable_RHP',
         ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -147,6 +151,21 @@ const SCREENS = {
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
             MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
+        LOCK: {
+            LOCK_ACCOUNT: 'Settings_Lock_LockAccount',
+            UNLOCK_ACCOUNT: 'Settings_Lock_UnlockAccount',
+            FAILED_TO_LOCK_ACCOUNT: 'Settings_Lock_FailedToLockAccount',
+        },
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+            SETTINGS_DETAILS: 'Settings_Subscription_Details',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
+            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+        },
     },
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',
@@ -157,9 +176,6 @@ const SCREENS = {
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
-    },
-    LEFT_MODAL: {
-        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -238,6 +254,7 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
+        RECEIPT_VIEW_MODAL: 'Money_Request_Receipt_View_Modal',
         STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
@@ -256,6 +273,8 @@ const SCREENS = {
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
         STEP_REPORT: 'Money_Request_Report',
         EDIT_REPORT: 'Money_Request_Edit_Report',
+        SPLIT_EXPENSE: 'Money_Request_Split_Expense',
+        SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -354,21 +373,9 @@ const SCREENS = {
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
-    WORKSPACE_HUB: {
-        ROOT: 'Workspace_Hub_Root',
-        WORKSPACES: 'Workspace_List',
 
-        SUBSCRIPTION: {
-            ROOT: 'Settings_Subscription',
-            SIZE: 'Settings_Subscription_Size',
-            SETTINGS_DETAILS: 'Settings_Subscription_Details',
-            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
-            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
-            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
-            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
-            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
-        },
-    },
+    WORKSPACES_LIST: 'Workspaces_List',
+
     WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',
@@ -508,6 +515,7 @@ const SCREENS = {
         COMPANY_CARDS_DETAILS: 'Workspace_CompanyCards_Details',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
+        COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
         COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
         COMPANY_CARD_NAME: 'Workspace_CompanyCard_Name',
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
@@ -536,7 +544,10 @@ const SCREENS = {
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
+        TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
+        TAGS_IMPORT_OPTIONS: 'Tags_Import_Options',
         TAGS_IMPORTED: 'Tags_Imported',
+        TAGS_IMPORTED_MULTI_LEVEL: 'Tags_Imported_Multi_Level',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
@@ -655,6 +666,10 @@ const SCREENS = {
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
+        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
+        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
+        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
+        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
     WELCOME_VIDEO: {
@@ -672,7 +687,6 @@ const SCREENS = {
     TEST_DRIVE_MODAL: {
         ROOT: 'TestDrive_Modal_Root',
     },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
@@ -688,6 +702,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {
@@ -728,6 +743,10 @@ const SCREENS = {
     SCHEDULE_CALL: {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
+    },
+
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
     },
 } as const;
 

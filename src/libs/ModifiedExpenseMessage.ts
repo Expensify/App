@@ -13,7 +13,7 @@ import Parser from './Parser';
 import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
+import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -35,6 +35,13 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
+
+/**
+ * Utility to get message based on boolean literal value.
+ */
+function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
+    return value === 'true' ? truthyMessage : falsyMessage;
+}
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -182,6 +189,11 @@ function getForReportAction({
         return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
     }
 
+    if (reportActionOriginalMessage?.movedFromReport) {
+        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
+        return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
+    }
+
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
     const changeFragments: string[] = [];
@@ -327,8 +339,8 @@ function getForReportAction({
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
             translateLocal('iou.expense'),
             true,
             setFragments,

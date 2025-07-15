@@ -26,7 +26,7 @@ function IOURequestRedirectToStartPage({
         // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
         Navigation.dismissModal();
 
-        // Redirect the person to the right start page using a rendom reportID
+        // Redirect the person to the right start page using a random reportID
         const optimisticReportID = ReportUtils.generateReportID();
         if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));

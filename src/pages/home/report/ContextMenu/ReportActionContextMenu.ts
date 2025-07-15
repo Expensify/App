@@ -44,6 +44,7 @@ type ShowContextMenuParams = {
     disabledOptions?: ContextMenuAction[];
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
+    withoutOverlay?: boolean;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;
@@ -57,7 +58,7 @@ type ReportActionContextMenu = {
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
-    contentRef: RefObject<View>;
+    contentRef: RefObject<View | null>;
     isContextMenuOpening: boolean;
 };
 
@@ -100,8 +101,8 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
  * @param contextMenuAnchor - popoverAnchor
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
- * @param originalReportID - The currrent Report Id of the reportAction
- * @param draftMessage - ReportAction Draftmessage
+ * @param originalReportID - The current Report Id of the reportAction
+ * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
  * @param isArchivedRoom - Whether the provided report is an archived room

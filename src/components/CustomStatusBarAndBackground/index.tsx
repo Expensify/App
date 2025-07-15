@@ -1,10 +1,12 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import type {StatusBarStyle} from '@styles/index';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -19,8 +21,11 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
+    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.closingReactNativeApp, canBeMissing: true});
 
-    const isDisabled = !isNested && !isRootStatusBarEnabled;
+    // Include `closingReactNativeApp` to disable the StatusBar when switching from HybridApp to OldDot,
+    // preventing unexpected status bar blinking during the transition
+    const isDisabled = (!isNested && !isRootStatusBarEnabled) || closingReactNativeApp;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
@@ -83,9 +88,12 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 const pageTheme = theme.PAGE_THEMES[currentRoute.name];
 
                 newStatusBarStyle = pageTheme.statusBarStyle;
-
                 const backgroundColorFromRoute =
-                    currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
+                    currentRoute?.params &&
+                    typeof currentRoute?.params === 'object' &&
+                    'backgroundColor' in currentRoute.params &&
+                    typeof currentRoute.params.backgroundColor === 'string' &&
+                    currentRoute.params.backgroundColor;
 
                 // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

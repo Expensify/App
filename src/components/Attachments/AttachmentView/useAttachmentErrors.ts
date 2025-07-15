@@ -17,9 +17,9 @@ function convertSourceToString(source: AttachmentSource) {
 
 /**
  * A custom React hook that provides functionalities to manage attachment errors.
- * - `setAttachmentError(key)`: Sets or unsets an error for a given key.
- * - `clearAttachmentErrors()`: Clears all errors.
- * - `isErrorInAttachment(key)`: Checks if there is an error associated with a specific key.
+ * - `setAttachmentError(key)`: Set or unset an error for a given key.
+ * - `clearAttachmentErrors()`: Clear all errors.
+ * - `isErrorInAttachment(key)`: Check if there is an error associated with a specific key.
  * Errors are indexed by a serialized key - for example url or source object.
  */
 function useAttachmentErrors() {

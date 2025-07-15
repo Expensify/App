@@ -4,6 +4,8 @@ import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
+import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +40,7 @@ import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import SingleReportAvatar from './ReportActionItem/SingleReportAvatar';
 import type {TransactionListItemType} from './SelectionList/types';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
@@ -58,6 +61,9 @@ type AvatarWithDisplayNameProps = {
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
 
+    /** Whether the avatar is pressable to open the actor details */
+    shouldEnableAvatarNavigation?: boolean;
+
     /** Whether we should enable custom title logic designed for search lis */
     shouldUseCustomSearchTitleName?: boolean;
 
@@ -69,6 +75,9 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
+    singleAvatarDetails?: ReportAvatarDetails;
 };
 
 const fallbackIcon: Icon = {
@@ -160,8 +169,10 @@ function AvatarWithDisplayName({
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
+    shouldEnableAvatarNavigation = true,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
+    singleAvatarDetails,
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
 }: AvatarWithDisplayNameProps) {
@@ -184,7 +195,8 @@ function AvatarWithDisplayName({
     const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
 
     const actorAccountID = useRef<number | null>(null);
@@ -230,33 +242,68 @@ function AvatarWithDisplayName({
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
+
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
+
+    const getAvatar = useCallback(() => {
+        if (shouldShowSubscriptAvatar) {
+            return (
+                <SubscriptAvatar
+                    backgroundColor={avatarBorderColor}
+                    mainAvatar={icons.at(0) ?? fallbackIcon}
+                    secondaryAvatar={icons.at(1)}
+                    size={size}
+                />
+            );
+        }
+
+        if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
+            return (
+                <MultipleAvatars
+                    icons={icons}
+                    size={size}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                />
+            );
+        }
+
+        return (
+            <SingleReportAvatar
+                reportPreviewDetails={singleAvatarDetails}
+                personalDetails={personalDetails}
+                containerStyles={[styles.actionAvatar, styles.mr3]}
+                actorAccountID={singleAvatarDetails.reportPreviewSenderID}
+            />
+        );
+    }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
+
+    const getWrappedAvatar = useCallback(() => {
+        const avatar = getAvatar();
+
+        if (!shouldEnableAvatarNavigation) {
+            return <View accessibilityLabel={title}>{avatar}</View>;
+        }
+
+        return (
+            <View accessibilityLabel={title}>
+                <PressableWithoutFeedback
+                    onPress={showActorDetails}
+                    accessibilityLabel={title}
+                    role={getButtonRole(true)}
+                >
+                    {avatar}
+                </PressableWithoutFeedback>
+            </View>
+        );
+    }, [getAvatar, shouldEnableAvatarNavigation, showActorDetails, title]);
+
+    const WrappedAvatar = getWrappedAvatar();
+
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <PressableWithoutFeedback
-                        onPress={showActorDetails}
-                        accessibilityLabel={title}
-                        role={getButtonRole(true)}
-                    >
-                        <View accessibilityLabel={title}>
-                            {shouldShowSubscriptAvatar ? (
-                                <SubscriptAvatar
-                                    backgroundColor={avatarBorderColor}
-                                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                                    secondaryAvatar={icons.at(1)}
-                                    size={size}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    size={size}
-                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                                />
-                            )}
-                        </View>
-                    </PressableWithoutFeedback>
+                    {WrappedAvatar}
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,

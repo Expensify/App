@@ -4,6 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -20,33 +21,12 @@ type UseWorkspaceListParams = {
     policies: OnyxCollection<Policy>;
     currentUserLogin: string | undefined;
     shouldShowPendingDeletePolicy: boolean;
-    selectedPolicyID: string | undefined;
+    selectedPolicyIDs: string[] | undefined;
     searchTerm: string;
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
-} & (
-    | {
-          isWorkspaceSwitcher: true;
-          hasUnreadData: (policyID?: string) => boolean;
-          getIndicatorTypeForPolicy: (policyID?: string) => BrickRoad;
-      }
-    | {
-          isWorkspaceSwitcher?: false | undefined;
-          hasUnreadData?: never;
-          getIndicatorTypeForPolicy?: never;
-      }
-);
+};
 
-function useWorkspaceList({
-    policies,
-    currentUserLogin,
-    selectedPolicyID,
-    searchTerm,
-    shouldShowPendingDeletePolicy,
-    isWorkspaceSwitcher = false,
-    hasUnreadData,
-    getIndicatorTypeForPolicy,
-    additionalFilter,
-}: UseWorkspaceListParams) {
+function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, additionalFilter}: UseWorkspaceListParams) {
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -74,22 +54,16 @@ function useWorkspaceList({
                 ],
                 keyForList: policy?.id,
                 isPolicyAdmin: isPolicyAdmin(policy),
-                isSelected: selectedPolicyID === policy?.id,
-                ...(isWorkspaceSwitcher &&
-                    hasUnreadData &&
-                    getIndicatorTypeForPolicy && {
-                        isBold: hasUnreadData(policy?.id),
-                        brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
-                    }),
+                isSelected: policy?.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             }));
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyID, getIndicatorTypeForPolicy, hasUnreadData, isWorkspaceSwitcher]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyIDs]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
-            usersWorkspaces
-                .filter((policy) => policy.text?.toLowerCase().includes(searchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyID)),
-        [searchTerm, usersWorkspaces, selectedPolicyID],
+            tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
+                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs),
+            ),
+        [searchTerm, usersWorkspaces, selectedPolicyIDs],
     );
 
     const sections = useMemo(() => {
@@ -105,13 +79,11 @@ function useWorkspaceList({
 
     const shouldShowNoResultsFoundMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
     const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const shouldShowCreateWorkspace = isWorkspaceSwitcher && usersWorkspaces.length === 0;
 
     return {
         sections,
         shouldShowNoResultsFoundMessage,
         shouldShowSearchInput,
-        shouldShowCreateWorkspace,
     };
 }
 
