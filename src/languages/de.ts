@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1134,20 +1132,10 @@ const translations = {
         individual: 'Individuum',
         business: 'Geschäft',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} mit Expensify` : `Mit Expensify bezahlen`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} als Privatperson` : `Mit Privatkonto bezahlen`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} mit Wallet` : `Mit Wallet bezahlen`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahlen Sie ${formattedAmount} als Einzelperson` : `Als Einzelperson bezahlen`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Zahlen Sie ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} als Unternehmen` : `Mit Geschäftskonto bezahlen`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Privatkonto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt.` : `mit Bankkonto ${last4Digits} bezahlt.`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `heeft ${amount} betaald met bankrekening ${last4Digits}. via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Privatkonto • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Geschäftskonto • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahlen Sie ${formattedAmount} als Unternehmen` : `Als Unternehmen bezahlen`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahle ${formattedAmount} anderswo` : `Anderswo bezahlen`),
         nextStep: 'Nächste Schritte',
         finished: 'Fertiggestellt',
         sendInvoice: ({amount}: RequestAmountParams) => `Sende ${amount} Rechnung`,
@@ -1182,8 +1170,8 @@ const translations = {
             `hat die Zahlung von ${amount} storniert, weil ${submitterDisplayName} ihre Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung von ${amount} wurde geleistet.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}als bezahlt markiert`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}woanders bezahlt`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} mit Expensify bezahlt`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Arbeitsbereichsregeln</a> bezahlt`,
         noReimbursableExpenses: 'Dieser Bericht hat einen ungültigen Betrag.',
@@ -1845,7 +1833,6 @@ const translations = {
         enableWallet: 'Wallet aktivieren',
         addBankAccountToSendAndReceive: 'Erhalten Sie eine Rückerstattung für Ausgaben, die Sie an einen Arbeitsbereich einreichen.',
         addBankAccount: 'Bankkonto hinzufügen',
-        addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
         assignedCards: 'Zugewiesene Karten',
         assignedCardsDescription: 'Dies sind Karten, die von einem Workspace-Admin zugewiesen wurden, um die Ausgaben des Unternehmens zu verwalten.',
         expensifyCard: 'Expensify Card',
@@ -2059,7 +2046,6 @@ const translations = {
         cardLastFour: 'Karte endet mit',
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standardmäßig',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bankkonto • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -6449,7 +6435,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Betrag über dem täglichen ${formattedLimit}/Personen-Kategorielimit`,
         receiptNotSmartScanned:
-            'Ausgabendetails und Beleg manuell hinzugefügt. Bitte überprüfen Sie die Details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr</a> über die automatische Überprüfung aller Belege.',
+            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Beleg erforderlich';
             if (formattedLimit ?? category) {
