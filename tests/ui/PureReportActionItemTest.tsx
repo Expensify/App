@@ -23,7 +23,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@react-navigation/native');
 
-const ACTOR_ACCOUNT_ID = 20258746;
+const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
 const createAutomaticAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
@@ -101,7 +101,7 @@ describe('PureReportActionItem', () => {
     }
 
     describe('Automatic actions', () => {
-        it('An automatic APPROVED action', async () => {
+        it('APPROVED action via workspace rules', async () => {
             const action = createAutomaticAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();

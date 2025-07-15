@@ -789,7 +789,7 @@ describe('ReportUtils', () => {
 
     describe('Automatically approved report message via automatic (not by a human) action is', () => {
         test('shown when the report is forwarded (Control feature)', () => {
-            const threadOfSubmittedReportAction = {
+            const expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -806,13 +806,13 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
         });
 
         test('shown when the report is approved', () => {
-            const threadOfSubmittedReportAction = {
+            const expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -829,15 +829,15 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
         });
     });
 
-    describe('Automatically approved report message via harvesting (delayed submit) is', () => {
+    describe('Automatically submitted via harvesting (delayed submit) report message is', () => {
         test('shown when report is submitted and status is submitted', () => {
-            const threadOfSubmittedReportAction = {
+            const expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -854,13 +854,13 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
         });
 
         test('shown when report is submitted and status is closed', () => {
-            const threadOfSubmittedReportAction = {
+            const expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -877,7 +877,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
         });
