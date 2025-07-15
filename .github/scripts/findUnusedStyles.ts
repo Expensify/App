@@ -18,10 +18,6 @@ const SPREAD_PROPERTY_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\.\s*([a-
 const SIMPLE_SPREAD_PATTERN = /\.\.\.\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\b(?!\s*\.)/g;
 const STYLE_KEY_SKIP_PATTERNS = ['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet'];
 
-// Comment removal patterns
-const SINGLE_LINE_COMMENT_PATTERN = /\/\/.*$/gm;
-const MULTI_LINE_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
-
 class ComprehensiveStylesFinder {
     private rootDir: string;
 
@@ -298,27 +294,31 @@ class ComprehensiveStylesFinder {
     }
 
     private analyzeFileForStyleUsage(file: string, content: string): void {
-        // Remove comments to avoid false positives
-        const cleanContent = this.removeComments(content);
+        // Use TypeScript AST to get content without comments
+        try {
+            const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
 
-        // Check individual style usage patterns - iterate over current definitions
-        const keysToCheck = Array.from(this.styleDefinitions.keys());
-        for (const key of keysToCheck) {
-            if (this.isStyleUsedInContent(key, cleanContent)) {
-                // Remove the key from definitions since it's used
-                this.styleDefinitions.delete(key);
+            // Use getText() to get content without comments
+            const cleanContent = sourceFile.getText();
+
+            // Check individual style usage patterns - iterate over current definitions
+            const keysToCheck = Array.from(this.styleDefinitions.keys());
+            for (const key of keysToCheck) {
+                if (this.isStyleUsedInContent(key, cleanContent)) {
+                    // Remove the key from definitions since it's used
+                    this.styleDefinitions.delete(key);
+                }
+            }
+        } catch (error) {
+            // Fallback: use original content if AST parsing fails
+            console.warn(`Warning: Could not parse ${file} with AST, using original content`);
+            const keysToCheck = Array.from(this.styleDefinitions.keys());
+            for (const key of keysToCheck) {
+                if (this.isStyleUsedInContent(key, content)) {
+                    this.styleDefinitions.delete(key);
+                }
             }
         }
-    }
-
-    private removeComments(content: string): string {
-        // Remove single-line comments
-        let cleanContent = content.replace(SINGLE_LINE_COMMENT_PATTERN, '');
-
-        // Remove multi-line comments
-        cleanContent = cleanContent.replace(MULTI_LINE_COMMENT_PATTERN, '');
-
-        return cleanContent;
     }
 
     private checkSpreadPatternsInStylesFile(content: string): void {
