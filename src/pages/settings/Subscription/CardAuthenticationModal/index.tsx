@@ -64,6 +64,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             isVisible={isVisible}
             onClose={onModalClose}
             onModalHide={onModalClose}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

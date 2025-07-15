@@ -84,6 +84,7 @@ import {
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -681,6 +682,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
+
+    const transaction = isTransaction ? data[key] : undefined;
+    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -690,7 +696,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
-    const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
@@ -712,9 +717,15 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
     const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
 
+    const reportNVP = getReportNameValuePairsFromKey(data, report);
+    const isIOUReportArchived = isArchivedReport(reportNVP);
+
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(chatReportRNVP);
+
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, policy, allReportTransactions)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             return CONST.SEARCH.ACTION_TYPES.VIEW;
         }
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
@@ -731,7 +742,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
@@ -754,11 +764,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isArchived = isArchivedReport(reportNVP);
-
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isArchived) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
@@ -1641,8 +1648,7 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
@@ -1688,10 +1694,9 @@ function getGroupByOptions() {
 }
 
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
-    // s77rt confirm if the feed value is just the feed key or if it should be prefixed with [fundID]_
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
-        value: cardFeed.feed,
+        value: cardFeed.id,
     }));
 }
 
