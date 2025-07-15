@@ -188,21 +188,16 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const reportActions = useMemo(() => (isTransactionThread(parentReportAction) ? sortedReportActions.toReversed() : sortedReportActions), [parentReportAction, sortedReportActions]);
-    const visibleReportActions = useMemo(
-        () => (isTransactionThread(parentReportAction) ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
-        [parentReportAction, sortedVisibleReportActions],
-    );
-    const lastAction = visibleReportActions.at(0);
-    const visibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
+    const lastAction = sortedVisibleReportActions.at(0);
+    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
-            visibleReportActions.reduce((actions, action) => {
+            sortedVisibleReportActions.reduce((actions, action) => {
                 Object.assign(actions, {[action.reportActionID]: action});
                 return actions;
             }, {}),
-        [visibleReportActions],
+        [sortedVisibleReportActions],
     );
-    const prevVisibleReportActionsObjects = usePrevious(visibleReportActionsObjects);
+    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     const reportLastReadTime = report.lastReadTime ?? '';
 
@@ -228,7 +223,7 @@ function ReportActionsList({
      */
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         // Create a list of (sorted) indices of message that were received while offline
-        const receivedOfflineMessages = reportActions.reduce<number[]>((acc, message, index) => {
+        const receivedOfflineMessages = sortedReportActions.reduce<number[]>((acc, message, index) => {
             if (wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale)) {
                 acc[index] = index;
             }
@@ -238,7 +233,7 @@ function ReportActionsList({
 
         // The last index in the list is the earliest message that was received while offline
         return receivedOfflineMessages.at(-1);
-    }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, reportActions]);
+    }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, sortedReportActions]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -249,9 +244,9 @@ function ReportActionsList({
         const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index < visibleReportActions.length; index++) {
-            const reportAction = visibleReportActions.at(index);
-            const nextAction = visibleReportActions.at(index + 1);
+        for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
+            const reportAction = sortedVisibleReportActions.at(index);
+            const nextAction = sortedVisibleReportActions.at(index + 1);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             // eslint-disable-next-line react-compiler/react-compiler
@@ -262,7 +257,7 @@ function ReportActionsList({
                     nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
                     accountID,
-                    prevSortedVisibleReportActionsObjects: prevVisibleReportActionsObjects,
+                    prevSortedVisibleReportActionsObjects,
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollingVerticalOffset.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
@@ -273,7 +268,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [accountID, earliestReceivedOfflineMessageIndex, prevVisibleReportActionsObjects, visibleReportActions, unreadMarkerTime]);
+    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -316,7 +311,7 @@ function ReportActionsList({
     }, [lastAction?.created]);
 
     const lastActionIndex = lastAction?.reportActionID;
-    const reportActionSize = useRef(visibleReportActions.length);
+    const reportActionSize = useRef(sortedVisibleReportActions.length);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
@@ -326,7 +321,7 @@ function ReportActionsList({
 
     // Display the new message indicator when comment linking and not close to the newest message.
     const reportActionID = route?.params?.reportActionID;
-    const indexOfLinkedAction = reportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
+    const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
@@ -352,15 +347,15 @@ function ReportActionsList({
         if (
             scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
-            reportActionSize.current > visibleReportActions.length &&
+            reportActionSize.current > sortedVisibleReportActions.length &&
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
-        reportActionSize.current = visibleReportActions.length;
-    }, [lastActionIndex, visibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+        reportActionSize.current = sortedVisibleReportActions.length;
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -406,13 +401,13 @@ function ReportActionsList({
         if (!isSafari()) {
             return;
         }
-        const prevSorted = lastAction?.reportActionID ? prevVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
             });
         }
-    }, [lastAction, prevVisibleReportActionsObjects, reportScrollManager]);
+    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
@@ -471,7 +466,7 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
-    const lastIOUActionWithError = visibleReportActions.find((action) => action.errors);
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     useEffect(() => {
@@ -517,14 +512,14 @@ function ReportActionsList({
      * This is so that it will not be conflicting with header's separator line.
      */
     const shouldHideThreadDividerLine = useMemo(
-        (): boolean => getFirstVisibleReportActionID(reportActions, isOffline) === unreadMarkerReportActionID,
-        [reportActions, isOffline, unreadMarkerReportActionID],
+        (): boolean => getFirstVisibleReportActionID(sortedReportActions, isOffline) === unreadMarkerReportActionID,
+        [sortedReportActions, isOffline, unreadMarkerReportActionID],
     );
 
-    const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
+    const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
 
     const shouldUseThreadDividerLine = useMemo(() => {
-        const topReport = visibleReportActions.length > 0 ? visibleReportActions.at(visibleReportActions.length - 1) : null;
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
 
         if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
@@ -539,7 +534,7 @@ function ReportActionsList({
         }
 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
-    }, [parentReportAction, report, visibleReportActions]);
+    }, [parentReportAction, report, sortedVisibleReportActions]);
 
     useEffect(() => {
         if (report.reportID !== prevReportID) {
@@ -560,7 +555,7 @@ function ReportActionsList({
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        const hasUnreadReportAction = visibleReportActions.some(
+        const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&
@@ -588,7 +583,7 @@ function ReportActionsList({
                     allReports={allReports}
                     policies={policies}
                     reportAction={reportAction}
-                    reportActions={reportActions}
+                    reportActions={sortedReportActions}
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     index={index}
@@ -596,13 +591,13 @@ function ReportActionsList({
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                        isConsecutiveActionMadeByPreviousActor(visibleReportActions, index)
+                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
                     }
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     transactions={Object.values(transactions ?? {})}
@@ -611,7 +606,7 @@ function ReportActionsList({
         },
         [
             allReports,
-            reportActions,
+            sortedReportActions,
             parentReportAction,
             parentReportActionForTransactionThread,
             report,
@@ -619,7 +614,7 @@ function ReportActionsList({
             policies,
             transactions,
             linkedReportActionID,
-            visibleReportActions,
+            sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
@@ -669,7 +664,7 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !visibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -712,9 +707,10 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={visibleReportActions}
+                    data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderScrollComponent}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
