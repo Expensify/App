@@ -4,6 +4,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
@@ -35,11 +36,22 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
+    const removeFromReport = () => {
+        if (!transactionReport || selectedTransactionIDs.length === 0) {
+            return;
+        }
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
+        clearSelectedTransactions(true);
+        Navigation.dismissModal();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing
         />
     );
 }
