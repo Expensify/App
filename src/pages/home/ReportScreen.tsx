@@ -327,7 +327,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
-    // wrapping in useMemo to stabilise children re-rendering
+    // wrapping in useMemo to stabilize children re-rendering
     const policy = useMemo(() => {
         return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     }, [policies, report?.policyID]);
@@ -778,7 +778,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
     const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
 
-    // wrapping into useMemo to stabilise children re-renders as reportMetadata is changed frequently
+    // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
     const showReportActionsLoadingState = useMemo(
         () => reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions,
         [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
