@@ -83,7 +83,7 @@ module Jekyll
 
       output_dir = File.join(site.source, "_src")
       FileUtils.mkdir_p(output_dir) unless Dir.exist?(output_dir)
-      
+
       output_file = File.join(output_dir, "helpContentMap.tsx")
 
       help_content_tree = generate_help_content_tree()
@@ -91,46 +91,46 @@ module Jekyll
       help_content_string = to_ts_object(help_content_tree)
 
       components = analyze_used_components(help_content_string)
-      
+
       # Generate the import block
       import_block = generate_imports(components)
 
       ts_output = generate_ts_output(import_block, help_content_string)
-            
+
       File.write(output_file, ts_output)
 
       puts "✅ Successfully generated helpContent.tsx"
     end
 
-    def self.analyze_used_components(content)  
-      components = {  
-        'View' => content.include?('<View'),  
-        'Text' => content.include?('<Text'),  
-        'TextLink' => content.include?('<TextLink'),  
-        'BulletList' => content.include?('<BulletList')  
-      }  
-      components.select { |_, used| used }.keys  
+    def self.analyze_used_components(content)
+      components = {
+        'View' => content.include?('<View'),
+        'Text' => content.include?('<Text'),
+        'TextLink' => content.include?('<TextLink'),
+        'BulletList' => content.include?('<BulletList')
+      }
+      components.select { |_, used| used }.keys
     end
 
-    def self.generate_imports(components)  
-      base_imports = [  
-        "import type {ReactNode} from 'react';",  
-        "import React from 'react';",  
-      ]  
-      
-      # Always include React Native  
-      base_imports << "import {#{(['View'] & components).join(', ')}} from 'react-native';"  
-      
-      # Add component-specific imports  
-      component_imports = []  
-      component_imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if components.include?('BulletList')  
-      component_imports << "import Text from '@components/Text';" if components.include?('Text')  
-      component_imports << "import TextLink from '@components/TextLink';" if components.include?('TextLink')  
-      
-      # Add style imports  
-      base_imports << "import type {ThemeStyles} from '@styles/index';"  
-      
-      (base_imports + component_imports).join("\n")  
+    def self.generate_imports(components)
+      base_imports = [
+        "import type {ReactNode} from 'react';",
+        "import React from 'react';",
+      ]
+
+      # Always include React Native
+      base_imports << "import {#{(['View'] & components).join(', ')}} from 'react-native';"
+
+      # Add component-specific imports
+      component_imports = []
+      component_imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if components.include?('BulletList')
+      component_imports << "import Text from '@components/Text';" if components.include?('Text')
+      component_imports << "import TextLink from '@components/TextLink';" if components.include?('TextLink')
+
+      # Add style imports
+      base_imports << "import type {ThemeStyles} from '@styles/index';"
+
+      (base_imports + component_imports).join("\n")
     end
 
     def self.generate_ts_output(import_block, help_content_string)
@@ -143,7 +143,7 @@ module Jekyll
 
         type HelpContent = {
             /** The content to display for this route */
-            content: ContentComponent;
+            content?: ContentComponent;
 
             /** Any children routes that this route has */
             children?: Record<string, HelpContent>;
@@ -158,41 +158,42 @@ module Jekyll
         export type {ContentComponent};
       TS
     end
-  
+
     def self.generate_help_content_tree()
       tree = {}
-    
+
       @help_mapping.each do |route, node|
         parts = route.sub(/^ref\//, '').sub(/\.md$/, '').split('/')
         current = tree
-    
+
         parts.each_with_index do |part, i|
           is_dynamic = part.start_with?(':') || part.match?(/^\[.*\]$/)
-          part_key = is_dynamic ? part : part.to_sym
-    
+          contains_dash = part.include?('-')
+          part_key = (is_dynamic || contains_dash) ? part : part.to_sym
+
           current[:children] ||= {}
           current[:children][part_key] ||= {}
-    
+
           if i == parts.length - 1
             jsx_content = html_node_to_RN(node, 1).rstrip
-    
+
             current[:children][part_key][:content] = <<~TS.chomp
               ({styles}: {styles: ThemeStyles}) => (
               #{jsx_content}
               )
             TS
           end
-    
+
           current = current[:children][part_key]
         end
       end
-    
+
       tree[:content] = <<~JSX
         () => null
       JSX
       tree
     end
-    
+
     def self.html_node_to_RN(node, indent_level = 0)
       node_processors = {
         'div' => method(:process_div),
@@ -227,12 +228,12 @@ module Jekyll
         next if child.text? && child.text.strip.empty?
         html_node_to_RN(child, indent_level + 1)
       end.compact.join("\n")
-  
+
       "#{'  ' * indent_level}<View>\n#{children}\n#{'  ' * indent_level}</View>"
     end
 
     def self.process_heading(node, indent_level)
-      return "#{'  ' * indent_level}<Text style={[styles.textHeadline#{node.name.upcase}, styles.mv4]}>#{node.text.strip}</Text>"
+      return "#{'  ' * indent_level}<Text style={[styles.textHeadline#{node.name.upcase}, styles.mv4]}>#{CGI.escapeHTML(node.text).strip}</Text>"
     end
 
     def self.process_unordered_list(node, indent_level)
@@ -240,13 +241,13 @@ module Jekyll
         contains_ul = li.xpath('.//ul').any?
 
         li_parts = li.children.map { |child| html_node_to_RN(child, 0) }
-      
+
         if contains_ul
 
           indented_li_parts = li_parts.map do |part|
             part.lines.map { |line| "#{'  ' * (indent_level + 3)}#{line.rstrip}" }.join("\n")
           end.join("\n")
-          
+
           "#{'  ' * (indent_level + 2)}<>\n#{indented_li_parts}\n#{'  ' * (indent_level + 2)}</>"
         else
           "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts.join}</Text>"
@@ -269,20 +270,20 @@ module Jekyll
 
     def self.process_paragraph(node, indent_level)
       inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join
-      
+
       style_classes = ['styles.textNormal']
       style_classes << 'styles.mt4' if node.previous_element&.name == 'ul'
       style_classes << 'styles.mb4' if node.next_element&.name == 'p'
-      
+
       "#{'  ' * indent_level}<Text style={[#{style_classes.join(', ')}]}>#{inner.strip}</Text>"
     end
 
     def self.process_bold(node, indent_level)
-      "<Text style={styles.textBold}>#{node.text}</Text>"
+      "<Text style={styles.textBold}>#{CGI.escapeHTML(node.text)}</Text>"
     end
 
     def self.process_italic(node, indent_level)
-      "<Text style={styles.textItalic}>#{node.text}</Text>"
+      "<Text style={styles.textItalic}>#{CGI.escapeHTML(node.text)}</Text>"
     end
 
     def self.process_link(node, indent_level)
@@ -292,7 +293,7 @@ module Jekyll
     end
 
     def self.process_text(node, indent_level)
-      node.text
+        CGI.escapeHTML(node.text)
     end
 
     def self.process_default(node, indent_level)
@@ -311,16 +312,16 @@ module Jekyll
       if obj.is_a?(Array)
         items = obj.map { |item| to_ts_object(item, indent + 1) }
         return "[]" if items.empty?
-        
-        return "[\n" + 
-               items.map { |item| "#{spacing}  #{item}" }.join(",\n") + 
+
+        return "[\n" +
+               items.map { |item| "#{spacing}  #{item}" }.join(",\n") +
                "\n#{spacing}]"
       end
-    
+
       obj.each do |key, value|
         key_str = key.is_a?(Symbol) ? key.to_s : key.inspect
         key_line_prefix = '  ' * (indent + 1) + "#{key_str}: "
-    
+
         if value.is_a?(Hash) || value.is_a?(Array)
           nested = to_ts_object(value, indent + 1)
           lines << key_line_prefix + nested + ","
@@ -333,11 +334,11 @@ module Jekyll
           lines << key_line_prefix + value.inspect + ","
         end
       end
-    
+
       lines << '  ' * indent + "}"
       lines.join("\n")
     end
-    
+
   end
 end
 

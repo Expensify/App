@@ -13,7 +13,7 @@ const componentsSpacing = {
 
 const NEXT_TRANSACTION_PEEK = 32;
 const CAROUSEL_MAX_WIDTH_WIDE = CONST.REPORT.CAROUSEL_MAX_WIDTH_WIDE;
-const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_WIDTH;
+const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
 const CAROUSEL_ONE_SIDE_PADDING = componentsSpacing.wrapperStyle.padding;
 const CAROUSEL_GAP = spacing.gap2.gap;
 
@@ -24,8 +24,9 @@ const getPeek = (isSingleTransaction: boolean) => {
 const mobileStyle = (currentWidth: number, transactionsCount: number) => {
     const transactionPreviewWidth = currentWidth - CAROUSEL_ONE_SIDE_PADDING - getPeek(transactionsCount === 1);
     return {
-        transactionPreviewStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},
-        componentStyle: [sizing.mw100, {width: '100%'}],
+        transactionPreviewCarouselStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},
+        transactionPreviewStandaloneStyle: {...sizing.w100, ...sizing.mw100},
+        componentStyle: [sizing.mw100, sizing.w100],
         expenseCountVisible: false,
     };
 };
@@ -36,7 +37,8 @@ const desktopStyle = (currentWrapperWidth: number, transactionsCount: number) =>
     const spaceForTransactions = Math.max(transactionsCount, 1);
     const carouselExactMaxWidth = Math.min(minimalWrapperWidth + (TRANSACTION_WIDTH_WIDE + CAROUSEL_GAP) * (spaceForTransactions - 1), CAROUSEL_MAX_WIDTH_WIDE);
     return {
-        transactionPreviewStyle: {width: currentWrapperWidth > minimalWrapperWidth || currentWrapperWidth === 0 ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
+        transactionPreviewCarouselStyle: {width: currentWrapperWidth > minimalWrapperWidth || currentWrapperWidth === 0 ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
+        transactionPreviewStandaloneStyle: {width: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`, maxWidth: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`},
         componentStyle: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
     };
