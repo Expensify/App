@@ -305,7 +305,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         sortedAllReportActions,
         hasNewerActions,
         hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === String(CONST.DEFAULT_NUMBER_ID) ? undefined : oldestUnreadReportActionID));
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === CONST.NOT_FOUND_ID ? undefined : oldestUnreadReportActionID));
 
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
