@@ -78,14 +78,17 @@ function TabSelectorItem({
     //  - on desktop, ignore RHP bounds and center tooltip on the tab (no shift needed)
     //  - on mobile (aka small screen) center tooltip within the panel
     useLayoutEffect(() => {
+        // only active tab gets tooltip
         if (!isActive) {
             return;
-        } // only active tab gets tooltip
+        }
 
         if (!isSmallScreenWidth) {
+            // no shift needed on desktop (note: not "shouldUseNarrowLayout")
             return;
-        } // no shift needed on desktop (note: not "shouldUseNarrowLayout")
+        }
 
+        // must allow animation to complete before taking measurement
         const timerID = setTimeout(() => {
             parentView?.measureInWindow((parentX, _parentY, parentWidth) => {
                 childRef.current?.measureInWindow((x, _y, width) => {
@@ -95,7 +98,7 @@ function TabSelectorItem({
                     setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
                 });
             });
-        }, CONST.TOOLTIP_MEASURE_DELAY); // must allow animation to complete before taking measurement
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
