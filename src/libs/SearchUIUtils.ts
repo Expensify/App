@@ -1094,7 +1094,7 @@ function getSortedSections(
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
  */
-function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false) {
+function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false): Record<SortableColumnName, boolean> {
     const columns: Record<string, boolean> = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,

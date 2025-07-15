@@ -23,7 +23,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {shallowCompare} from '@libs/ObjectUtils';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
@@ -507,26 +506,22 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [shouldShowLoadingState, isFocused],
     );
 
-    const previousColumnsRef = useRef<SearchColumnType[]>(null);
-
-    // If a column was previously shown, keep it show
+    // If a column was previously shown, keep it shown
+    const previousColumnsRef = useRef<SearchColumnType[] | null>(null);
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
         const columns = getColumnsToShow(searchResults?.data);
 
-        if (!previousColumnsRef.current) {
-            return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
-        }
-
-        const previouslyShownColumns = Object.keys(previousColumnsRef.current).filter((col) => previousColumnsRef.current[col] && !columns[col]);
-
-        previouslyShownColumns.forEach((col) => {
+        (Object.keys(columns) as SearchColumnType[]).forEach((col) => {
+            if (!previousColumnsRef.current?.includes(col)) {
+                return;
+            }
             columns[col] = true;
         });
 
-        return Object.keys(columns).filter((col) => columns[col]) as SearchColumnType[];
+        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [searchResults?.data]);
 
     // Only update if columns actually changed
@@ -534,37 +529,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (previousColumnsRef.current && arraysEqual(currentColumns, previousColumnsRef.current)) {
             return;
         }
-        previousColumnsRef.current = currentColumns;
+        previousColumnsRef.current = [...currentColumns];
     }, [currentColumns]);
-
-    const previousColumns = usePrevious(currentColumns);
-    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
 
     // Custom animation for fade effect
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
+        opacity: opacity.get(),
     }));
 
+    const previousColumns = usePrevious(currentColumns);
+    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
     const isAnimating = useSharedValue(false);
+
+    // If columns have changed, trigger an animation before settings columnsToShow to prevent
+    // new columns appearing before the fade out animation happens
     useEffect(() => {
         if (isAnimating.get()) {
             return;
         }
-        if (previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) {
+
+        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0) {
             setColumnsToShow(currentColumns);
             return;
         }
 
         isAnimating.set(true);
-        opacity.value = withTiming(0, {duration: 200}, (finished) => {
-            if (finished) {
-                isAnimating.set(false);
-                setColumnsToShow(currentColumns);
-            }
-            opacity.value = withTiming(1, {duration: 200});
-        });
-    }, [previousColumns, isAnimating, currentColumns, setColumnsToShow, opacity]);
+        opacity.set(
+            withTiming(0, {duration: 200}, (finished) => {
+                if (finished) {
+                    isAnimating.set(false);
+                    setColumnsToShow(currentColumns);
+                }
+                opacity.set(withTiming(1, {duration: 200}));
+            }),
+        );
+    }, [previousColumns, isAnimating, currentColumns, setColumnsToShow, opacity, offset]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
