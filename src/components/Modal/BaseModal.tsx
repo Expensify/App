@@ -275,7 +275,8 @@ function BaseModal(
             shouldUseModalPaddingStyle,
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
-        , shouldUseReanimatedModal],
+            shouldUseReanimatedModal,
+        ],
     );
 
     const modalPaddingStyles = useMemo(() => {
