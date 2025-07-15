@@ -43,6 +43,7 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import {setActiveReportIDs} from '@userActions/ReportNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -248,7 +249,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, groupBy);
+        const result = getSections(type, status, searchResults.data, searchResults.search, groupBy);
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+            debugger;
+            setActiveReportIDs(result.map((element) => element?.reportID ?? ''));
+        }
+
+        return result;
     }, [searchResults, isDataLoaded, type, status, groupBy]);
 
     useEffect(() => {

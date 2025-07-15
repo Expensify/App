@@ -544,6 +544,8 @@ const ONYXKEYS = {
     /** List of reports IDs used when navigating to prev/next report */
     REPORT_NAVIGATION_REPORT_IDS: 'ReportNavigationReportsId',
 
+    REPORT_NAVIGATION_ACTUAL_REPORT_IDS: 'ReportNavigationActualReportId',
+
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
     NVP_LAST_IPHONE_LOGIN: 'nvp_lastiPhoneLogin',
@@ -1202,6 +1204,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
     [ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS]: string[];
+    [ONYXKEYS.REPORT_NAVIGATION_ACTUAL_REPORT_IDS]: string;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
 
