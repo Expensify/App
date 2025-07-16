@@ -360,12 +360,11 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
 }
 
-// JACK_TODO: Implement currentSearchKey optimistic updates
 function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SuggestedSearchKey) {
     const action = buildOptimisticExportIntegrationAction(connectionName);
     const optimisticReportActionID = action.reportActionID;
 
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -386,6 +385,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
     const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT ? createOnyxData(null) : [];
     const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
     const params = {
@@ -397,7 +397,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
         }),
     } satisfies ReportExportParams;
 
-    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, finallyData});
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, successData, finallyData});
 }
 
 function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
