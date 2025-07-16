@@ -124,7 +124,7 @@ function DetailsReview({route}: DetailsReviewProps) {
                         Navigation.goBack();
                     }}
                 />
-                <ScrollView style={[styles.flex1, styles.p5]}>
+                <ScrollView style={[styles.flex1, styles.ph5]}>
                     <View style={[styles.mb5]}>
                         <Text>{translate('transactionMerge.detailsPage.pageTitle')}</Text>
                     </View>
