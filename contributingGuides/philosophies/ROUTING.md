@@ -24,6 +24,11 @@ Examples:
 - `r/:reportID` the route for a specific report
 - `workspace/:policyID` the route for a specific workspace
 
+### - SHOULD use plural nouns when there are multiple objects that can exist
+Exceptions:
+
+- When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) then plurality does not matter
+
 ### - SHOULD NOT nest inside other object paths
 If an object can be accessed by it's own ID that doesn't depend on any other object IDs, then only use the object's ID in the URL.
 
@@ -36,6 +41,10 @@ r/:threadReportID
 // BAD (the parentReportID is unnecessary to render the thread)
 r/:parentReportID/:threadReportID
 ```
+
+Exceptions:
+
+- When multiple IDs are **required** to render the page.
 
 ## Page Routes
 Page Routes should attempt to reflect the navigational position in the UI hierarchy, ideally matching the names of the elements pressed to get there, similar to a "trail of breadcrumbs".
