@@ -109,9 +109,10 @@ function BaseModal(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {sidePanelOffset, modalTranslateX} = useSidePanel();
+    const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
-    const sidePanelReanimatedStyle = shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: modalTranslateX.current}]} : undefined;
+    const sidePanelReanimatedStyle =
+        shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const insets = useSafeAreaInsets();
