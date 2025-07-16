@@ -30,6 +30,7 @@ const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
 function KYCWall({
+    addBankAccountRoute,
     addDebitCardRoute,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -122,11 +123,11 @@ function KYCWall({
 
                     return;
                 }
-                const bankAccountRoute = getBankAccountRoute(chatReport);
+                const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport);
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod],
+        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod],
     );
 
     /**
