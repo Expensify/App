@@ -33,7 +33,7 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFie
     const {translate} = useLocalize();
     const theme = useTheme();
     const {sortedAllReportActions: transactionActions, report} = usePaginatedReportActions(transaction.reportID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transaction?.policyID ?? report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const transactionThreadId = transactionActions ? getIOUActionForTransactionID(transactionActions, transaction.transactionID)?.childReportID : undefined;
     const {sortedAllReportActions: transactionThreadActions} = usePaginatedReportActions(transactionThreadId);
 
