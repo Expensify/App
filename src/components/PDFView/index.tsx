@@ -6,8 +6,8 @@ import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useOnyx from '@hooks/useOnyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,7 +18,7 @@ import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
-import type {PDFViewProps} from './types';
+import type PDFViewProps from './types';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
@@ -147,4 +147,3 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
 }
 
 export default memo(PDFView);
-
