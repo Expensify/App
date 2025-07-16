@@ -958,7 +958,6 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param temporaryShouldUseTableReportView For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
  */
 function openReport(
     reportID: string | undefined,
@@ -969,7 +968,6 @@ function openReport(
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
-    temporaryShouldUseTableReportView = false,
     transactionID?: string,
 ) {
     if (!reportID) {
@@ -1083,11 +1081,6 @@ function openReport(
                 parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
             }
         }
-    }
-
-    // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
-    if (temporaryShouldUseTableReportView) {
-        parameters.useTableReportView = true;
     }
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
@@ -2841,7 +2834,7 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID, shouldUpdateQAB: true},
+        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
         {optimisticData, successData, failureData},
     );
     if (shouldNotifyNewAction) {
@@ -4266,8 +4259,8 @@ function searchForReports(searchInput: string, policyID?: string) {
         },
     ];
 
-    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID};
-    const searchForReportsParams: SearchForReportsParams = {searchInput, canCancel: true};
+    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput.toLowerCase(), policyID};
+    const searchForReportsParams: SearchForReportsParams = {searchInput: searchInput.toLowerCase(), canCancel: true};
 
     // We want to cancel all pending SearchForReports API calls before making another one
     if (!policyID) {
@@ -4876,6 +4869,18 @@ function deleteAppReport(reportID: string | undefined) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
             value: {[unreportedAction.reportActionID]: unreportedAction},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            value: {[unreportedAction.reportActionID]: {pendingAction: null}},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            value: {[unreportedAction.reportActionID]: null},
         });
 
         if (transactionID) {
