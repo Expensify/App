@@ -1422,153 +1422,145 @@ function createTypeMenuSections(
         },
     ];
 
-    // We suggest specific filters for users based on their access in specific policies. Show the todo section
-    // only if any of these items are available
-    const showTodoSection = shouldShowSubmitSuggestion || shouldShowApproveSuggestion || shouldShowPaySuggestion || shouldShowExportSuggestion;
-
-    if (showTodoSection && currentUserAccountID) {
-        const section: SearchTypeMenuSection = {
-            translationPath: 'common.todo',
-            menuItems: [],
-        };
-
-        if (shouldShowSubmitSuggestion) {
-            const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
-                translationPath: 'common.submit',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.Pencil,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptySubmitResults.title',
-                    subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons:
-                        groupPoliciesWithChatEnabled.length > 0
-                            ? [
-                                  {
-                                      success: true,
-                                      buttonText: 'report.newReport.createReport',
-                                      buttonAction: () => {
-                                          interceptAnonymousUser(() => {
-                                              const activePolicy = getActivePolicy();
-                                              const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
-
-                                              let workspaceIDForReportCreation: string | undefined;
-
-                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                                  workspaceIDForReportCreation = activePolicy.id;
-                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                              }
-
-                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                  });
-                                                  return;
-                                              }
-
-                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                          });
-                                      },
-                                  },
-                              ]
-                            : [],
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${currentUserAccountID}`],
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        if (shouldShowApproveSuggestion) {
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
-                translationPath: 'search.bulkActions.approve',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.ThumbsUp,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyApproveResults.title',
-                    subtitle: 'search.searchResults.emptyApproveResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${currentUserAccountID}`],
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        if (shouldShowPaySuggestion) {
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
-                translationPath: 'search.bulkActions.pay',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyBag,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyPayResults.title',
-                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: currentUserAccountID?.toString(),
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        if (shouldShowExportSuggestion) {
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
-                translationPath: 'common.export',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.CheckCircle,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyExportResults.title',
-                    subtitle: 'search.searchResults.emptyExportResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${currentUserAccountID}`],
-                        exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        typeMenuSections.push(section);
-    }
+    const todoSection: SearchTypeMenuSection = {
+        translationPath: 'common.todo',
+        menuItems: [],
+    };
 
     const accountingSection: SearchTypeMenuSection = {
         translationPath: 'workspace.common.accounting',
         menuItems: [],
     };
+
+    if (shouldShowSubmitSuggestion) {
+        const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
+            translationPath: 'common.submit',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Pencil,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptySubmitResults.title',
+                subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                buttons:
+                    groupPoliciesWithChatEnabled.length > 0
+                        ? [
+                              {
+                                  success: true,
+                                  buttonText: 'report.newReport.createReport',
+                                  buttonAction: () => {
+                                      interceptAnonymousUser(() => {
+                                          const activePolicy = getActivePolicy();
+                                          const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
+
+                                          let workspaceIDForReportCreation: string | undefined;
+
+                                          // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                          if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                              workspaceIDForReportCreation = activePolicy.id;
+                                          } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                              workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                          }
+
+                                          if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                              const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                              });
+                                              return;
+                                          }
+
+                                          // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                          Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                      });
+                                  },
+                              },
+                          ]
+                        : [],
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    from: [`${currentUserAccountID}`],
+                });
+                return queryString;
+            },
+        });
+    }
+
+    if (shouldShowApproveSuggestion) {
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
+            translationPath: 'search.bulkActions.approve',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.ThumbsUp,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyApproveResults.title',
+                subtitle: 'search.searchResults.emptyApproveResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                    to: [`${currentUserAccountID}`],
+                });
+                return queryString;
+            },
+        });
+    }
+
+    if (shouldShowPaySuggestion) {
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
+            translationPath: 'search.bulkActions.pay',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyBag,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyPayResults.title',
+                subtitle: 'search.searchResults.emptyPayResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                    reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                    payer: currentUserAccountID?.toString(),
+                });
+                return queryString;
+            },
+        });
+    }
+
+    if (shouldShowExportSuggestion) {
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
+            translationPath: 'common.export',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CheckCircle,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyExportResults.title',
+                subtitle: 'search.searchResults.emptyExportResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
+                    exporter: [`${currentUserAccountID}`],
+                    exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+                });
+                return queryString;
+            },
+        });
+    }
 
     if (shouldShowStatementsSuggestion) {
         accountingSection.menuItems.push({
@@ -1682,6 +1674,10 @@ function createTypeMenuSections(
 
     if (shouldShowReconciliationSuggestion) {
         // s77rt TODO
+    }
+
+    if (todoSection.menuItems.length > 0) {
+        typeMenuSections.push(todoSection);
     }
 
     // s77rt remove DEV lock
