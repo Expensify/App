@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -59,7 +59,7 @@ const renderWorkspacePageWithSections = (props = {}) => {
     };
 
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <WorkspacePageWithSections
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
