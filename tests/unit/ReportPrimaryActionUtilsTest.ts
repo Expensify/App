@@ -53,8 +53,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy})).toBe('');
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy, isChatReportArchived: false})).toBe('');
     });
 
     it('should return SUBMIT for expense report with manual submit', async () => {

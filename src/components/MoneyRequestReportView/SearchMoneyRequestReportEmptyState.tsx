@@ -28,7 +28,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const addExpenseDropdownOptions = [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translate('iou.createNewExpense'),
+            text: translate('iou.createExpense'),
             icon: Expensicons.Plus,
             onSelected: () => {
                 if (!reportId) {
