@@ -161,6 +161,15 @@ function getReportRHPActiveRoute(): string {
 }
 
 /**
+ * Cleans the route path by removing redundant slashes and query parameters.
+ * @param routePath The route path to clean.
+ * @returns The cleaned route path.
+ */
+function cleanRoutePath(routePath: string): string {
+    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -170,11 +179,11 @@ function getReportRHPActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    let activeRoute = getActiveRoute();
+    let activeRoute = getActiveRouteWithoutParams();
     activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
 
     // We remove redundant (consecutive and trailing) slashes from path before matching
-    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
+    return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
 }
 
 /**
@@ -305,15 +314,6 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
-    /**
-     * In react-navigation 7 the behavior of the `navigate` function has slightly changed.
-     * If it detects that a screen that we want to navigate to is already in the stack, it doesn't go back anymore.
-     * More: https://reactnavigation.org/docs/upgrading-from-6.x#the-navigate-method-no-longer-goes-back-use-popto-instead
-     */
-    if (minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.NAVIGATE_DEPRECATED;
-    }
-
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
@@ -325,11 +325,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     }
 
     /**
-     * If we are not comparing params, we want to use navigate action because it will replace params in the route already existing in the state if necessary.
-     * This part will need refactor after migrating to react-navigation 7. We will use popTo instead.
+     * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
     if (!compareParams) {
-        navigationRef.current.dispatch(minimalAction);
+        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
         return;
     }
 

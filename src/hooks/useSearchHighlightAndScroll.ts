@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -62,8 +61,10 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const hasTransactionsIDsChange = !deepEqual(transactionsIDs, previousTransactionsIDs);
-        const hasReportActionsIDsChange = !deepEqual(reportActionsIDs, previousReportActionsIDs);
+        const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
+        const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
+        const hasTransactionsIDsChange = transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
@@ -75,12 +76,14 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             hasPendingSearchRef.current = false;
 
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
-            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));
+            const existingSearchResultIDsSet = new Set(existingSearchResultIDs);
+            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDsSet.has(id));
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && existingSearchResultIDs.length > 0) {
-                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDs.includes(id));
+                const newIDsSet = new Set(newIDs);
+                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDsSet.has(id));
                 if (!hasDeletedID) {
                     return;
                 }

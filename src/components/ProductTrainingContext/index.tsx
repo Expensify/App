@@ -1,12 +1,12 @@
 import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
@@ -49,7 +49,7 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -294,19 +294,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                        {tooltip.content.map(({text, isBold}) => {
-                            const translatedText = translate(text);
-                            return (
-                                <Text
-                                    key={text}
-                                    style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                                >
-                                    {translatedText}
-                                </Text>
-                            );
-                        })}
-                    </Text>
+                    <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                        <RenderHTML html={translate(tooltip.content)} />
+                    </View>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop
@@ -352,14 +342,13 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.productTrainingTooltipText,
-        styles.textWrap,
-        styles.mw100,
         styles.flex1,
         styles.justifyContentBetween,
         styles.ph2,
         styles.gap2,
-        styles.textBold,
+        styles.renderHTML,
+        styles.dFlex,
+        styles.flexShrink1,
         theme.tooltipHighlightText,
         theme.icon,
         translate,

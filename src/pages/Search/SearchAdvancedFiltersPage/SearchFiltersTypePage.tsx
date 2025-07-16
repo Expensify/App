@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,11 +28,11 @@ function SearchFiltersTypePage() {
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
         return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
-            text: translate(typeOption.translation),
+            text: typeOption.text,
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [allPolicies, selectedItem, session?.email, translate]);
+    }, [allPolicies, selectedItem, session?.email]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchDataTypes>) => {
         setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);

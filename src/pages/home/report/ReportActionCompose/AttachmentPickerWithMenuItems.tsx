@@ -2,9 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -13,6 +13,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -48,10 +49,7 @@ type AttachmentPickerWithMenuItemsProps = {
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback to open the file in the modal */
-    displayFileInModal: (url: FileObject) => void;
-
-    /** Callback to open multiple files in the modal */
-    displayMultipleFilesInModal: (files: FileObject[]) => void;
+    displayFilesInModal: (files: FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -109,8 +107,7 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFileInModal,
-    displayMultipleFilesInModal,
+    displayFilesInModal,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -137,6 +134,7 @@ function AttachmentPickerWithMenuItems({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {setIsLoaderVisible} = useFullScreenLoader();
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
@@ -313,25 +311,23 @@ function AttachmentPickerWithMenuItems({
     // 4. And the Create button is at the bottom.
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
-    const isMultipleDragAndDropEnabled = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
-
     return (
         <AttachmentPicker
-            allowMultiple={isMultipleDragAndDropEnabled}
-            fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+            allowMultiple
+            onOpenPicker={() => setIsLoaderVisible(true)}
+            fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
+            shouldValidateImage={false}
         >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => {
-                            if (data.length > 1 && isMultipleDragAndDropEnabled) {
-                                displayMultipleFilesInModal(data);
-                            } else {
-                                displayFileInModal(data.at(0) ?? {});
-                            }
+                        onPicked: (data) => displayFilesInModal(data),
+                        onCanceled: () => {
+                            onCanceledAttachmentPicker?.();
+                            setIsLoaderVisible(false);
                         },
-                        onCanceled: onCanceledAttachmentPicker,
+                        onClosed: () => setIsLoaderVisible(false),
                     });
                 };
                 const menuItems = [
@@ -454,7 +450,10 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
                         />
