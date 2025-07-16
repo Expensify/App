@@ -579,8 +579,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
-
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
