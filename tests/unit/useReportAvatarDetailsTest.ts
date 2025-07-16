@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -84,7 +84,7 @@ describe('useReportAvatarDetails', () => {
                     report: mockedDMChatRoom,
                     ...policiesMock,
                 }),
-            {wrapper: OnyxProvider},
+            {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedOwnerAccountAvatar);
@@ -101,7 +101,7 @@ describe('useReportAvatarDetails', () => {
                     report: mockedDMChatRoom,
                     ...policiesMock,
                 }),
-            {wrapper: OnyxProvider},
+            {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
@@ -130,7 +130,7 @@ describe('useReportAvatarDetails', () => {
                     report: mockedDMChatRoom,
                     ...policiesMock,
                 }),
-            {wrapper: OnyxProvider},
+            {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
@@ -155,7 +155,7 @@ describe('useReportAvatarDetails', () => {
                     report: mockedDMChatRoom,
                     ...policiesMock,
                 }),
-            {wrapper: OnyxProvider},
+            {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
@@ -172,7 +172,7 @@ describe('useReportAvatarDetails', () => {
                     report: mockedDMChatRoom,
                     ...policiesMock,
                 }),
-            {wrapper: OnyxProvider},
+            {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedOwnerAccountAvatar);

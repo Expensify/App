@@ -610,6 +610,9 @@ type XeroExportConfig = {
 
     /** TODO: Will be handled in another issue */
     reimbursable: ExpenseTypesValues;
+
+    /** The accounting Method for Xero connection config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /** TODO: Will be handled in another issue */
