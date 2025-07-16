@@ -299,10 +299,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                                 showDelegateNoAccessModal();
                                 return;
                             }
-                            if (isAccountLocked) {
-                                showLockedAccountModal();
-                                return;
-                            }
                             toggleDeleteModal(true);
                         }}
                     />
