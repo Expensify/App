@@ -309,10 +309,10 @@ function SearchList(
 
             return (
                 <Animated.View
-                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.ANIMATED_TRANSITION / 2).easing(easing) : undefined}
+                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(1.25 * CONST.ANIMATED_TRANSITION) : undefined}
+                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip

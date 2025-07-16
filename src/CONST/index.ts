@@ -6198,6 +6198,8 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        EXITING_ANIMATION_DURATION: 150,
+        LAYOUT_ANIMATION_DURATION: 375,
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
