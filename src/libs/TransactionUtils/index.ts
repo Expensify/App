@@ -95,6 +95,7 @@ type BuildOptimisticTransactionParams = {
     existingTransaction?: OnyxEntry<Transaction>;
     policy?: OnyxEntry<Policy>;
     transactionParams: TransactionParams;
+    isDemoTransactionParam?: boolean;
 };
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -247,7 +248,7 @@ function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>)
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
-    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams} = params;
+    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
     const {
         amount,
         currency,
@@ -275,6 +276,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
+    if (isDemoTransactionParam) {
+        commentJSON.isDemoTransaction = true;
+    }
     if (source) {
         commentJSON.source = source;
     }
@@ -335,6 +339,10 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
+}
+
+function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return transaction?.comment?.isDemoTransaction ?? false;
 }
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
@@ -432,10 +440,6 @@ function getUpdatedTransaction({
     if (Object.hasOwn(transactionChanges, 'merchant')) {
         updatedTransaction.modifiedMerchant = transactionChanges.merchant;
         shouldStopSmartscan = true;
-    }
-
-    if (Object.hasOwn(transactionChanges, 'wasMerchantCleared')) {
-        updatedTransaction.wasMerchantCleared = transactionChanges.wasMerchantCleared;
     }
 
     if (Object.hasOwn(transactionChanges, 'waypoints')) {
@@ -697,12 +701,8 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
-    if (!transaction) {
-        return '';
-    }
-
-    const report = getReportOrDraftReport(transaction.reportID);
-    if (isDistanceRequest(transaction)) {
+    if (transaction && isDistanceRequest(transaction)) {
+        const report = getReportOrDraftReport(transaction.reportID);
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line deprecation/deprecation
         const policy = policyParam ?? getPolicy(report?.policyID);
@@ -715,12 +715,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
             );
         }
     }
-
-    // Check if merchant was intentionally cleared by user (only for personal expenses)
-    if (transaction.wasMerchantCleared) {
-        return '';
-    }
-    return transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
 function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
@@ -1814,6 +1809,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
+    isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 };

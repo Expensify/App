@@ -130,6 +130,7 @@ const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+    WORKSPACE: 'workspace',
 } as const;
 
 const onboardingCompanySize = {
@@ -649,7 +650,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
@@ -965,18 +965,15 @@ const CONST = {
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    NAVATTIC: {
-        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
-        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
-        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
-        COMPLETED: 'completed',
-    },
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
+
+        // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_MOBILE: 'https://expensify.navattic.com/35609gb',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -5209,7 +5206,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
@@ -6220,6 +6217,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
@@ -6400,8 +6398,8 @@ const CONST = {
         },
         DATE_MODIFIERS: {
             ON: 'On',
-            BEFORE: 'Before',
             AFTER: 'After',
+            BEFORE: 'Before',
         },
         DATE_PRESETS: {
             NEVER: 'never',
@@ -6424,6 +6422,18 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        SUGGESTED_SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+        },
     },
 
     EXPENSE: {
@@ -6865,9 +6875,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'iou',
-        EXPENSE: 'expense',
-        INVOICE: 'invoice',
+        IOU: 'Iou',
+        EXPENSE: 'Expense',
+        INVOICE: 'Invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
