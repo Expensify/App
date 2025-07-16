@@ -42,6 +42,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         sortedAllReportActions,
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,
+        report,
     };
 }
 
