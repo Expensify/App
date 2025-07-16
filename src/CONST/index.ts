@@ -650,7 +650,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
@@ -5207,7 +5206,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
@@ -6218,6 +6217,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
@@ -6398,8 +6398,8 @@ const CONST = {
         },
         DATE_MODIFIERS: {
             ON: 'On',
-            BEFORE: 'Before',
             AFTER: 'After',
+            BEFORE: 'Before',
         },
         DATE_PRESETS: {
             NEVER: 'never',
@@ -6422,6 +6422,18 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        SUGGESTED_SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+        },
     },
 
     EXPENSE: {

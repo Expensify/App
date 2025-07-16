@@ -10,7 +10,7 @@ import type DisplayNamesProps from './types';
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const titleContainsTextAndCustomEmoji = useMemo(() => !containsCustomEmoji(fullTitle) && containsOnlyCustomEmoji(fullTitle), [fullTitle]);
+    const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
     return (
         <Text
             accessibilityLabel={accessibilityLabel}
