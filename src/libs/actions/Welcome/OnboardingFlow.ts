@@ -143,11 +143,11 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
-        return '';
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !isCurrentOnboardingCompanySizeMicro)) {
-        return '';
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     return onboardingInitialPath;
