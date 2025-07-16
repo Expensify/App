@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useOnyx from '@hooks/useOnyx';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {
@@ -49,13 +50,14 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
+    const defaultCardFeed = useDefaultCardFeed();
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
 
     const setCurrentSearchHash = useCallback(
         (searchHash: number) => {
             setSearchContextData((prevState) => {
-                const suggestedSearches = getSuggestedSearches(accountID);
+                const suggestedSearches = getSuggestedSearches(defaultCardFeed, accountID);
                 const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchHash);
 
                 if (searchHash === prevState.currentSearchHash && currentSearch?.key === prevState.currentSearchKey) {
@@ -69,7 +71,7 @@ function SearchContextProvider({children}: ChildrenProps) {
                 };
             });
         },
-        [accountID],
+        [accountID, defaultCardFeed],
     );
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {

@@ -225,7 +225,7 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
  * contains the conditionals for rendering each of these.
  */
-function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID): Record<SuggestedSearchKey, SearchTypeMenuItem> {
+function getSuggestedSearches(defaultFeed: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<SuggestedSearchKey, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
@@ -327,7 +327,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID): Reco
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.CARDS,
-                // feed: defaultFeed ? [defaultFeed] : undefined,
+                feed: defaultFeed ? [defaultFeed] : undefined,
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
             get hash() {
@@ -357,8 +357,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID): Reco
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                // s77rt this should be update to use the default feed
-                // feed: defaultFeed ? [defaultFeed] : undefined,
+                feed: defaultFeed ? [defaultFeed] : undefined,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get hash() {
@@ -373,8 +372,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID): Reco
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                // s77rt this should be update to use the default feed
-                // feed: defaultFeed ? [defaultFeed] : undefined,
+                feed: defaultFeed ? [defaultFeed] : undefined,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get hash() {
@@ -1483,9 +1481,10 @@ function createTypeMenuSections(
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
     feeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    defaultCardFeed: string | undefined,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
+    const suggestedSearches = getSuggestedSearches(defaultCardFeed, currentUserAccountID);
 
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
@@ -1644,8 +1643,6 @@ function createTypeMenuSections(
         menuItems: [],
     };
 
-    let defaultFeed: string | undefined;
-
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
     let showShowUnapprovedCompanyCardsSuggestion = false;
@@ -1668,11 +1665,6 @@ function createTypeMenuSections(
         const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = false; // s77rt TODO
-
-        // The default feed must be based on an eligible policy
-        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
-            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
-        }
 
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
         showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
