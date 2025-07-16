@@ -224,6 +224,11 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
  * Returns a list of all possible searches in the LHN, along with their query & hash.
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
  * contains the conditionals for rendering each of these.
+ *
+ * If you are updating this function, do not add more params unless absolutely necessary for the searches. The amount of data needed to
+ * get the list of searches should be as minimal as possible.
+ *
+ * These searches should be as static as possible, and should not contain conditionals, or any other logic
  */
 function getSuggestedSearches(defaultFeed: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<SuggestedSearchKey, SearchTypeMenuItem> {
     return {
