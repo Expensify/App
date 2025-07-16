@@ -4,14 +4,14 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import ActionSheetAwareScrollView, {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import FlatList from '@components/FlatList';
+import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -26,6 +26,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -64,7 +65,6 @@ import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionLi
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-import InvertedFlatList from '@components/InvertedFlatList';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -152,6 +152,7 @@ function MoneyRequestReportActionsList({
     const canPerformWriteAction = canUserPerformWriteAction(report);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -182,7 +183,7 @@ function MoneyRequestReportActionsList({
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs]);
 
     const reportActionSize = useRef(visibleReportActions.length);
-    const lastAction = visibleReportActions.at(-1);
+    const lastAction = visibleReportActions.at(0);
     const lastActionIndex = lastAction?.reportActionID;
     const previousLastIndex = useRef(lastActionIndex);
 
@@ -382,7 +383,7 @@ function MoneyRequestReportActionsList({
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToEnd();
+            reportScrollManager.scrollToBottom();
         }
 
         previousLastIndex.current = lastActionIndex;
@@ -436,10 +437,10 @@ function MoneyRequestReportActionsList({
                     return;
                 }
 
-                // We want to scroll to the end of the list where the newest message is
-                // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
+                // We want to scroll to the bottom of the list where the newest message is
+                // however scrollToBottom will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
                 setTimeout(() => {
-                    reportScrollManager.scrollToEnd();
+                    reportScrollManager.scrollToBottom();
                 }, DELAY_FOR_SCROLLING_TO_END);
             });
         },
@@ -509,7 +510,7 @@ function MoneyRequestReportActionsList({
 
         if (!hasNewestReportAction) {
             openReport(report.reportID);
-            reportScrollManager.scrollToEnd();
+            reportScrollManager.scrollToBottom();
             return;
         }
 
