@@ -12,7 +12,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -81,8 +80,6 @@ function VerifyPage({route}: VerifyPageProps) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
-            shouldEnableMaxHeight={!isMobileSafari()}
-            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
@@ -119,7 +116,7 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-                <View style={[styles.mh5, styles.mb4, styles.mt2]}>
+                <View style={[styles.mh5, styles.mb4]}>
                     <TwoFactorAuthForm innerRef={formRef} />
                 </View>
             </ScrollView>

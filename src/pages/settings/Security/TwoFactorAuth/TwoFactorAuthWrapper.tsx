@@ -6,6 +6,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
@@ -28,24 +29,9 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
-
-    /** Flag to indicate if the max height should be enabled */
-    shouldEnableMaxHeight?: boolean;
-
-    /** Flag to indicate if the scroll view should avoid scroll on virtual viewport */
-    shouldAvoidScrollOnVirtualViewport?: boolean;
 };
 
-function TwoFactorAuthWrapper({
-    stepName,
-    title,
-    stepCounter,
-    onBackButtonPress,
-    shouldEnableKeyboardAvoidingView = true,
-    shouldEnableMaxHeight = true,
-    shouldAvoidScrollOnVirtualViewport = true,
-    children,
-}: TwoFactorAuthWrapperProps) {
+function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
@@ -73,6 +59,8 @@ function TwoFactorAuthWrapper({
         }
     }, [account, stepName]);
 
+    const viewportOffsetTop = useViewportOffsetTop();
+
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
@@ -91,9 +79,8 @@ function TwoFactorAuthWrapper({
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-            shouldEnableMaxHeight={shouldEnableMaxHeight}
-            shouldAvoidScrollOnVirtualViewport={shouldAvoidScrollOnVirtualViewport}
             testID={stepName}
+            style={{marginTop: viewportOffsetTop}}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFound}
