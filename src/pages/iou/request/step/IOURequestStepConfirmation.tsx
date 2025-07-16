@@ -359,7 +359,6 @@ function IOURequestStepConfirmation({
         reportID,
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
-        isBetaEnabled,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
