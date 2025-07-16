@@ -9,7 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,7 +19,6 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -36,7 +35,6 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
-import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
@@ -187,9 +185,6 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    // TODO: remove beta check after the feature is enabled
-    const {isBetaEnabled} = usePermissions();
-
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
     const viewTourReportID = introSelected?.viewTour;
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
@@ -320,7 +315,7 @@ function IOURequestStepConfirmation({
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
-                const shouldUseNewScanFlow = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT);
+                const shouldUseNewScanFlow = iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT;
                 const backToReportID =
                     shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
                         ? reportID
@@ -362,7 +357,6 @@ function IOURequestStepConfirmation({
         reportID,
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
-        isBetaEnabled,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
@@ -1017,7 +1011,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? styles.dropWrapper : styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
@@ -1050,20 +1044,15 @@ function IOURequestStepConfirmation({
                     </HeaderWithBackButton>
                     {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFValidationComponent}
-                    {/* TODO: remove beta check after the feature is enabled */}
-                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                        <DragAndDropConsumer onDrop={handleDroppingReceipt}>
-                            <DropZoneUI
-                                icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                                dropStyles={styles.receiptDropOverlay(true)}
-                                dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
-                                dropTextStyles={styles.receiptDropText}
-                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
-                            />
-                        </DragAndDropConsumer>
-                    ) : (
-                        <ReceiptDropUI onDrop={handleDroppingReceipt} />
-                    )}
+                    <DragAndDropConsumer onDrop={handleDroppingReceipt}>
+                        <DropZoneUI
+                            icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                        />
+                    </DragAndDropConsumer>
                     {ErrorModal}
                     {!!gpsRequired && (
                         <LocationPermissionModal
