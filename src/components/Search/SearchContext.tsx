@@ -43,7 +43,6 @@ const defaultSearchContext: SearchContext = {
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
     const [isExportMode, setExportMode] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
@@ -51,10 +50,12 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+
     const setCurrentSearchHash = useCallback(
         (searchHash: number) => {
             setSearchContextData((prevState) => {
-                const suggestedSearches = getSuggestedSearches(session);
+                const suggestedSearches = getSuggestedSearches(accountID);
                 const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchHash);
 
                 if (searchHash === prevState.currentSearchHash && currentSearch?.key === prevState.currentSearchKey) {
@@ -68,7 +69,7 @@ function SearchContextProvider({children}: ChildrenProps) {
                 };
             });
         },
-        [session],
+        [accountID],
     );
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
