@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +44,7 @@ jest.mock('@components/OptionListContextProvider', () => ({
  */
 const renderIOURequestEditReportCommon = ({transactionsReports = []}: {transactionsReports: Report[]}) =>
     render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <IOURequestEditReportCommon
                 transactionsReports={transactionsReports}
                 selectReport={jest.fn()}
