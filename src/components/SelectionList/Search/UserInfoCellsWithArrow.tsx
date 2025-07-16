@@ -1,6 +1,6 @@
 import React from 'react';
-import type {TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
@@ -18,6 +18,7 @@ function UserInfoCellsWithArrow({
     participantTo,
     participantToDisplayName,
     avatarSize,
+    style,
     infoCellsTextStyle,
     infoCellsAvatarStyle,
     fromRecipientStyle,
@@ -27,6 +28,7 @@ function UserInfoCellsWithArrow({
     participantFromDisplayName: string;
     participantTo: SearchPersonalDetails | PersonalDetails;
     participantToDisplayName: string;
+    style?: StyleProp<ViewStyle>;
     avatarSize?: AvatarSizeName;
     infoCellsTextStyle?: TextStyle;
     infoCellsAvatarStyle?: ViewStyle;
@@ -40,17 +42,16 @@ function UserInfoCellsWithArrow({
     }
 
     return (
-        <>
-            <View style={[styles.mw50, fromRecipientStyle]}>
-                <UserInfoCell
-                    accountID={participantFrom.accountID}
-                    avatar={participantFrom.avatar}
-                    displayName={participantFromDisplayName}
-                    avatarSize={avatarSize}
-                    textStyle={infoCellsTextStyle}
-                    avatarStyle={infoCellsAvatarStyle}
-                />
-            </View>
+        <View style={[styles.flex1, style]}>
+            <UserInfoCell
+                accountID={participantFrom.accountID}
+                avatar={participantFrom.avatar}
+                displayName={participantFromDisplayName}
+                avatarSize={avatarSize}
+                textStyle={infoCellsTextStyle}
+                avatarStyle={infoCellsAvatarStyle}
+                containerStyle={[styles.mw50, fromRecipientStyle]}
+            />
             {shouldShowToRecipient && (
                 <>
                     <Icon
@@ -60,19 +61,18 @@ function UserInfoCellsWithArrow({
                         fill={theme.icon}
                         testID="ArrowRightLong Icon"
                     />
-                    <View style={[styles.flex1, styles.mw50]}>
-                        <UserInfoCell
-                            accountID={participantTo.accountID}
-                            avatar={participantTo.avatar}
-                            displayName={participantToDisplayName}
-                            avatarSize={avatarSize}
-                            textStyle={infoCellsTextStyle}
-                            avatarStyle={infoCellsAvatarStyle}
-                        />
-                    </View>
+                    <UserInfoCell
+                        accountID={participantTo.accountID}
+                        avatar={participantTo.avatar}
+                        displayName={participantToDisplayName}
+                        avatarSize={avatarSize}
+                        textStyle={infoCellsTextStyle}
+                        avatarStyle={infoCellsAvatarStyle}
+                        containerStyle={[styles.mw50, fromRecipientStyle]}
+                    />
                 </>
             )}
-        </>
+        </View>
     );
 }
 
