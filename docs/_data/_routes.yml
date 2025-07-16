@@ -171,7 +171,7 @@ platforms:
       - href: company-setup
         title: Setting up your company in Expensify Travel
         icon: /assets/images/gears.svg
-        description: "Configure your company profile in Expensify Travel, and set your preferences, approval type, and more."
+        description: "Set up your company to manage departments, users, booking restrictions, and more."
 
       - href: travel-policy
         title: Creating a travel policy
