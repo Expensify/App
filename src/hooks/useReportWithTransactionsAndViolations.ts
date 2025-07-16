@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useAllReportsTransactionsAndViolations} from '@components/OnyxProvider';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
