@@ -53,7 +53,7 @@ type TabSelectorItemProps = {
     parentX?: number;
 
     /** Parent width, for computing tooltip placement */
-    parentWidth: number;
+    parentWidth?: number;
 };
 
 function TabSelectorItem({
