@@ -620,38 +620,30 @@ function MoneyRequestReportActionsList({
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
-                    <>
-                        <MoneyRequestViewReportFields
-                            report={report}
-                            policy={policy}
-                        />
-                        <SearchMoneyRequestReportEmptyState />
-                    </>
-                ) : (
-                    <InvertedFlatList
-                        renderScrollComponent={renderScrollComponent}
-                        shouldEnableAutoScrollToTopThreshold
-                        initialScrollKey={linkedReportActionID}
-                        initialNumToRender={INITIAL_NUM_TO_RENDER}
-                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                        testID="money-request-report-actions-list"
-                        style={styles.overscrollBehaviorContain}
-                        data={visibleReportActions}
-                        renderItem={renderItem}
-                        keyExtractor={(item) => item.reportActionID}
-                        onLayout={recordTimeToMeasureItemLayout}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={0.75}
-                        onStartReached={onStartReached}
-                        onStartReachedThreshold={0.75}
-                        ListHeaderComponent={
-                            <>
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
-                                />
+            <View style={styles.flex1}>
+                <InvertedFlatList
+                    initialNumToRender={INITIAL_NUM_TO_RENDER}
+                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                    testID="money-request-report-actions-list"
+                    style={styles.overscrollBehaviorContain}
+                    data={visibleReportActions}
+                    renderItem={renderItem}
+                    renderScrollComponent={renderScrollComponent}
+                    keyExtractor={(item) => item.reportActionID}
+                    onLayout={recordTimeToMeasureItemLayout}
+                    onEndReached={onEndReached}
+                    onEndReachedThreshold={0.75}
+                    onStartReached={onStartReached}
+                    onStartReachedThreshold={0.75}
+                    ListFooterComponent={
+                        <>
+                            <MoneyRequestViewReportFields
+                                report={report}
+                                policy={policy}
+                            />
+                            {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
+                                <SearchMoneyRequestReportEmptyState />
+                            ) : (
                                 <MoneyRequestReportTransactionList
                                     report={report}
                                     transactions={transactions}
@@ -661,15 +653,18 @@ function MoneyRequestReportActionsList({
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                 />
-                            </>
-                        }
-                        keyboardShouldPersistTaps="handled"
-                        onScroll={trackVerticalScrolling}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
-                        ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
-                    />
-                )}
+                            )}
+                        </>
+                    }
+                    keyboardShouldPersistTaps="handled"
+                    onScroll={trackVerticalScrolling}
+                    contentContainerStyle={styles.chatContentScrollView}
+                    ListFooterComponentStyle={styles.flex1}
+                    ref={reportScrollManager.ref}
+                    ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                    shouldEnableAutoScrollToTopThreshold
+                    initialScrollKey={linkedReportActionID}
+                />
             </View>
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
