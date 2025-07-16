@@ -100,7 +100,7 @@ function MoneyRequestReportTransactionItem({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={[animatedHighlightStyle]}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
             >
                 <TransactionItemRow
                     transactionItem={transaction}
