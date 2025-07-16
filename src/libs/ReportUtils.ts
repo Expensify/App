@@ -154,6 +154,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRenamedAction,
@@ -684,6 +685,7 @@ type TransactionDetails = {
     customUnitRateID?: string;
     comment: string;
     category: string;
+    reimbursable: boolean;
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -3980,6 +3982,7 @@ function getTransactionDetails(
         waypoints: getWaypoints(transaction),
         customUnitRateID: getRateID(transaction),
         category: getCategory(transaction),
+        reimbursable: getReimbursable(transaction),
         billable: getBillable(transaction),
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
@@ -4167,6 +4170,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+        CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
@@ -4730,6 +4734,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.currency = getCurrency(oldTransaction);
     }
 
+    if ('reimbursable' in transactionChanges) {
+        const oldReimbursable = getReimbursable(oldTransaction);
+        originalMessage.oldReimbursable = oldReimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        originalMessage.reimbursable = transactionChanges?.reimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
@@ -5119,6 +5129,9 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
         return getPolicyChangeLogDefaultBillableMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE)) {
+        return getPolicyChangeLogDefaultReimbursableMessage(parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);

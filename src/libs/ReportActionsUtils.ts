@@ -2662,6 +2662,19 @@ function getPolicyChangeLogDefaultBillableMessage(action: ReportAction): string 
     return getReportActionText(action);
 }
 
+function getPolicyChangeLogDefaultReimbursableMessage(action: ReportAction): string {
+    const {oldDefaultReimbursable, newDefaultReimbursable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE>) ?? {};
+
+    if (typeof oldDefaultReimbursable === 'string' && typeof newDefaultReimbursable === 'string') {
+        return translateLocal('workspaceActions.updateDefaultReimbursable', {
+            oldValue: oldDefaultReimbursable,
+            newValue: newDefaultReimbursable,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogDefaultTitleEnforcedMessage(action: ReportAction): string {
     const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
 
@@ -3102,6 +3115,7 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getReceiptScanFailedMessage,
 };
 
