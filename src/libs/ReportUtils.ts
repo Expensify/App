@@ -4229,12 +4229,6 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        const isRequestIOU = isIOUReport(moneyRequestReport);
-        if (isRequestIOU) {
-            return false;
-        }
-        const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
-
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreported = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return isUnreported
@@ -4243,7 +4237,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
               ).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 || isOwner;
+              ).length > 1;
     }
 
     return true;
