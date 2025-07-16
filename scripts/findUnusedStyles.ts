@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import {globSync} from 'glob';
 import * as path from 'path';
 import * as ts from 'typescript';
-import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
+import TSCompilerUtils from './utils/TSCompilerUtils';
 
 type StyleDefinition = {
     key: string;

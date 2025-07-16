@@ -1,7 +1,7 @@
 import type {Stats} from 'fs';
 import * as fs from 'fs';
 import {globSync} from 'glob';
-import {ComprehensiveStylesFinder} from '../../.github/scripts/findUnusedStyles';
+import {ComprehensiveStylesFinder} from '../../scripts/findUnusedStyles';
 import dedent from '../../src/libs/StringUtils/dedent';
 
 jest.mock(
