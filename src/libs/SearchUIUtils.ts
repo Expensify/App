@@ -1305,6 +1305,84 @@ function createTypeMenuSections(
     feeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
+    const activePolicy = getActivePolicy();
+    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
+
+    let defaultFeed: string | undefined;
+
+    let shouldShowSubmitSuggestion = false;
+    let shouldShowPaySuggestion = false;
+    let shouldShowApproveSuggestion = false;
+    let shouldShowExportSuggestion = false;
+
+    let shouldShowStatementsSuggestion = false;
+    let showShowUnapprovedCashSuggestion = false;
+    let showShowUnapprovedCompanyCardsSuggestion = false;
+    let shouldShowReconciliationSuggestion = false;
+
+    // The active (default) policy is prioritized to correctly set the default feed
+    [activePolicy, ...Object.values(policies)].some((policy) => {
+        if (!policy) {
+            return false;
+        }
+
+        const isPaidPolicy = isPaidGroupPolicy(policy);
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+        const isReimburser = policy.reimburser === currentUserLogin;
+        const isExporter = policy.exporter === currentUserLogin;
+        const isApprover = policy.approver === currentUserLogin;
+        const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+        const isPaymentEnabled = arePaymentsEnabled(policy);
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
+        });
+
+        const isEligibleForSubmitSuggestion = isPaidPolicy;
+        const isEligibleForPaySuggestion =
+            isPaidPolicy &&
+            (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
+                ? policy.reimburser
+                    ? isReimburser
+                    : isAdmin
+                : policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL
+                  ? isAdmin
+                  : false);
+        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo);
+        const isEligibleForExportSuggestion = isExporter;
+
+        const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForReconciliationSuggestion = isPaidPolicy && false; // s77rt TODO
+
+        // The default feed must be based on an eligible policy
+        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
+            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
+        }
+
+        shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
+        shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
+        shouldShowApproveSuggestion ||= isEligibleForApproveSuggestion;
+        shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
+
+        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
+        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
+
+        // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
+        return (
+            shouldShowSubmitSuggestion &&
+            shouldShowPaySuggestion &&
+            shouldShowApproveSuggestion &&
+            shouldShowExportSuggestion &&
+            shouldShowStatementsSuggestion &&
+            showShowUnapprovedCashSuggestion &&
+            showShowUnapprovedCompanyCardsSuggestion &&
+            shouldShowReconciliationSuggestion
+        );
+    });
+
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
@@ -1344,56 +1422,9 @@ function createTypeMenuSections(
         },
     ];
 
-    // Begin adding conditional sections, based on the policies the user has access to
-    const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
-
-    const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
-
-        const reimburser = policy.reimburser;
-        const isReimburser = reimburser === currentUserLogin;
-        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-
-        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            return reimburser ? isReimburser : isAdmin;
-        }
-
-        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-            return isAdmin;
-        }
-
-        return false;
-    });
-
-    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !currentUserLogin || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
-
-        if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-            return false;
-        }
-
-        const isPolicyApprover = policy.approver === currentUserLogin;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
-        });
-
-        return isPolicyApprover || isSubmittedTo;
-    });
-
-    const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !currentUserLogin) {
-            return false;
-        }
-
-        return policy.exporter === currentUserLogin;
-    });
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
-    const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
+    const showTodoSection = shouldShowSubmitSuggestion || shouldShowApproveSuggestion || shouldShowPaySuggestion || shouldShowExportSuggestion;
 
     if (showTodoSection && currentUserAccountID) {
         const section: SearchTypeMenuSection = {
@@ -1401,7 +1432,7 @@ function createTypeMenuSections(
             menuItems: [],
         };
 
-        if (showSubmitSuggestion) {
+        if (shouldShowSubmitSuggestion) {
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
                 key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
@@ -1460,7 +1491,7 @@ function createTypeMenuSections(
             });
         }
 
-        if (showApproveSuggestion) {
+        if (shouldShowApproveSuggestion) {
             section.menuItems.push({
                 key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
                 translationPath: 'search.bulkActions.approve',
@@ -1483,7 +1514,7 @@ function createTypeMenuSections(
             });
         }
 
-        if (showPaySuggestion) {
+        if (shouldShowPaySuggestion) {
             section.menuItems.push({
                 key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
                 translationPath: 'search.bulkActions.pay',
@@ -1507,7 +1538,7 @@ function createTypeMenuSections(
             });
         }
 
-        if (showExportSuggestion) {
+        if (shouldShowExportSuggestion) {
             section.menuItems.push({
                 key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
                 translationPath: 'common.export',
@@ -1538,45 +1569,6 @@ function createTypeMenuSections(
         translationPath: 'workspace.common.accounting',
         menuItems: [],
     };
-
-    let defaultFeed: string | undefined;
-
-    let shouldShowStatementsSuggestion = false;
-    let showShowUnapprovedCashSuggestion = false;
-    let showShowUnapprovedCompanyCardsSuggestion = false;
-    let shouldShowReconciliationSuggestion = false;
-
-    const activePolicy = getActivePolicy();
-    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
-
-    // The active (default) policy is prioritized to correctly set the default feed
-    [activePolicy, ...Object.values(policies)].some((policy) => {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
-
-        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-        const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const isPaymentEnabled = arePaymentsEnabled(policy);
-
-        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
-        const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
-        const isEligibleForReconciliationSuggestion = false; // s77rt TODO
-
-        // The default feed must be based on an eligible policy
-        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
-            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
-        }
-
-        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
-        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
-        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
-        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
-
-        // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
-        return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
-    });
 
     if (shouldShowStatementsSuggestion) {
         accountingSection.menuItems.push({
