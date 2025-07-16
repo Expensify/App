@@ -1581,6 +1581,7 @@ function createTypeMenuSections(
 
     if (shouldShowStatementsSuggestion) {
         accountingSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.STATEMENTS,
             translationPath: 'search.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCard,

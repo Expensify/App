@@ -1,8 +1,6 @@
 import {useMemo} from 'react';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
