@@ -20,24 +20,33 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BottomDockedModal from './BottomDockedModal';
-import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ReanimatedModal from './ReanimatedModal';
+import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 
-type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
+const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
+
+type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+    shouldUseReanimatedModal?: boolean;
 };
 
-function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <BottomDockedModal {...(props as ModalProps)} />;
+function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
+        return (
+            <ReanimatedModal
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props as ReanimatedModalProps)}
+                type={type}
+            />
+        );
     }
+
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
 }
@@ -83,6 +92,9 @@ function BaseModal(
         disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        hasBackdrop,
+        backdropOpacity,
+        shouldUseReanimatedModal = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -101,7 +113,7 @@ function BaseModal(
 
     const insets = useSafeAreaInsets();
 
-    const isVisibleRef = useRef(isVisible);
+    const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
 
     const wasVisible = usePrevious(isVisible);
@@ -119,6 +131,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
+            shouldCallHideModalOnUnmount.current = false;
             if (areAllModalsHidden()) {
                 willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
@@ -135,9 +148,9 @@ function BaseModal(
     );
 
     useEffect(() => {
-        isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
+            shouldCallHideModalOnUnmount.current = true;
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
@@ -159,8 +172,7 @@ function BaseModal(
 
     useEffect(
         () => () => {
-            // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (!isVisibleRef.current) {
+            if (!shouldCallHideModalOnUnmount.current) {
                 return;
             }
             hideModalCallbackRef.current?.(true);
@@ -215,8 +227,9 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                shouldUseReanimatedModal,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, shouldUseReanimatedModal],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -307,9 +320,9 @@ function BaseModal(
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
-                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
+                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : backdropOpacity}
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={fullscreen}
+                        hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
                         style={[modalStyle, sidePanelStyle]}
                         deviceHeight={windowHeight}
@@ -327,6 +340,7 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
+                        shouldUseReanimatedModal={shouldUseReanimatedModal}
                     >
                         <ModalContent
                             onModalWillShow={saveFocusState}

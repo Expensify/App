@@ -1,9 +1,9 @@
 import type {NavigationState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;

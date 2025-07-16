@@ -8,7 +8,7 @@ import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
@@ -92,15 +92,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (priorityMode) => {
         isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    },
-});
-
-let policies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        policies = value;
     },
 });
 
@@ -567,6 +558,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
+                payload: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -1077,6 +1069,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1115,6 +1108,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
+                isDemoTransaction: 'boolean',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1339,7 +1333,6 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: Onyx
         currentReportId: '-1',
         isInFocusMode: !!isInFocusMode,
         betas,
-        policies,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,

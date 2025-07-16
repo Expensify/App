@@ -1,5 +1,5 @@
-import type {EventMapCore, NavigationProp, NavigationState} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
+import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -36,7 +36,7 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
     }
 }
 
-const StackNavigator = createStackNavigator();
+const StackNavigator = createStackNavigator<ParamListBase, string>();
 
 type DebugTabNavigatorRoute = {
     name: string;
@@ -53,11 +53,12 @@ type DebugTabNavigatorProps = {
 function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const navigation = useNavigation<NavigationProp<Record<string, void>>>();
+    const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
     const {translate} = useLocalize();
     const [currentTab, setCurrentTab] = useState(routes.at(0)?.name);
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routes.length}, (v, i) => i), [routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const routeData = useRoute();
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -98,7 +99,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                     const {icon, title} = getIconAndTitle(route.name, translate);
 
                     const onPress = () => {
-                        navigation.navigate(route.name);
+                        navigation.navigate(routeData.name, {...routeData?.params, screen: route.name});
                         setCurrentTab(route.name);
                     };
 
@@ -119,7 +120,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
             <StackNavigator.Navigator
                 id={id}
                 screenOptions={{
-                    animationEnabled: false,
+                    animation: 'none',
                     headerShown: false,
                 }}
                 screenListeners={{
