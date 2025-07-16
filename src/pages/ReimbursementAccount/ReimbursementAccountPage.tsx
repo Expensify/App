@@ -404,19 +404,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = (
-            <Text style={styles.flexRow}>
-                <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />
-            </Text>
-        );
+        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />;
     } else if (throttledDate) {
-        errorText = translate('bankAccount.hasBeenThrottledError');
+        errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        errorText = (
-            <Text style={styles.flexRow}>
-                <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />
-            </Text>
-        );
+        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
     }
 
     if (errorText) {
@@ -427,9 +419,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                     subtitle={policyName}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <View style={[styles.m5, styles.mv3, styles.flex1]}>
-                    <Text>{errorText}</Text>
-                </View>
+                <View style={[styles.m5, styles.mv3, styles.flex1]}>{errorText}</View>
             </ScreenWrapper>
         );
     }
