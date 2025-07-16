@@ -793,14 +793,15 @@ function buildUserReadableQueryString(
                 const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
                 const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
                 const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
-                const plaidValue = cardFeedsForDisplay[`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
+                const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
+                const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
                 if (plaidFeedName) {
                     if (plaidValue) {
                         acc.push({operator: filter.operator, value: plaidValue});
                     }
                     return acc;
                 }
-                const value = cardFeedsForDisplay[regularBank as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
+                const value = cardFeedsForDisplay[`${idPrefix}_${regularBank}` as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
                 acc.push({operator: filter.operator, value});
 
                 return acc;
