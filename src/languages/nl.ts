@@ -5934,11 +5934,16 @@ const translations = {
                 title: 'Geen uitgaven om te exporteren',
                 subtitle: 'Tijd om het rustig aan te doen, goed werk.',
             },
+            emptyStatementsResults: {
+                title: 'Geen uitgaven om weer te geven',
+                subtitle: 'Geen resultaten. Probeer uw filters aan te passen.',
+            },
             emptyUnapprovedResults: {
                 title: 'Geen uitgaven om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale ontspanning. Goed gedaan!',
             },
         },
+        statements: 'Verklaringen',
         unapproved: 'Niet goedgekeurd',
         unapprovedCash: 'Niet goedgekeurd contant geld',
         unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',

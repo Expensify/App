@@ -5919,11 +5919,16 @@ const translations = {
                 title: 'Brak wydatków do eksportu',
                 subtitle: 'Czas się zrelaksować, dobra robota.',
             },
+            emptyStatementsResults: {
+                title: 'Brak wydatków do wyświetlenia',
+                subtitle: 'Brak wyników. Spróbuj dostosować filtry.',
+            },
             emptyUnapprovedResults: {
                 title: 'Brak wydatków do zatwierdzenia',
                 subtitle: 'Zero wydatków. Maksymalny relaks. Dobra robota!',
             },
         },
+        statements: 'Oświadczenia',
         unapproved: 'Niezatwierdzony',
         unapprovedCash: 'Niezatwierdzone środki pieniężne',
         unapprovedCompanyCards: 'Niezatwierdzone karty firmowe',
