@@ -306,12 +306,15 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         navigateBack,
     }));
 
+    // This should be executed when SignInPage appears for the first time
+    // It's closing `Signing out` modal from OldDot
     useEffect(() => {
         if (!CONFIG.IS_HYBRID_APP || !hybridApp?.loggedOutFromOldDot) {
             return;
         }
         HybridAppModule.clearOldDotAfterSignOut();
-    }, [hybridApp?.loggedOutFromOldDot]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.

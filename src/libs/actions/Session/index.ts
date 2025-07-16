@@ -72,8 +72,8 @@ const INVALID_TOKEN = 'pizza';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
-let isSetUpReady = false;
 
+let isHybridAppSetupFinished = false;
 let hasSwitchedAccountInHybridMode = false;
 
 Onyx.connect({
@@ -87,7 +87,7 @@ Onyx.connect({
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
-        if (CONFIG.IS_HYBRID_APP && session.authToken && session.authToken !== INVALID_TOKEN && isSetUpReady) {
+        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && session.authToken && session.authToken !== INVALID_TOKEN && !isAnonymousUser(value)) {
             HybridAppModule.sendAuthToken({authToken: session.authToken});
         }
     },
@@ -588,7 +588,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() => Promise.all(Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {}))))
         .then(() => {
-            isSetUpReady = true;
+            isHybridAppSetupFinished = true;
             return Promise.resolve();
         })
         .catch((error) => {
