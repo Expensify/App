@@ -143,33 +143,24 @@ function main() {
         }
     });
 
-    // Display results
-    console.log(`📊 Found ${totalConnections} Onyx.connect() calls in ${Object.keys(results).length} files\n`);
+    // Build output content
+    console.log(`📊 Found ${totalConnections} Onyx.connect() calls in ${Object.keys(results).length} files\n\n`);
+    let output = '';
 
     Object.keys(results)
         .sort()
         .forEach((filePath) => {
-            console.log(`***${filePath}`);
+            output += `***${filePath}\n`;
             results[filePath].forEach((result) => {
-                console.log(`>>> Line ${result.line}: ${result.key}`);
+                output += `>>> Line ${result.line}: ${result.key}\n`;
             });
-            console.log('');
+            output += '\n';
         });
 
-    // Summary of unique keys
-    const allKeys = [];
-    Object.values(results).forEach((fileResults) => {
-        fileResults.forEach((result) => {
-            allKeys.push(result.key);
-        });
-    });
-
-    const uniqueKeys = [...new Set(allKeys)].sort();
-    console.log(`\n📋 Summary: ${uniqueKeys.length} unique keys found:`);
-    uniqueKeys.forEach((key) => {
-        const count = allKeys.filter((k) => k === key).length;
-        console.log(`   • ${key} (used ${count} time${count > 1 ? 's' : ''})`);
-    });
+    // Write output to file
+    const outputFile = 'onyxrefs.txt';
+    fs.writeFileSync(outputFile, output, 'utf8');
+    console.log(`✅ Results written to ${outputFile}`);
 }
 
 // Run the script
