@@ -1,12 +1,12 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumber as formatPhoneNumberLocalePhoneNumber} from '@libs/LocalePhoneNumber';
 import {translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
@@ -33,9 +33,6 @@ type LocaleContextProps = {
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
 
-    /** Updates date-fns internal locale */
-    updateLocale: () => void;
-
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
     formatPhoneNumber: (phoneNumber: string) => string;
@@ -59,7 +56,6 @@ const LocaleContext = createContext<LocaleContextProps>({
     getLocalDateFromDatetime: () => new Date(),
     datetimeToRelative: () => '',
     datetimeToCalendarTime: () => '',
-    updateLocale: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
@@ -70,14 +66,14 @@ const LocaleContext = createContext<LocaleContextProps>({
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => TranslationStore.getCurrentLocale());
+    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
 
     useEffect(() => {
         if (areTranslationsLoading) {
             return;
         }
 
-        const locale = TranslationStore.getCurrentLocale();
+        const locale = IntlStore.getCurrentLocale();
         if (!locale) {
             return;
         }
@@ -110,8 +106,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         [currentLocale, selectedTimezone],
     );
 
-    const updateLocale = useMemo<LocaleContextProps['updateLocale']>(() => () => DateUtils.setLocale(currentLocale), [currentLocale]);
-
     const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberLocalePhoneNumber(phoneNumber), []);
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit), [currentLocale]);
@@ -132,26 +126,13 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             getLocalDateFromDatetime,
             datetimeToRelative,
             datetimeToCalendarTime,
-            updateLocale,
             formatPhoneNumber,
             toLocaleDigit,
             toLocaleOrdinal,
             fromLocaleDigit,
             preferredLocale: currentLocale,
         }),
-        [
-            translate,
-            numberFormat,
-            getLocalDateFromDatetime,
-            datetimeToRelative,
-            datetimeToCalendarTime,
-            updateLocale,
-            formatPhoneNumber,
-            toLocaleDigit,
-            toLocaleOrdinal,
-            fromLocaleDigit,
-            currentLocale,
-        ],
+        [translate, numberFormat, getLocalDateFromDatetime, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, currentLocale],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;

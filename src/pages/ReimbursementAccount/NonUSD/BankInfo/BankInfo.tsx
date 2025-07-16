@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo} from 'react';
 import type {ComponentType} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
@@ -31,9 +31,12 @@ type BankInfoProps = {
 
     /** ID of current policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
-function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -124,7 +127,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             wrapperID={BankInfo.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={1}
         >
             <SubStep
