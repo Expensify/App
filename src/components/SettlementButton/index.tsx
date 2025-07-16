@@ -98,7 +98,6 @@ function SettlementButton({
         <KYCWall
             onSuccessfulKYC={(paymentType) => onPress(paymentType)}
             enablePaymentsRoute={enablePaymentsRoute}
-            chatReport={chatReport}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}
             source={CONST.KYC_WALL_SOURCE.REPORT}
