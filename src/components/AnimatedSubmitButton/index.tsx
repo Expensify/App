@@ -124,7 +124,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 >
                     <Button
                         success={success}
-                        text={translate('common.submitted')}
+                        text={showLoading ? text : translate('common.submitted')}
                         isLoading={showLoading}
                         icon={!showLoading ? icon : undefined}
                     />
