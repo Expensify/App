@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import {useSearchContext} from '@components/Search/SearchContext';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,

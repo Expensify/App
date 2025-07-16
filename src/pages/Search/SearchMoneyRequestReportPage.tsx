@@ -107,17 +107,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             const oneTransactionID = getFirstTransactionID();
             const iouAction = getIOUActionForReportID(reportIDFromRoute, oneTransactionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-            openReport(
-                optimisticTransactionThreadReportID,
-                undefined,
-                [currentUserEmail],
-                optimisticTransactionThread,
-                iouAction?.reportActionID,
-                false,
-                [],
-                undefined,
-                oneTransactionID,
-            );
+            openReport(optimisticTransactionThreadReportID, undefined, [currentUserEmail], optimisticTransactionThread, iouAction?.reportActionID, false, [], undefined, oneTransactionID);
         }
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
