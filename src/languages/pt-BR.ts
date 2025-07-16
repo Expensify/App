@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1040,6 +1038,9 @@ const translations = {
         createExpense: 'Criar despesa',
         trackDistance: 'Rastrear distância',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Criar ${expensesNumber} despesas`,
+        removeExpense: 'Remover despesa',
+        removeThisExpense: 'Remover esta despesa',
+        removeExpenseConfirmation: 'Tem certeza de que deseja remover este recibo? Esta ação não pode ser desfeita.',
         addExpense: 'Adicionar despesa',
         chooseRecipient: 'Escolher destinatário',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Criar despesa de ${amount}`,
@@ -1129,20 +1130,10 @@ const translations = {
         individual: 'Individual',
         business: 'Negócio',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} com Expensify` : `Pague com Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar com conta pessoal`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} com carteira` : `Pagar com carteira`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar como indivíduo`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como empresa` : `Pagar com conta empresarial`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta empresarial ${last4Digits}` : `Pago com conta empresarial`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} como uma empresa` : `Pagar como empresa`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} em outro lugar` : `Pague em outro lugar`),
         nextStep: 'Próximos passos',
         finished: 'Concluído',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
@@ -1177,8 +1168,8 @@ const translations = {
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi realizado.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcado como pago`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pago com carteira`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} pago em outro lugar`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagou com Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} pagou com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         noReimbursableExpenses: 'Este relatório possui um valor inválido',
@@ -1244,7 +1235,6 @@ const translations = {
         unheldExpense: 'liberou esta despesa',
         moveUnreportedExpense: 'Mover despesa não relatada',
         addUnreportedExpense: 'Adicionar despesa não relatada',
-        createNewExpense: 'Criar nova despesa',
         selectUnreportedExpense: 'Selecione pelo menos uma despesa para adicionar ao relatório.',
         emptyStateUnreportedExpenseTitle: 'Nenhuma despesa não relatada',
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
@@ -1645,9 +1635,10 @@ const translations = {
             afterEmail: 'em outras contas. Por favor, mescle outras contas nela em vez disso.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas porque é o proprietário de faturamento de uma conta faturada. Por favor, mescle outras contas nele em vez disso.',
+            beforeEmail: 'Você não pode mesclar contas com ',
+            afterEmail: ' porque esta conta possui uma relação de faturamento com nota fiscal emitida.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Tente novamente mais tarde',
             description: 'Houve muitas tentativas de mesclar contas. Por favor, tente novamente mais tarde.',
@@ -1792,7 +1783,7 @@ const translations = {
         nameOnCard: 'Nome no cartão',
         paymentCardNumber: 'Número do cartão',
         expiration: 'Data de validade',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Endereço de cobrança',
         growlMessageOnSave: 'Seu cartão de pagamento foi adicionado com sucesso',
@@ -1834,7 +1825,6 @@ const translations = {
         enableWallet: 'Ativar carteira',
         addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
         addBankAccount: 'Adicionar conta bancária',
-        addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -2047,7 +2037,6 @@ const translations = {
         cardLastFour: 'Cartão terminando em',
         addFirstPaymentMethod: 'Adicione um método de pagamento para enviar e receber pagamentos diretamente no aplicativo.',
         defaultPaymentMethod: 'Padrão',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conta bancária • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2272,7 +2261,7 @@ const translations = {
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
@@ -2285,7 +2274,7 @@ const translations = {
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Confirme os detalhes.\n' +
@@ -2298,7 +2287,7 @@ const translations = {
                 description:
                     '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Escolha seu espaço *pessoal*.\n' +
@@ -2397,7 +2386,7 @@ const translations = {
                 description:
                     '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira um e-mail ou número de telefone.\n' +
                     '\n' +
@@ -2411,7 +2400,7 @@ const translations = {
                 description:
                     '*Divida despesas* com uma ou mais pessoas.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira e-mails ou números de telefone.\n' +
                     '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
@@ -2433,7 +2422,7 @@ const translations = {
                 description:
                     'Veja como criar um relatório:\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar relatório*.\n' +
                     '3. Clique em *Adicionar despesa*.\n' +
                     '4. Adicione sua primeira despesa.\n' +
@@ -3221,6 +3210,18 @@ const translations = {
             consent: 'Por favor, consinta com o aviso de privacidade',
         },
     },
+    docusignStep: {
+        subheader: 'Formulário Docusign',
+        pleaseComplete:
+            'Por favor, preencha o formulário de autorização ACH pelo link do Docusign abaixo e envie uma cópia assinada aqui para que possamos debitar diretamente da sua conta bancária.',
+        pleaseCompleteTheBusinessAccount: 'Por favor, preencha a Solicitação de Conta Empresarial e o Acordo de Débito Direto.',
+        pleaseCompleteTheDirect:
+            'Por favor, preencha o Acordo de Débito Direto usando o link do Docusign abaixo e envie uma cópia assinada aqui para que possamos debitar diretamente da sua conta bancária.',
+        takeMeTo: 'Ir para o Docusign',
+        uploadAdditional: 'Enviar documentação adicional',
+        pleaseUpload: 'Por favor, envie o formulário DEFT e a página de assinatura do Docusign.',
+        pleaseUploadTheDirect: 'Por favor, envie os Acordos de Débito Direto e a página de assinatura do Docusign.',
+    },
     finishStep: {
         connect: 'Conectar conta bancária',
         letsFinish: 'Vamos terminar no chat!',
@@ -3828,6 +3829,18 @@ const translations = {
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Por favor, adicione a conta no Xero e sincronize a conexão novamente.',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
@@ -5931,11 +5944,16 @@ const translations = {
                 title: 'Nenhuma despesa para exportar',
                 subtitle: 'Hora de relaxar, bom trabalho.',
             },
+            emptyStatementsResults: {
+                title: 'Nenhuma despesa a ser exibida',
+                subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
                 subtitle: 'Zero despesas. Máximo relaxamento. Bem feito!',
             },
         },
+        statements: 'Declarações',
         unapproved: 'Não aprovado',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCompanyCards: 'Cartões corporativos não aprovados',
@@ -6437,7 +6455,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
         receiptNotSmartScanned:
-            'Detalhes da despesa e recibo adicionados manualmente. Por favor, verifique os detalhes. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais</a> sobre auditoria automática para todos os recibos.',
+            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo necessário';
             if (formattedLimit ?? category) {
@@ -6965,66 +6983,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Comece agora',
-            part2: 'aqui!',
-        },
-        saveSearchTooltip: {
-            part1: 'Renomeie suas pesquisas salvas',
-            part2: 'aqui!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Verificar o quê?',
-            part2: 'precisa da sua atenção',
-            part3: 'e',
-            part4: 'conversar sobre despesas.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Converse com',
-            part2: 'aprovadores',
-        },
-        globalCreateTooltip: {
-            part1: 'Criar despesas',
-            part2: ', começar a conversar,',
-            part3: 'e mais.',
-            part4: 'Experimente!',
-        },
-        GBRRBRChat: {
-            part1: 'Você verá 🟢 em',
-            part2: 'ações a serem tomadas',
-            part3: ',\ne 🔴 em',
-            part4: 'itens para revisar.',
-        },
-        accountSwitcher: {
-            part1: 'Acesse seu',
-            part2: 'Contas Copilot',
-            part3: 'aqui',
-        },
-        expenseReportsFilter: {
-            part1: 'Bem-vindo! Encontre todos os seus',
-            part2: 'relatórios da empresa',
-            part3: 'aqui.',
-        },
+        conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Crie despesas</strong>, comece um bate-papo,\ne mais. Experimente!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Veja o que <strong>precisa da sua atenção</strong>\ne <strong>converse sobre despesas.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Converse com os <strong>aprovadores</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Você verá 🟢 nas <strong>ações a serem tomadas</strong>\ne 🔴 nos <strong>itens a revisar.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
+        expenseReportsFilter: '<tooltip>Bem-vindo! Encontre todos os\n<strong>relatórios da sua empresa</strong> aqui.</tooltip>',
         scanTestTooltip: {
-            part1: 'Quer ver como o Scan funciona?',
-            part2: 'Experimente um recibo de teste!',
-            part3: 'Escolha nosso(a)',
-            part4: 'gerente de teste',
-            part5: 'para experimentar!',
-            part6: 'Agora,',
-            part7: 'envie sua despesa',
-            part8: 'e veja a mágica acontecer!',
-            tryItOut: 'Experimente',
-            noThanks: 'Não, obrigado.',
+            main: '<tooltip><strong>Escaneie nosso recibo de teste</strong> para ver como funciona!</tooltip>',
+            manager: '<tooltip>Escolha nosso <strong>gerente de teste</strong> para experimentar!</tooltip>',
+            confirmation: '<tooltip>Agora, <strong>envie sua despesa</strong> e veja\na mágica acontecer!</tooltip>',
+            tryItOut: 'Experimentar',
+            noThanks: 'Não, obrigado',
         },
-        outstandingFilter: {
-            part1: 'Filtrar por despesas que',
-            part2: 'precisa de aprovação',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Enviar este recibo para',
-            part2: 'complete o test drive!',
-        },
+        outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o teste!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
