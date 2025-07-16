@@ -29,10 +29,7 @@ function Manual({onNext}: ManualProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-
-    // Use getSubStepValues to properly handle draft values with fallback to achData
     const defaultValues = useMemo(() => getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-
     const hasBankAccountData = !!reimbursementAccount?.achData?.bankAccountID;
 
     const validate = useCallback(
@@ -64,8 +61,6 @@ function Manual({onNext}: ManualProps) {
         shouldSaveDraft: true,
     });
 
-    console.log(defaultValues);
-    console.log(hasBankAccountData);
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}

@@ -47,7 +47,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ACHDataReimbursementAccount, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
@@ -131,8 +131,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     const hasInProgressVBBA = useCallback((): boolean => {
-        return (!!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED) || hasConfirmedUSDCurrency;
-    }, [achData?.bankAccountID, achData?.state, hasConfirmedUSDCurrency]);
+        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
+    }, [achData?.bankAccountID, achData?.state]);
 
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {
@@ -255,10 +255,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 hideBankAccountErrors();
             }
 
-            const expectedRouteParam = getRouteForCurrentStep(currentStep);
-            if (currentStepRouteParam !== expectedRouteParam) {
-                Navigation.setParams({stepToOpen: expectedRouteParam});
-            }
+            Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
@@ -330,26 +327,21 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     ]);
 
     const goBack = useCallback(() => {
-        const subStep = achData?.subStep;
         const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.COUNTRY:
                 setUSDBankAccountStep(null);
-                break;
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (hasInProgressVBBA()) {
                     setShouldShowContinueSetupButton(true);
                 }
-                if (subStep) {
-                    setBankAccountSubStep(null);
-                    setPlaidEvent(null);
-                    goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-                } else {
-                    Navigation.goBack();
-                }
                 break;
-
+            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                setShouldShowContinueSetupButton(true);
+                setBankAccountSubStep(null);
+                setPlaidEvent(null);
+                goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+                break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 clearOnfidoToken();
                 goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
@@ -385,7 +377,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             default:
                 Navigation.dismissModal();
         }
-    }, [achData?.isOnfidoSetupComplete, achData?.state, achData?.subStep, currentStep, hasInProgressVBBA, isOffline, onfidoToken]);
+    }, [achData?.isOnfidoSetupComplete, achData?.state, currentStep, hasInProgressVBBA, isOffline, onfidoToken]);
 
     const isLoading =
         (isLoadingApp || !!account?.isLoading || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&

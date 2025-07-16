@@ -132,19 +132,19 @@ function VerifiedBankAccountFlowEntryPoint({
         if (optionPressed.current === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             if (isNonUSDWorkspace) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
-                optionPressed.current = ''; // Clear after processing
+                optionPressed.current = '';
                 return;
             }
 
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            optionPressed.current = ''; // Clear after processing
+            optionPressed.current = '';
         } else if (optionPressed.current === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            optionPressed.current = ''; // Clear after processing
+            optionPressed.current = '';
         }
-    }, [isAccountValidated, isNonUSDWorkspace]);
+    }, [isAccountValidated, isNonUSDWorkspace, setNonUSDBankAccountStep]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
@@ -161,6 +161,7 @@ function VerifiedBankAccountFlowEntryPoint({
         removeExistingBankAccountDetails();
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
         setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+        goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
     };
 
     const handleConnectPlaid = () => {
@@ -176,7 +177,8 @@ function VerifiedBankAccountFlowEntryPoint({
 
         removeExistingBankAccountDetails();
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+        goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
     };
 
     return (

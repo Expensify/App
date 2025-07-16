@@ -1,5 +1,5 @@
 type RestartBankAccountSetupParams = {
-    bankAccountID: number | undefined;
+    bankAccountID: number;
     ownerEmail: string;
     policyID: string | undefined;
 };
