@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import usePolicy from '@hooks/usePolicy';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import type {Report} from '@src/types/onyx';

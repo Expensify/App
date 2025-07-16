@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

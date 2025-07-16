@@ -35,4 +35,3 @@ type PDFViewBaseProps = {
 type PDFViewProps = PDFViewBaseProps;
 
 export default PDFViewProps;
-
