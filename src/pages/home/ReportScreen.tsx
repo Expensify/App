@@ -306,7 +306,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
-    const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
+    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
@@ -486,7 +487,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const iouReport = getReportOrDraftReport(iouReportID);
             const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
-            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
+            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, transactionID);
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
@@ -785,7 +786,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions ?? []);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -849,7 +850,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         report={report}
                                         policy={policy}
                                         reportActions={reportActions}
-                                        transactions={reportTransactions}
+                                        transactions={visibleTransactions}
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}

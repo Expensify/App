@@ -116,12 +116,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 false,
                 [],
                 undefined,
-                true,
                 oneTransactionID,
             );
         }
 
-        openReport(reportIDFromRoute, undefined, [], undefined, undefined, false, [], undefined, true);
+        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want to call openReport when report is changed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportMetadata.isOptimisticReport, currentUserEmail, reportIDFromRoute, transactionThreadReport, transactionThreadReportID]);
