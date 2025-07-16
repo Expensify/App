@@ -3,7 +3,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import {KeyboardController, KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
@@ -862,7 +862,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     <ScreenWrapper
                         navigation={navigation}
                         style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                        shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios' && (isTopMostReportId || isInNarrowPaneModal)}
                         testID={`report-screen-${reportID}`}
                         includeSafeAreaPaddingBottom={false}
                     >

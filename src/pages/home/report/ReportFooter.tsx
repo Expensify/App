@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
@@ -201,6 +201,9 @@ function ReportFooter({
     const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
 
     const animatedStyle = useAnimatedStyle(() => {
+        if (Platform.OS === 'android') {
+            return {};
+        }
         return {
             position: 'absolute',
             bottom: 0,
