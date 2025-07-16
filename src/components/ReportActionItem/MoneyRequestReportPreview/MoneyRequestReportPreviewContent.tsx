@@ -302,19 +302,17 @@ function MoneyRequestReportPreviewContent({
         };
     }, [translate, numberOfRequests]);
 
-    const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
     // Nedded for the status in the subheader of the report preview
-    // ============================================
-    // State    |   Status  |   What to display?  |
-    // 0	    |   0	    |   Draft             |
-    // 1	    |   1	    |   Outstanding       |
-    // 2	    |   2	    |   Done              |
-    // 2	    |   3	    |   Approved          |
-    // 2	    |   4	    |   Paid              |
-    // 3	    |   4	    |   Paid              |
-    // 6	    |   4	    |   Paid              |
-    // ============================================
+    // ========================================
+    // State  |  Status  |  What to display?  |
+    // 0	  |  0	     |  Draft             |   
+    // 1	  |  1	     |  Outstanding       |
+    // 2	  |  2	     |  Done              |
+    // 2	  |  3	     |  Approved          |
+    // 2	  |  4	     |  Paid              |
+    // 3	  |  4	     |  Paid              |
+    // 6	  |  4	     |  Paid              |
+    // ========================================
     const {getReportStatus} = useMemo(() => {
         if (iouReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
             return {
@@ -527,6 +525,8 @@ function MoneyRequestReportPreviewContent({
         [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, translate],
     );
 
+    const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
             <Button
@@ -704,7 +704,6 @@ function MoneyRequestReportPreviewContent({
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                    {/* <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{expenseCountText}</Text> */}
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
