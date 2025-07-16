@@ -110,5 +110,34 @@ function getMergeableDataAndConflictFields(transactionID: string, targetTransact
     return {mergeableData, conflictFields};
 }
 
-export {getSourceTransaction, shouldNavigateToReceiptReview, getMergeableDataAndConflictFields, getMergeFieldValue, getMergeFieldTransalationKey};
+/**
+ * Build the merged transaction data for display by combining target transaction with merge transaction updates
+ * @param targetTransaction - The target transaction to merge into
+ * @param mergeTransaction - The merge transaction containing the updates
+ * @returns The merged transaction data or null if required data is missing
+ */
+function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, mergeTransaction: OnyxEntry<MergeTransaction>): Transaction | null {
+    if (!targetTransaction || !mergeTransaction) {
+        return null;
+    }
+
+    return {
+        ...targetTransaction,
+        amount: mergeTransaction.amount,
+        modifiedAmount: mergeTransaction.amount,
+        merchant: mergeTransaction.merchant,
+        modifiedMerchant: mergeTransaction.merchant,
+        category: mergeTransaction.category,
+        tag: mergeTransaction.tag,
+        comment: {
+            ...targetTransaction.comment,
+            comment: mergeTransaction.description,
+        },
+        reimbursable: mergeTransaction.reimbursable,
+        billable: mergeTransaction.billable,
+        receipt: mergeTransaction.receipt,
+    };
+}
+
+export {getSourceTransaction, shouldNavigateToReceiptReview, getMergeableDataAndConflictFields, getMergeFieldValue, getMergeFieldTransalationKey, buildMergedTransactionData};
 export type {MergeFieldKey, MergeValueType};

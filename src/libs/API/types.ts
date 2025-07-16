@@ -325,6 +325,7 @@ const WRITE_COMMANDS = {
     MARK_AS_CASH: 'MarkAsCash',
     MERGE_DUPLICATES: 'MergeDuplicates',
     RESOLVE_DUPLICATES: 'ResolveDuplicates',
+    MERGE_TRANSACTION: 'MergeTransaction',
     UPDATE_SUBSCRIPTION_TYPE: 'UpdateSubscriptionType',
     SIGN_UP_USER: 'SignUpUser',
     UPDATE_SUBSCRIPTION_AUTO_RENEW: 'UpdateSubscriptionAutoRenew',
@@ -822,6 +823,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
     [WRITE_COMMANDS.MERGE_DUPLICATES]: Parameters.MergeDuplicatesParams;
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
+    [WRITE_COMMANDS.MERGE_TRANSACTION]: Parameters.MergeTransactionParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;

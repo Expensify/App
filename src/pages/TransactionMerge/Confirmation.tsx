@@ -1,23 +1,70 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
+import {buildMergedTransactionData, getSourceTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 type ConfirmationProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
 
 function Confirmation({route}: ConfirmationProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const {transactionID, backTo} = route.params;
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const iouActionOfTargetTransaction = getIOUActionForReportID(targetTransaction?.reportID, targetTransaction?.transactionID);
+    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouActionOfTargetTransaction?.childReportID}`, {canBeMissing: false});
+
+    const sourceTransaction = getSourceTransaction(mergeTransaction);
+
+    // Build the merged transaction data for display
+    const mergedTransactionData = useMemo(() => {
+        return buildMergedTransactionData(targetTransaction, mergeTransaction);
+    }, [targetTransaction, mergeTransaction]);
+
+    const contextValue = useMemo(
+        () => ({
+            transactionThreadReport: targetTransactionThreadReport,
+            action: undefined,
+            report: targetTransactionThreadReport,
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
+            isReportArchived: false,
+            anchor: null,
+            isDisabled: false,
+        }),
+        [targetTransactionThreadReport],
+    );
+
+    const handleMergeExpenses = useCallback(() => {
+        if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
+            return;
+        }
+
+        mergeTransactionRequest(transactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        Navigation.dismissModal();
+    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID]);
 
     return (
         <ScreenWrapper
@@ -25,7 +72,7 @@ function Confirmation({route}: ConfirmationProps) {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
-            <FullPageNotFoundView shouldShow={!transaction}>
+            <FullPageNotFoundView shouldShow={!mergeTransaction}>
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
@@ -36,6 +83,27 @@ function Confirmation({route}: ConfirmationProps) {
                         Navigation.goBack();
                     }}
                 />
+                <ScrollView>
+                    <View style={[styles.ph5, styles.pb8]}>
+                        <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
+                    </View>
+                    <ShowContextMenuContext.Provider value={contextValue}>
+                        <MoneyRequestView
+                            report={targetTransactionThreadReport}
+                            shouldShowAnimatedBackground={false}
+                            readonly
+                            updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
+                        />
+                    </ShowContextMenuContext.Provider>
+                </ScrollView>
+                <FixedFooter style={styles.ph5}>
+                    <Button
+                        text={translate('transactionMerge.confirmationPage.confirmButton')}
+                        success
+                        onPress={handleMergeExpenses}
+                        large
+                    />
+                </FixedFooter>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

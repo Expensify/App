@@ -1350,6 +1350,8 @@ const translations = {
         },
         confirmationPage: {
             header: 'Confirm details',
+            pageTitle: "Confirm the details you're keeping. The details you don't keep will be deleted.",
+            confirmButton: 'Merge expenses',
         },
     },
     share: {

@@ -49,6 +49,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getAmount,
     getBillable,
     getDescription,
     getDistanceInMeters,
@@ -93,7 +94,7 @@ type MoneyRequestViewProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
-    /** Updated transaction to show in duplicate transaction flow  */
+    /** Updated transaction to show in duplicate & merge transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
@@ -169,11 +170,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
-    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    const actualAmount = updatedTransaction ? getAmount(updatedTransaction) : transactionAmount;
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, transactionCurrency) : '';
     const formattedPerAttendeeAmount =
         shouldDisplayTransactionAmount && ((hasReceipt && !isTransactionScanning && didReceiptScanSucceed) || isPerDiemRequest)
-            ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
+            ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
             : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
