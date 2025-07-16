@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {lockAccount} from '@userActions/User';
@@ -28,7 +28,7 @@ function LockAccountPage() {
             isLoading={isLoading}
             isDisabled={isOffline}
             large
-            text={translate('lockAccountPage.lockAccount')}
+            text={translate('lockAccountPage.reportSuspiciousActivity')}
             style={styles.mt6}
             pressOnEnter
             onPress={() => {
@@ -41,23 +41,19 @@ function LockAccountPage() {
         <>
             <HeaderPageLayout
                 onBackButtonPress={() => Navigation.goBack()}
-                title={translate('lockAccountPage.lockAccount')}
+                title={translate('lockAccountPage.reportSuspiciousActivity')}
                 testID={LockAccountPage.displayName}
                 footer={lockAccountButton}
                 childrenContainerStyles={[styles.pt3, styles.gap6]}
             >
                 <View style={[styles.flex1, styles.gap4, styles.mh5]}>
                     <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
-                    <Text>
-                        <Text>{translate('lockAccountPage.domainAdminsDescriptionPartOne')}</Text>
-                        <Text style={styles.textBold}>{translate('lockAccountPage.domainAdminsDescriptionPartTwo')}</Text>
-                        <Text>{translate('lockAccountPage.domainAdminsDescriptionPartThree')}</Text>
-                    </Text>
+                    <Text>{translate('lockAccountPage.domainAdminsDescription')}</Text>
                 </View>
             </HeaderPageLayout>
             <ConfirmModal
                 danger
-                title={translate('lockAccountPage.lockAccount')}
+                title={translate('lockAccountPage.reportSuspiciousActivity')}
                 onConfirm={() => {
                     // If there is no user accountID yet (because the app isn't fully setup yet), so return early
                     if (session?.accountID === -1) {
@@ -82,7 +78,12 @@ function LockAccountPage() {
                 }}
                 onCancel={() => setIsConfirmModalVisible(false)}
                 isVisible={isConfirmModalVisible}
-                prompt={translate('lockAccountPage.warning')}
+                prompt={
+                    <>
+                        <Text style={[styles.mb5]}>{translate('lockAccountPage.areYouSure')}</Text>
+                        <Text style={[styles.mb5]}>{translate('lockAccountPage.ourTeamWill')}</Text>
+                    </>
+                }
                 confirmText={translate('lockAccountPage.lockAccount')}
                 cancelText={translate('common.cancel')}
                 shouldDisableConfirmButtonWhenOffline

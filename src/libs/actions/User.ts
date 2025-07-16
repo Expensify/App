@@ -813,7 +813,7 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
+    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
     Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
@@ -906,6 +906,7 @@ function subscribeToUserEvents() {
             updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
+        Log.info('[subscribeToUserEvents] Applying Onyx updates');
         applyOnyxUpdatesReliably(updates);
     });
 
@@ -1373,8 +1374,8 @@ function dismissTrackTrainingModal() {
  * Dismiss the Auto-Submit explanation modal
  * @param shouldDismiss Whether the user selected "Don't show again"
  */
-function dismissInstantSubmitExplanation(shouldDismiss: boolean) {
-    Onyx.merge(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION, shouldDismiss);
+function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
 }
 
 function requestRefund() {
@@ -1436,7 +1437,7 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
-    dismissInstantSubmitExplanation,
+    dismissASAPSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

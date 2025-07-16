@@ -39,9 +39,10 @@ let hiddenTranslation = '';
 let youTranslation = '';
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    initWithStoredValues: false,
     callback: (value) => {
-        if (!value) {
+        if (value ?? true) {
             return;
         }
         hiddenTranslation = translateLocal('common.hidden');

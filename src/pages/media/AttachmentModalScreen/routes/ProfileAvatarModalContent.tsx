@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -19,7 +19,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: false});
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     useEffect(() => {
         if (!isValidAccountRoute(accountID)) {

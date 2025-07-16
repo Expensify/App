@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,14 +7,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getReportNotificationPreference, goBackToDetailsPage, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
+import {updateNotificationPreference} from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
@@ -23,15 +22,13 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStack
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || undefined}`);
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentNotificationPreference = ReportUtils.getReportNotificationPreference(report);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isMoneyRequest = isMoneyRequestReport(report);
+    const currentNotificationPreference = getReportNotificationPreference(report);
     const shouldDisableNotificationPreferences =
-        ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) ||
-        ReportUtils.isSelfDM(report) ||
-        (!isMoneyRequestReport && ReportUtils.isHiddenForCurrentUser(currentNotificationPreference));
+        isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || (!isMoneyRequest && isHiddenForCurrentUser(currentNotificationPreference));
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
-        .filter((pref) => !ReportUtils.isHiddenForCurrentUser(pref))
+        .filter((pref) => !isHiddenForCurrentUser(pref))
         .map((preference) => ({
             value: preference,
             text: translate(`notificationPreferencesPage.notificationPreferences.${preference}`),
@@ -40,12 +37,12 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
         }));
 
     const goBack = useCallback(() => {
-        ReportUtils.goBackToDetailsPage(report, route.params.backTo);
+        goBackToDetailsPage(report, route.params.backTo);
     }, [report, route.params.backTo]);
 
-    const updateNotificationPreference = useCallback(
+    const updateNotificationPreferenceForReportAction = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
+            updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
             goBack();
         },
         [report.reportID, currentNotificationPreference, goBack],
@@ -64,7 +61,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
                     ListItem={RadioListItem}
-                    onSelectRow={(option) => updateNotificationPreference(option.value)}
+                    onSelectRow={(option) => updateNotificationPreferenceForReportAction(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />

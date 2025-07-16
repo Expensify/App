@@ -1,8 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -101,7 +101,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
             },
             {
                 title: values[TAX_ID_EIN_NUMBER],
-                description: translate('businessInfoStep.taxIDEIN'),
+                description: translate('businessInfoStep.taxIDEIN', {country: values[COMPANY_COUNTRY_CODE]}),
                 shouldShowRightIcon: true,
                 onPress: () => {
                     onMove(5);

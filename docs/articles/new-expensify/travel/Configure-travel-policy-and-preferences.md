@@ -11,7 +11,7 @@ Workspace admins can create different travel policies that provide travel rules 
 
 To create or update a travel policy,
 
-1. Click the + icon in the bottom left menu and select **Book travel**. 
+1. Click the + icon in the left-side navigation menu and select **Book travel**. 
 2. Click **Book or manage travel**. 
 3. Click the **Program** tab at the top and select **Policies**. 
 4. Under Employee or Non-employee in the left menu, click **Add new** to create a new policy. 

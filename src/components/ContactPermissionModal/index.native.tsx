@@ -9,7 +9,7 @@ import {getContactPermission, requestContactPermission} from '@libs/ContactPermi
 import type {ContactPermissionModalProps} from './types';
 
 let hasShownContactImportPromptThisSession = false;
-function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) {
+function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
@@ -17,11 +17,13 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
 
     useEffect(() => {
         if (hasShownContactImportPromptThisSession) {
+            onFocusTextInput();
             return;
         }
         getContactPermission().then((status) => {
             // Permission hasn't been asked yet, show the soft permission modal
             if (status !== RESULTS.DENIED) {
+                onFocusTextInput();
                 return;
             }
             hasShownContactImportPromptThisSession = true;
@@ -34,6 +36,7 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             requestContactPermission().then((status) => {
+                onFocusTextInput();
                 if (status !== RESULTS.GRANTED) {
                     return;
                 }
@@ -42,14 +45,14 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
         });
     };
 
-    const handleDenyPermission = () => {
-        onDeny(RESULTS.DENIED);
-        setIsModalVisible(false);
-    };
-
     const handleCloseModal = () => {
         setIsModalVisible(false);
         onDeny(RESULTS.DENIED);
+        // Sometimes, the input gains focus when the modal closes, but the keyboard doesn't appear.
+        // To fix this, we need to call the focus function after the modal has finished closing.
+        InteractionManager.runAfterInteractions(() => {
+            onFocusTextInput();
+        });
     };
 
     if (!isModalVisible) {
@@ -60,7 +63,7 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
         <ConfirmModal
             isVisible={isModalVisible}
             onConfirm={handleGrantPermission}
-            onCancel={handleDenyPermission}
+            onCancel={handleCloseModal}
             onBackdropPress={handleCloseModal}
             confirmText={translate('common.continue')}
             cancelText={translate('common.notNow')}

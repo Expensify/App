@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Bank, Connect, Lightbulb, Lock, RotateLeft} from '@components/Icon/Expensicons';
@@ -16,6 +15,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -138,6 +138,7 @@ function VerifiedBankAccountFlowEntryPoint({
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         } else if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }

@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,21 +47,9 @@ type SubscriptAvatarProps = {
 
     /** Whether to show the tooltip */
     showTooltip?: boolean;
-
-    /** Additional style for container of subscription icon */
-    subscriptionContainerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
-function SubscriptAvatar({
-    mainAvatar,
-    secondaryAvatar,
-    subscriptIcon,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    backgroundColor,
-    noMargin = false,
-    showTooltip = true,
-    subscriptionContainerAdditionalStyles = undefined,
-}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -123,15 +111,12 @@ function SubscriptAvatar({
                 <View
                     style={[
                         size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},
-                        StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALL, CONST.ICON_TYPE_AVATAR),
-                        StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL),
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(backgroundColor || theme.sidebar),
-                        styles.subscriptIcon,
+                        StyleUtils.getAvatarSubscriptIconContainerStyle(subscriptIcon.width, subscriptIcon.height),
                         styles.dFlex,
                         styles.justifyContentCenter,
-                        subscriptionContainerAdditionalStyles,
                     ]}
                     // Hover on overflowed part of icon will not work on Electron if dragArea is true
                     // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
@@ -142,7 +127,7 @@ function SubscriptAvatar({
                         width={subscriptIcon.width}
                         height={subscriptIcon.height}
                         additionalStyles={styles.alignSelfCenter}
-                        fill={subscriptIcon.fill ?? theme.icon}
+                        fill={subscriptIcon.fill}
                     />
                 </View>
             )}
@@ -153,4 +138,4 @@ function SubscriptAvatar({
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 
 export default memo(SubscriptAvatar);
-export type {SubscriptAvatarProps};
+export type {SubIcon, SubscriptAvatarProps};

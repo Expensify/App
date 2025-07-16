@@ -510,7 +510,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
 > [!Note]  

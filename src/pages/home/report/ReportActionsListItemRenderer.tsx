@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -11,11 +11,17 @@ type ReportActionsListItemRendererProps = {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
+    /** All the data of the policy collection */
+    policies: OnyxCollection<Policy>;
+
     /** All the data of the action item */
     reportAction: ReportAction;
 
     /** Array of report actions for the report */
     reportActions: ReportAction[];
+
+    /** All the data of the transaction collection */
+    transactions?: Array<OnyxEntry<Transaction>>;
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
@@ -59,8 +65,10 @@ type ReportActionsListItemRendererProps = {
 
 function ReportActionsListItemRenderer({
     allReports,
+    policies,
     reportAction,
     reportActions = [],
+    transactions,
     parentReportAction,
     index,
     report,
@@ -152,6 +160,7 @@ function ReportActionsListItemRenderer({
         return (
             <ReportActionItemParentAction
                 allReports={allReports}
+                policies={policies}
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                 shouldDisplayReplyDivider={shouldDisplayReplyDivider}
                 parentReportAction={parentReportAction}
@@ -169,6 +178,7 @@ function ReportActionsListItemRenderer({
     return (
         <ReportActionItem
             allReports={allReports}
+            policies={policies}
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
@@ -178,6 +188,7 @@ function ReportActionsListItemRenderer({
             reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
+            transactions={transactions}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&

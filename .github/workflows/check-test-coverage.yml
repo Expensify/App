@@ -1,0 +1,22 @@
+name: Check Test Coverage
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_url:
+        description: 'GitHub repository URL to check'
+        required: true
+        type: string
+
+jobs:
+  check-coverage:
+    runs-on: ubuntu-latest
+    name: Check Test Coverage
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Check Test Coverage
+        uses: ./.github/actions/javascript/checkTestCoverage
+        with:
+          GITHUB_URL: ${{ inputs.github_url }}

@@ -30,6 +30,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     const checkboxComponent = useCallback(() => {
         return (
             <Checkbox
+                shouldSelectOnPressEnter
                 isChecked={isSelected}
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}

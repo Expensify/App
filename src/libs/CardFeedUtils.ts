@@ -1,11 +1,12 @@
+import type {OnyxCollection} from 'react-native-onyx/dist/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -18,6 +19,13 @@ type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
     translate: LocaleContextProps['translate'];
 };
+type CardFeedForDisplay = {
+    id: string;
+    feed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    fundID: string;
+    name: string;
+};
+type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -384,6 +392,60 @@ const generateSelectedCards = (
     return [...new Set([...selectedCards, ...(cards ?? [])])];
 };
 
+/**
+ * Given a collection of card feeds, return formatted card feeds.
+ *
+ * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
+ */
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
+    const cardFeedsForDisplay = {} as CardFeedsForDisplay;
+
+    Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
+        // sharedNVP_private_domain_member_123456 -> 123456
+        const fundID = domainKey.split('_').at(-1);
+        if (!fundID) {
+            return;
+        }
+
+        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((key) => {
+            const feed = key as CompanyCardFeed;
+            const id = `${fundID}_${feed}`;
+
+            if (cardFeedsForDisplay[id]) {
+                return;
+            }
+
+            cardFeedsForDisplay[id] = {
+                id,
+                feed,
+                fundID,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+            };
+        });
+    });
+
+    Object.values(allCards).forEach((card) => {
+        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
+            return;
+        }
+
+        const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
+
+        if (cardFeedsForDisplay[id]) {
+            return;
+        }
+
+        cardFeedsForDisplay[id] = {
+            id,
+            feed: CONST.EXPENSIFY_CARD.BANK,
+            fundID: card.fundID,
+            name: CONST.EXPENSIFY_CARD.BANK,
+        };
+    });
+
+    return cardFeedsForDisplay;
+}
+
 export type {CardFilterItem, CardFeedNamesWithType};
 export {
     buildCardsData,
@@ -396,4 +458,5 @@ export {
     getWorkspaceCardFeedKey,
     generateDomainFeedData,
     getDomainFeedData,
+    getCardFeedsForDisplay,
 };

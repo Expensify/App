@@ -26,7 +26,7 @@ Contact your Account manager or salesteam@expensify.com to get a demo of travel 
 {% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop" %}
-1. Click the + icon in the bottom left menu and select **Book travel**. 
+1. Click the + icon in the left-side navigation menu and select **Book travel**. 
 2. Click **Book or manage travel**.
 3. Agree to the terms and conditions and click **Continue**.
 4. Use the icons at the top to select the type of travel arrangement you want to book: flights, hotels, cars, or trains.
@@ -49,5 +49,5 @@ Contact your Account manager or salesteam@expensify.com to get a demo of travel 
 
 The traveler is emailed an itinerary of the booking. Additionally,  
 - Their travel details are added to a Trip chat room under their primary workspace. 
-- An expense report for the trip is created.
+- Travel expenses are automatically added to expense reports following your workspace's scheduled submit rules.
 - If booked with an Expensify Card, the trip is automatically reconciled.

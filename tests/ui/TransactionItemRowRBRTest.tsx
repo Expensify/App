@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -91,16 +91,17 @@ const createErrorReportAction = () =>
     });
 
 describe('TransactionItemRowRBRWithOnyx', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
     });
 
     it('should display RBR message for transaction with single violation', async () => {
@@ -144,7 +145,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with report action errors', async () => {
@@ -319,7 +320,7 @@ describe('TransactionItemRowRBR', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with violations, and missing merchant error', async () => {

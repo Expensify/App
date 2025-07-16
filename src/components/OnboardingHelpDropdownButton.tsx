@@ -1,9 +1,8 @@
 import {addMinutes} from 'date-fns';
-import noop from 'lodash/noop';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
@@ -106,6 +105,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
             icon: Monitor,
+            shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {
                 openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
@@ -119,12 +119,15 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     return (
         <ButtonWithDropdownMenu
-            onPress={noop}
-            shouldAlwaysShowDropdownMenu
+            onPress={(_event, value) => {
+                const option = options.find((opt) => opt.value === value);
+                option?.onSelected?.();
+            }}
             pressOnEnter
             success={!!hasActiveScheduledCall}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             options={options}
+            shouldUseOptionIcon
             isSplitButton={false}
             customText={hasActiveScheduledCall ? translate('scheduledCall.callScheduled') : translate('getAssistancePage.onboardingHelp')}
             wrapperStyle={shouldUseNarrowLayout && styles.earlyDiscountButton}

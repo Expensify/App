@@ -236,11 +236,12 @@ mobileBreakpoint.addEventListener('change', handleBreakpointChange);
 handleBreakpointChange();
 
 function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    newExpensifyTab.classList.add('active');
+    if (!expensifyClassicTab && !expensifyClassicContent) {
+        newExpensifyTab.classList.add('badge');
+    }
     newExpensifyContent.classList.remove('hidden');
 
     if (expensifyClassicTab && expensifyClassicContent) {
-        expensifyClassicTab.classList.remove('active');
         expensifyClassicContent.classList.add('hidden');
     }
     window.tocbot.refresh({
@@ -250,11 +251,12 @@ function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClass
 }
 
 function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    expensifyClassicTab.classList.add('active');
+    if (!newExpensifyContent && !newExpensifyTab) {
+        expensifyClassicTab.classList.add('badge');
+    }
     expensifyClassicContent.classList.remove('hidden');
 
     if (newExpensifyTab && newExpensifyContent) {
-        newExpensifyTab.classList.remove('active');
         newExpensifyContent.classList.add('hidden');
     }
 

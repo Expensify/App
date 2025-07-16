@@ -102,7 +102,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         isHovered: false,
         chatReport: chatReportR14932,
         personalDetails,
-        iouReport: iouReportR14932,
+        report: iouReportR14932,
         transaction: transactionR14932,
         violations: [],
         offlineWithFeedbackOnClose(): void {},
@@ -118,7 +118,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
     },
     argTypes: {
         ...disabledProperties,
-        iouReport: generateArgTypes(iouReportMap),
+        report: generateArgTypes(iouReportMap),
         transaction: generateArgTypes(transactionsMap),
         violations: generateArgTypes(violationsMap),
         action: generateArgTypes(actionMap),
@@ -179,7 +179,7 @@ KeepButtonSplitRBRCategoriesAndTag.args = {
 
 KeepButtonIOURbrCategoriesAndTag.args = {
     ...KeepButtonRBRCategoriesAndTag.args,
-    iouReport: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
+    report: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
 };
 
 DeletedKeepButtonSplitRBRCategoriesAndTag.args = {

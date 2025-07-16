@@ -1,3 +1,5 @@
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
@@ -35,6 +37,9 @@ type AssignCardData = {
 
     /** Plaid feed name */
     plaidConnectedFeedName?: string;
+
+    /** Plaid accounts */
+    plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
 /** Model of assign card flow */

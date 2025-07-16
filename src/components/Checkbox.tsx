@@ -50,6 +50,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** stop propagation of the mouse down event */
     shouldStopMouseDownPropagation?: boolean;
+
+    /** Whether the checkbox should be selected when pressing Enter key */
+    shouldSelectOnPressEnter?: boolean;
 };
 
 function Checkbox(
@@ -68,6 +71,7 @@ function Checkbox(
         onPress,
         accessibilityLabel,
         shouldStopMouseDownPropagation,
+        shouldSelectOnPressEnter,
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
@@ -75,8 +79,14 @@ function Checkbox(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const handleSpaceKey = (event?: ReactKeyboardEvent) => {
-        if (event?.code !== 'Space') {
+    const handleSpaceOrEnterKey = (event?: ReactKeyboardEvent) => {
+        if (event?.code !== 'Space' && event?.code !== 'Enter') {
+            return;
+        }
+
+        if (event?.code === 'Enter' && !shouldSelectOnPressEnter) {
+            // If the checkbox should not be selected on Enter key press, we do not want to
+            // toggle it, so we return early.
             return;
         }
 
@@ -105,7 +115,7 @@ function Checkbox(
             }}
             ref={ref}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
-            onKeyDown={handleSpaceKey}
+            onKeyDown={handleSpaceOrEnterKey}
             role={CONST.ROLE.CHECKBOX}
             /*  true  → checked
                 false → unchecked

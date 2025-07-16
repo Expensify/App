@@ -12,15 +12,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldInitialValue, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as ReportField from '@userActions/Policy/ReportField';
+import {deleteReportFields} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -37,8 +37,8 @@ function ReportFieldsSettingsPage({
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
     if (!reportField) {
@@ -51,7 +51,7 @@ function ReportFieldsSettingsPage({
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
     const deleteReportFieldAndHideModal = () => {
-        ReportField.deleteReportFields(policyID, [reportFieldKey]);
+        deleteReportFields(policyID, [reportFieldKey]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
@@ -93,7 +93,7 @@ function ReportFieldsSettingsPage({
                     <MenuItemWithTopDescription
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
-                        title={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))}
+                        title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
                         description={translate('common.type')}
                         interactive={false}
                     />
@@ -112,8 +112,8 @@ function ReportFieldsSettingsPage({
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            title={WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField)}
-                            description={isDateFieldType ? translate('common.date') : translate('common.initialValue')}
+                            title={getReportFieldInitialValue(reportField)}
+                            description={translate('common.initialValue')}
                             shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
                             interactive={!isDateFieldType && !hasAccountingConnections}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}

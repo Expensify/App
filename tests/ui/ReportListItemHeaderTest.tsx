@@ -7,7 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {Context as SearchContext} from '@components/Search/SearchContext';
 import ReportListItemHeader from '@components/SelectionList/Search/ReportListItemHeader';
-import type {ReportListItemType} from '@components/SelectionList/types';
+import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
@@ -58,7 +58,12 @@ const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
 };
 
 const mockPolicy = createRandomPolicy(1);
-const createReportListItem = (type: ValueOf<typeof CONST.REPORT.TYPE>, from?: string, to?: string, options: Partial<ReportListItemType> = {}): ReportListItemType => ({
+const createReportListItem = (
+    type: ValueOf<typeof CONST.REPORT.TYPE>,
+    from?: string,
+    to?: string,
+    options: Partial<TransactionReportGroupListItemType> = {},
+): TransactionReportGroupListItemType => ({
     shouldAnimateInHighlight: false,
     action: 'view' as const,
     chatReportID: '123',
@@ -87,7 +92,7 @@ const createReportListItem = (type: ValueOf<typeof CONST.REPORT.TYPE>, from?: st
 });
 
 // Helper function to wrap component with context
-const renderReportListItemHeader = (reportItem: ReportListItemType) => {
+const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
@@ -138,13 +143,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if submitter and recipient are the same', async () => {
+            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(2);
+                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
             it('should not render anything if neither submitter nor recipient is present', async () => {
@@ -184,13 +189,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if submitter and recipient are the same', async () => {
+            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(2);
+                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
             it('should not render anything if no participants are present', async () => {

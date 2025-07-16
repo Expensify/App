@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -7,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import getUAForWebView from '@libs/getUAForWebView';
@@ -19,11 +19,11 @@ import type {ConnectToXeroFlowProps} from './types';
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [isWebViewOpen, setWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isWebViewOpen, setIsWebViewOpen] = useState(false);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const authToken = session?.authToken ?? null;
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const is2FAEnabled = account?.requiresTwoFactorAuth ?? false;
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
@@ -34,7 +34,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             setIsRequire2FAModalOpen(true);
             return;
         }
-        setWebViewOpen(true);
+        setIsWebViewOpen(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
@@ -52,14 +52,15 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 />
             )}
             <Modal
-                onClose={() => setWebViewOpen(false)}
+                onClose={() => setIsWebViewOpen(false)}
                 fullscreen
                 isVisible={isWebViewOpen}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+                shouldUseReanimatedModal
             >
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}
-                    onBackButtonPress={() => setWebViewOpen(false)}
+                    onBackButtonPress={() => setIsWebViewOpen(false)}
                     shouldDisplayHelpButton={false}
                 />
                 <FullPageOfflineBlockingView>

@@ -1,7 +1,7 @@
 import dedent from '@libs/StringUtils/dedent';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
-import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import OpenAIUtils from '../OpenAIUtils';
 import Translator from './Translator';
 
@@ -9,7 +9,7 @@ class ChatGPTTranslator extends Translator {
     /**
      * The maximum number of times we'll retry a successful translation request in the event of hallucinations.
      */
-    private static readonly MAX_RETRIES: number = 2;
+    private static readonly MAX_RETRIES: number = 4;
 
     /**
      * OpenAI API client to perform translations.
@@ -21,7 +21,7 @@ class ChatGPTTranslator extends Translator {
         this.openai = new OpenAIUtils(apiKey);
     }
 
-    protected async performTranslation(targetLang: TranslationTargetLanguage, text: string, context?: string): Promise<string> {
+    protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
         const systemPrompt = dedent(`
             ${getBasePrompt(targetLang)}
             ${getContextPrompt(context)}
@@ -35,12 +35,15 @@ class ChatGPTTranslator extends Translator {
                     userPrompt: text,
                 });
 
-                if (this.validateTemplatePlaceholders(text, result)) {
+                if (this.validateTemplatePlaceholders(text, result) && this.validateTemplateHTML(text, result)) {
+                    if (attempt > 0) {
+                        console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
+                    }
                     console.log(`🧠 Translated "${text}" to ${targetLang}: "${result}"`);
                     return result;
                 }
 
-                console.warn(`⚠️ Translation for "${text}" failed placeholder validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);
+                console.warn(`⚠️ Translation for "${text}" failed validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
                     console.error(`❌ Final attempt failed placeholder validation. Falling back to original.`);
@@ -59,19 +62,6 @@ class ChatGPTTranslator extends Translator {
 
         // Should never hit this, but fallback just in case
         return text;
-    }
-
-    /**
-     * Validate that placeholders are all present and unchanged before and after translation.
-     */
-    private validateTemplatePlaceholders(original: string, translated: string): boolean {
-        const extractPlaceholders = (s: string) =>
-            Array.from(s.matchAll(/\$\{[^}]*}/g))
-                .map((m) => m[0])
-                .sort();
-        const originalSpans = extractPlaceholders(original);
-        const translatedSpans = extractPlaceholders(translated);
-        return JSON.stringify(originalSpans) === JSON.stringify(translatedSpans);
     }
 }
 

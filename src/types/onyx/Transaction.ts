@@ -69,6 +69,9 @@ type Comment = {
     /** Whether the transaction comment is loading */
     isLoading?: boolean;
 
+    /** Whether the transaction comment is a demo transaction */
+    isDemoTransaction?: boolean;
+
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 

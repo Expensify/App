@@ -8,6 +8,8 @@ import {
     getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getTagList,
+    getTagListByOrderWeight,
     getUnitRateValue,
     isUserInvitedToWorkspace,
     shouldShowPolicy,
@@ -18,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -171,6 +173,20 @@ const rules = {
             id: '4',
         },
     ],
+};
+const policyTags = {
+    TagListTest0: {
+        name: 'TagListTest0',
+        orderWeight: 0,
+        required: false,
+        tags: {},
+    },
+    TagListTest2: {
+        name: 'TagListTest2',
+        orderWeight: 2,
+        required: false,
+        tags: {},
+    },
 };
 
 describe('PolicyUtils', () => {
@@ -650,6 +666,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
+                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
@@ -675,6 +692,7 @@ describe('PolicyUtils', () => {
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -696,6 +714,7 @@ describe('PolicyUtils', () => {
         it('returns false if the manager is not the payer of the new policy', async () => {
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
@@ -709,6 +728,32 @@ describe('PolicyUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 ownerAccountID: employeeAccountID,
                 managerID: approverAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policies are not policyExpenseChatEnabled', async () => {
+            const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isPolicyExpenseChatEnabled: false,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
             };
 
             const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
@@ -787,6 +832,26 @@ describe('PolicyUtils', () => {
             const result = isUserInvitedToWorkspace();
 
             expect(result).toBeTruthy();
+        });
+    });
+    describe('getTagList', () => {
+        it.each([
+            ['when index is 0', 0, policyTags.TagListTest0.name],
+            ['when index is 1', 1, policyTags.TagListTest2.name],
+            ['when index is out of range', 2, ''],
+        ])('%s', (_description, index, expected) => {
+            const tagList = getTagList(policyTags, index);
+            expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('getTagListByOrderWeight', () => {
+        it.each([
+            ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
+            ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
+            ['when orderWeight is out of range', 1, ''],
+        ])('%s', (_description, orderWeight, expected) => {
+            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
+            expect(tagList.name).toEqual(expected);
         });
     });
 });

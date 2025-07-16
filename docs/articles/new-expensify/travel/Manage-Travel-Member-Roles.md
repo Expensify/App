@@ -1,22 +1,29 @@
 ---
 title: Manage Travel Member Roles
-description: Modify member roles within Expensify Travel
+description: Learn how to assign and update roles for travel members in Expensify Travel.
+keywords: [New Expensify, travel roles, book travel, travel admin, travel arranger, manage travel users]
 ---
 
-Admins can assign roles to different travel members to determine who they can book travel for (whether for themselves and/or for others) and whether they can adjust administrative settings.
-  
-To assign a role to a travel member, 
+<div id="new-expensify" markdown="1">
 
-1. Click the + icon in the bottom left menu and select **Book travel**.
-2. Click **Book or manage travel**.
-3. Click the **Program** tab at the top and select **Users**.
-4. Click the name of the member whose role you wish to update.
-5. Click the **Roles** tab and select a role. 
-  - **Traveler**: Can only book travel for themselves.
-  - **Travel Arranger**: Can book travel for themselves and for other workspace members. Arrangers can be set to arrange travel for everyone in the workspace or for specific individuals only.
-  - **Company Admin**: Can book travel for themselves as well as any other workspace members. They can also access administrative features to:
-    - Define travel policies
-    - Add and configure corporate cards as payment methods
-    - View analytics and metrics 
-    - Use the Safety feature
-6. Click **Save**. 
+Assigning roles in Expensify Travel helps define who can book travel and manage travel program settings. You can update a member's role to match their responsibilities within your workspace.
+
+---
+
+# Assign or Update Travel Member Roles
+
+1. From the left-hand menu, click the green **+** button and select **Book travel**
+2. Select **Book or manage travel**
+3. In the Expensify Travel hub, go to the **Program** tab and choose **Users**
+4. Click the name of the member whose role you want to update
+5. Click the **Roles** tab and choose a role:
+   - **Traveler** – Can only book travel for themselves
+   - **Travel Arranger** – Can book travel for themselves and specific members (or the entire workspace)
+   - **Company Admin** – Can book travel for anyone and access all admin features, including:
+     - Defining travel policies
+     - Managing corporate card payment methods
+     - Viewing analytics and metrics
+     - Using the Safety feature
+6. Click **Save** to apply the changes
+
+</div>

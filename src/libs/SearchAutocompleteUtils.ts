@@ -1,8 +1,9 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchDateFilterKeys} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
@@ -79,6 +80,19 @@ function getAutocompleteTaxList(taxRates: Record<string, string[]>) {
 }
 
 /**
+ * Returns data for computing the date filters autocomplete list.
+ */
+function getAutocompleteDatePresets(translate: LocaleContextProps['translate']) {
+    const list = {} as Record<SearchDateFilterKeys, Array<{value: string; text: string}>>;
+
+    Object.entries(CONST.SEARCH.FILTER_DATE_PRESETS).forEach(([filterKey, datePresets]) => {
+        list[filterKey as SearchDateFilterKeys] = datePresets.map((datePreset) => ({value: datePreset, text: translate(`search.filters.date.presets.${datePreset}`)}));
+    });
+
+    return list;
+}
+
+/**
  * Given a query string, this function parses it with the autocomplete parser
  * and returns only the part of the string before autocomplete.
  *
@@ -133,6 +147,7 @@ function filterOutRangesWithCorrectValue(
     }) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
+    const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -140,6 +155,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined;
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
@@ -157,6 +174,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
             return statusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
+            return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
             return categoryList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
@@ -205,6 +224,7 @@ export {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
+    getAutocompleteDatePresets,
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
     parseForLiveMarkdown,

@@ -1,7 +1,7 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
@@ -28,6 +28,9 @@ import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
 
 type ReportActionItemContentCreatedProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps;
 
@@ -47,7 +50,15 @@ type ReportActionItemContentCreatedProps = {
     shouldHideThreadDividerLine: boolean;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReport, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({
+    contextValue,
+    allReports,
+    parentReport,
+    parentReportAction,
+    transactionID,
+    draftMessage,
+    shouldHideThreadDividerLine,
+}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
@@ -108,7 +119,9 @@ function ReportActionItemContentCreated({contextValue, parentReport, parentRepor
                 <ShowContextMenuContext.Provider value={contextMenuValue}>
                     <View>
                         <MoneyRequestView
+                            allReports={allReports}
                             report={report}
+                            policy={policy}
                             shouldShowAnimatedBackground
                         />
                         {renderThreadDivider}
@@ -168,7 +181,9 @@ function ReportActionItemContentCreated({contextValue, parentReport, parentRepor
                         <ShowContextMenuContext.Provider value={contextMenuValue}>
                             <View>
                                 <MoneyRequestView
+                                    allReports={allReports}
                                     report={transactionThreadReport}
+                                    policy={policy}
                                     shouldShowAnimatedBackground={false}
                                 />
                                 {renderThreadDivider}
@@ -200,8 +215,8 @@ ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
-        lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+        deepEqual(prevProps.contextValue, nextProps.contextValue) &&
+        deepEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,

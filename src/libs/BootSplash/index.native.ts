@@ -1,11 +1,18 @@
-import {NativeModules} from 'react-native';
+import {InteractionManager, NativeModules} from 'react-native';
+import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 
 const BootSplash = NativeModules.BootSplash;
 
 function hide(): Promise<void> {
     Log.info('[BootSplash] hiding splash screen', false);
-    return BootSplash.hide();
+
+    return BootSplash.hide().finally(() => {
+        InteractionManager.runAfterInteractions(() => {
+            Timing.end(CONST.TIMING.SPLASH_SCREEN);
+        });
+    });
 }
 
 export default {

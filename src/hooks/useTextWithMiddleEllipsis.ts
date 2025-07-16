@@ -11,7 +11,7 @@ type TruncateProps = {
     text: string;
 
     /** Reference to the Text component that will display the text */
-    ref: RefObject<RNText>;
+    ref: RefObject<RNText | null>;
 };
 
 /**

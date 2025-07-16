@@ -228,3 +228,5 @@ export {
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
 };
+
+export type {EnablePolicyFeatureCommand, RequestMatcher};

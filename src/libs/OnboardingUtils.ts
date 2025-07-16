@@ -1,5 +1,6 @@
-import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {OnboardingCompanySize} from './actions/Welcome/OnboardingFlow';
 import getPlatform from './getPlatform';
 
 const supportedIntegrationsInNewDot = ['quickbooksOnline', 'quickbooksDesktop', 'xero', 'netsuite', 'intacct', 'other'] as OnboardingAccounting[];

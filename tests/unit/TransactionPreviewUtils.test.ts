@@ -1,9 +1,13 @@
+import Onyx from 'react-native-onyx';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
@@ -37,6 +41,15 @@ const basicProps = {
 };
 
 describe('TransactionPreviewUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
     describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
             const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
@@ -47,6 +60,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, comment: {hold: 'true'}},
+                originalTransaction: undefined,
                 shouldShowRBR: true,
             };
 
@@ -54,8 +68,31 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toContain('iou.expenseWasPutOnHold');
         });
 
+        it('returns correct receipt error message when the transaction has receipt error', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        error1: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'source.com',
+                            filename: 'file_name.png',
+                            action: 'replaceReceipt',
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                        },
+                    },
+                },
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.RBRMessage.translationPath).toContain('iou.error.receiptFailureMessageShort');
+        });
+
         it('should handle missing iouReport and transaction correctly', () => {
-            const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined};
+            const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
@@ -66,6 +103,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -79,28 +117,29 @@ describe('TransactionPreviewUtils', () => {
                     ...basicProps.transaction,
                     managedCard: true,
                 },
+                originalTransaction: undefined,
             };
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
-            const cashTransaction = getTransactionPreviewTextAndTranslationPaths(basicProps);
+            const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
             expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
         it('displays appropriate header text if the transaction is bill split', () => {
-            const functionArgs = {...basicProps, isBillSplit: true};
+            const functionArgs = {...basicProps, isBillSplit: true, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.split'}]));
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}};
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
 
         it('should apply correct text when transaction is pending and not a bill split', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}};
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.pending'}]));
         });
@@ -110,13 +149,41 @@ describe('TransactionPreviewUtils', () => {
                 ...basicProps,
                 transactionDetails: {amount: 300, currency: 'EUR'},
                 transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                originalTransaction: undefined,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
+        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+            const modifiedAmount = 300;
+            const currency = 'EUR';
+            const originalTransactionID = '2';
+            const functionArgs = {
+                ...basicProps,
+                transactionDetails: {amount: modifiedAmount / 2, currency},
+                transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
+                isBillSplit: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                transactionID: originalTransactionID,
+                comment: {
+                    splits: [
+                        {accountID: 1, email: 'aa@gmail.com'},
+                        {accountID: 2, email: 'cc@gmail.com'},
+                    ],
+                },
+                modifiedAmount,
+                amount: 0,
+                currency,
+            });
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
+        });
+
         it('shows approved message when the iouReport is canceled', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}};
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
         });
@@ -126,20 +193,61 @@ describe('TransactionPreviewUtils', () => {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
                 shouldShowRBR: true,
+                originalTransaction: undefined,
             };
             jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
+
+        it('should display the correct amount for a bill split transaction', () => {
+            const functionArgs = {...basicProps, isBillSplit: true};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$1.00');
+        });
+
+        it('should display the correct amount for a bill split transaction after updating the amount', () => {
+            const functionArgs = {...basicProps, isBillSplit: true, transaction: {...basicProps.transaction, modifiedAmount: 50}};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$0.50');
+        });
     });
 
     describe('createTransactionPreviewConditionals', () => {
+        beforeAll(() => {
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+        });
+        afterAll(() => {
+            Onyx.clear([ONYXKEYS.SESSION]);
+        });
+
         it('should determine RBR visibility according to violation and hold conditions', () => {
             const functionArgs = {
                 ...basicProps,
                 violations: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, transactionID: 123, showInReview: true}],
             };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeTruthy();
+        });
+
+        it('should determine RBR visibility according to whether there is a receipt error', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        error1: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'source.com',
+                            filename: 'file_name.png',
+                            action: 'replaceReceipt',
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                        },
+                    },
+                },
+            };
+
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeTruthy();
         });
@@ -162,6 +270,15 @@ describe('TransactionPreviewUtils', () => {
                 isBillSplit: true,
                 transactionDetails: {
                     amount: 1,
+                },
+                action: {
+                    ...basicProps.action,
+                    originalMessage: {
+                        participantAccountIDs: [999],
+                        amount: 100,
+                        currency: 'USD',
+                        type: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    },
                 },
             };
             const result = createTransactionPreviewConditionals(functionArgs);
@@ -215,6 +332,35 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {comment: 'A valid comment', merchant: ''}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeTruthy();
+        });
+
+        it('should show split share only if user is part of the split bill transaction', () => {
+            const functionArgs = {
+                ...basicProps,
+                isBillSplit: true,
+                transactionDetails: {amount: 100},
+                action: {
+                    ...basicProps.action,
+                    originalMessage: {
+                        participantAccountIDs: [999],
+                        amount: 100,
+                        currency: 'USD',
+                        type: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    },
+                },
+            };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowSplitShare).toBeTruthy();
+        });
+
+        it('should not show split share if user is not a participant', () => {
+            const functionArgs = {
+                ...basicProps,
+                isBillSplit: true,
+                transactionDetails: {amount: 100},
+            };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowSplitShare).toBeFalsy();
         });
     });
 

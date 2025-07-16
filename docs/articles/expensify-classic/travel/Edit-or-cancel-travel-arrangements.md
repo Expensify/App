@@ -3,6 +3,8 @@ title: Edit or cancel travel arrangements
 description: Modify travel arrangements booked with Expensify Travel
 ---
 
+Your trip itinerary is maintained with the latest booking information and can be accessed any time through your trip room.
+
 To edit or cancel a travel arrangement,
 1. Click Travel in the left menu.  
 2. Click Book or Manage Travel.  

@@ -9,6 +9,7 @@ import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
@@ -25,6 +26,8 @@ function TestToolsModalNavigator() {
     const isAuthenticated = useIsAuthenticated();
 
     const handleOuterClick = useCallback(() => {
+        // Release focus from any focused element before closing the modal
+        blurActiveElement();
         requestAnimationFrame(() => {
             toggleTestToolsModal();
         });
@@ -34,7 +37,7 @@ function TestToolsModalNavigator() {
         e.stopPropagation();
     }, []);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 
     return (
         <NoDropZone>
@@ -42,9 +45,8 @@ function TestToolsModalNavigator() {
             <PressableWithoutFeedback
                 ref={outerViewRef}
                 onPress={handleOuterClick}
-                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout), styles.cursorDefault]}
-                accessibilityRole="button"
-                accessibilityLabel="button"
+                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
+                accessible={false}
             >
                 <FocusTrapForScreens>
                     <View

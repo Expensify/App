@@ -20,7 +20,7 @@ type PopoverProps = BaseModalProps &
         anchorAlignment?: AnchorAlignment;
 
         /** The anchor ref of the popover */
-        anchorRef: RefObject<View | HTMLDivElement | Text>;
+        anchorRef: RefObject<View | HTMLDivElement | Text | null>;
 
         /** Whether disable the animations */
         disableAnimation?: boolean;

@@ -1,5 +1,7 @@
 import type {
     DefaultNavigatorOptions,
+    EventMapBase,
+    NavigationListBase,
     NavigationProp,
     ParamListBase,
     RouteProp,
@@ -62,11 +64,14 @@ type PlatformStackScreenProps<
 };
 
 // Props to configure the the PlatformStackNavigator
-type PlatformStackNavigatorProps<
-    ParamList extends ParamListBase,
-    RouteName extends keyof ParamList = keyof ParamList,
-    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
+type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = DefaultNavigatorOptions<
+    ParamList,
+    string | undefined,
+    PlatformStackNavigationState<ParamList>,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationEventMap & EventMapBase,
+    NavigationListBase<ParamList>
+> &
     RouterOptions &
     StackNavigationConfig & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;

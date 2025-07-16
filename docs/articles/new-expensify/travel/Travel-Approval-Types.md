@@ -6,7 +6,7 @@ keywords: Expensify Travel, approval types, soft approval, hard approval, passiv
 
 <div id="new-expensify" markdown="1">
 
-Expensify Travel uses a tiered approval system to help organizations balance booking efficiency with policy oversight. Here's how each approval type works, and when to use them.
+Expensify Travel uses a tiered approval system to help organizations balance booking efficiency with policy oversight. Trip itineraries are maintained with complete booking information to ensure accuracy throughout the approval process. Here's how each approval type works, and when to use them.
 
 # Expensify Travel approval types
 

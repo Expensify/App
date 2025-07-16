@@ -65,7 +65,6 @@ describe('usePermissions', () => {
         // Initially, check the value for the initial betas
         expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
         expect(result.current.isBlockedFromSpotnanaTravel).toBe(true);
-        expect(result.current.isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)).toBe(false);
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(false);
 
         Onyx.merge(ONYXKEYS.BETAS, updatedBetas);
@@ -75,6 +74,5 @@ describe('usePermissions', () => {
         // After update, check the value for the updated betas
         expect(result.current.isBlockedFromSpotnanaTravel).toBe(false);
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(true);
-        expect(result.current.isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS)).toBe(true);
     });
 });

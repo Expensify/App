@@ -13,7 +13,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
-    const blockedNavigationAction = useRef<NavigationAction>();
+    const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
 
     useBeforeRemove(

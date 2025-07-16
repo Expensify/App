@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
@@ -19,8 +19,8 @@ type CardAuthenticationModalProps = {
 };
 function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -36,10 +36,10 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
         setIsVisible(!!authenticationLink);
     }, [authenticationLink]);
 
-    const handleGBPAuthentication = useCallback(
+    const handleSCAAuthentication = useCallback(
         (event: MessageEvent<string>) => {
             const message = event.data;
-            if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
+            if (message === CONST.SCA_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
                     verifySetupIntentAndRequestPolicyOwnerChange(policyID);
                 } else {
@@ -52,11 +52,11 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     );
 
     useEffect(() => {
-        window.addEventListener('message', handleGBPAuthentication);
+        window.addEventListener('message', handleSCAAuthentication);
         return () => {
-            window.removeEventListener('message', handleGBPAuthentication);
+            window.removeEventListener('message', handleSCAAuthentication);
         };
-    }, [handleGBPAuthentication]);
+    }, [handleSCAAuthentication]);
 
     return (
         <Modal
@@ -64,6 +64,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             isVisible={isVisible}
             onClose={onModalClose}
             onModalHide={onModalClose}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

@@ -1,12 +1,12 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
@@ -16,6 +16,8 @@ import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActionReactions} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
 
 type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
@@ -37,8 +39,8 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
     const {translate, preferredLocale} = useLocalize();
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true, initialValue: {}});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
     const openEmojiPicker = () => {
         onPressOpenPicker();

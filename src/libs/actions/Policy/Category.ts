@@ -27,13 +27,13 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {getAllPolicyReports} from '@libs/ReportUtils';
-import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
+import {getAllPolicyReports, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report, TransactionViolations} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -301,7 +301,12 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
+function setWorkspaceCategoryEnabled(
+    policyID: string,
+    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>,
+    policyTagLists: PolicyTagLists = {},
+    allTransactionViolations: OnyxCollection<TransactionViolations> = {},
+) {
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
     const optimisticPolicyCategoriesData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
@@ -367,6 +372,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, allTransactionViolations, {}, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(onyxData);
 
     const parameters = {
@@ -861,7 +867,12 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
 }
 
-function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
+function setWorkspaceRequiresCategory(
+    policyID: string,
+    requiresCategory: boolean,
+    policyTagLists: PolicyTagLists = {},
+    allTransactionViolations: OnyxCollection<TransactionViolations> = {},
+) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -907,6 +918,9 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {}, allTransactionViolations, {
+        requiresCategory,
+    } as Partial<Policy>);
     const parameters = {
         policyID,
         requiresCategory,
@@ -936,12 +950,21 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
-function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: string[]) {
+function deleteWorkspaceCategories(
+    policyID: string,
+    categoryNamesToDelete: string[],
+    policyTagLists: PolicyTagLists = {},
+    transactionViolations: OnyxCollection<TransactionViolations> = {},
+) {
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
+
+    const shouldDisableRequiresCategory = !hasEnabledOptions(
+        Object.values(policyCategories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -977,6 +1000,8 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
         ],
     };
 
+    const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory ? {requiresCategory: false} : {};
+    pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, transactionViolations, optimisticPolicyData, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(onyxData);
 
     const parameters = {
@@ -987,7 +1012,13 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function enablePolicyCategories(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyCategories(
+    policyID: string,
+    enabled: boolean,
+    policyTagLists: PolicyTagLists = {},
+    allTransactionViolations: OnyxCollection<TransactionViolations> = {},
+    shouldGoBack = true,
+) {
     const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
     if (!enabled) {
         onyxUpdatesToDisableCategories.push(
@@ -1050,15 +1081,29 @@ function enablePolicyCategories(policyID: string, enabled: boolean, shouldGoBack
         ],
     };
 
+    const policyUpdate: Partial<Policy> = {
+        areCategoriesEnabled: enabled,
+        requiresCategory: enabled,
+        pendingFields: {
+            areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        },
+    };
+
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+
+    const policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = Object.fromEntries(
+        Object.entries(policyCategories).map(([categoryName]) => [categoryName, {name: categoryName, enabled}]),
+    );
+
+    pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, allTransactionViolations, policyUpdate, policyCategoriesUpdate);
+
     if (onyxUpdatesToDisableCategories.length > 0) {
         onyxData.optimisticData?.push(...onyxUpdatesToDisableCategories);
     }
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData, {
-        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, persistedRequests, parameters),
-    });
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature(policyID);

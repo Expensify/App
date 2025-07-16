@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -24,8 +24,7 @@ jest.mock('@react-navigation/native', () => {
         ...actualNav,
         useIsFocused: jest.fn(),
         useRoute: jest.fn(),
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        UNSTABLE_usePreventRemove: jest.fn(),
+        usePreventRemove: jest.fn(),
     };
 });
 
@@ -78,7 +77,7 @@ describe('ReportDetailsPage', () => {
                         betas={[]}
                         isLoadingReportData={false}
                         navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
-                        policies={{}}
+                        policy={undefined}
                         report={trackExpenseReport}
                         reportMetadata={undefined}
                         route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
@@ -109,7 +108,7 @@ describe('ReportDetailsPage', () => {
                         betas={[]}
                         isLoadingReportData={false}
                         navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
-                        policies={{}}
+                        policy={undefined}
                         report={movedTrackExpenseReport}
                         reportMetadata={undefined}
                         route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}

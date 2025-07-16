@@ -1,8 +1,8 @@
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
@@ -30,6 +30,9 @@ type BusinessInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [
@@ -66,7 +69,7 @@ const INPUT_KEYS = {
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
 };
 
-function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -135,7 +138,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
             wrapperID={BusinessInfo.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={2}
         >
             <SubStep

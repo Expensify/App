@@ -22,7 +22,7 @@ const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 jest.mock('fs');
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
-const mockGetPullRequestsMergedBetween = jest.fn();
+const mockGetPullRequestsDeployedBetween = jest.fn();
 
 beforeAll(() => {
     // Mock core module
@@ -65,7 +65,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = mockOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+    GitUtils.getPullRequestsDeployedBetween = mockGetPullRequestsDeployedBetween;
 
     vol.reset();
     vol.fromJSON({
@@ -76,7 +76,7 @@ beforeAll(() => {
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
-    mockGetPullRequestsMergedBetween.mockClear();
+    mockGetPullRequestsDeployedBetween.mockClear();
 });
 
 afterAll(() => {
@@ -173,7 +173,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             return 'fake_token';
         });
 
-        mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
@@ -268,7 +268,7 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
@@ -344,7 +344,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 }
                 return 'fake_token';
             });
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }

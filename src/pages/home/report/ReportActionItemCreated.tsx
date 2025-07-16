@@ -1,11 +1,11 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,10 +28,12 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`, {
+        canBeMissing: true,
+    });
 
     if (!isChatReport(report)) {
         return null;
@@ -59,7 +61,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
+                            onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute(), true)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
