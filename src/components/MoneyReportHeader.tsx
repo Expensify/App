@@ -189,7 +189,7 @@ function MoneyReportHeader({
         {canBeMissing: true},
     );
 
-    const isExported = isExportedUtils(reportActions);
+    const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
     // wrapped in useMemo to improve performance because this is an operation on array
     const integrationNameFromExportMessage = useMemo(() => {
         if (!isExported) {
