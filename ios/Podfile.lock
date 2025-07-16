@@ -2794,7 +2794,7 @@ PODS:
     - Firebase/Performance (= 11.13.0)
     - React-Core
     - RNFBApp
-  - RNFlashList (1.7.6):
+  - RNFlashList (1.8.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2848,7 +2848,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.288):
+  - RNLiveMarkdown (0.1.289):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3729,7 +3729,7 @@ SPEC CHECKSUMS:
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
-  ExpensifyNitroUtils: 642f20858b06d997a92ec7c46f91120d80083d8f
+  ExpensifyNitroUtils: e0db1bd03c2ee179bdca45c57bf0497e626b18cd
   Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
@@ -3876,11 +3876,11 @@ SPEC CHECKSUMS:
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
   RNFBCrashlytics: c9dbfcf63b06cf8e8c4d960719e81160b6bc2e76
   RNFBPerf: c32ec64522c2e4d81d1562747809314e9050b75f
-  RNFlashList: d698d1afdda4a2b1a7bce9b7c1437460b6110298
+  RNFlashList: 2e3ff9db752b552fdb1cdb00b8fb2a408af4c516
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: b249b5be5a3659025aed8898aaaafd567dc2d660
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: cf03d6ffabc0f8520a428b5034755294311ee67e
+  RNLiveMarkdown: 579c9907ebace91678a587424c5bc7729d574be3
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: a5569b64e3ca5fcd1be1f9d5bb478bf601d2a033
   RNNitroSQLite: a1b0f1a665c54fc0f2510a292c1bf8ac4d44231b

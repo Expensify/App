@@ -25,6 +25,7 @@
 		383643682B6D4AE2005BB9AE /* DeviceCheck.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 383643672B6D4AE2005BB9AE /* DeviceCheck.framework */; };
 		47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47347EFE2DA5664A00633001 /* AppDelegate.swift */; };
 		524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */; };
+		59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */; };
 		6A811C38D0C8B8E71857277E /* Pods_NewExpensify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92BBCBF64F8C599FCC16438D /* Pods_NewExpensify.framework */; };
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
@@ -136,6 +137,7 @@
 		92BBCBF64F8C599FCC16438D /* Pods_NewExpensify.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NewExpensify.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyMono-BoldItalic.otf"; sourceTree = "<group>"; };
 		AC131FBA2CF634F20010CE80 /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
+		B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = CustomEmojiNativeFont.ttf; path = ../assets/fonts/native/CustomEmojiNativeFont.ttf; sourceTree = "<group>"; };
 		BBE493797E97F2995E627244 /* Pods-NotificationServiceExtension.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debugadhoc.xcconfig"; sourceTree = "<group>"; };
 		BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
 		D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
@@ -316,6 +318,7 @@
 				8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */,
 				BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */,
 				F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */,
+				B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -488,6 +491,7 @@
 				D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */,
 				524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */,
 				0F749C2B3B8F4562B816DEAB /* BuildFile in Resources */,
+				59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -32,6 +32,7 @@ import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
@@ -44,7 +45,6 @@ import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
-import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -243,7 +243,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
-    MobileSelectionMode,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
@@ -264,4 +263,5 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
+    HybridApp,
 };
