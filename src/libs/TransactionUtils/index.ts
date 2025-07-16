@@ -1392,13 +1392,87 @@ type FieldsToChange = {
     billable?: Array<boolean | undefined>;
     reimbursable?: Array<boolean | undefined>;
 };
+
 /**
- * Updates the duplicates DUPLICATED_TRANSACTION violation duplicate data by removing the transactionID
- * of a transaction that is either being deleted or updated.
+ * Extracts a set of valid duplicate transaction IDs associated with a given transaction,
+ * excluding:
+ * - the transaction itself
+ * - duplicate IDs that appear more than once
+ * - duplicates referencing missing or invalid transactions
+ * - settled or approved transactions
+ *
+ * @param transactionID - The ID of the transaction being validated.
+ * @param currentTransactionViolations - The list of violations associated with this transaction.
+ * @returns A set of valid duplicate transaction IDs.
+ */
+function getValidDuplicateTransactionIDs(transactionID: string, currentTransactionViolations: TransactionViolation[]): Set<string> {
+    const result = new Set<string>();
+    const seen = new Set<string>();
+    let foundDuplicateViolation = false;
+
+    for (const violation of currentTransactionViolations) {
+        if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION){
+            continue;
+        }
+
+        // Skip further violations
+        if (foundDuplicateViolation) {
+            Log.warn(`Multiple duplicate violations found for transaction ${transactionID}. Only one expected.`);
+            continue; 
+        }
+
+        foundDuplicateViolation = true;
+
+        const duplicatesID = violation?.data?.duplicates;
+        if (!duplicatesID || duplicatesID.length === 0) {
+            Log.warn(`Violation ${violation.name} lacks duplicates. Transaction ID: ${transactionID}`);
+            break;
+        }
+
+        const validTransactions: Transaction[] = [];
+
+        for (const duplicateID of duplicatesID) {
+            // Skip self-reference
+            if (duplicateID === transactionID) {
+                continue; 
+            }
+
+            if (seen.has(duplicateID)) {
+                Log.warn(`Duplicate ID ${duplicateID} is repeated in violation for transaction ${transactionID}.`);
+                continue;
+            }
+
+            seen.add(duplicateID);
+
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`];
+            if (!transaction?.transactionID) {
+                Log.warn(`Transaction ${duplicateID} does not exist or is invalid. Found in transaction ${transactionID}.`);
+                continue;
+            }
+
+            validTransactions.push(transaction);
+        }
+
+        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
+        const filtered = removeSettledAndApprovedTransactions(validTransactions);
+
+        for (const transaction of filtered) {
+            result.add(transaction.transactionID);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Adds onyx updates to the passed onyxData to update the DUPLICATED_TRANSACTION violation data 
+ * by removing the passed transactionID from any violation that referenced it.
+ * @param onyxData - An object to store optimistic and failure updates.
  * @param transactionID - The ID of the transaction being deleted or updated.
  * @param transactionViolations - The collection of all transaction violations.
+ *
  */
-function updateDuplicatesTransactionsViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>, onyxData: OnyxData) {
+function updateDuplicatesTransactionsViolations(onyxData: OnyxData, transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>) {
     if (!transactionID || !transactionViolations) {
         return;
     }
@@ -1408,26 +1482,13 @@ function updateDuplicatesTransactionsViolations(transactionID: string, transacti
         return;
     }
 
-    const duplicateIDs = currentTransactionViolations
-        .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-        .flatMap((violation) => violation?.data?.duplicates ?? []);
+    const duplicateIDs = getValidDuplicateTransactionIDs(transactionID, currentTransactionViolations);
 
-    if (duplicateIDs.length === 0) {
+    if (duplicateIDs.size === 0) {
         return;
     }
 
-    // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
-    const duplicates = removeSettledAndApprovedTransactions(Array.from(new Set(duplicateIDs)).map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]));
-
-    if (duplicates.length === 0) {
-        return;
-    }
-
-    duplicates.forEach((duplicate) => {
-        const duplicateID = duplicate.transactionID;
-        if (!duplicateID) {
-            return;
-        }
+    for (const duplicateID of duplicateIDs) {
         const duplicateViolations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
         if (!duplicateViolations) {
             return;
@@ -1479,7 +1540,7 @@ function updateDuplicatesTransactionsViolations(transactionID: string, transacti
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
             value: duplicateViolations,
         });
-    });
+    }
 }
 
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {

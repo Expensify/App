@@ -4327,18 +4327,21 @@ function getUpdateMoneyRequestParams(
             value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
         });
     }
+
+    const hasModifiedCurrency = 'currency' in transactionChanges;
     const hasModifiedComment = 'comment' in transactionChanges;
+    const hasModifiedDate = 'date' in transactionChanges;
 
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
         updatedTransaction &&
-        (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
+        (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedDate || hasModifiedCurrency || hasModifiedAmount || hasModifiedCreated)
     ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const hasModifiedDate = 'date' in transactionChanges;
+        // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
         const optimisticViolations =
-            hasModifiedAmount || hasModifiedDate
+            hasModifiedAmount || hasModifiedDate || hasModifiedCurrency
                 ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
                 : currentTransactionViolations;
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -4598,7 +4601,7 @@ function updateMoneyRequestDate(
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
-        updateDuplicatesTransactionsViolations(transactionID, transactionViolations, data.onyxData);
+        updateDuplicatesTransactionsViolations(data.onyxData, transactionID, transactionViolations);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
@@ -7570,7 +7573,7 @@ function updateMoneyRequestAmountAndCurrency({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null);
-        updateDuplicatesTransactionsViolations(transactionID, transactionViolations, data.onyxData);
+        updateDuplicatesTransactionsViolations(data.onyxData, transactionID, transactionViolations);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
@@ -7999,7 +8002,7 @@ function deleteMoneyRequest(
         },
     ];
 
-    updateDuplicatesTransactionsViolations(transactionID, violations, {optimisticData, failureData});
+    updateDuplicatesTransactionsViolations({optimisticData, failureData}, transactionID, violations);
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(

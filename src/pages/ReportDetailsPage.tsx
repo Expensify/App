@@ -777,7 +777,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, allTransactionViolations, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
-    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction]);
+    }, [allTransactionViolations, caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);
