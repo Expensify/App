@@ -65,6 +65,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -444,6 +445,21 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('sortOutstandingReportsBySelected', () => {
+        it('should return -1 when report1 is selected and report2 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report1.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+        });
+        it('should return 1 when report2 is selected and report1 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report2.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
+        });
+    });
+
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
             const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
@@ -724,6 +740,146 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
+        });
+
+        describe('Fallback scenarios', () => {
+            test('should fallback to report.reportName when primary name generation returns empty string', () => {
+                const reportWithFallbackName: Report = {
+                    reportID: '3',
+                    reportName: 'Custom Report Name',
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithFallbackName);
+                expect(result).toBe('Custom Report Name');
+            });
+
+            test('should return empty string when both primary name generation and reportName are empty', () => {
+                const reportWithoutName: Report = {
+                    reportID: '4',
+                    reportName: '',
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithoutName);
+                expect(result).toBe('');
+            });
+
+            test('should return empty string when reportName is undefined', () => {
+                const reportWithUndefinedName: Report = {
+                    reportID: '5',
+                    reportName: undefined,
+                    ownerAccountID: undefined,
+                    participants: {},
+                    policyID: undefined,
+                    chatType: undefined,
+                };
+
+                const result = getReportName(reportWithUndefinedName);
+                expect(result).toBe('');
+            });
+        });
+    });
+
+    describe('Automatically approved report message via automatic (not by a human) action is', () => {
+        test('shown when the report is forwarded (Control feature)', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+            );
+        });
+
+        test('shown when the report is approved', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+            );
+        });
+    });
+
+    describe('Automatically submitted via harvesting (delayed submit) report message is', () => {
+        test('shown when report is submitted and status is submitted', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
+            );
+        });
+
+        test('shown when report is submitted and status is closed', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
+            );
         });
     });
 
@@ -2659,6 +2815,50 @@ describe('ReportUtils', () => {
 
             expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
         });
+
+        it('should return true for demo transaction', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    isDemoTransaction: true,
+                },
+            };
+
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            const moneyRequestAction = {
+                ...parentReportAction,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
+        });
     });
 
     describe('getPolicyExpenseChat', () => {
@@ -4048,6 +4248,7 @@ describe('ReportUtils', () => {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
+                chatType: undefined,
             };
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
