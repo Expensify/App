@@ -199,7 +199,7 @@ import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';
-import {addMembersToWorkspace, buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
+import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
 import {createPolicyExpenseChats} from './Policy/Policy';
 import {
     createUpdateCommentMatcher,
@@ -958,7 +958,6 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param temporaryShouldUseTableReportView For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
  */
 function openReport(
     reportID: string | undefined,
@@ -969,7 +968,6 @@ function openReport(
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
-    temporaryShouldUseTableReportView = false,
     transactionID?: string,
 ) {
     if (!reportID) {
@@ -1083,11 +1081,6 @@ function openReport(
                 parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
             }
         }
-    }
-
-    // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
-    if (temporaryShouldUseTableReportView) {
-        parameters.useTableReportView = true;
     }
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
@@ -4266,8 +4259,8 @@ function searchForReports(searchInput: string, policyID?: string) {
         },
     ];
 
-    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID};
-    const searchForReportsParams: SearchForReportsParams = {searchInput, canCancel: true};
+    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput.toLowerCase(), policyID};
+    const searchForReportsParams: SearchForReportsParams = {searchInput: searchInput.toLowerCase(), canCancel: true};
 
     // We want to cancel all pending SearchForReports API calls before making another one
     if (!policyID) {
@@ -4327,37 +4320,10 @@ function clearNewRoomFormError() {
 function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
-    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
-    policy?: OnyxEntry<Policy>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
 ) {
-    if (!reportAction || !reportID) {
-        return;
-    }
-
-    if (ReportActionsUtils.isActionableMentionWhisper(reportAction) && resolution === CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE) {
-        const actionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-
-        const policyID = policy?.id;
-
-        if (actionOriginalMessage && policyID) {
-            const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
-            const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
-            const welcomeNote = Localize.translateLocal('workspace.common.welcomeNote');
-            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
-            addMembersToWorkspace(
-                {
-                    [`${actionOriginalMessage.inviteeEmails?.at(0)}`]: actionOriginalMessage.inviteeAccountIDs?.at(0) ?? CONST.DEFAULT_NUMBER_ID,
-                },
-                `${welcomeNoteSubject}\n\n${welcomeNote}`,
-                policyID,
-                policyMemberAccountIDs,
-                CONST.POLICY.ROLE.USER,
-            );
-        }
-    }
-
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message) {
+    if (!message || !reportAction || !reportID) {
         return;
     }
 
@@ -4429,14 +4395,6 @@ function resolveActionableMentionWhisper(
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
-}
-
-function resolveActionableMentionConfirmWhisper(
-    reportID: string | undefined,
-    reportAction: OnyxEntry<ReportAction>,
-    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
-) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -4911,6 +4869,18 @@ function deleteAppReport(reportID: string | undefined) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
             value: {[unreportedAction.reportActionID]: unreportedAction},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            value: {[unreportedAction.reportActionID]: {pendingAction: null}},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            value: {[unreportedAction.reportActionID]: null},
         });
 
         if (transactionID) {
@@ -5855,7 +5825,6 @@ export {
     removeFromGroupChat,
     removeFromRoom,
     resolveActionableMentionWhisper,
-    resolveActionableMentionConfirmWhisper,
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     savePrivateNotesDraft,

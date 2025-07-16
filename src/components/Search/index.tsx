@@ -1,6 +1,7 @@
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -57,7 +58,8 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+    contentContainerStyle?: ContentStyle;
+    // contentContainerStyle?: StyleProp<ViewStyle>; // TODO: remove this
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -200,6 +202,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
             if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
@@ -215,11 +221,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        if (isOffline) {
+        if (!isFocused || isOffline) {
             return;
         }
 
         handleSearch({queryJSON, offset});
+        // We don't need to run the effect on change of isFocused.
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -238,7 +245,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults?.search, queryJSON) ?? false;
 
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -260,6 +267,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isRefreshingSelection = useRef(false);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
@@ -319,7 +330,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode]);
+    }, [data, setSelectedTransactions, isExportMode, isFocused]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -345,7 +356,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [selectedTransactions]);
 
     useEffect(() => {
-        if (!data.length || isRefreshingSelection.current || !isFocused) {
+        if (!isFocused) {
+            return;
+        }
+
+        if (!data.length || isRefreshingSelection.current) {
             return;
         }
         const areItemsGrouped = !!groupBy;
@@ -458,6 +473,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onViewableItemsChanged = useCallback(
         ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            if (!isFocused) {
+                return;
+            }
+
             const isFirstItemVisible = viewableItems.at(0)?.index === 1;
             // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
             if (shouldShowLoadingState || !isFirstItemVisible) {
@@ -470,7 +489,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             // Therefore, when the user scrolls to the top, we need to refresh the search results.
             setOffset(0);
         },
-        [shouldShowLoadingState],
+        [shouldShowLoadingState, isFocused],
     );
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
@@ -483,8 +502,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = baseKey === newSearchResultKey;
+
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
@@ -492,6 +513,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                         return transactionKey === newSearchResultKey;
                     });
+
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
@@ -503,7 +525,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     const fetchMoreResults = useCallback(() => {
-        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
@@ -621,7 +643,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         />
                     )
                 }
-                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onScroll={onSearchListScroll}
