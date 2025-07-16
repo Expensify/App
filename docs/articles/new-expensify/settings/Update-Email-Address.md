@@ -23,7 +23,6 @@ Adding an additional contact method helps you:
 
 # Add or Change a Contact Method
 
-## On Desktop:
 1. In the left-hand menu, click **Account > Profile**.
 2. Under **Contact Method**, click **New Contact Method**.
 3. Enter the email address or phone number you want to add.
