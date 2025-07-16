@@ -62,6 +62,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import NAVIGATORS from "@src/NAVIGATORS";
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -864,20 +865,17 @@ function clearSignInData() {
 }
 
 /**
- * Reset all current params of the Home route
+ * Reset navigation to a brand new state with Home as the initial screen.
  */
-function resetHomeRouteParams() {
+function resetNavigation() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState()?.routes;
-        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
-
-        const emptyParams: Record<string, undefined> = {};
-        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
-            emptyParams[paramKey] = undefined;
+        navigationRef.navigate(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+            initial: true,
+            screen: SCREENS.HOME,
+            path: ROUTES.HOME,
+        }, {
+            pop: true,
         });
-
-        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
-        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
 
@@ -895,7 +893,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetHomeRouteParams();
+    resetNavigation();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
