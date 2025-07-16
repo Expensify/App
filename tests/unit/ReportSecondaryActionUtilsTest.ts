@@ -375,11 +375,119 @@ describe('getSecondaryAction', () => {
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {approver: EMPLOYEE_EMAIL} as unknown as Policy;
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
+    });
+
+    it('includes UNAPPROVE option for admin on finally approved report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: MANAGER_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: APPROVER_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
+    });
+
+    it('includes UNAPPROVE option for manager on finally approved report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: APPROVER_EMAIL,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
+    });
+
+    it('does not include UNAPPROVE option for non-admin, non-manager on finally approved report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: MANAGER_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: APPROVER_EMAIL,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
+    });
+
+    it('does not include UNAPPROVE option for non-approved report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: EMPLOYEE_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
+    });
+
+    it('does not include UNAPPROVE option for settled report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: EMPLOYEE_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
+    });
+
+    it('does not include UNAPPROVE option for payment processing report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            isWaitingOnBankAccount: true,
+        } as unknown as Report;
+        const policy = {
+            approver: EMPLOYEE_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
 
     it('includes CANCEL_PAYMENT option for report paid elsewhere', () => {
@@ -1067,6 +1175,38 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
+    });
+
+    it('include DELETE option for demo transaction', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            comment: {
+                isDemoTransaction: true,
+            },
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            approver: APPROVER_EMAIL,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
     it('include EXPORT_TO_ACCOUNTING option for settled expense report', async () => {
