@@ -1,6 +1,5 @@
-import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
@@ -18,7 +17,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import getPlatform from '@libs/getPlatform';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
@@ -112,12 +110,10 @@ function BaseModal(
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
-    const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
-    const [modalHeight, setModalHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
 
-    const isVisibleRef = useRef(isVisible);
+    const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
 
     const wasVisible = usePrevious(isVisible);
@@ -135,6 +131,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
+            shouldCallHideModalOnUnmount.current = false;
             if (areAllModalsHidden()) {
                 willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
@@ -151,9 +148,9 @@ function BaseModal(
     );
 
     useEffect(() => {
-        isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
+            shouldCallHideModalOnUnmount.current = true;
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
@@ -175,8 +172,7 @@ function BaseModal(
 
     useEffect(
         () => () => {
-            // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (!isVisibleRef.current) {
+            if (!shouldCallHideModalOnUnmount.current) {
                 return;
             }
             hideModalCallbackRef.current?.(true);
@@ -208,29 +204,6 @@ function BaseModal(
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
-    // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
-    useEffect(() => {
-        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || getPlatform() === CONST.PLATFORM.WEB) {
-            return;
-        }
-        const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
-        const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
-        setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && Math.floor(availableHeight) <= 0);
-    }, [
-        StyleUtils,
-        insets,
-        keyboardStateContextValue.isKeyboardActive,
-        keyboardStateContextValue.isKeyboardAnimatingRef,
-        keyboardStateContextValue.keyboardActiveHeight,
-        modalHeight,
-        type,
-        windowHeight,
-    ]);
-
-    const onViewLayout = (e: LayoutChangeEvent) => {
-        setModalHeight(e.nativeEvent.layout.height);
-    };
-
     const {
         modalStyle,
         modalContainerStyle,
@@ -254,22 +227,9 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
-                modalOverlapsWithTopSafeArea,
                 shouldUseReanimatedModal,
             ),
-        [
-            StyleUtils,
-            type,
-            windowWidth,
-            windowHeight,
-            isSmallScreenWidth,
-            popoverAnchorPosition,
-            innerContainerStyle,
-            outerStyle,
-            shouldUseModalPaddingStyle,
-            modalOverlapsWithTopSafeArea,
-            shouldUseReanimatedModal,
-        ],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, shouldUseReanimatedModal],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -392,7 +352,6 @@ function BaseModal(
                                 shouldPreventScroll={shouldPreventScrollOnFocus}
                             >
                                 <View
-                                    onLayout={onViewLayout}
                                     style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                                     ref={ref}
                                 >
