@@ -2139,7 +2139,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-performance (5.1.0):
+  - react-native-performance (5.1.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3816,7 +3816,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 6aa96b58130ce8de834c2f6c00878b69703d9e10
   react-native-pager-view: 21fa9c2dc9ba43370132b0c996eaeaefd2be4be0
   react-native-pdf: 65f142fbddbb7ef4ee51c5e3bf2a03d24f507c11
-  react-native-performance: 025cfdaddd31efee1e334b15924a04f5497d9702
+  react-native-performance: 1e0b1e3a80e665fb392c658d5639d26a015efbdd
   react-native-plaid-link-sdk: d82ea6d7f8065e82d9ea8cf6abf3cf4914da8b5c
   react-native-release-profiler: 4dbd61f2e1ebc2b11cfa5a03511bbc88fda5a25b
   react-native-safe-area-context: 00d03dc688ba86664be66f9e3f203fc7d747d899

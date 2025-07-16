@@ -27,7 +27,6 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
-import {translateLocal} from './Localize';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import navigationRef from './Navigation/navigationRef';
@@ -730,9 +729,6 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${filterValue}`]?.name ?? filterValue;
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-        return isSearchDatePreset(filterValue) ? translateLocal(`search.filters.date.presets.${filterValue}`) : filterValue;
     }
     return filterValue;
 }

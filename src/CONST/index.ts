@@ -2066,6 +2066,7 @@ const CONST = {
             TAG: 'TAG',
             REPORT_FIELD: 'REPORT_FIELD',
         },
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
@@ -6409,7 +6410,8 @@ const CONST = {
         get FILTER_DATE_PRESETS() {
             return {
                 // s77rt remove DEV lock
-                [this.SYNTAX_FILTER_KEYS.POSTED]: (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [],
+                [this.SYNTAX_FILTER_KEYS.POSTED]:
+                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
                 [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
             };
         },
@@ -6430,6 +6432,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
+            STATEMENTS: 'statements',
             UNAPPROVED: 'unapproved',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',

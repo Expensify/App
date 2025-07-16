@@ -3806,6 +3806,18 @@ const translations = {
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
+            accountingMethods: {
+                label: 'Cuándo Exportar',
+                description: 'Elige cuándo exportar los gastos:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                },
+            },
         },
 
         sageIntacct: {
@@ -5921,11 +5933,16 @@ const translations = {
                 title: 'No hay gastos para exportar',
                 subtitle: 'Es hora de relajarse, buen trabajo.',
             },
+            emptyStatementsResults: {
+                title: 'No hay gastos para mostrar',
+                subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',
                 subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
             },
         },
+        statements: 'Extractos',
         unapproved: 'No aprobado',
         unapprovedCash: 'Efectivo no aprobado',
         unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',
