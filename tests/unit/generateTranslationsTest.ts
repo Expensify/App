@@ -9,6 +9,17 @@ import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Translator from '@scripts/utils/Translator/Translator';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+let mockEn: any = jest.requireActual('@src/languages/en');
+jest.mock('@src/languages/en', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    get default() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return mockEn;
+    },
+}));
 jest.mock('openai');
 
 let tempDir: string;
@@ -563,21 +574,24 @@ describe('generateTranslations', () => {
     });
 
     it('translates only specified paths when --paths is provided', async () => {
+        const strings = {
+            greeting: 'Hello',
+            farewell: 'Goodbye',
+            common: {
+                save: 'Save',
+                cancel: 'Cancel',
+            },
+            errors: {
+                generic: 'An error occurred',
+                network: 'Network error',
+            },
+        };
+        mockEn = strings;
+
         fs.writeFileSync(
             EN_PATH,
             dedent(`
-                const strings = {
-                    greeting: 'Hello',
-                    farewell: 'Goodbye',
-                    common: {
-                        save: 'Save',
-                        cancel: 'Cancel',
-                    },
-                    errors: {
-                        generic: 'An error occurred',
-                        network: 'Network error',
-                    },
-                };
+                const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
             'utf8',

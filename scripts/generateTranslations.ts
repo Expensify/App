@@ -5,6 +5,8 @@
  */
 import * as dotenv from 'dotenv';
 import fs from 'fs';
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
+import get from 'lodash/get';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
@@ -14,6 +16,7 @@ import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
+import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
@@ -584,6 +587,9 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
+    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
+    const enSourceFile = path.join(languagesDir, 'en.ts');
+
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         flags: {
@@ -621,8 +627,25 @@ async function main(): Promise<void> {
                 parse: (val: string): TranslationPaths[] => {
                     const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
                     const validatedPaths: TranslationPaths[] = [];
+                    const invalidPaths: string[] = [];
 
-                    // TODO: validate paths
+                    // We disable eslint here and do a dynamic require because tests mock the en.ts file using fs, and normal imports can't be mocked by jest
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                    // const en = require(enSourceFile).default;
+
+                    for (const rawPath of rawPaths) {
+                        if (get(en, rawPath)) {
+                            validatedPaths.push(rawPath as TranslationPaths);
+                        } else {
+                            invalidPaths.push(rawPath);
+                        }
+                    }
+
+                    if (invalidPaths.length > 0) {
+                        throw new Error(`⚠️  Warning: --paths contains the following invalid paths: ${invalidPaths.join(', ')}`);
+                    }
+
+                    return validatedPaths;
                 },
                 supersedes: ['compare-ref'],
                 required: false,
@@ -646,9 +669,6 @@ async function main(): Promise<void> {
         }
         translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
     }
-
-    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
-    const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({
         targetLanguages: cli.namedArgs.locales,
