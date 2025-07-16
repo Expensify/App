@@ -4,11 +4,11 @@ import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {appendParam} from '@libs/Url';
-import * as IOU from '@userActions/IOU';
+import {setMoneyRequestCurrency} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -24,10 +24,10 @@ function IOURequestStepCurrency({
     },
 }: IOURequestStepCurrencyProps) {
     const {translate} = useLocalize();
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? -1}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const {currency: originalCurrency = ''} = getTransactionDetails(draftTransaction) ?? {};
-    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
+    const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     const navigateBack = (selectedCurrencyValue = '') => {
         // If the currency selection was done from the confirmation step (eg. + > submit expense > manual > confirm > amount > currency)
@@ -48,7 +48,7 @@ function IOURequestStepCurrency({
     const confirmCurrencySelection = (option: CurrencyListItem) => {
         Keyboard.dismiss();
         if (pageIndex !== CONST.IOU.PAGE_INDEX.CONFIRM) {
-            IOU.setMoneyRequestCurrency(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
+            setMoneyRequestCurrency(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => navigateBack(option.currencyCode));
