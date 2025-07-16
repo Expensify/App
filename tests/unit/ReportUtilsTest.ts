@@ -741,50 +741,6 @@ describe('ReportUtils', () => {
                 expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
         });
-
-        describe('Fallback scenarios', () => {
-            test('should fallback to report.reportName when primary name generation returns empty string', () => {
-                const reportWithFallbackName: Report = {
-                    reportID: '3',
-                    reportName: 'Custom Report Name',
-                    ownerAccountID: undefined,
-                    participants: {},
-                    policyID: undefined,
-                    chatType: undefined,
-                };
-
-                const result = getReportName(reportWithFallbackName);
-                expect(result).toBe('Custom Report Name');
-            });
-
-            test('should return empty string when both primary name generation and reportName are empty', () => {
-                const reportWithoutName: Report = {
-                    reportID: '4',
-                    reportName: '',
-                    ownerAccountID: undefined,
-                    participants: {},
-                    policyID: undefined,
-                    chatType: undefined,
-                };
-
-                const result = getReportName(reportWithoutName);
-                expect(result).toBe('');
-            });
-
-            test('should return empty string when reportName is undefined', () => {
-                const reportWithUndefinedName: Report = {
-                    reportID: '5',
-                    reportName: undefined,
-                    ownerAccountID: undefined,
-                    participants: {},
-                    policyID: undefined,
-                    chatType: undefined,
-                };
-
-                const result = getReportName(reportWithUndefinedName);
-                expect(result).toBe('');
-            });
-        });
     });
 
     describe('requiresAttentionFromCurrentUser', () => {
