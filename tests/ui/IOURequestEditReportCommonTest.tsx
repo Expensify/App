@@ -107,7 +107,7 @@ describe('IOURequestEditReportCommon', () => {
             expect(reportItem).toBeTruthy();
 
             // Then do not show RBR
-            const dotIndicators = screen.queryAllByTestId('Dot Icon');
+            const dotIndicators = screen.queryAllByTestId(CONST.DOT_INDICATOR_TEST_ID);
             expect(dotIndicators).toHaveLength(0);
         });
     });
