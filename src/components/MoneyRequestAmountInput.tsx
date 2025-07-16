@@ -96,7 +96,7 @@ type MoneyRequestAmountInputProps = {
 
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
-} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldPrefixUseDefaultLineHeight'>;
+} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type Selection = {
     start: number;
@@ -136,7 +136,7 @@ function MoneyRequestAmountInput(
         testID,
         submitBehavior,
         shouldApplyPaddingToContainer = false,
-        shouldPrefixUseDefaultLineHeight = true,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -349,7 +349,7 @@ function MoneyRequestAmountInput(
             testID={testID}
             submitBehavior={submitBehavior}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
-            shouldPrefixUseDefaultLineHeight={shouldPrefixUseDefaultLineHeight}
+            shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
         />
     );
 }

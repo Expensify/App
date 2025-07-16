@@ -124,6 +124,8 @@ export default {
     inputPaddingTop: getValueUsingPixelRatio(15, 21),
     inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
+    inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
+    inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),

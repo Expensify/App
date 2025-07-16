@@ -80,7 +80,7 @@ function BaseTextInput(
         placeholderTextColor,
         onClearInput,
         iconContainerStyle,
-        shouldPrefixUseDefaultLineHeight = true,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -369,7 +369,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        shouldUseDefaultLineHeight={shouldPrefixUseDefaultLineHeight}
+                                        shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
                                         {prefixCharacter}
                                     </Text>
