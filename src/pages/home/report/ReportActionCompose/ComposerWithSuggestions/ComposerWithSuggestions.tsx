@@ -378,7 +378,7 @@ function ComposerWithSuggestions(
      * Update the value of the comment in Onyx
      */
     const updateComment = useCallback(
-        (commentValue: string, shouldDebounceSaveComment?: boolean) => {
+        (commentValue: string) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
@@ -421,12 +421,8 @@ function ComposerWithSuggestions(
 
             commentRef.current = newCommentConverted;
 
-            if (shouldDebounceSaveComment) {
-                isCommentPendingSaved.current = true;
-                debouncedSaveReportComment(reportID, newCommentConverted);
-            } else {
-                saveReportDraftComment(reportID, newCommentConverted);
-            }
+            isCommentPendingSaved.current = true;
+            debouncedSaveReportComment(reportID, newCommentConverted);
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
             }
@@ -441,7 +437,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, text));
         },
         [selection, updateComment],
     );
@@ -499,7 +495,7 @@ function ComposerWithSuggestions(
                         positionX: prevSelection.positionX,
                         positionY: prevSelection.positionY,
                     }));
-                    updateComment(newText, true);
+                    updateComment(newText);
                 }
             }
         },
@@ -508,7 +504,7 @@ function ComposerWithSuggestions(
 
     const onChangeText = useCallback(
         (commentValue: string) => {
-            updateComment(commentValue, true);
+            updateComment(commentValue);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
                 const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
@@ -730,9 +726,7 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-             // debounce should be true here, otherwise the input will intially clear, but then the value the user had typed before they sent will return when the debounce timeout fires.
-             // It's okay for the Onyx value to lag a bit since we're using local state to feed the actual input. The only real impact is the pencil remains visible in the LHN for a moment
-            updateComment('', true);
+            updateComment('');
         },
         [onCleared, updateComment],
     );

@@ -3,11 +3,11 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DraftReportComments} from '@src/types/onyx';
 
-let draftCommentCollection: OnyxEntry<DraftReportComments> = {};
+let draftComments: OnyxEntry<DraftReportComments> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS,
     callback: (nextVal) => {
-        draftCommentCollection = nextVal;
+        draftComments = nextVal;
     },
 });
 
@@ -17,7 +17,7 @@ Onyx.connect({
  * A valid use-case of this function is outside React components, like in utility functions.
  */
 function getDraftComment(reportID: string): OnyxEntry<string> | null | undefined {
-    return draftCommentCollection?.[reportID];
+    return draftComments?.[reportID];
 }
 
 /**
