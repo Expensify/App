@@ -26,7 +26,6 @@ Onyx.connect({
 // Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
 let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
-let PLURAL_RULES_FOR_LOCALES: Record<string, Intl.PluralRules>;
 
 function init() {
     CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
@@ -34,13 +33,11 @@ function init() {
         memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
         return memo;
     }, {});
-
-    PLURAL_RULES_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.PluralRules>, locale) => {
-        // eslint-disable-next-line no-param-reassign
-        memo[locale] = new Intl.PluralRules(locale);
-        return memo;
-    }, {});
 }
+
+// Memoized function to create PluralRules instances
+const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
+const memoizedCreatePluralRules = memoize(createPluralRules);
 
 /**
  * Helper function to get the translated string for given
@@ -157,11 +154,7 @@ function getPreferredListFormat(): Intl.ListFormat {
 }
 
 function getPluralRules(language: Locale): Intl.PluralRules {
-    if (!PLURAL_RULES_FOR_LOCALES) {
-        init();
-    }
-
-    return PLURAL_RULES_FOR_LOCALES[language];
+    return memoizedCreatePluralRules(language);
 }
 
 /**
