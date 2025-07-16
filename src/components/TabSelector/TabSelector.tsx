@@ -1,10 +1,10 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import useIsResizing from '@hooks/useIsResizing';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -79,6 +79,8 @@ function TabSelector({
     const [selectorWidth, setSelectorWidth] = React.useState(0);
     const [selectorX, setSelectorX] = React.useState(0);
 
+    const isResizing = useIsResizing();
+
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
         setTimeout(() => {
@@ -101,18 +103,13 @@ function TabSelector({
     }, [measure]);
 
     useEffect(() => {
-        // must measure again whenever window resizes (with debounce)
-        const handleResize = debounce(() => {
-            measure();
-        }, 250);
-
-        window.addEventListener('resize', handleResize);
-
-        return () => {
-            window.removeEventListener('resize', handleResize);
-            handleResize.cancel();
-        };
-    }, [measure]);
+        if (isResizing) {
+            return;
+        }
+        // Re-measure when resizing ends
+        // This is necessary to ensure the tooltip is positioned correctly after resizing
+        measure();
+    }, [measure, isResizing]);
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
