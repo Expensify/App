@@ -1430,6 +1430,9 @@ type ACHAccount = {
 
     /** E-mail of the reimburser */
     reimburser: string;
+
+    /** Bank account state */
+    state?: string;
 };
 
 /** Prohibited expense types */
