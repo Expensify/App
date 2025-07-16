@@ -545,10 +545,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
     useEffect(() => {
-        if (isAnimating.get()) {
-            return;
-        }
-
         if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0) {
             setColumnsToShow(currentColumns);
             return;
