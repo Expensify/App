@@ -525,7 +525,7 @@ function main() {
             process.exit(0);
         }
 
-        console.log(`Found ${unusedStyles.length} unused styles:`);
+        console.error(`Found ${unusedStyles.length} unused styles:`);
         console.log('');
 
         const groupedByFile: Record<string, StyleDefinition[]> = {};
