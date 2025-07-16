@@ -57,7 +57,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicateIDs = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
     const [allDuplicates] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
             canBeMissing: true,

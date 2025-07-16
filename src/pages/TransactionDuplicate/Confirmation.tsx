@@ -51,7 +51,7 @@ function Confirmation() {
         [transactionViolations],
     );
     const [allDuplicates] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
             canBeMissing: true,
@@ -68,7 +68,7 @@ function Confirmation() {
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
     const [duplicates] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: (allTransactions) => reviewDuplicates?.duplicates.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
             canBeMissing: true,

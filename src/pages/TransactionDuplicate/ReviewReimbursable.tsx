@@ -29,7 +29,7 @@ function ReviewReimbursable() {
         [transactionViolations],
     );
     const [allDuplicates] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
             canBeMissing: true,

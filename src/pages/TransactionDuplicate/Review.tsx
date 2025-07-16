@@ -38,7 +38,7 @@ function TransactionDuplicateReview() {
     const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
 
     const [transactions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: (allTransactions) =>
                 transactionIDs
