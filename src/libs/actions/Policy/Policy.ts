@@ -74,7 +74,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -3303,16 +3303,13 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     taxRates: {
                         ...defaultTaxRates,
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce(
-                                (acc, taxKey) => {
-                                    acc[taxKey] = {
-                                        ...defaultTaxRates.taxes[taxKey],
-                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                    };
-                                    return acc;
-                                },
-                                {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>,
-                            ),
+                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
+                                acc[taxKey] = {
+                                    ...defaultTaxRates.taxes[taxKey],
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                };
+                                return acc;
+                            }, {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>),
                         },
                     },
                 },
@@ -3325,13 +3322,10 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce(
-                                (acc, taxKey) => {
-                                    acc[taxKey] = {pendingAction: null};
-                                    return acc;
-                                },
-                                {} as Record<string, {pendingAction: null}>,
-                            ),
+                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
+                                acc[taxKey] = {pendingAction: null};
+                                return acc;
+                            }, {} as Record<string, {pendingAction: null}>),
                         },
                     },
                 },
@@ -3366,7 +3360,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    optimisticData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.optimisticData ?? []) : []));
+    optimisticData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []));
 
     const successData: OnyxUpdate[] = [
         {
@@ -3379,7 +3373,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    successData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.successData ?? []) : []));
+    successData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []));
 
     const failureData: OnyxUpdate[] = [
         {
@@ -3395,7 +3389,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         },
     ];
-    failureData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.failureData ?? []) : []));
+    failureData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []));
 
     const onyxData: OnyxData = {
         optimisticData,
@@ -3574,6 +3568,13 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
             },
         ],
     };
+
+    if (enabled && isControlPolicy(policy) && policy?.outputCurrency === CONST.CURRENCY.USD) {
+        const eReceiptsOnyxData = getWorkspaceEReceiptsEnabledOnyxData(policyID, enabled);
+        onyxData.optimisticData?.push(...(eReceiptsOnyxData.optimisticData ?? []));
+        onyxData.successData?.push(...(eReceiptsOnyxData.successData ?? []));
+        onyxData.failureData?.push(...(eReceiptsOnyxData.failureData ?? []));
+    }
 
     const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
@@ -4456,14 +4457,13 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
+function getWorkspaceEReceiptsEnabledOnyxData(policyID: string, enabled: boolean): OnyxData {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
-
-    const onyxData: OnyxData = {
+    return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4500,6 +4500,10 @@ function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
             },
         ],
     };
+}
+
+function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = getWorkspaceEReceiptsEnabledOnyxData(policyID, enabled);
 
     const parameters = {
         policyID,
