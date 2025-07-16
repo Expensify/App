@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// Wrapper component with OnyxProvider
+// Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
         <OnyxListItemProvider>
