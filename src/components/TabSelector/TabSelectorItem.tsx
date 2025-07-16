@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
@@ -89,6 +90,7 @@ function TabSelectorItem({
 
         if (!isSmallScreenWidth) {
             // no shift needed on desktop (note: not "shouldUseNarrowLayout")
+            setShiftHorizontal(0);
             return;
         }
 
@@ -146,6 +148,7 @@ function TabSelectorItem({
             wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
             computeHorizontalShiftForNative
             shiftHorizontal={shiftHorizontal}
+            minWidth={variables.minScanTooltipWidth}
         >
             {children}
         </EducationalTooltip>

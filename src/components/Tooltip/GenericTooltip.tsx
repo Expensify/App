@@ -21,7 +21,7 @@ function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
     maxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin,
-    minWidth = variables.minTooltipWidth,
+    minWidth,
     text = '',
     renderTooltipContent,
     renderTooltipContentKey = [],

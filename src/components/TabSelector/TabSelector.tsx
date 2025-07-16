@@ -1,5 +1,6 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import debounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -85,15 +86,33 @@ function TabSelector({
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
+    const measure = useCallback(() => {
+        viewRef.current?.measureInWindow((x, _y, width) => {
+            setSelectorX(x);
+            setSelectorWidth(width);
+        });
+    }, [viewRef]);
+
     useLayoutEffect(() => {
         // measure location/width after animation completes
         setTimeout(() => {
-            viewRef.current?.measureInWindow((x, _y, width) => {
-                setSelectorX(x);
-                setSelectorWidth(width);
-            });
+            measure();
         }, CONST.TOOLTIP_ANIMATION_DURATION);
-    }, [viewRef]);
+    }, [measure]);
+
+    useEffect(() => {
+        // must measure again whenever window resizes (with debounce)
+        const handleResize = debounce(() => {
+            measure();
+        }, 250);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            handleResize.cancel();
+        };
+    }, [measure]);
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
