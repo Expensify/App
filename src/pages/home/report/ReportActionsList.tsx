@@ -785,6 +785,8 @@ function ReportActionsList({
         },
     }));
 
+    const paddingBottom = useMemo(() => (Platform.OS === 'ios' ? composerHeight + (unmodifiedPaddings.bottom ?? 0) : 0), [composerHeight, unmodifiedPaddings.bottom]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -793,15 +795,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[
-                    styles.flexGrow1,
-                    {
-                        paddingBottom: Platform.select({
-                            ios: composerHeight + (unmodifiedPaddings.bottom ?? 0),
-                        }),
-                    },
-                    !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {},
-                ]}
+                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, !hideComposer ? {paddingBottom} : {}]}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
@@ -841,7 +835,6 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    onScroll={onScroll}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
