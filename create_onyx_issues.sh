@@ -105,7 +105,7 @@ get_tdd_instructions() {
 2. Refactor the methods
 3. Ensure the unit test still runs after refactoring
 4. Reinforce the unit testing with a functional test and a QA test
-5. Once you are done, decrease the number of allowable ESLint warnings [here](https://github.com/Expensify/App/blob/e7b5ac9401e2ae9b5c2c70ec513e8de6f5279d7d/package.json#L48) to equal the number of Onyx.connect references remaining in the code"
+5. Once you are done, decrease the number of allowable ESLint warnings [here](https://github.com/Expensify/App/blob/e7b5ac9401e2ae9b5c2c70ec513e8de6f5279d7d/package.json#L48) to equal the number of \`Onyx.connect\` references remaining in the code"
 }
 
 # Function to build parent issue body
@@ -117,13 +117,7 @@ $(get_parent_issue_reference)
 
 Module: [${file_path}](https://github.com/Expensify/App/blob/main/${file_path})
 
-This issue tracks the refactoring of Onyx.connect references in ${file_path}.
-
-## Sub-issues
-Sub-issues will be created for each specific Onyx.connect reference that needs to be removed.
-
-## Context
-This is part of a larger effort to refactor Onyx.connect usage throughout the codebase.
+This issue tracks the refactoring of \`Onyx.connect\` references in \`${file_path}\`.
 EOF
 }
 
@@ -235,10 +229,10 @@ link_sub_issue() {
     fi
 }
 
-# Function to get assignee (alternates between tgolen and danieldoglas)
-get_assignee() {
-    local issue_count="$1"
-    if (( issue_count % 2 == 0 )); then
+# Function to get assignee for parent issues (alternates between tgolen and danieldoglas)
+get_parent_assignee() {
+    local parent_count="$1"
+    if (( parent_count % 2 == 0 )); then
         echo "tgolen"
     else
         echo "danieldoglas"
@@ -258,6 +252,7 @@ fi
 
 current_parent_id=""
 current_file_path=""
+current_parent_assignee=""
 parent_issues_created=0
 sub_issues_created=0
 links_created=0
@@ -292,19 +287,26 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     echo "  Status: DUPLICATE - issue #$duplicate_number already exists"
                     ((parent_duplicates_skipped++))
                     current_parent_id="$duplicate_number|dry-run-parent-id"
+                    # Set assignee for the duplicate parent for consistency with sub-issues
+                    current_parent_assignee=$(get_parent_assignee $parent_issues_created)
                 else
                     echo "  Status: WOULD CREATE"
                     ((parent_issues_created++))
                     current_parent_id="dry-run-parent-number|dry-run-parent-id"
+                                        # Set assignee for the new parent
+                    current_parent_assignee=$(get_parent_assignee $parent_issues_created)
                 fi
             else
                 echo "  Status: WOULD CREATE (duplicate check skipped - GitHub CLI not authenticated)"
                 ((parent_issues_created++))
                 current_parent_id="dry-run-parent-number|dry-run-parent-id"
+                # Set assignee for the new parent
+                current_parent_assignee=$(get_parent_assignee $parent_issues_created)
             fi
             echo ""
         else
-            assignee=$(get_assignee $total_issues_created)
+            assignee=$(get_parent_assignee $parent_issues_created)
+            current_parent_assignee="$assignee"
             echo "Creating parent issue: $parent_title (assigned to $assignee)"
             if current_parent_id=$(create_issue "$parent_title" "$parent_body" "Engineering,Improvement" "$assignee"); then
                 parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
@@ -316,8 +318,12 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     # For duplicates, we need to get the actual issue ID for linking
                     if actual_parent_id=$(gh issue view "$parent_id" --json id --jq ".id" 2>/dev/null); then
                         current_parent_id="$parent_id|$actual_parent_id"
+                        # For duplicates, we still need to set the assignee for sub-issues
+                        # We'll use the current assignee rotation for consistency
+                        current_parent_assignee="$assignee"
                     else
                         current_parent_id=""
+                        current_parent_assignee=""
                         continue
                     fi
                 else
@@ -396,7 +402,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             fi
             echo ""
         else
-            assignee=$(get_assignee $total_issues_created)
+            # Use the same assignee as the parent issue
+            assignee="$current_parent_assignee"
             echo "Creating sub-issue: $sub_title (assigned to $assignee)"
             if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug" "$assignee"); then
                 sub_number=$(echo "$sub_id" | cut -d'|' -f1)
@@ -486,7 +493,8 @@ else
     echo "Total NEW issues created: $((parent_issues_created + sub_issues_created))"
     echo "Total duplicates skipped: $((parent_duplicates_skipped + sub_duplicates_skipped))"
     echo ""
-    echo "Issues assigned alternately to: tgolen and danieldoglas"
+    echo "Parent issues assigned alternately to: tgolen and danieldoglas"
+    echo "Sub-issues assigned to same assignee as their parent issue"
     echo "Parent issues labeled with: Engineering, Improvement"
     echo "Sub-issues labeled with: Engineering, Improvement, Bug"
     echo "Sub-issues include Bug-Zero instructions comment"
