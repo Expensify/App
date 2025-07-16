@@ -139,7 +139,7 @@ function WorkspacePageWithSections({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state;
+    const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
