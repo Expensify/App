@@ -18,12 +18,10 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -973,13 +971,23 @@ function IOURequestStepScan({
         </>
     );
 
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
+    const [bannerHeight, setBannerHeight] = useState(0);
+    const shouldHideBanner = bannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+
     const desktopUploadView = () => (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.pt10]}>
+        <View
+            style={[!isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}
+            onLayout={(e) => {
+                if (isMobile()) {
+                    return;
+                }
+                setDesktopUploadViewHeight(e.nativeEvent.layout.height);
+            }}
+        >
             {PDFValidationComponent}
-            <View
-                onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}
-                // style={styles.mtAuto}
-            >
+            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
                     height={CONST.RECEIPT.ICON_SIZE}
@@ -1019,7 +1027,7 @@ function IOURequestStepScan({
                     />
                 )}
             </AttachmentPicker>
-        </ScrollView>
+        </View>
     );
 
     return (
@@ -1031,21 +1039,19 @@ function IOURequestStepScan({
         >
             {(isDraggingOverWrapper) => (
                 <View
-                    onLayout={() => {
+                    onLayout={(event) => {
+                        if (!isMobile()) {
+                            setContainerHeight(event.nativeEvent.layout.height);
+                        }
                         if (!onLayout) {
                             return;
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth), !isMobile() && styles.p0]}
+                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
-                        {!isMobile() && (
-                            <FixedFooter style={styles.p0}>
-                                <DownloadAppBanner />
-                            </FixedFooter>
-                        )}
                     </View>
                     {/* TODO: remove beta check after the feature is enabled */}
                     {canUseMultiDragAndDrop ? (
@@ -1072,6 +1078,8 @@ function IOURequestStepScan({
                             receiptImageTopPosition={receiptImageTopPosition}
                         />
                     )}
+                    {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
+                    {!isMobile() && !shouldHideBanner && <DownloadAppBanner onLayout={(e) => setBannerHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal
