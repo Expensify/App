@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -34,6 +33,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
+import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
@@ -110,10 +110,9 @@ function MoneyRequestReportTransactionList({
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
 
-    const pendingActionsOpacity = useMemo(() => {
-        const pendingAction = transactions.some(getTransactionPendingAction);
-        return pendingAction && styles.opacitySemiTransparent;
-    }, [styles.opacitySemiTransparent, transactions]);
+    const hasPendingAction = useMemo(() => {
+        return transactions.some(getTransactionPendingAction);
+    }, [transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -223,7 +222,19 @@ function MoneyRequestReportTransactionList({
     const listHorizontalPadding = styles.ph5;
 
     if (isEmptyTransactions) {
-        return <SearchMoneyRequestReportEmptyState />;
+        return (
+            <>
+                <SearchMoneyRequestReportEmptyState />
+                <MoneyRequestReportTotalSpend
+                    hasComments={hasComments}
+                    isLoadingReportActions={!!isLoadingReportActions}
+                    isEmptyTransactions={isEmptyTransactions}
+                    totalDisplaySpend={totalDisplaySpend}
+                    report={report}
+                    hasPendingAction={hasPendingAction}
+                />
+            </>
+        );
     }
 
     return (
@@ -279,7 +290,8 @@ function MoneyRequestReportTransactionList({
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
-                            scrollToNewTransaction={scrollToNewTransaction}
+                            // if we add few new transactions, then we need to scroll to the first one
+                            scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                         />
                     );
                 })}
@@ -307,6 +319,14 @@ function MoneyRequestReportTransactionList({
                     ))}
                 </View>
             )}
+            <MoneyRequestReportTotalSpend
+                hasComments={hasComments}
+                isLoadingReportActions={!!isLoadingReportActions}
+                isEmptyTransactions={isEmptyTransactions}
+                totalDisplaySpend={totalDisplaySpend}
+                report={report}
+                hasPendingAction={hasPendingAction}
+            />
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
@@ -325,24 +345,6 @@ function MoneyRequestReportTransactionList({
                     }}
                 />
             </Modal>
-
-            <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
-                <Animated.Text
-                    style={[styles.textLabelSupporting]}
-                    entering={hasComments ? undefined : FadeIn}
-                    exiting={FadeOut}
-                >
-                    {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
-                </Animated.Text>
-                {!isEmptyTransactions && (
-                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
-                        <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
-                        <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, pendingActionsOpacity]}>
-                            {convertToDisplayString(totalDisplaySpend, report?.currency)}
-                        </Text>
-                    </View>
-                )}
-            </View>
         </>
     );
 }

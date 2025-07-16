@@ -63,6 +63,7 @@ function MoneyRequestReportTransactionItem({
 
     const viewRef = useRef<View>(null);
 
+    // This useEffect scrolls to this transaction when it is newly added to the report
     useEffect(() => {
         if (!transaction.shouldBeHighlighted || !scrollToNewTransaction) {
             return;
@@ -119,5 +120,7 @@ function MoneyRequestReportTransactionItem({
         </OfflineWithFeedback>
     );
 }
+
+MoneyRequestReportTransactionItem.displayName = 'MoneyRequestReportTransactionItem';
 
 export default MoneyRequestReportTransactionItem;
