@@ -5419,6 +5419,19 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
+function clearPolicyTitleFieldError(policyID: string) {
+    if (!policyID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            fieldList: {
+                [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
+            },
+        },
+    });
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5527,4 +5540,5 @@ export {
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
+    clearPolicyTitleFieldError,
 };
