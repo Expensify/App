@@ -1305,7 +1305,6 @@ function createTypeMenuSections(
     feeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
-    const activePolicy = getActivePolicy();
     const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
 
     let defaultFeed: string | undefined;
@@ -1321,7 +1320,7 @@ function createTypeMenuSections(
     let shouldShowReconciliationSuggestion = false;
 
     // The active (default) policy is prioritized to correctly set the default feed
-    [activePolicy, ...Object.values(policies)].some((policy) => {
+    [getActivePolicy(), ...Object.values(policies)].some((policy) => {
         if (!policy) {
             return false;
         }
@@ -1339,6 +1338,7 @@ function createTypeMenuSections(
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion =
+            // eslint-disable-next-line no-nested-ternary
             isPaidPolicy &&
             (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
                 ? policy.reimburser
