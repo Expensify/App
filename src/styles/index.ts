@@ -5048,10 +5048,6 @@ const styles = (theme: ThemeColors) =>
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
-        receiptDropHeaderGap: {
-            backgroundColor: theme.fileDropUIBG,
-        },
-
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
         },
