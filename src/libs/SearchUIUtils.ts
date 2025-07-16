@@ -1338,8 +1338,8 @@ function createTypeMenuSections(
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion =
-            // eslint-disable-next-line no-nested-ternary
             isPaidPolicy &&
+            // eslint-disable-next-line no-nested-ternary
             (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
                 ? policy.reimburser
                     ? isReimburser
