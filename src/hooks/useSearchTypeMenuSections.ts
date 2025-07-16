@@ -9,13 +9,13 @@ import useOnyx from './useOnyx';
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = (hash = 0) => {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({currentUserLogin: session?.email, currentUserAccountID: session?.accountID}), canBeMissing: false});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const typeMenuSections = useMemo(
-        () => createTypeMenuSections(session?.currentUserLogin, session?.currentUserAccountID, allFeeds, allPolicies),
-        [session?.currentUserLogin, session?.currentUserAccountID, allPolicies, allFeeds],
+        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, allFeeds, allPolicies),
+        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, allPolicies, allFeeds],
     );
 
     const currentSearch = useMemo(() => {
