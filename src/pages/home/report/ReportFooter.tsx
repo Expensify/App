@@ -201,7 +201,7 @@ function ReportFooter({
     const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        if (Platform.OS === 'android') {
+        if (Platform.OS !== 'ios') {
             return {};
         }
         return {
