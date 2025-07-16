@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
@@ -63,6 +64,7 @@ import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionLi
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
+import InvertedFlatList from '@components/InvertedFlatList';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -70,7 +72,7 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 const EmptyParentReportActionForTransactionThread = undefined;
 
 const INITIAL_NUM_TO_RENDER = 20;
-// Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
+// Amount of time to wait until all list items should be rendered and scrollToBottom will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
 type MoneyRequestReportListProps = {
@@ -164,7 +166,6 @@ function MoneyRequestReportActionsList({
         hideDeleteModal,
     } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
-    // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction);
@@ -177,7 +178,7 @@ function MoneyRequestReportActionsList({
             );
         });
 
-        return filteredActions.toReversed();
+        return filteredActions;
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs]);
 
     const reportActionSize = useRef(visibleReportActions.length);
@@ -323,13 +324,10 @@ function MoneyRequestReportActionsList({
     const unreadMarkerReportActionID = useMemo(() => {
         // If there are message that were received while offline,
         // we can skip checking all messages later than the earliest received offline message.
-        const startIndex = visibleReportActions.length - 1;
-        const endIndex = earliestReceivedOfflineMessageIndex ?? 0;
-
         // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index >= endIndex; index--) {
+        for (let index = 0; index < visibleReportActions.length; index++) {
             const reportAction = visibleReportActions.at(index);
-            const nextAction = visibleReportActions.at(index - 1);
+            const nextAction = visibleReportActions.at(index + 1);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =
@@ -631,7 +629,10 @@ function MoneyRequestReportActionsList({
                         <SearchMoneyRequestReportEmptyState />
                     </>
                 ) : (
-                    <FlatList
+                    <InvertedFlatList
+                        renderScrollComponent={renderScrollComponent}
+                        shouldEnableAutoScrollToTopThreshold
+                        initialScrollKey={linkedReportActionID}
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
