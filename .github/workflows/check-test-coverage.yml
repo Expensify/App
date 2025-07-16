@@ -20,3 +20,5 @@ jobs:
         uses: ./.github/actions/javascript/checkTestCoverage
         with:
           GITHUB_URL: ${{ inputs.github_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TESTRAIL_TRYHARD_OPENAI_API_KEY: ${{ secrets.TESTRAIL_TRYHARD_OPENAI_API_KEY }}

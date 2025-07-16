@@ -12383,17 +12383,27 @@ class OpenAIUtils {
         // poll for completion
         let response = '';
         let count = 0;
+        const run = threadRun.id;
+        const thread = threadRun.thread_id;
+        console.log(`Started OpenAI thread run: ${run} in thread: ${thread}`);
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
             // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, { thread_id: threadRun.id });
+            threadRun = await this.client.beta.threads.runs.retrieve(run, { thread_id: thread });
+            if (threadRun.status === 'failed') {
+                throw new Error(`OpenAI thread run failed: ${threadRun.last_error?.message || 'Unknown error'}`);
+            }
             if (threadRun.status !== 'completed') {
                 count++;
+                if (count % 5 === 0) {
+                    console.log(`Waiting for OpenAI response... (${count}/${OpenAIUtils.MAX_POLL_COUNT})`);
+                }
                 await new Promise((resolve) => {
                     setTimeout(resolve, OpenAIUtils.POLL_RATE);
                 });
                 continue;
             }
-            for await (const message of this.client.beta.threads.messages.list(threadRun.thread_id)) {
+            console.log('OpenAI thread run completed, retrieving messages...');
+            for await (const message of this.client.beta.threads.messages.list(thread)) {
                 if (message.role !== 'assistant') {
                     continue;
                 }
@@ -12401,12 +12411,16 @@ class OpenAIUtils {
                     .map((contentBlock) => OpenAIUtils.isTextContentBlock(contentBlock) && contentBlock.text.value)
                     .join('\n')
                     .trim();
-                console.log('Parsed assistant response:', response);
             }
             if (!response) {
                 throw new Error('Assistant response is empty or had no text content. This is unexpected.');
             }
         }
+        if (!response && count >= OpenAIUtils.MAX_POLL_COUNT) {
+            throw new Error(`OpenAI thread run timed out after ${OpenAIUtils.POLL_TIMEOUT}ms`);
+        }
+        console.log('Successfully received OpenAI response');
+        console.log('Assistant response:', response);
         return response;
     }
     static isTextContentBlock(block) {
