@@ -6,8 +6,8 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as MapboxToken from '@userActions/MapboxToken';
+import {getWaypointIndex} from '@libs/TransactionUtils';
+import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -46,7 +46,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN, {canBeMissing: true});
 
     const getMarkerComponent = useCallback(
         (icon: IconAsset): ReactNode => (
@@ -71,7 +71,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                         return;
                     }
 
-                    const index = TransactionUtils.getWaypointIndex(key);
+                    const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -95,8 +95,8 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const waypointMarkers = getWaypointMarkers(waypoints);
 
     useEffect(() => {
-        MapboxToken.init();
-        return MapboxToken.stop;
+        initMapboxToken();
+        return stopMapboxToken;
     }, []);
 
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;

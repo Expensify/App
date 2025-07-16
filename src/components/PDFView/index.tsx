@@ -14,7 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import * as CanvasSize from '@userActions/CanvasSize';
+import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
@@ -32,9 +32,9 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
-    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
-    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
-    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
+    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA, {canBeMissing: true});
+    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT, {canBeMissing: true});
+    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH, {canBeMissing: true});
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -57,15 +57,15 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
      */
     const retrieveCanvasLimits = () => {
         if (!maxCanvasArea) {
-            CanvasSize.retrieveMaxCanvasArea();
+            retrieveMaxCanvasArea();
         }
 
         if (!maxCanvasHeight) {
-            CanvasSize.retrieveMaxCanvasHeight();
+            retrieveMaxCanvasHeight();
         }
 
         if (!maxCanvasWidth) {
-            CanvasSize.retrieveMaxCanvasWidth();
+            retrieveMaxCanvasWidth();
         }
     };
 
