@@ -171,6 +171,7 @@ function IOURequestStepTaxAmountPage({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
                 isCurrencyPressable={false}
+                chatReportID={reportID}
             />
         </StepScreenWrapper>
     );

@@ -64,6 +64,9 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
+
+    /** The chatReportID of the request */
+    chatReportID?: string;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -88,6 +91,7 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
+        chatReportID,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -319,6 +323,7 @@ function MoneyRequestAmountForm(
                             }}
                             shouldShowPersonalBankAccountOption
                             enterKeyEventListenerPriority={1}
+                            chatReportID={chatReportID}
                         />
                     ) : (
                         <Button

@@ -325,6 +325,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
+                chatReportID={reportID}
             />
         </StepScreenWrapper>
     );
