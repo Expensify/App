@@ -1063,8 +1063,6 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
-        removeFromReport: '不在此报告中',
-        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -1225,7 +1223,6 @@ const translations = {
         unheldExpense: '取消搁置此费用',
         moveUnreportedExpense: '移动未报告的费用',
         addUnreportedExpense: '添加未报告的费用',
-        createNewExpense: '创建新费用',
         selectUnreportedExpense: '请选择至少一个费用添加到报告中。',
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
