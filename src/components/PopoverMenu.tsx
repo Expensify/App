@@ -249,20 +249,21 @@ function PopoverMenu({
         }
     };
 
-    const getPreviousSubMenu = () => {
+    const previousMenuItems = useMemo(() => {
         let currentItems = menuItems;
         for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
-            const nextItems = currentItems[enteredSubMenuIndexes[i]].subMenuItems;
+            // eslint-disable-next-line rulesdir/prefer-at
+            const nextItems = currentItems.at(enteredSubMenuIndexes[i])?.subMenuItems;
             if (!nextItems) {
                 return currentItems;
             }
             currentItems = nextItems;
         }
         return currentItems;
-    };
+    }, [enteredSubMenuIndexes, menuItems]);
 
     const renderBackButtonItem = () => {
-        const previousMenuItems = getPreviousSubMenu();
+        // const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
         const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
 
