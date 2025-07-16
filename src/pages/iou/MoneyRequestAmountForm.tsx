@@ -23,7 +23,7 @@ import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, SelectedTabRequest} from '@src/types/onyx';
+import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
@@ -49,9 +49,6 @@ type MoneyRequestAmountFormProps = {
 
     /** The policyID of the request */
     policyID?: string;
-
-    /** Chat report for calculating bank account routes */
-    chatReport?: Report;
 
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
@@ -87,7 +84,6 @@ function MoneyRequestAmountForm(
         skipConfirmation = false,
         iouType = CONST.IOU.TYPE.SUBMIT,
         policyID = '',
-        chatReport,
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
@@ -308,7 +304,6 @@ function MoneyRequestAmountForm(
                             pressOnEnter
                             onPress={submitAndNavigateToNextPage}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            chatReport={chatReport}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={currency ?? CONST.CURRENCY.USD}
                             policyID={policyID}

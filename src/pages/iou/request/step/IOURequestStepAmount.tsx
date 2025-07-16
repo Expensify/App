@@ -318,7 +318,6 @@ function IOURequestStepAmount({
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}
-                chatReport={report}
                 ref={(e) => {
                     textInput.current = e;
                 }}
