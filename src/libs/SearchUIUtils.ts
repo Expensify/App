@@ -76,7 +76,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -1418,13 +1418,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                             : [],
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${session.accountID}`],
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('submit', session?.accountID);
                 },
             });
         }
@@ -1440,13 +1434,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${session.accountID}`],
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('approve', session?.accountID);
                 },
             });
         }
@@ -1462,14 +1450,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: session.accountID?.toString(),
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('pay', session?.accountID);
                 },
             });
         }
@@ -1485,13 +1466,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
                 },
                 getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${session.accountID}`],
-                        exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                    });
-                    return queryString;
+                    return getTodoSearchQuery('export', session?.accountID);
                 },
             });
         }
