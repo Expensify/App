@@ -116,7 +116,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 onOptionSelected?.(option);
                 onPress(event, option.value);
             }
-            
+
             onSubItemSelected?.(option, 0, event);
         },
         [options, onPress, onOptionSelected, onSubItemSelected],
