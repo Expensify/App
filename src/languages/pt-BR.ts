@@ -5932,11 +5932,16 @@ const translations = {
                 title: 'Nenhuma despesa para exportar',
                 subtitle: 'Hora de relaxar, bom trabalho.',
             },
+            emptyStatementsResults: {
+                title: 'Nenhuma despesa a ser exibida',
+                subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
                 subtitle: 'Zero despesas. Máximo relaxamento. Bem feito!',
             },
         },
+        statements: 'Declarações',
         unapproved: 'Não aprovado',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCompanyCards: 'Cartões corporativos não aprovados',

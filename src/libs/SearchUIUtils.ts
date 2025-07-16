@@ -46,7 +46,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
-import {getCardFeedsForDisplay} from './CardFeedUtils';
+import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -1299,9 +1299,12 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
-    const email = session?.email;
-
+function createTypeMenuSections(
+    currentUserLogin: string | undefined,
+    currentUserAccountID: number | undefined,
+    feeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy> = {},
+): SearchTypeMenuSection[] {
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
@@ -1350,7 +1353,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         }
 
         const reimburser = policy.reimburser;
-        const isReimburser = reimburser === email;
+        const isReimburser = reimburser === currentUserLogin;
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
 
         if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
@@ -1365,7 +1368,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
     });
 
     const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !email || !isPaidGroupPolicy(policy)) {
+        if (!policy || !currentUserLogin || !isPaidGroupPolicy(policy)) {
             return false;
         }
 
@@ -1373,26 +1376,26 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
             return false;
         }
 
-        const isPolicyApprover = policy.approver === email;
+        const isPolicyApprover = policy.approver === currentUserLogin;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === email || employee.forwardsTo === email;
+            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
         });
 
         return isPolicyApprover || isSubmittedTo;
     });
 
     const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !email) {
+        if (!policy || !currentUserLogin) {
             return false;
         }
 
-        return policy.exporter === email;
+        return policy.exporter === currentUserLogin;
     });
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
 
-    if (showTodoSection && session) {
+    if (showTodoSection && currentUserAccountID) {
         const section: SearchTypeMenuSection = {
             translationPath: 'common.todo',
             menuItems: [],
@@ -1418,7 +1421,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               const activePolicy = getActivePolicy();
-                                              const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                                              const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
 
                                               let workspaceIDForReportCreation: string | undefined;
 
@@ -1450,7 +1453,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${session.accountID}`],
+                        from: [`${currentUserAccountID}`],
                     });
                     return queryString;
                 },
@@ -1473,7 +1476,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${session.accountID}`],
+                        to: [`${currentUserAccountID}`],
                     });
                     return queryString;
                 },
@@ -1497,7 +1500,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.PAY,
                         reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: session.accountID?.toString(),
+                        payer: currentUserAccountID?.toString(),
                     });
                     return queryString;
                 },
@@ -1520,7 +1523,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${session.accountID}`],
+                        exporter: [`${currentUserAccountID}`],
                         exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
                     });
                     return queryString;
@@ -1536,12 +1539,18 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         menuItems: [],
     };
 
+    let defaultFeed: string | undefined;
+
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
-    Object.values(policies).some((policy) => {
+    const activePolicy = getActivePolicy();
+    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
+
+    // The active (default) policy is prioritized to correctly set the default feed
+    [activePolicy, ...Object.values(policies)].some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
         }
@@ -1550,17 +1559,46 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        shouldShowStatementsSuggestion ||= false; // s77rt TODO
-        showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && hasCardFeed;
-        shouldShowReconciliationSuggestion ||= false; // s77rt TODO
+        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForReconciliationSuggestion = false; // s77rt TODO
+
+        // The default feed must be based on an eligible policy
+        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
+            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
+        }
+
+        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
+        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
         return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
     });
 
     if (shouldShowStatementsSuggestion) {
-        // s77rt TODO
+        accountingSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.STATEMENTS,
+            translationPath: 'search.statements',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CreditCard,
+            emptyState: {
+                headerMedia: DotLottieAnimations.GenericEmptyState,
+                title: 'search.searchResults.emptyStatementsResults.title',
+                subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.CARDS,
+                    feed: defaultFeed ? [defaultFeed] : undefined,
+                    postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
+                });
+                return queryString;
+            },
+        });
     }
 
     if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
@@ -1599,8 +1637,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                        // s77rt this should be update to use the default feed
-                        feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                        feed: defaultFeed ? [defaultFeed] : undefined,
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
                     return queryString;
@@ -1643,8 +1680,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                    // s77rt this should be update to use the default feed
-                    feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                    feed: defaultFeed ? [defaultFeed] : undefined,
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
                 return queryString;

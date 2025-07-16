@@ -5942,11 +5942,16 @@ const translations = {
                 title: 'Nessuna spesa da esportare',
                 subtitle: 'È ora di rilassarsi, bel lavoro.',
             },
+            emptyStatementsResults: {
+                title: 'Nessuna spesa da visualizzare',
+                subtitle: 'Nessun risultato. Provare a regolare i filtri.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
         },
+        statements: 'Dichiarazioni',
         unapproved: 'Non approvato',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCompanyCards: 'Carte aziendali non approvate',

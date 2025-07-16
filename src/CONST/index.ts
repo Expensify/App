@@ -6430,6 +6430,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
+            STATEMENTS: 'statements',
             UNAPPROVED: 'unapproved',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
