@@ -708,6 +708,8 @@ function ReportActionsList({
         },
     }));
 
+    const paddingBottom = useMemo(() => (Platform.OS === 'ios' ? composerHeight + (unmodifiedPaddings.bottom ?? 0) : 0), [composerHeight, unmodifiedPaddings.bottom]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -715,15 +717,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[
-                    styles.flexGrow1,
-                    {
-                        paddingBottom: Platform.select({
-                            ios: composerHeight + (unmodifiedPaddings.bottom ?? 0),
-                        }),
-                    },
-                    !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {},
-                ]}
+                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, !hideComposer ? {paddingBottom} : {}]}
                 testID={reportActionsListTestID}
                 nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
