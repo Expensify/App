@@ -4,10 +4,10 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -841,6 +841,9 @@ function MoneyRequestConfirmationListFooter({
         ],
     );
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasReceiptImageOrThumbnail = receiptImage || receiptThumbnail;
+
     return (
         <>
             {isTypeInvoice && (
@@ -913,26 +916,21 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {!shouldShowMap && (
-                <View style={styles.mv3}>
-                    {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        receiptImage || receiptThumbnail
-                            ? receiptThumbnailContent
-                            : shouldShowReceiptEmptyState && (
-                                  <ReceiptEmptyState
-                                      onPress={() => {
-                                          if (!transactionID) {
-                                              return;
-                                          }
+                <View style={!hasReceiptImageOrThumbnail && !shouldShowReceiptEmptyState ? undefined : styles.mv3}>
+                    {hasReceiptImageOrThumbnail
+                        ? receiptThumbnailContent
+                        : shouldShowReceiptEmptyState && (
+                              <ReceiptEmptyState
+                                  onPress={() => {
+                                      if (!transactionID) {
+                                          return;
+                                      }
 
-                                          Navigation.navigate(
-                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
-                                          );
-                                      }}
-                                      style={styles.expenseViewImageSmall}
-                                  />
-                              )
-                    }
+                                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                                  }}
+                                  style={styles.expenseViewImageSmall}
+                              />
+                          )}
                 </View>
             )}
             <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>

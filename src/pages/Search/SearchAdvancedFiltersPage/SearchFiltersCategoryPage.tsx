@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -35,12 +35,16 @@ function SearchFiltersCategoryPage() {
         const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
         const uniqueCategoryNames = new Set<string>();
 
-        if (!selectedPoliciesCategories) {
+        if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
         } else {
             selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
         }
-        items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
+        items.push(
+            ...Array.from(uniqueCategoryNames)
+                .filter(Boolean)
+                .map((categoryName) => ({name: categoryName, value: categoryName})),
+        );
         return items;
     }, [allPolicyCategories, selectedPoliciesCategories, translate]);
 
