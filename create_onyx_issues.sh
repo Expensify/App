@@ -151,6 +151,7 @@ create_issue() {
     local title="$1"
     local body="$2"
     local labels="$3"
+    local assignee="$4"
 
     # Check for duplicate issues first
     local duplicate_number
@@ -167,7 +168,7 @@ create_issue() {
     if ! issue_url=$(gh issue create \
         --title "$title" \
         --body "$body" \
-        --assignee tgolen \
+        --assignee "$assignee" \
         --label "$labels" \
         --project "Deprecate Onyx.connect" 2>&1); then
         echo "Error creating issue: $issue_url" >&2
@@ -234,6 +235,16 @@ link_sub_issue() {
     fi
 }
 
+# Function to get assignee (alternates between tgolen and danieldoglas)
+get_assignee() {
+    local issue_count="$1"
+    if (( issue_count % 2 == 0 )); then
+        echo "tgolen"
+    else
+        echo "danieldoglas"
+    fi
+}
+
 # Main processing
 if [[ "$DRY_RUN" == true ]]; then
     echo "DRY RUN MODE - No issues will be created"
@@ -252,6 +263,7 @@ sub_issues_created=0
 links_created=0
 parent_duplicates_skipped=0
 sub_duplicates_skipped=0
+total_issues_created=0
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     # Skip empty lines
@@ -292,8 +304,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             fi
             echo ""
         else
-            echo "Creating parent issue: $parent_title"
-            if current_parent_id=$(create_issue "$parent_title" "$parent_body" "Engineering,Improvement"); then
+            assignee=$(get_assignee $total_issues_created)
+            echo "Creating parent issue: $parent_title (assigned to $assignee)"
+            if current_parent_id=$(create_issue "$parent_title" "$parent_body" "Engineering,Improvement" "$assignee"); then
                 parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
                 parent_id=$(echo "$current_parent_id" | cut -d'|' -f2)
 
@@ -310,6 +323,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 else
                     echo "Created parent issue #$parent_number with ID: $parent_id"
                     ((parent_issues_created++))
+                    ((total_issues_created++))
 
                     # Link this parent issue to the main deprecation issue
                     echo "Linking parent issue to main deprecation issue #522215..."
@@ -382,8 +396,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             fi
             echo ""
         else
-            echo "Creating sub-issue: $sub_title"
-            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug"); then
+            assignee=$(get_assignee $total_issues_created)
+            echo "Creating sub-issue: $sub_title (assigned to $assignee)"
+            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug" "$assignee"); then
                 sub_number=$(echo "$sub_id" | cut -d'|' -f1)
                 sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
 
@@ -406,6 +421,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 else
                     echo "Created sub-issue #$sub_number with ID: $sub_issue_id"
                     ((sub_issues_created++))
+                    ((total_issues_created++))
 
                     # Add Bug-Zero comment to sub-issue
                     bug_zero_comment="> [!WARNING]
@@ -470,7 +486,7 @@ else
     echo "Total NEW issues created: $((parent_issues_created + sub_issues_created))"
     echo "Total duplicates skipped: $((parent_duplicates_skipped + sub_duplicates_skipped))"
     echo ""
-    echo "All issues assigned to: tgolen"
+    echo "Issues assigned alternately to: tgolen and danieldoglas"
     echo "Parent issues labeled with: Engineering, Improvement"
     echo "Sub-issues labeled with: Engineering, Improvement, Bug"
     echo "Sub-issues include Bug-Zero instructions comment"
