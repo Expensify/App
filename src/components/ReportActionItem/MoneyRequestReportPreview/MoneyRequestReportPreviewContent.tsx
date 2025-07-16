@@ -30,6 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -72,7 +73,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
@@ -305,7 +305,7 @@ function MoneyRequestReportPreviewContent({
     // Nedded for the status in the subheader of the report preview
     // ========================================
     // State  |  Status  |  What to display?  |
-    // 0	  |  0	     |  Draft             |   
+    // 0	  |  0	     |  Draft             |
     // 1	  |  1	     |  Outstanding       |
     // 2	  |  2	     |  Done              |
     // 2	  |  3	     |  Approved          |
@@ -750,7 +750,7 @@ function MoneyRequestReportPreviewContent({
                                         <Text
                                             style={[styles.textLabelSupporting, styles.lh16, styles.mt0]}
                                             numberOfLines={1}
-                                            testID = "MoneyRequestReportPreview-statusAndCount"
+                                            testID="MoneyRequestReportPreview-statusAndCount"
                                         >
                                             {`${getReportStatus} • ${expenseCountText}`}
                                         </Text>
@@ -800,12 +800,21 @@ function MoneyRequestReportPreviewContent({
                                         </View>
                                     )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                                        <View style={[shouldUseNarrowLayout ? styles.flexColumnReverse : styles.flexRow, shouldUseNarrowLayout ? styles.alignItemsStretch : styles.alignItemsBaseline, styles.justifyContentBetween, styles.gap3, StyleUtils.getMinimumHeight(variables.h28)]}>
+                                        <View
+                                            style={[
+                                                shouldUseNarrowLayout ? styles.flexColumnReverse : styles.flexRow,
+                                                shouldUseNarrowLayout ? styles.alignItemsStretch : styles.alignItemsBaseline,
+                                                styles.justifyContentBetween,
+                                                styles.gap3,
+                                                StyleUtils.getMinimumHeight(variables.h28),
+                                            ]}
+                                        >
                                             {/* height is needed to avoid flickering on animation */}
-                                            {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
-                                            {transactions.length > 1 &&(
+                                            {!shouldShowEmptyPlaceholder && (
+                                                <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
+                                            )}
+                                            {transactions.length > 1 && (
                                                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsBaseline]}>
-
                                                     <Text
                                                         style={[styles.textLabelSupporting]}
                                                         numberOfLines={1}
