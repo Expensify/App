@@ -1,8 +1,8 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {useAnimatedProps} from 'react-native-reanimated';
@@ -715,7 +715,15 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, {paddingBottom: composerHeight + (unmodifiedPaddings.bottom ?? 0)}, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                style={[
+                    styles.flexGrow1,
+                    {
+                        paddingBottom: Platform.select({
+                            ios: composerHeight + (unmodifiedPaddings.bottom ?? 0),
+                        }),
+                    },
+                    !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {},
+                ]}
                 testID={reportActionsListTestID}
                 nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
@@ -728,15 +736,24 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={(props) =>
-                        renderScrollComponent?.({
-                            ...props,
-                            onScroll,
-                            animatedProps,
-                            automaticallyAdjustContentInsets: false,
-                            contentInsetAdjustmentBehavior: 'never',
-                        })
+                        renderScrollComponent?.(
+                            Platform.select<ScrollViewProps>({
+                                ios: {
+                                    ...props,
+                                    onScroll,
+                                    // @ts-expect-error - non animated scroll views do not receive this prop
+                                    animatedProps,
+                                    automaticallyAdjustContentInsets: false,
+                                    contentInsetAdjustmentBehavior: 'never',
+                                },
+                                android: {
+                                    ...props,
+                                    onScroll,
+                                },
+                            }),
+                        )
                     }
-                    contentContainerStyle={[styles.chatContentScrollView]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
