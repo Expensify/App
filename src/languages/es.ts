@@ -1312,6 +1312,27 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+
+        decline: {
+            educationalTitle: '¿Deberías retener o rechazar?',
+            educationalText: 'Si no está listo para aprobar o pagar un gasto, puede retenerlo o rechazarlo.',
+            holdExpenseTitle: 'Retener un gasto para solicitar más detalles antes de la aprobación o el pago.',
+            heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando se aprueba un informe completo.',
+            declineExpenseTitle: 'Rechazar un gasto cuando no tienes intención de aprobarlo o pagarlo.',
+            reasonPageTitle: 'Rechazar gastos',
+            reasonPageDescription1: 'Rechace un gasto si no planea aprobarlo ni pagarlo. De lo contrario, use "Retener" para pausar el gasto y solicitar más información.',
+            reasonPageDescription2: 'Si va a rechazar el gasto, agregue un comentario para explicar por qué:',
+            declineReason: 'Motivo del rechazo',
+            markAsResolved: 'Marcar como resuelto',
+            declinedStatus: 'Este gasto fue rechazado. Esperando a que arregles el problema(s) y marque como resuelto para habilitar el envío.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `eliminado <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                declinedExpense: `rechazó este gasto`,
+                markedAsResolved: `marcó el motivo del rechazo como resuelto`,
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `se agregaron ${amount} ${merchant ? `de ${merchant}` : ``}`,
+            },
+        },
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     share: {

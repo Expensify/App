@@ -1314,6 +1314,26 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        decline: {
+            educationalTitle: 'Should you hold or decline?',
+            educationalText: "If you're not ready to approve or pay an expense, you can hold or decline.",
+            holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
+            heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
+            declineExpenseTitle: "Decline an expense that you don't intend to approve or pay.",
+            reasonPageTitle: 'Decline expense',
+            reasonPageDescription1: 'Decline an expense if you don\'t ever plan on approving or paying it. Otherwise, use "hold" to pause the expense and ask for more context.',
+            reasonPageDescription2: "If you're going to decline the expense, please add a comment to explain why:",
+            declineReason: 'Decline reason',
+            markAsResolved: 'Mark as resolved',
+            declinedStatus: 'This expense was declined. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `removed <a href="${linkToReport}">${amount}${merchant ? ` from ${merchant}` : ''}</a>`,
+                declinedExpense: 'declined this expense',
+                markedAsResolved: 'marked the decline reason as resolved',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `added ${amount} ${merchant ? `from ${merchant}` : ``}`,
+            },
+        },
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
     share: {

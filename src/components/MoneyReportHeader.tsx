@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -31,6 +31,7 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/Re
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    declineMoneyRequestReason,
     getArchiveReason,
     getBankAccountRoute,
     getIntegrationIcon,
@@ -70,6 +71,7 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
+    dismissDeclineUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
     payInvoice,
@@ -100,6 +102,7 @@ import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
@@ -182,7 +185,10 @@ function MoneyReportHeader({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`, {
         canBeMissing: true,
     });
+
+    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {initialValue: false, canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
@@ -269,6 +275,7 @@ function MoneyReportHeader({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
@@ -428,6 +435,18 @@ function MoneyReportHeader({
     };
 
     const statusBarProps = getStatusBarProps();
+
+    const hasUseDeclineDismissedRef = useRef(false);
+    const dismissModalAndUpdateUseDecline = () => {
+        setIsDeclineEducationalModalVisible(false);
+        if (!hasUseDeclineDismissedRef.current) {
+            dismissDeclineUseExplanation();
+            hasUseDeclineDismissedRef.current = true;
+            if (requestParentReportAction) {
+                declineMoneyRequestReason(requestParentReportAction);
+            }
+        }
+    };
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -849,6 +868,21 @@ function MoneyReportHeader({
                 reopenReport(moneyRequestReport);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.DECLINE]: {
+            text: translate('common.decline'),
+            icon: Expensicons.ThumbsDown,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DECLINE,
+            onSelected: () => {
+                if (dismissedDeclineUseExplanation) {
+                    if (requestParentReportAction) {
+                        declineMoneyRequestReason(requestParentReportAction);
+                    }
+                } else {
+                    setIsDeclineEducationalModalVisible(true);
+                }
+            },
+            shouldShow: transactions.length === 1,
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
             text: translate('iou.addExpense'),
             backButtonText: translate('iou.addExpense'),
@@ -1188,6 +1222,12 @@ function MoneyReportHeader({
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
+            {!!isDeclineEducationalModalVisible && (
+                <HoldOrDeclineEducationalModal
+                    onClose={dismissModalAndUpdateUseDecline}
+                    onConfirm={dismissModalAndUpdateUseDecline}
+                />
+            )}
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
