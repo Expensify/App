@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -13,7 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {getMergeableDataAndConflictFields, getSourceTransaction} from '@libs/MergeTransactionUtils';
+import {getMergeableDataAndConflictFields, getMergeFieldTransalationKey, getMergeFieldValue, getSourceTransaction} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey, MergeValueType} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -21,25 +21,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MergeFieldReview from './MergeFieldReview';
 
 type DetailsReviewProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
-type MergeValueType = string | boolean;
-
-// Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
-type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
-
-const MERGE_FIELDS_LABEL_TRANSLATION_KEYS: Record<MergeFieldKey, string> = {
-    merchant: 'common.merchant',
-    category: 'common.category',
-    tag: 'common.tag',
-    description: 'common.description',
-    reimbursable: 'common.reimbursable',
-    billable: 'common.billable',
-};
 
 function DetailsReview({route}: DetailsReviewProps) {
     const {translate} = useLocalize();
@@ -61,12 +46,7 @@ function DetailsReview({route}: DetailsReviewProps) {
             return;
         }
 
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(
-            transactionID,
-            targetTransaction,
-            sourceTransaction,
-            MERGE_FIELDS as unknown as Array<keyof MergeTransaction>,
-        );
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(transactionID, targetTransaction, sourceTransaction);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setDiffFields(conflictFields as MergeFieldKey[]);
@@ -129,10 +109,11 @@ function DetailsReview({route}: DetailsReviewProps) {
                         <Text>{translate('transactionMerge.detailsPage.pageTitle')}</Text>
                     </View>
                     {diffFields.map((field) => {
-                        const targetValue = (targetTransaction?.[field as keyof Transaction] ?? '') as string;
-                        const sourceValue = (sourceTransaction?.[field as keyof Transaction] ?? '') as string;
+                        const targetValue = getMergeFieldValue(targetTransaction, field);
+                        const sourceValue = getMergeFieldValue(sourceTransaction, field);
+
                         const selectedValue = mergeTransaction?.[field] as MergeValueType | undefined;
-                        const fieldTranslated = translate(MERGE_FIELDS_LABEL_TRANSLATION_KEYS[field] as TranslationPaths);
+                        const fieldTranslated = translate(getMergeFieldTransalationKey(field) as TranslationPaths);
 
                         return (
                             <MergeFieldReview

@@ -6,8 +6,7 @@ import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-type MergeValueType = string | boolean;
+import type {MergeValueType} from '@libs/MergeTransactionUtils';
 
 type MergeFieldReviewProps = {
     field: string;
@@ -31,7 +30,7 @@ function MergeFieldReview({field, values, selectedValue, onValueSelected, errorT
                 if (typeof value === 'boolean') {
                     valueInString = value ? translate('common.yes') : translate('common.no');
                 } else {
-                    valueInString = value;
+                    valueInString = String(value);
                 }
 
                 return (

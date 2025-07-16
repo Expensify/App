@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import type { Receipt } from '@src/types/onyx/Transaction';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
 type ReceiptReviewProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;

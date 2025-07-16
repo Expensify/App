@@ -12,7 +12,7 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
-import type { Receipt } from '@src/types/onyx/Transaction';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
 type TransactionMergeReceiptsProps = {
     transactions: Transaction[];

@@ -12,6 +12,9 @@ type MergeTransaction = {
     /** API will set this to contain eligible transactions */
     eligibleTransactions: Transaction[];
 
+    /** Amount which user want to keep */
+    amount: number;
+
     /** Merchant which user want to keep */
     merchant: string;
 
