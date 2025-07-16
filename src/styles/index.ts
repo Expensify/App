@@ -315,6 +315,7 @@ const styles = (theme: ThemeColors) =>
             ...spacing.p2,
             borderRadius: 8,
         },
+        customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -1301,7 +1302,7 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: 'transparent',
+            backgroundColor: theme.appBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
@@ -1901,6 +1902,10 @@ const styles = (theme: ThemeColors) =>
         emojisWithTextFontSizeAligned: {
             fontSize: variables.fontSizeEmojisWithinText,
             marginVertical: -7,
+        },
+
+        customEmojiFontAlignment: {
+            marginTop: -variables.fontSizeNormal,
         },
 
         emojisFontFamily: {
@@ -3345,7 +3350,30 @@ const styles = (theme: ThemeColors) =>
         magicCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
-            lineHeight: variables.inputHeight,
+            lineHeight: variables.lineHeightXXXLarge,
+        },
+
+        magicCodeInputValueContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+        },
+
+        magicCodeInputCursorContainer: {
+            position: 'absolute',
+            textAlign: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            overflow: 'visible',
+            width: '100%',
+        },
+
+        magicCodeInputCursor: {
+            fontSize: 24,
+            color: theme.heading,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
@@ -5057,6 +5085,27 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeight,
         },
 
+        transactionListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            flex: 1,
+            userSelect: 'none',
+        },
+
+        transactionGroupListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            paddingVertical: 8,
+            flex: 1,
+            userSelect: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            flexDirection: 'row',
+        },
+
         searchQueryListItemStyle: {
             alignItems: 'center',
             flexDirection: 'row',
@@ -5941,8 +5990,13 @@ const styles = (theme: ThemeColors) =>
 
         getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
             const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
-            const height = isAuthenticated ? defaultHeight : '55%';
+            // Use fixed height values based on the actual content height after the removal of the
+            // "Use profiling" and "Client side logging" menu items.
+            // - ~654px when authenticated
+            // - ~400px when unauthenticated
+            // For narrow layouts, we keep using percentages because fixed heights like 654px can overflow on mWeb Safari.
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : 654;
+            const height = isAuthenticated ? defaultHeight : 400;
 
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
