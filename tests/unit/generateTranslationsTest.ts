@@ -9,6 +9,8 @@ import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Translator from '@scripts/utils/Translator/Translator';
 
+let mockExit: jest.SpyInstance;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 let mockEn: any = jest.requireActual('@src/languages/en');
 jest.mock('@src/languages/en', () => ({
@@ -31,6 +33,8 @@ describe('generateTranslations', () => {
     const ORIGINAL_ARGV = process.argv;
 
     beforeEach(() => {
+        mockExit = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-test-'));
         LANGUAGES_DIR = path.join(tempDir, 'src/languages');
         EN_PATH = path.join(LANGUAGES_DIR, 'en.ts');
@@ -52,6 +56,7 @@ describe('generateTranslations', () => {
 
     afterAll(() => {
         process.argv = ORIGINAL_ARGV;
+        jest.restoreAllMocks();
     });
 
     it('translates nested structures', async () => {
@@ -621,22 +626,26 @@ describe('generateTranslations', () => {
     });
 
     it('translates nested paths when parent path is specified', async () => {
+        const strings = {
+            greeting: 'Hello',
+            common: {
+                save: 'Save',
+                cancel: 'Cancel',
+                nested: {
+                    deep: 'Deep value',
+                },
+            },
+            errors: {
+                generic: 'An error occurred',
+            },
+        };
+
+        mockEn = strings;
+
         fs.writeFileSync(
             EN_PATH,
             dedent(`
-                const strings = {
-                    greeting: 'Hello',
-                    common: {
-                        save: 'Save',
-                        cancel: 'Cancel',
-                        nested: {
-                            deep: 'Deep value',
-                        },
-                    },
-                    errors: {
-                        generic: 'An error occurred',
-                    },
-                };
+                const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
             'utf8',
@@ -666,15 +675,18 @@ describe('generateTranslations', () => {
     });
 
     it('ignores --compare-ref when --paths is provided', async () => {
+        const strings = {
+            greeting: 'Hello',
+            common: {
+                save: 'Save',
+            },
+        };
+        mockEn = strings;
+
         fs.writeFileSync(
             EN_PATH,
             dedent(`
-                const strings = {
-                    greeting: 'Hello',
-                    common: {
-                        save: 'Save',
-                    },
-                };
+                const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
             'utf8',
@@ -719,22 +731,25 @@ describe('generateTranslations', () => {
 
         // Expect the script to throw an error during CLI parsing
         await expect(generateTranslations()).rejects.toThrow('Translation path not found: nonexistent.path');
+        expect(mockExit).toHaveBeenCalledWith(1);
     });
 
     it('validates paths against actual translation structure', async () => {
+        const strings = {
+            greeting: 'Hello',
+            common: {
+                save: 'Save',
+            },
+            errors: {
+                generic: 'An error occurred',
+            },
+        };
+        mockEn = strings;
+
         fs.writeFileSync(
             EN_PATH,
             dedent(`
-                const strings = {
-                    greeting: 'Hello',
-                    common: {
-                        save: 'Save',
-                        cancel: 'Cancel',
-                    },
-                    errors: {
-                        generic: 'An error occurred',
-                    },
-                };
+                const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
             'utf8',
