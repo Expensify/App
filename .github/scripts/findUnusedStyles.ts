@@ -26,7 +26,7 @@ class ComprehensiveStylesFinder {
         this.rootDir = rootDir;
     }
 
-    findUnusedStyles(): StyleDefinition[] {
+    public findUnusedStyles(): StyleDefinition[] {
         console.log('🔍 Step 1: Finding all style definitions...');
         this.findAllStyleDefinitions();
         console.log(`📊 Found ${this.styleDefinitions.size} style definitions`);
