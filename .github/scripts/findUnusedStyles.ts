@@ -12,8 +12,10 @@ type StyleDefinition = {
 };
 
 // Static patterns and constants - created once
-const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx,js,jsx}';
-const STYLE_KEY_SKIP_PATTERNS = ['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet'];
+const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx}';
+const STYLE_KEY_SKIP_PATTERNS = new Set(['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet']);
+// Use EXCLUDED_STYLE_DIRS to clarify which directories are being ignored
+const EXCLUDED_STYLE_DIRS = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
 
 class ComprehensiveStylesFinder {
     private rootDir: string;
@@ -42,12 +44,9 @@ class ComprehensiveStylesFinder {
     }
 
     private findAllStyleDefinitions(): void {
-        // Use excludedStyleDirs to clarify which directories are being ignored
-        const excludedStyleDirs = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
-
         const styleFiles = globSync(`src/styles/${STYLE_FILE_EXTENSIONS}`, {
             cwd: this.rootDir,
-            ignore: excludedStyleDirs,
+            ignore: EXCLUDED_STYLE_DIRS,
         });
 
         console.log(`Scanning ${styleFiles.length} main style files (excluding utils/generators/themes)...`);
@@ -232,7 +231,7 @@ class ComprehensiveStylesFinder {
 
     private isStyleKey(key: string): boolean {
         // Skip certain patterns that are likely not style keys
-        if (STYLE_KEY_SKIP_PATTERNS.includes(key)) {
+        if (STYLE_KEY_SKIP_PATTERNS.has(key)) {
             return false;
         }
 
@@ -544,9 +543,7 @@ function main() {
             console.log('');
         }
 
-        if (process.argv.includes('--exit-code')) {
-            process.exit(1);
-        }
+        process.exit(1);
     } catch (error) {
         console.error('❌ Error analyzing styles:', error);
         process.exit(1);
