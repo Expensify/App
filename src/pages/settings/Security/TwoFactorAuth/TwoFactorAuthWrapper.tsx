@@ -32,7 +32,7 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 };
 
 function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: TwoFactorAuthWrapperProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
