@@ -14,7 +14,7 @@ type PDFViewBaseProps = {
     onToggleKeyboard?: (isKeyboardOpen: boolean) => void;
 
     /** Handles press events like toggling attachment arrows natively */
-    onPress?: ((event?: GestureResponderEvent | KeyboardEvent) => void) & ((page: number, x: number, y: number) => void);
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Handles scale changed event in PDF component */
     onScaleChanged?: (newScale: number) => void;
@@ -34,4 +34,8 @@ type PDFViewBaseProps = {
 
 type PDFViewProps = PDFViewBaseProps;
 
-export default PDFViewProps;
+type PDFViewNativeProps = PDFViewBaseProps & {
+    onPress?: (page: number, x: number, y: number) => void;
+};
+
+export type {PDFViewNativeProps, PDFViewProps};
