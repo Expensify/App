@@ -20,12 +20,16 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
 export default ActionSheetAwareScrollView;
 
 /**
- * This is only used on iOS. On other platforms it's just undefined to be pass a prop to FlatList
+ * This is only used on iOS and Android.
  *
  * This function should be used as renderScrollComponent prop for FlatList
  * @param {Object} props - props that will be passed to the ScrollView from FlatList
  * @returns {React.ReactElement} - ActionSheetAwareScrollView
  */
-const renderScrollComponent = undefined;
+
+function renderScrollComponent(props: ScrollViewProps) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <ActionSheetAwareScrollView {...props} />;
+}
 
 export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
