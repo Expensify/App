@@ -360,7 +360,9 @@ Onyx.connect({
     },
 });
 
+// This value is used inside openReportFromDeepLink function, which triggered inside setup/hybridApp -> Linking.addEventListener method
 let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
+// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
     callback: (value) => {
@@ -368,7 +370,9 @@ Onyx.connect({
     },
 });
 
+// This value is used inside openReportFromDeepLink function, which triggered inside setup/hybridApp -> Linking.addEventListener method
 let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
+// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
     callback: (value) => {
