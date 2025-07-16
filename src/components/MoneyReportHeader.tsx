@@ -923,7 +923,6 @@ function MoneyReportHeader({
         <KYCWall
             onSuccessfulKYC={(payment) => confirmPayment(payment)}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            chatReport={chatReport}
             isDisabled={isOffline}
             source={CONST.KYC_WALL_SOURCE.REPORT}
             chatReportID={chatReport?.reportID}
