@@ -1300,12 +1300,11 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 function createTypeMenuSections(
-    session: OnyxTypes.Session | undefined,
+    currentUserLogin: string | undefined,
+    currentUserAccountID: number | undefined,
     feeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
-    const email = session?.email;
-
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
@@ -1354,7 +1353,7 @@ function createTypeMenuSections(
         }
 
         const reimburser = policy.reimburser;
-        const isReimburser = reimburser === email;
+        const isReimburser = reimburser === currentUserLogin;
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
 
         if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
@@ -1369,7 +1368,7 @@ function createTypeMenuSections(
     });
 
     const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !email || !isPaidGroupPolicy(policy)) {
+        if (!policy || !currentUserLogin || !isPaidGroupPolicy(policy)) {
             return false;
         }
 
@@ -1377,26 +1376,26 @@ function createTypeMenuSections(
             return false;
         }
 
-        const isPolicyApprover = policy.approver === email;
+        const isPolicyApprover = policy.approver === currentUserLogin;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === email || employee.forwardsTo === email;
+            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
         });
 
         return isPolicyApprover || isSubmittedTo;
     });
 
     const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !email) {
+        if (!policy || !currentUserLogin) {
             return false;
         }
 
-        return policy.exporter === email;
+        return policy.exporter === currentUserLogin;
     });
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
 
-    if (showTodoSection && session) {
+    if (showTodoSection && currentUserAccountID) {
         const section: SearchTypeMenuSection = {
             translationPath: 'common.todo',
             menuItems: [],
@@ -1422,7 +1421,7 @@ function createTypeMenuSections(
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               const activePolicy = getActivePolicy();
-                                              const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                                              const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
 
                                               let workspaceIDForReportCreation: string | undefined;
 
@@ -1454,7 +1453,7 @@ function createTypeMenuSections(
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${session.accountID}`],
+                        from: [`${currentUserAccountID}`],
                     });
                     return queryString;
                 },
@@ -1477,7 +1476,7 @@ function createTypeMenuSections(
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${session.accountID}`],
+                        to: [`${currentUserAccountID}`],
                     });
                     return queryString;
                 },
@@ -1501,7 +1500,7 @@ function createTypeMenuSections(
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.PAY,
                         reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: session.accountID?.toString(),
+                        payer: currentUserAccountID?.toString(),
                     });
                     return queryString;
                 },
@@ -1524,7 +1523,7 @@ function createTypeMenuSections(
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${session.accountID}`],
+                        exporter: [`${currentUserAccountID}`],
                         exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
                     });
                     return queryString;
