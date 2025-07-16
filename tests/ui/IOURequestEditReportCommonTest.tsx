@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const FAKE_REPORT_ID = '1';
 const FAKE_POLICY_ID = '1';
@@ -27,7 +28,7 @@ jest.mock('@components/OptionListContextProvider', () => ({
             reports: [
                 {
                     reportID: FAKE_REPORT_ID,
-                    text: 'Outstanding Expense Report',
+                    text: 'Expense Report',
                     keyForList: FAKE_REPORT_ID,
                     brickRoadIndicator: 'error',
                 },
@@ -68,6 +69,8 @@ describe('IOURequestEditReportCommon', () => {
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: createRandomPolicy(Number(FAKE_POLICY_ID)),
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
+                    reportID: FAKE_REPORT_ID,
+                    reportName: 'Expense Report',
                     ownerAccountID: FAKE_OWNER_ACCOUNT_ID,
                     policyID: FAKE_POLICY_ID,
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -97,10 +100,10 @@ describe('IOURequestEditReportCommon', () => {
 
             // When the component is rendered with the transaction reports
             renderIOURequestEditReportCommon({transactionsReports: mockTransactionsReports});
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Then the expense report should be displayed
-            const reportItem = screen.getByText('Outstanding Expense Report');
+            const reportItem = screen.getByText('Expense Report');
             expect(reportItem).toBeTruthy();
 
             // Then do not show RBR
