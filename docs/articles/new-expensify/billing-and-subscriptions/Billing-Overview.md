@@ -62,7 +62,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
   - 2% if monthly spend reaches **$250,000+**
 - Cash back is applied to your Expensify bill first, then to your bank account
 
-👉 Use the [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to estimate your monthly savings.
+👉 Use the [savings calculator](https://use.expensify.com/savings-calculator) to estimate your monthly savings.
 
 ## 📅 Annual Subscription
 

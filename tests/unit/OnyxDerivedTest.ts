@@ -4,7 +4,6 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -20,7 +19,7 @@ describe('OnyxDerived', () => {
     });
 
     describe('reportAttributes', () => {
-        const mockReport: Report = {
+        const mockReport = {
             reportID: `test_1`,
             reportName: 'Test Report',
             type: 'chat',

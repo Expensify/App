@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
@@ -19,9 +20,19 @@ type AgreementsProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
+
+    /** Currency of the policy */
+    policyCurrency: string | undefined;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
+type AgreementsSubStepProps = SubStepProps & {
+    policyCurrency: string | undefined;
+};
+
+const bodyContent: Array<ComponentType<AgreementsSubStepProps>> = [Confirmation];
 
 const INPUT_KEYS = {
     PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
@@ -30,14 +41,20 @@ const INPUT_KEYS = {
     AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
+function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: AgreementsProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
     const submit = () => {
+        if (isDocusignStepRequired) {
+            onSubmit();
+            return;
+        }
+
         finishCorpayBankAccountOnboarding({
             inputs: JSON.stringify({
                 provideTruthfulInformation: agreementsStepValues.provideTruthfulInformation,
@@ -50,6 +67,10 @@ function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
     };
 
     useEffect(() => {
+        if (isDocusignStepRequired) {
+            return;
+        }
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
             return;
@@ -63,9 +84,17 @@ function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
         return () => {
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount, onSubmit, policyCurrency, isDocusignStepRequired]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        goToTheLastStep,
+    } = useSubStep<AgreementsSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -86,13 +115,14 @@ function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
             wrapperID={Agreements.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('agreementsStep.agreements')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={5}
         >
             <SubStep
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                policyCurrency={policyCurrency}
             />
         </InteractiveStepWrapper>
     );
