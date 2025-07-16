@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
-import {easing} from '@components/Modal/ReanimatedModal/utils';
+import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,26 +22,18 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const Entering = useMemo(() => {
-        const FadeIn = new Keyframe({
-            from: {opacity: 0},
-            to: {
-                opacity: backdropOpacity,
-                easing,
-            },
-        });
-
+        if (!backdropOpacity) {
+            return;
+        }
+        const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
         return FadeIn.duration(animationInTiming);
     }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
-        const FadeOut = new Keyframe({
-            from: {opacity: backdropOpacity},
-            to: {
-                opacity: 0,
-                easing,
-            },
-        });
-
+        if (!backdropOpacity) {
+            return;
+        }
+        const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
         return FadeOut.duration(animationOutTiming);
     }, [animationOutTiming, backdropOpacity]);
 
