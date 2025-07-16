@@ -1,41 +1,32 @@
 import React from 'react';
 import {Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {appendParam} from '@libs/Url';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
-type IOURequestStepCurrencyOnyxProps = {
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<Transaction>;
-    /** List of recently used currencies */
-    recentlyUsedCurrencies: OnyxEntry<string[]>;
-};
-
-type IOURequestStepCurrencyProps = IOURequestStepCurrencyOnyxProps & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY>;
+type IOURequestStepCurrencyProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY>;
 
 function IOURequestStepCurrency({
     route: {
         params: {backTo, pageIndex, transactionID, action, currency: selectedCurrency = ''},
     },
-    draftTransaction,
-    recentlyUsedCurrencies,
 }: IOURequestStepCurrencyProps) {
     const {translate} = useLocalize();
-    const {currency: originalCurrency = ''} = ReportUtils.getTransactionDetails(draftTransaction) ?? {};
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? -1}`, {canBeMissing: true});
+    const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const {currency: originalCurrency = ''} = getTransactionDetails(draftTransaction) ?? {};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     const navigateBack = (selectedCurrencyValue = '') => {
@@ -90,19 +81,7 @@ function IOURequestStepCurrency({
 
 IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
 
-const IOURequestStepCurrencyWithOnyx = withOnyx<IOURequestStepCurrencyProps, IOURequestStepCurrencyOnyxProps>({
-    draftTransaction: {
-        key: ({route}) => {
-            const transactionID = route?.params?.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    recentlyUsedCurrencies: {
-        key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-    },
-})(IOURequestStepCurrency);
-
 /* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepCurrencyWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCurrencyWithOnyx);
+const IOURequestStepCurrencyWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCurrency);
 
 export default IOURequestStepCurrencyWithFullTransactionOrNotFound;
