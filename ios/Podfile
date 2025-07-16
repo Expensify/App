@@ -28,11 +28,9 @@ setup_permissions([
   'LocationWhenInUse'
 ])
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# As per the official React Native Firebase documentation: https://rnfirebase.io/#altering-cocoapods-to-use-frameworks
+use_frameworks! :linkage => :static
+$RNFirebaseAsStaticFramework = true
 
 # Force pods to match minimum iOS version for React Native
 # Fixes build issue on Xcode Cloud where some pods
@@ -87,7 +85,7 @@ target 'NewExpensify' do
   config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
-  flags = get_default_flags()
+  # flags = get_default_flags()
 
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
@@ -98,19 +96,6 @@ target 'NewExpensify' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
-  pod 'FirebaseCrashlytics'
-  pod 'FirebaseRemoteConfig'
-  pod 'FirebaseSessions'
-
-  pod 'FirebaseCore', :modular_headers => true
-  pod 'FirebaseCoreInternal', :modular_headers => true
-  pod 'FirebaseInstallations', :modular_headers => true
-  pod 'FirebaseABTesting', :modular_headers => true
-  pod 'FirebaseCoreExtension', :modular_headers => true
-  pod 'GoogleUtilities', :modular_headers => true
-  pod 'GoogleDataTransport', :modular_headers => true
-  pod 'nanopb', :modular_headers => true
 
   post_install do |installer|
     # Configure Mapbox after installation
