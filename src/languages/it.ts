@@ -1069,8 +1069,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta, poi conferma i dettagli tu stesso o lascia che SmartScan se ne occupi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Controlla più tardi o inserisci i dettagli ora.',
-        removeFromReport: 'Rimuovi dal rapporto',
-        moveToPersonalSpace: 'Sposta spese nello spazio personale',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? "Spese potenzialmente duplicate identificate. Rivedi i duplicati per consentire l'invio."
@@ -2264,7 +2262,7 @@ const translations = {
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
@@ -2277,7 +2275,7 @@ const translations = {
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Conferma i dettagli.\n' +
@@ -2290,7 +2288,7 @@ const translations = {
                 description:
                     '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Scegli il tuo spazio *personale*.\n' +
@@ -2385,7 +2383,7 @@ const translations = {
                 description:
                     '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci un’email o numero di telefono.\n' +
                     '\n' +
@@ -2398,7 +2396,7 @@ const translations = {
                 description:
                     '*Dividi le spese* con una o più persone.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci email o numeri di telefono.\n' +
                     '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
@@ -2419,7 +2417,7 @@ const translations = {
                 description:
                     'Ecco come creare un report:\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea report*.\n' +
                     '3. Clicca su *Aggiungi spesa*.\n' +
                     '4. Aggiungi la tua prima spesa.\n' +
