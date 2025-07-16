@@ -3422,11 +3422,11 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            const navigateHandler = (found?: boolean) => {
+                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                                 // Check if the report exists in the collection
-                                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                const report = reportParam ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
-                                if (!found && reportID && (!report || report.errorFields?.notFound)) {
+                                if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
@@ -3439,7 +3439,7 @@ function openReportFromDeepLink(url: string) {
 
                                 Navigation.navigate(route as Route);
                             };
-                            // If we log with deeplink with reportID and data for this report is not available yet, 
+                            // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
                             if (reportID && !isAuthenticated && !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
                                 const reportConnection = Onyx.connect({
@@ -3449,7 +3449,7 @@ function openReportFromDeepLink(url: string) {
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID) {
                                             Onyx.disconnect(reportConnection);
-                                            navigateHandler(!!report?.reportID);
+                                            navigateHandler(report);
                                         }
                                     },
                                 });
