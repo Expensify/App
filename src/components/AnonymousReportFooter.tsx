@@ -1,11 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
@@ -24,7 +23,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const policy = usePolicy(report?.policyID);
 
     return (
         <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
