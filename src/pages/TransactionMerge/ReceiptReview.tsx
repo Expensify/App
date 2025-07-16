@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import type { Receipt } from '@src/types/onyx/Transaction';
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
 type ReceiptReviewProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;
@@ -37,13 +38,13 @@ function ReceiptReview({route}: ReceiptReviewProps) {
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
     // Handle radio button toggle (select receipt)
-    const handleSelect = (receiptID: number | undefined) => {
-        setMergeTransactionKey(transactionID, {receiptID});
+    const handleSelect = (receipt: Receipt | undefined) => {
+        setMergeTransactionKey(transactionID, {receipt});
     };
 
     // Continue button handler
     const handleContinue = () => {
-        if (!mergeTransaction?.receiptID) {
+        if (!mergeTransaction?.receipt) {
             return;
         }
 
@@ -73,7 +74,7 @@ function ReceiptReview({route}: ReceiptReviewProps) {
                     </View>
                     <TransactionMergeReceipts
                         transactions={transactions}
-                        selectedReceiptID={mergeTransaction?.receiptID}
+                        selectedReceiptID={mergeTransaction?.receipt?.receiptID}
                         onSelect={handleSelect}
                     />
                 </ScrollView>
@@ -84,7 +85,7 @@ function ReceiptReview({route}: ReceiptReviewProps) {
                         text={translate('common.continue')}
                         onPress={handleContinue}
                         style={styles.mt5}
-                        isDisabled={!mergeTransaction?.receiptID}
+                        isDisabled={!mergeTransaction?.receipt}
                     />
                 </FixedFooter>
             </FullPageNotFoundView>

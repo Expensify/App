@@ -1,5 +1,5 @@
 import type Transaction from './Transaction';
-import type {Comment} from './Transaction';
+import type {Comment, Receipt} from './Transaction';
 
 /** Model of transaction merge data */
 type MergeTransaction = {
@@ -33,8 +33,8 @@ type MergeTransaction = {
     /** Whether the transaction is billable */
     billable: boolean;
 
-    /** The receiptID we want to keep */
-    receiptID: number;
+    /** The receipt object associated with the transaction */
+    receipt?: Receipt;
 };
 
 export default MergeTransaction;

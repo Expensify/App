@@ -106,9 +106,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
         } else {
-            const mergedReceiptID = sourceTransaction?.receipt?.receiptID ?? targetTransaction?.receipt?.receiptID;
+            const mergedReceipt = targetTransaction?.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
-                receiptID: mergedReceiptID,
+                receipt: mergedReceipt,
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
         }

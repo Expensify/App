@@ -12,11 +12,12 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+import type { Receipt } from '@src/types/onyx/Transaction';
 
 type TransactionMergeReceiptsProps = {
     transactions: Transaction[];
     selectedReceiptID: number | undefined;
-    onSelect: (receiptID: number | undefined) => void;
+    onSelect: (receipt: Receipt | undefined) => void;
 };
 
 function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: TransactionMergeReceiptsProps) {
@@ -32,7 +33,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                         style={[styles.flexColumn, styles.alignItemsCenter, styles.w100, styles.mb2]}
                     >
                         <PressableWithFeedback
-                            onPress={() => onSelect(transaction.receipt?.receiptID)}
+                            onPress={() => onSelect(transaction.receipt)}
                             wrapperStyle={[styles.w100]}
                             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail]}
                             accessibilityRole={CONST.ROLE.RADIO}
@@ -42,7 +43,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 <Text style={[styles.headerText]}>Receipt {index + 1}</Text>
                                 <RadioButton
                                     isChecked={selectedReceiptID === transaction.receipt?.receiptID}
-                                    onPress={() => onSelect(transaction.receipt?.receiptID)}
+                                    onPress={() => onSelect(transaction.receipt)}
                                     accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
                                     newRadioButtonStyle
                                 />
