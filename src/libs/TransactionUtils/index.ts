@@ -26,6 +26,7 @@ import {
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
+    isPolicyMember as isPolicyMemberPolicyUtils,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -45,7 +46,19 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    OnyxInputOrEntry,
+    Policy,
+    RecentWaypoint,
+    Report,
+    ReviewDuplicates,
+    TaxRate,
+    TaxRates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -82,6 +95,7 @@ type BuildOptimisticTransactionParams = {
     existingTransaction?: OnyxEntry<Transaction>;
     policy?: OnyxEntry<Policy>;
     transactionParams: TransactionParams;
+    isDemoTransactionParam?: boolean;
 };
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -234,7 +248,7 @@ function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>)
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
-    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams} = params;
+    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
     const {
         amount,
         currency,
@@ -262,6 +276,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
+    if (isDemoTransactionParam) {
+        commentJSON.isDemoTransaction = true;
+    }
     if (source) {
         commentJSON.source = source;
     }
@@ -322,6 +339,10 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
+}
+
+function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return transaction?.comment?.isDemoTransaction ?? false;
 }
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
@@ -969,6 +990,33 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+/**
+ * Check if the user should see the violation
+ */
+function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
+    const isSubmitter = isCurrentUserSubmitter(iouReport?.reportID);
+    const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
+    const isReportOpen = isOpenExpenseReport(iouReport);
+
+    if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
+        return isSubmitter;
+    }
+
+    if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
+        return isPolicyAdmin(policy) && !isSubmitter;
+    }
+
+    if (violationName === CONST.VIOLATIONS.RTER) {
+        return isSubmitter || isInstantSubmitEnabled(policy);
+    }
+
+    if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+        return isPolicyMember && !isSubmitter && !isReportOpen;
+    }
+
+    return true;
 }
 
 /**
@@ -1761,6 +1809,8 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
+    isDemoTransaction,
+    shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 };
 

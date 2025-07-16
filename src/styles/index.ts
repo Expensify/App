@@ -450,11 +450,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
         },
 
-        textExtraSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeExtraSmall,
-        },
-
         textMicro: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -3355,7 +3350,30 @@ const styles = (theme: ThemeColors) =>
         magicCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
-            lineHeight: variables.inputHeight,
+            lineHeight: variables.lineHeightXXXLarge,
+        },
+
+        magicCodeInputValueContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+        },
+
+        magicCodeInputCursorContainer: {
+            position: 'absolute',
+            textAlign: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            overflow: 'visible',
+            width: '100%',
+        },
+
+        magicCodeInputCursor: {
+            fontSize: 24,
+            color: theme.heading,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
@@ -4705,15 +4723,6 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
-        dropDownButtonCartIcon: {
-            minWidth: 22,
-        },
-
-        dropDownSmallButtonArrowContain: {
-            marginLeft: 3,
-            marginRight: 6,
-        },
-
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4927,16 +4936,6 @@ const styles = (theme: ThemeColors) =>
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 
-        settlementButtonListContainer: {
-            maxHeight: 500,
-            paddingBottom: 0,
-            paddingTop: 0,
-        },
-
-        settlementButtonShortFormWidth: {
-            minWidth: 90,
-        },
-
         moneyRequestViewImage: {
             ...spacing.mh5,
             overflow: 'hidden',
@@ -5084,6 +5083,27 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
+        },
+
+        transactionListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            flex: 1,
+            userSelect: 'none',
+        },
+
+        transactionGroupListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            paddingVertical: 8,
+            flex: 1,
+            userSelect: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            flexDirection: 'row',
         },
 
         searchQueryListItemStyle: {
