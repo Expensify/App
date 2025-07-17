@@ -81,7 +81,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 icon: Illustrations.Accounting,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
-                canDisabled: !!userReportedIntegration,
             },
             {
                 id: 'company-cards',
@@ -136,7 +135,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
         ];
-    }, [translate, userReportedIntegration]);
+    }, [translate]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
@@ -171,10 +170,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
+        const newUserReportedIntegration = selectedFeatures.some((feature) => feature === 'accounting') ? userReportedIntegration : undefined;
+
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
         const {adminsChatReportID, policyID} = shouldCreateWorkspace
-            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, userReportedIntegration)
+            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, newUserReportedIntegration)
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
         if (policyID) {
@@ -198,10 +199,10 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             adminsChatReportID,
             onboardingPolicyID: policyID,
             companySize: onboardingCompanySize,
-            userReportedIntegration,
+            userReportedIntegration: newUserReportedIntegration,
         });
 
-        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)) {
+        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
@@ -287,7 +288,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
                     style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth && styles.flexBasis100, isSelected && styles.activeComponentBG]}
-                    disabled={item.canDisabled}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon
@@ -297,22 +297,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                         />
                         <Text style={[styles.textStrong]}>{item.title}</Text>
                     </View>
-                    {item.canDisabled ? (
-                        <Icon
-                            src={Expensicons.Checkmark}
-                            fill={theme.icon}
-                            additionalStyles={styles.alignSelfCenter}
-                        />
-                    ) : (
-                        <Checkbox
-                            accessibilityLabel={item.title}
-                            isChecked={isSelected}
-                            onPress={() => {
-                                handleFeatureSelect(item.id);
-                            }}
-                            disabled={item.canDisabled}
-                        />
-                    )}
+                    <Checkbox
+                        accessibilityLabel={item.title}
+                        isChecked={isSelected}
+                        onPress={() => {
+                            handleFeatureSelect(item.id);
+                        }}
+                    />
                 </PressableWithoutFeedback>
             );
         },
