@@ -477,6 +477,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
+    columns?: SortableColumnName[];
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

@@ -552,12 +552,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isAnimating.set(true);
         opacity.set(
-            withTiming(0, {duration: 200}, (finished) => {
+            withTiming(0, {duration: 100}, (finished) => {
                 if (finished) {
                     isAnimating.set(false);
                     setColumnsToShow(currentColumns);
                 }
-                opacity.set(withTiming(1, {duration: 200}));
+                opacity.set(withTiming(1, {duration: 100}));
             }),
         );
     }, [previousColumns, isAnimating, currentColumns, setColumnsToShow, opacity, offset]);
