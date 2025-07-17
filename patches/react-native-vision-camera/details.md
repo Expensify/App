@@ -1,6 +1,6 @@
 # `react-native-vision-camera` patches
 
-### [react-native-vision-camera+4.7.0.patch](react-native-vision-camera+4.70.patch)
+### [react-native-vision-camera+4.7.0.patch](react-native-vision-camera+4.7.0.patch)
 
 - Reason: Fixes an issue in VisionCamera where the `CameraSession` doesn't get de-initialized and recycled when the screen gets popped/unmounted from the Navigation stack in `@react-navigation/native-stack`.
 - Upstream PR/issue: N/A (This will be fixed once VisionCamera is migrated to Nitro Views)
