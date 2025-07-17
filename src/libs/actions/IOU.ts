@@ -11828,6 +11828,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     // List of all child transactions that have been created after split
     let childTransactions = getChildTransactions(originalTransactionID);
+    const isCreationOfSplits = !childTransactions.length;
 
     const isReverseSplitOperation = splitExpenses.length === 1 && !!childTransactions.length;
 
@@ -11932,6 +11933,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             const currentSplit = splits.at(index);
             const existing = getTransactionDetails(splitTransaction);
 
+            const split = splits.at(index);
+            if (split) {
+                split.reimbursable = splitTransaction?.reimbursable;
+                split.billable = splitTransaction?.billable;
+            }
+
             const transactionChanges = {
                 ...currentSplit,
                 comment: currentSplit?.comment?.comment,
@@ -12013,16 +12020,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             value: originalTransaction,
         });
 
-        // TODO: will be removed after BE updates
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
-            value: {
-                ...originalTransaction,
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
-            },
-        });
-
         const firstIOU = iouActions.at(0);
         if (firstIOU) {
             const {updatedReportAction, iouReport, transactionThread} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU);
@@ -12085,21 +12082,24 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
     // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
-    const splitApiParams = {} as Record<string, string | number>;
+    const splitApiParams = {} as Record<string, string | number | boolean>;
     splits.forEach((split, i) => {
         Object.entries(split).forEach(([key, value]) => {
             const formattedValue = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
             splitApiParams[`splits[${i}][${key}]`] = formattedValue;
         });
     });
-
     const parameters: SplitTransactionParams = {
         ...splitApiParams,
-        isReverseSplitOperation,
         transactionID: originalTransactionID,
     };
 
-    API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    if (isCreationOfSplits) {
+        API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    }
     InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
     if (isSearchTopmostFullScreenRoute() || !transactionReport?.parentReportID) {
         Navigation.dismissModal();

@@ -11,11 +11,12 @@ type SplitTransactionSplitsParam = Array<{
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    reimbursable?: boolean;
+    billable?: boolean;
 }>;
 
 type SplitTransactionParams = {
     transactionID: string;
-    isReverseSplitOperation: boolean;
     [key: string]: string | boolean;
 };
 
