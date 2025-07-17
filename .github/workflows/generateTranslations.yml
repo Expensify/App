@@ -37,7 +37,8 @@ jobs:
           else
             # For synchronize events, only check the new commits that were just pushed
             echo "🔄 PR was updated - checking only the new commits for en.ts changes"
-            if git diff --name-only ${{ github.event.before }}..${{ github.event.after }} | grep -q "^src/languages/en\.ts$"; then
+            git fetch --no-tags origin ${{ github.event.before }}
+            if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "^src/languages/en\.ts$"; then
               echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
               echo "✅ English translations were modified in the new commits - will generate translations"
             else
