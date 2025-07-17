@@ -115,6 +115,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
 
+    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
@@ -250,7 +252,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!isVsb}
                 progressBarPercentage={80}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
             />
