@@ -46,6 +46,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportStatus,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -59,7 +60,6 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
-    getReportStatus,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -295,9 +295,13 @@ function MoneyRequestReportPreviewContent({
      * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const expenseCount = useMemo(() => translate('iou.expenseCount', {
-        count: numberOfRequests,
-    }), [translate, numberOfRequests]);
+    const expenseCount = useMemo(
+        () =>
+            translate('iou.expenseCount', {
+                count: numberOfRequests,
+            }),
+        [translate, numberOfRequests],
+    );
 
     const reportStatus = useMemo(() => getReportStatus(iouReport), [iouReport]);
 

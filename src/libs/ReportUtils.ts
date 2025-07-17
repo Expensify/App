@@ -11153,13 +11153,13 @@ function getReportStatus(report?: Report) {
         return translateLocal('iou.approved');
     }
     if (
-        (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) || 
+        (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
         (report?.stateNum === CONST.REPORT.STATE_NUM.BILLING && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED)
     ) {
         return translateLocal('iou.settledExpensify');
     }
-    return ('');
-};
+    return '';
+}
 
 export {
     addDomainToShortMention,
