@@ -1040,6 +1040,9 @@ const translations = {
         createExpense: '経費を作成',
         trackDistance: '距離を追跡する',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `${expensesNumber}件の経費を作成`,
+        removeExpense: '経費を削除',
+        removeThisExpense: 'この経費を削除',
+        removeExpenseConfirmation: 'このレシートを削除しますか？この操作は元に戻せません。',
         addExpense: '経費を追加',
         chooseRecipient: '受取人を選択',
         createExpenseWithAmount: ({amount}: {amount: string}) => `${amount}の経費を作成`,
@@ -1069,8 +1072,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'すべての領収書を一度に撮影し、自分で詳細を確認するか、SmartScanに任せましょう。',
         receiptScanInProgress: '領収書のスキャン中',
         receiptScanInProgressDescription: '領収書のスキャン中です。後で確認するか、今すぐ詳細を入力してください。',
-        removeFromReport: '領収書を削除',
-        moveToPersonalSpace: '領収書を個人スペースに移動',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? '重複の可能性がある経費が特定されました。提出を有効にするために重複を確認してください。'
@@ -1236,7 +1237,6 @@ const translations = {
         unheldExpense: 'この経費を未保留にする',
         moveUnreportedExpense: '未報告の経費を移動',
         addUnreportedExpense: '未報告の経費を追加',
-        createNewExpense: '新しい経費を作成',
         selectUnreportedExpense: 'レポートに追加する経費を少なくとも1つ選択してください。',
         emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
@@ -2700,6 +2700,7 @@ const translations = {
             validationAmounts: '入力された検証金額が正しくありません。銀行の明細をもう一度確認して、再試行してください。',
             fullName: '有効なフルネームを入力してください',
             ownershipPercentage: '有効なパーセンテージの数字を入力してください',
+            deletePaymentBankAccount: 'この銀行口座はExpensifyカードの支払いに使用されているため、削除できません。それでもこの口座を削除したい場合は、コンシェルジュにお問い合わせください。',
         },
     },
     addPersonalBankAccount: {
@@ -3820,6 +3821,18 @@ const translations = {
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xeroにアカウントを追加し、再度接続を同期してください。',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: '優先エクスポーター',
@@ -5902,11 +5915,16 @@ const translations = {
                 title: 'エクスポートする経費はありません',
                 subtitle: 'ゆっくりする時間です。お疲れ様でした。',
             },
+            emptyStatementsResults: {
+                title: '表示する経費がない',
+                subtitle: '結果がありません。フィルターを調整してください。',
+            },
             emptyUnapprovedResults: {
                 title: '承認する経費はありません',
                 subtitle: '経費ゼロ。最大限のリラックス。よくやった！',
             },
         },
+        statements: 'ステートメント',
         unapproved: '未承認',
         unapprovedCash: '未承認現金',
         unapprovedCompanyCards: '未承認の社用カード',

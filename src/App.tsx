@@ -20,7 +20,7 @@ import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
-import OnyxProvider from './components/OnyxProvider';
+import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
 import SafeArea from './components/SafeArea';
@@ -81,7 +81,7 @@ function App({url}: AppProps) {
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
-                                OnyxProvider,
+                                OnyxListItemProvider,
                                 ThemeProvider,
                                 ThemeStylesProvider,
                                 ThemeIllustrationsProvider,
