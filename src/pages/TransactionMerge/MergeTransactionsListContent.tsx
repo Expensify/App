@@ -46,7 +46,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        if (isOffline || true) {
+        if (isOffline) {
             getTransactionsForMergingLocally(transactionID, transactions);
         } else {
             getTransactionsForMerging(transactionID);
