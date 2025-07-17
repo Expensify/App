@@ -60,7 +60,6 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: ContentStyle;
-    // contentContainerStyle?: StyleProp<ViewStyle>; // TODO: remove this
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -243,6 +242,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         handleSearch({queryJSON, offset});
         // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -543,7 +543,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
