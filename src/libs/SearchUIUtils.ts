@@ -1159,8 +1159,6 @@ function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTy
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
-              // This column is never displayed on Search
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: false,
           };
 
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
