@@ -547,7 +547,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
-    const isAnimating = useSharedValue(false);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -557,17 +556,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        isAnimating.set(true);
         opacity.set(
-            withTiming(0, {duration: 100}, (finished) => {
-                if (finished) {
-                    isAnimating.set(false);
-                    setColumnsToShow(currentColumns);
-                }
+            withTiming(0, {duration: 100}, () => {
+                setColumnsToShow(currentColumns);
                 opacity.set(withTiming(1, {duration: 100}));
             }),
         );
-    }, [previousColumns, isAnimating, currentColumns, setColumnsToShow, opacity, offset]);
+    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
