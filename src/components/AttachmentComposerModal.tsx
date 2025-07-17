@@ -75,7 +75,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
     const [page, setPage] = useState<number>(0);
     const [currentAttachment, setCurrentAttachment] = useState<Attachment | null>(null);
 
-    // TODO: remove unnecessary logic, ideally in a follow-up PR to avoid breaking changes/regressions
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
      */
@@ -106,20 +105,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
 
         setIsModalOpen(false);
     }, [isModalOpen, onConfirm, validFilesToUpload, currentAttachment]);
-
-    const closeConfirmModal = useCallback(() => {
-        setIsFileErrorModalVisible(false);
-    }, []);
-
-    // TODO: Check if this function is still needed, as it doesn't work.
-    const isDirectoryCheck = useCallback((data: FileObject) => {
-        if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-            setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
-            setIsFileErrorModalVisible(true);
-            return false;
-        }
-        return true;
-    }, []);
 
     /**
      * Sanitizes file names and ensures proper URI references for file system compatibility
@@ -203,12 +188,12 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                 })
                 .filter((fileObject): fileObject is FileObject => fileObject !== null);
 
-            if (!fileObjects.length || fileObjects.some((fileObject) => !isDirectoryCheck(fileObject))) {
+            if (!fileObjects.length) {
                 return;
             }
             validateFiles(fileObjects);
         },
-        [cleanFileObjectName, isDirectoryCheck, validateFiles],
+        [cleanFileObjectName, validateFiles],
     );
 
     const closeModal = useCallback(() => {
@@ -216,13 +201,12 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
     }, []);
 
     const closeAndResetModal = useCallback(() => {
-        closeConfirmModal();
         closeModal();
         InteractionManager.runAfterInteractions(() => {
             setFileError(null);
             setValidFilesToUpload([]);
         });
-    }, [closeConfirmModal, closeModal]);
+    }, [closeModal]);
 
     const openModal = useCallback(() => {
         setIsModalOpen(true);
