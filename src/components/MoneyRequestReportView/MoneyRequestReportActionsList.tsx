@@ -41,6 +41,7 @@ import {
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
+    isReportActionUnread,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -256,7 +257,8 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
+        const hasAnyUnreadActions = reportActions.some((action) => isReportActionUnread(action, report?.lastReadTime ?? ''));
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)) || hasAnyUnreadActions) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -287,15 +289,9 @@ function MoneyRequestReportActionsList({
         lastMessageTime.current = null;
 
         const hasNewMessagesInView = scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        const hasUnreadReportAction = reportActions.some((reportAction) => {
-            if (!newMessageTimeReference || newMessageTimeReference >= reportAction.created) {
-                return false;
-            }
-            // Include system messages (non-comment actions) even if they're from the current user
-            const isSystemMessage = reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-
-            return isSystemMessage || reportAction.actorAccountID !== getCurrentUserAccountID();
-        });
+        const hasUnreadReportAction = reportActions.some(
+            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== getCurrentUserAccountID(),
+        );
 
         if (!hasNewMessagesInView || !hasUnreadReportAction) {
             return;
