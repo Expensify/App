@@ -108,12 +108,20 @@ function useFastSearchFromOptions(
                 // Dispose existing tree if present
                 if (prevFastSearchRef.current) {
                     const disposeStartTime = Date.now();
-                    prevFastSearchRef.current.dispose();
-                    Log.info('[CMD_K_DEBUG] FastSearch tree disposed', false, {
-                        actionId,
-                        disposeTime: Date.now() - disposeStartTime,
-                        timestamp: Date.now(),
-                    });
+                    try {
+                        prevFastSearchRef.current.dispose();
+                        Log.info('[CMD_K_DEBUG] FastSearch tree disposed (reason: recreate)', false, {
+                            actionId,
+                            disposeTime: Date.now() - disposeStartTime,
+                            timestamp: Date.now(),
+                        });
+                    } catch (error) {
+                        Log.alert('[CMD_K_FREEZE] FastSearch tree disposed (reason: recreate) failed', {
+                            actionId,
+                            error: String(error),
+                            timestamp: Date.now(),
+                        });
+                    }
                 }
 
                 newFastSearch = FastSearch.createFastSearch(
@@ -160,27 +168,24 @@ function useFastSearchFromOptions(
                 throw error;
             }
         });
+    }, [options]);
 
-        return () => {
+    useEffect(
+        () => () => {
             try {
-                if (newFastSearch) {
-                    Log.info('[CMD_K_DEBUG] FastSearch tree cleanup', false, {
-                        actionId,
-                        timestamp: Date.now(),
-                    });
-                    newFastSearch.dispose();
-                }
+                Log.info('[CMD_K_DEBUG] FastSearch tree cleanup (reason: unmount)', false, {
+                    timestamp: Date.now(),
+                });
+                prevFastSearchRef.current?.dispose();
             } catch (error) {
-                Log.alert('[CMD_K_FREEZE] FastSearch tree cleanup failed', {
-                    actionId,
+                Log.alert('[CMD_K_FREEZE] FastSearch tree cleanup (reason: unmount) failed', {
                     error: String(error),
                     timestamp: Date.now(),
                 });
             }
-        };
-    }, [options]);
-
-    useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
+        },
+        [],
+    );
 
     const findInSearchTree = useCallback(
         (searchInput: string): OptionsListType => {
