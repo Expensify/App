@@ -50,7 +50,7 @@ jobs:
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
-        run: npx ts-node ./scripts/generateTranslations.ts --compare-ref=main
+        run: npx ts-node ./scripts/generateTranslations.ts --compare-ref=${{ github.event.pull_request.base.ref }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
