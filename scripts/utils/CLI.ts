@@ -212,7 +212,7 @@ class CLI<TConfig extends CLIConfig> {
                 }
             }
 
-            // Handle supercession logic
+            // Handle supersession logic
             const supersededArgs = new Set<string>();
             for (const [name, spec] of Object.entries(config.namedArgs ?? {})) {
                 if (providedNamedArgs.has(name) && spec.supersedes) {

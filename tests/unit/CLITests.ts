@@ -215,7 +215,7 @@ describe('CLI', () => {
         expect(mockExit).toHaveBeenCalledWith(0);
     });
 
-    it('handles supercession when superseding arg is provided', () => {
+    it('handles supersession when superseding arg is provided', () => {
         process.argv.push('--paths', 'common.save,errors.generic');
         const cli = new CLI({
             namedArgs: {
@@ -256,7 +256,7 @@ describe('CLI', () => {
         expect(cli.namedArgs.compareRef).toBe('main');
     });
 
-    it('shows supercession information in help message', () => {
+    it('shows supersession information in help message', () => {
         process.argv.push('--help');
         expect(
             () =>
