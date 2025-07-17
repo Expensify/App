@@ -25,7 +25,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
-import type BottomDockedModalProps from './Modal/BottomDockedModal/types';
+import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -67,9 +67,15 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Test identifier used to find elements in unit and e2e tests */
     testID?: string;
+
+    /** Whether to show a loading spinner icon for the menu item */
+    shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Whether to close the modal on select */
+    shouldCloseModalOnSelect?: boolean;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -236,13 +242,17 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
-            close(
-                () => {
-                    selectedItem.onSelected?.();
-                },
-                undefined,
-                selectedItem.shouldCloseAllModals,
-            );
+            if (selectedItem.shouldCloseModalOnSelect !== false) {
+                close(
+                    () => {
+                        selectedItem.onSelected?.();
+                    },
+                    undefined,
+                    selectedItem.shouldCloseAllModals,
+                );
+            } else {
+                selectedItem.onSelected?.();
+            }
         } else {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -287,7 +297,7 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, ...menuItemProps} = item;
 
         return (
             <OfflineWithFeedback
@@ -312,14 +322,18 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={[
-                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
-                        shouldUseScrollView && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                    ]}
+                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
+                        !!item.isSelected,
+                        focusedIndex === menuIndex,
+                        item.disabled ?? false,
+                        theme.activeComponentBG,
+                        theme.hoverComponentBG,
+                    )}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
             </OfflineWithFeedback>
         );

@@ -502,15 +502,15 @@ function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpen
     return getOriginalMessage(modifiedExpenseActions.at(-1));
 }
 
-function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
-
-    if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-            modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
-            modifiedCurrency: originalMessage.oldCurrency,
-        });
+function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: OriginalMessageModifiedExpense | undefined) {
+    if (!transaction || !originalMessage?.oldAmount || !originalMessage.oldCurrency || !('amount' in originalMessage) || !('currency' in originalMessage)) {
+        return;
     }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {
+        modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
+        modifiedCurrency: originalMessage.oldCurrency,
+    });
 }
 
 function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
@@ -598,8 +598,8 @@ function generateTransactionID(): string {
     return NumberUtils.generateHexadecimalValue(16);
 }
 
-function setTransactionReport(transactionID: string, reportID: string, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reportID});
+function setTransactionReport(transactionID: string, transaction: Partial<Transaction>, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
 function changeTransactionsReport(transactionIDs: string[], reportID: string, policy?: OnyxEntry<Policy>) {
@@ -619,12 +619,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     let transactionsMoved = false;
 
     transactions.forEach((transaction) => {
-        const isUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         // We'll handle optimistically creating the selfDM as part of https://github.com/Expensify/App/issues/60288
         const selfDMReportID = findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        const oldIOUAction = getIOUActionForReportID(isUnreported ? selfDMReportID : transaction.reportID, transaction.transactionID);
+        const oldIOUAction = getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
         if (!transaction.reportID || transaction.reportID === reportID) {
             return;
         }
@@ -699,7 +699,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
         };
 
-        const trackExpenseActionableWhisper = isUnreported ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
 
         if (oldIOUAction) {
             optimisticData.push({
@@ -712,7 +712,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
 
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreported ? selfDMReportID : oldReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
                 value: {
                     [oldIOUAction.reportActionID]: {
                         previousMessage: oldIOUAction.message,
@@ -753,7 +753,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreported ? selfDMReportID : oldReportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
                     value: {
                         [oldIOUAction.reportActionID]: oldIOUAction,
                         ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: trackExpenseActionableWhisper} : {}),
@@ -778,7 +778,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
                 value: {
-                    parentReportID: isUnreported ? selfDMReportID : oldReportID,
+                    parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
                     optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
                     policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
                 },
