@@ -87,7 +87,7 @@ jobs:
                         isMinimized
                       }
                     }
-                  }' -f commentId="$comment_id"
+                  }' -f commentId="$comment_id" || echo "Failed to minimize comment $comment_id"
               done
             fi
 
