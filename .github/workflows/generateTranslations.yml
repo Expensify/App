@@ -92,15 +92,24 @@ jobs:
       - name: Post diff in PR as a comment
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
         run: |
-          COMMENT_BODY="## 🦜 Polyglot Parrot! 🦜
+          # Create temp file and set up cleanup
+          TEMP_COMMENT_FILE=$(mktemp)
+          trap "rm -f $TEMP_COMMENT_FILE" EXIT
 
-          Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:
+          # Write comment to temp file
+          {
+            echo "## 🦜 Polyglot Parrot! 🦜"
+            echo ""
+            echo "Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
+            echo ""
+            echo '```diff'
+            git diff HEAD
+            echo '```'
+            echo ""
+            echo "_Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
+          } > "$TEMP_COMMENT_FILE"
 
-          \`\`\`diff
-          $(git diff HEAD)
-          \`\`\`
-
-          _Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
-          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT_BODY"
+          # Post comment using the temp file
+          gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
         env:
           GITHUB_TOKEN: ${{ github.token }}
