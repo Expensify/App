@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {addMinutes, format} from 'date-fns';
+import {addMinutes} from 'date-fns';
 import React, {useCallback, useMemo} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
