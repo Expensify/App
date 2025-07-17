@@ -13,7 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {getSourceTransaction, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
+import {getSourceTransaction, selectTargetAndSourceTransactionIDsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +46,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        if (isOffline) {
+        if (isOffline || true) {
             getTransactionsForMergingLocally(transactionID, transactions);
         } else {
             getTransactionsForMerging(transactionID);
@@ -103,11 +103,19 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
+        const {targetTransactionID: newTargetTransactionID, sourceTransactionID: newSourceTransactionID} = selectTargetAndSourceTransactionIDsForMerge(targetTransaction, sourceTransaction);
+
         if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+            setMergeTransactionKey(transactionID, {
+                targetTransactionID: newTargetTransactionID,
+                sourceTransactionID: newSourceTransactionID,
+            });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
         } else {
             const mergedReceipt = targetTransaction?.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
+                targetTransactionID: newTargetTransactionID,
+                sourceTransactionID: newSourceTransactionID,
                 receipt: mergedReceipt,
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));

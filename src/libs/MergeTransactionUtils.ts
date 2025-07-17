@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
-import {getAmount, getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag} from './TransactionUtils';
+import {getAmount, getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
@@ -139,5 +139,35 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
     };
 }
 
-export {getSourceTransaction, shouldNavigateToReceiptReview, getMergeableDataAndConflictFields, getMergeFieldValue, getMergeFieldTransalationKey, buildMergedTransactionData};
+/**
+ * Determines the correct target and source transaction IDs for merging based on transaction types.
+ *
+ * Rules:
+ * - If one transaction is a card transaction, it becomes the target (card transactions take priority)
+ * - If both are cash transactions, the first parameter becomes the target
+ * - Users can only merge two cash expenses or one cash/one card expense
+ * - Users cannot merge two card expenses
+ *
+ * @param targetTransaction - The first transaction in the merge operation
+ * @param sourceTransaction - The second transaction in the merge operation
+ * @returns An object containing the determined targetTransactionID and sourceTransactionID
+ */
+function selectTargetAndSourceTransactionIDsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
+    if (isCardTransaction(originalSourceTransaction)) {
+        return {targetTransactionID: originalSourceTransaction?.transactionID, sourceTransactionID: originalTargetTransaction?.transactionID};
+    }
+
+    return {targetTransactionID: originalTargetTransaction?.transactionID, sourceTransactionID: originalSourceTransaction?.transactionID};
+}
+
+export {
+    getSourceTransaction,
+    shouldNavigateToReceiptReview,
+    getMergeableDataAndConflictFields,
+    getMergeFieldValue,
+    getMergeFieldTransalationKey,
+    buildMergedTransactionData,
+    selectTargetAndSourceTransactionIDsForMerge,
+};
+
 export type {MergeFieldKey, MergeValueType};
