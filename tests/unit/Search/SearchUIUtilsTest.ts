@@ -1561,14 +1561,14 @@ describe('SearchUIUtils', () => {
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
-            
+
             // Create test transactions as arrays (getColumnsToShow accepts arrays)
             const emptyTransaction = {
                 ...baseTransaction,
                 transactionID: 'empty',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 accountID: adminAccountID,
@@ -1580,7 +1580,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'merchant',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 accountID: adminAccountID,
@@ -1592,7 +1592,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'category',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: 'Office Supplies',
                 tag: '',
                 accountID: adminAccountID,
@@ -1604,7 +1604,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'tag',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: 'Project A',
                 accountID: adminAccountID,
@@ -1616,7 +1616,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'description',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: 'Business meeting lunch' },
+                comment: {comment: 'Business meeting lunch'},
                 category: '',
                 tag: '',
                 accountID: adminAccountID,
@@ -1628,7 +1628,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'differentUsers',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 accountID: submitterAccountID, // Different from current user
@@ -1685,7 +1685,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'test',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
-                comment: { comment: 'Test description' },
+                comment: {comment: 'Test description'},
                 category: 'Office Supplies',
                 tag: 'Project A',
                 accountID: submitterAccountID, // Different from current user
@@ -1694,13 +1694,13 @@ describe('SearchUIUtils', () => {
 
             // In expense report view, From/To columns should not be shown
             const columns = SearchUIUtils.getColumnsToShow([testTransaction], true);
-            
+
             // These columns should be shown based on data
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]).toBe(true);
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]).toBe(true);
-            
+
             // From/To columns should not exist in expense report view
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBeUndefined();
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBeUndefined();
@@ -1713,21 +1713,21 @@ describe('SearchUIUtils', () => {
                 transactionID: 'modified',
                 merchant: '',
                 modifiedMerchant: 'Modified Merchant',
-                comment: { comment: '' },
-                category: 'Uncategorized',  // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
+                comment: {comment: ''},
+                category: 'Uncategorized', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
                 tag: CONST.SEARCH.TAG_EMPTY_VALUE, // This is the empty tag value
                 accountID: adminAccountID,
                 managerID: adminAccountID,
             };
 
             const columns = SearchUIUtils.getColumnsToShow([testTransaction], false);
-            
+
             // Should show merchant column because modifiedMerchant has value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
-            
+
             // Should not show category column because 'Uncategorized' is an empty value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
-            
+
             // Should not show tag column because it's the empty tag value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
         });
