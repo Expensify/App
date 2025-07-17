@@ -99,6 +99,7 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -275,6 +276,8 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -560,6 +563,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
+        chooseFiles: '选择文件',
         dropTitle: 'Let it go',
         dropMessage: '在此处拖放您的文件',
         ignore: 'Ignore',
@@ -663,9 +667,16 @@ const translations = {
         attachmentImageTooLarge: '此图像太大，无法在上传前预览。',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `您一次最多只能上传 ${fileLimit} 个文件。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
+        someFilesCantBeUploaded: '有些文件无法上传',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `文件必须小于${maxUploadSizeInMB} MB。较大的文件将不会被上传。`,
+        maxFileLimitExceeded: '您一次最多可上传30张收据。额外的将不会被上传。',
+        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} 文件不受支持。只有受支持的文件类型才会被上传。`,
+        learnMoreAboutSupportedFiles: '了解更多关于支持的格式。',
+        passwordProtected: '不支持密码保护的PDF。只有受支持的文件才会被上传。',
     },
     dropzone: {
         addAttachments: '添加附件',
+        addReceipt: '添加收据',
         scanReceipts: '扫描收据',
         replaceReceipt: '替换收据',
     },
@@ -909,8 +920,11 @@ const translations = {
     },
     spreadsheet: {
         upload: '上传电子表格',
+        import: '导入电子表格',
         dragAndDrop: '将您的电子表格拖放到此处，或在下方选择一个文件。支持的格式：.csv、.txt、.xls 和 .xlsx。',
+        dragAndDropMultiLevelTag: `<muted-link>将您的电子表格拖放到此处，或在下方选择一个文件。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">了解更多</a> 支持的文件格式。</muted-link>`,
         chooseSpreadsheet: '选择要导入的电子表格文件。支持的格式：.csv、.txt、.xls 和 .xlsx。',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>选择要导入的电子表格文件。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">了解更多</a> 支持的文件格式。</muted-link>`,
         fileContainsHeader: '文件包含列标题',
         column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `哎呀！一个必填字段（“${fieldName}”）尚未映射。请检查并重试。`,
@@ -943,9 +957,13 @@ const translations = {
     },
     receipt: {
         upload: '上传收据',
+        uploadMultiple: '上传收据',
         dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
+        dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
         dragReceiptAfterEmail: '或选择下面的文件上传。',
+        dragReceiptsAfterEmail: '或选择下面的文件上传。',
         chooseReceipt: '选择要上传的收据或转发收据到',
+        chooseReceipts: '选择要上传的收据或转发收据到',
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
         deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
@@ -1013,6 +1031,9 @@ const translations = {
         createExpense: '创建报销单',
         trackDistance: '跟踪距离',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `创建${expensesNumber}笔费用`,
+        removeExpense: '删除费用',
+        removeThisExpense: '删除此费用',
+        removeExpenseConfirmation: '您确定要删除这张收据吗？此操作不可撤销。',
         addExpense: '添加费用',
         chooseRecipient: '选择收件人',
         createExpenseWithAmount: ({amount}: {amount: string}) => `创建 ${amount} 报销单`,
@@ -1131,7 +1152,7 @@ const translations = {
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         forwarded: `批准`,
         rejectedThisReport: '拒绝了此报告',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `开始结算。在${submitterDisplayName}添加银行账户之前，付款将被搁置。`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}取消了付款`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `取消了${amount}付款，因为${submitterDisplayName}在30天内未启用他们的Expensify Wallet。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
@@ -1202,7 +1223,6 @@ const translations = {
         unheldExpense: '取消搁置此费用',
         moveUnreportedExpense: '移动未报告的费用',
         addUnreportedExpense: '添加未报告的费用',
-        createNewExpense: '创建新费用',
         selectUnreportedExpense: '请选择至少一个费用添加到报告中。',
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
@@ -1512,6 +1532,7 @@ const translations = {
             phrase4: '隐私',
         },
         help: '帮助',
+        whatIsNew: '新内容',
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
@@ -1601,9 +1622,10 @@ const translations = {
             afterEmail: '到其他账户。请将其他账户合并到此账户中。',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: '无法合并',
-            afterEmail: '因为它是一个已开票账户的账单所有者，所以无法合并到其他账户。请将其他账户合并到它中。',
+            beforeEmail: '无法合并账户到 ',
+            afterEmail: '，因为该账户拥有已开具发票的计费关系。',
         },
+
         mergeFailureTooManyAttempts: {
             heading: '请稍后再试',
             description: '尝试合并账户的次数过多。请稍后再试。',
@@ -1744,7 +1766,7 @@ const translations = {
         nameOnCard: '卡上的姓名',
         paymentCardNumber: '卡号',
         expiration: '到期日期',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: '账单地址',
         growlMessageOnSave: '您的支付卡已成功添加',
@@ -2613,11 +2635,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
-        hasCurrencyError: {
-            phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
-            link: '您的工作区设置',
-            phrase2: '将其设置为美元，然后重试。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
@@ -2650,6 +2669,7 @@ const translations = {
             validationAmounts: '您输入的验证金额不正确。请仔细检查您的银行对账单，然后重试。',
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入一个有效的百分比数字',
+            deletePaymentBankAccount: '由于该银行账户用于Expensify卡支付，因此无法删除。如果您仍希望删除此账户，请联系Concierge。',
         },
     },
     addPersonalBankAccount: {
@@ -3156,6 +3176,16 @@ const translations = {
             certify: '请确认信息真实准确。',
             consent: '请同意隐私声明',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign 表格',
+        pleaseComplete: '请通过以下 Docusign 链接填写 ACH 授权表格，并将签署后的副本上传到此处，以便我们可以直接从您的银行账户扣款。',
+        pleaseCompleteTheBusinessAccount: '请填写企业账户申请表及直接借记协议。',
+        pleaseCompleteTheDirect: '请通过以下 Docusign 链接填写直接借记协议，并将签署后的副本上传到此处，以便我们可以直接从您的银行账户扣款。',
+        takeMeTo: '前往 Docusign',
+        uploadAdditional: '上传其他文件',
+        pleaseUpload: '请上传 DEFT 表格和 Docusign 签名页。',
+        pleaseUploadTheDirect: '请上传直接借记协议和 Docusign 签名页。',
     },
     finishStep: {
         connect: '连接银行账户',
@@ -3742,6 +3772,18 @@ const translations = {
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在Xero中添加账户并再次同步连接',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: '首选导出工具',
@@ -4215,6 +4257,11 @@ const translations = {
                     pleaseSelectFeedType: '请在继续之前选择一个订阅类型',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '本月最后一天',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: '本月最后一个工作日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: '本月自定义日期',
+            },
             assignCard: '分配卡片',
             findCard: '查找卡片',
             cardNumber: '卡号',
@@ -4231,6 +4278,7 @@ const translations = {
             startDateDescription: '我们将从此日期开始导入所有交易。如果未指定日期，我们将根据您的银行允许的最早日期进行导入。',
             fromTheBeginning: '从头开始',
             customStartDate: '自定义开始日期',
+            customCloseDate: '自定义关闭日期',
             letsDoubleCheck: '让我们仔细检查一下，确保一切正常。',
             confirmationDescription: '我们将立即开始导入交易。',
             cardholder: '持卡人',
@@ -4448,6 +4496,7 @@ const translations = {
                 removeCardFeedDescription: '您确定要移除此卡片源吗？这将取消分配所有卡片。',
                 error: {
                     feedNameRequired: '卡片摘要名称是必需的',
+                    statementCloseDateRequired: '请选择报表关闭日期。',
                 },
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
@@ -4472,6 +4521,8 @@ const translations = {
                 expensifyCardBannerTitle: '获取Expensify卡',
                 expensifyCardBannerSubtitle: '享受每笔美国消费的现金返还，Expensify账单最高可享50%折扣，无限虚拟卡等更多优惠。',
                 expensifyCardBannerLearnMoreButton: '了解更多',
+                statementCloseDateTitle: '对账单关闭日期',
+                statementCloseDateDescription: '让我们知道您的银行卡对账单何时关闭，我们将在 Expensify 中创建匹配的对账单。',
             },
             workflows: {
                 title: '工作流程',
@@ -5789,11 +5840,16 @@ const translations = {
                 title: '没有费用可导出',
                 subtitle: '是时候放松一下了，干得好。',
             },
+            emptyStatementsResults: {
+                title: '无费用显示',
+                subtitle: '无结果。请尝试调整过滤器。',
+            },
             emptyUnapprovedResults: {
                 title: '没有费用需要批准',
                 subtitle: '零报销。最大限度地放松。干得好！',
             },
         },
+        statements: '发言',
         unapproved: '未经批准',
         unapprovedCash: '未经批准的现金',
         unapprovedCompanyCards: '未经批准的公司卡',
@@ -5820,6 +5876,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从未',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最后发言',
                 },
             },
             status: '状态',
@@ -5858,6 +5915,7 @@ const translations = {
                 members: '成员',
                 cards: '卡片',
             },
+            feed: '通道',
         },
         groupBy: '组别',
         moneyRequestReport: {
@@ -6207,7 +6265,7 @@ const translations = {
         addressError: '地址是必需的',
         reasonError: '原因是必需的',
         successTitle: '您的卡片正在路上！',
-        successDescription: '几天后到达时，您需要激活它。在此期间，您的虚拟卡已准备好使用。',
+        successDescription: '几天后到达时，您需要激活它。在此期间，您可以使用虚拟卡。',
     },
     eReceipt: {
         guaranteed: '保证电子收据',
@@ -6283,8 +6341,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
-        receiptNotSmartScanned:
-            '费用详情和收据已手动添加。请核实详情。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多</a>关于所有收据的自动审核。',
+        receiptNotSmartScanned: '收据和费用详情手动添加。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多。</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '需要收据';
             if (formattedLimit ?? category) {
@@ -6633,11 +6690,8 @@ const translations = {
                 title: '订阅已取消',
                 subtitle: '您的年度订阅已被取消。',
                 info: '如果您想继续按使用量付费的方式使用您的工作区，您就准备好了。',
-                preventFutureActivity: {
-                    part1: '如果您想防止未来的活动和收费，您必须',
-                    link: '删除您的工作区',
-                    part2: '请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `如果您想防止未来的活动和收费，您必须 <a href="${workspacesListRoute}">删除您的工作区</a> 请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。`,
             },
             requestSubmitted: {
                 title: '请求已提交',
@@ -6801,66 +6855,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: '开始使用',
-            part2: '这里！',
-        },
-        saveSearchTooltip: {
-            part1: '重命名您保存的搜索',
-            part2: '这里！',
-        },
-        bottomNavInboxTooltip: {
-            part1: '检查什么',
-            part2: '需要您的注意',
-            part3: '和',
-            part4: '聊天关于费用。',
-        },
-        workspaceChatTooltip: {
-            part1: '与 交谈',
-            part2: '审批人',
-        },
-        globalCreateTooltip: {
-            part1: '创建费用',
-            part2: '，开始聊天，',
-            part3: '和更多。',
-            part4: '试试看！',
-        },
-        GBRRBRChat: {
-            part1: '您将在 🟢 上看到',
-            part2: '采取的行动',
-            part3: '，和🔴在',
-            part4: '待审核项目。',
-        },
-        accountSwitcher: {
-            part1: '访问您的',
-            part2: 'Copilot 账户',
-            part3: '这里',
-        },
-        expenseReportsFilter: {
-            part1: '欢迎！查找您的所有',
-            part2: '公司的报告',
-            part3: 'here.',
-        },
+        conciergeLHNGBR: '<tooltip><strong>从这里开始</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>在这里重命名你保存的搜索</strong></tooltip>',
+        globalCreateTooltip: '<tooltip><strong>创建报销</strong>、开始聊天，以及更多功能。试试看</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>查看<strong>需要你关注的事项</strong>\n并<strong>讨论报销事项。</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>与<strong>审批人聊天</strong></tooltip>',
+        GBRRBRChat: '<tooltip><strong>需要操作的项目</strong>会显示🟢，\n<strong>需要审核的项目</strong>会显示🔴。</tooltip>',
+        accountSwitcher: '<tooltip>在这里访问你的<strong>副账户</strong></tooltip>',
+        expenseReportsFilter: '<tooltip>欢迎！在这里查找你所有的\n<strong>公司报表</strong>。</tooltip>',
         scanTestTooltip: {
-            part1: '想看看扫描功能如何运作吗？',
-            part2: '试用测试收据！',
-            part3: '选择我们的',
-            part4: '测试经理',
-            part5: '试试看吧！',
-            part6: '现在，',
-            part7: '提交您的费用报销单',
-            part8: '并见证奇迹的发生！',
+            main: '<tooltip><strong>扫描我们的测试发票</strong>了解其运作方式！</tooltip>',
+            manager: '<tooltip>选择我们的<strong>测试经理</strong>来试用！</tooltip>',
+            confirmation: '<tooltip>现在，<strong>提交你的报销</strong>，看看会发生什么！</tooltip>',
             tryItOut: '试试看',
-            noThanks: '不，谢谢',
+            noThanks: '不用了',
         },
-        outstandingFilter: {
-            part1: '筛选符合以下条件的费用：',
-            part2: '需要批准',
-        },
-        scanTestDriveTooltip: {
-            part1: '将此收据发送给',
-            part2: '完成试驾！',
-        },
+        outstandingFilter: '<tooltip>筛选出\n<strong>需要审批</strong>的报销</tooltip>',
+        scanTestDriveTooltip: '<tooltip>发送此发票以\n<strong>完成测试流程！</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

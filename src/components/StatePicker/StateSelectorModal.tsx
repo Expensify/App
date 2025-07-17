@@ -70,6 +70,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
             hideModalContentWhileAnimating
             useNativeDriver
             onBackdropPress={onBackdropPress}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

@@ -1,12 +1,13 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
@@ -22,11 +23,12 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, hasDependentTags, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
 import {
@@ -80,8 +82,14 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
@@ -107,7 +115,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
@@ -115,16 +123,14 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
-        selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
-        canBeMissing: true,
-    });
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`, {canBeMissing: true});
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`];
+    const allPolicyCategories = usePolicyCategories();
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
     const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`, {canBeMissing: true});
+    const allPolicyTags = usePolicyTags();
+    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
@@ -223,10 +229,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return CONST.IOU.TYPE.SUBMIT;
     }, [isTrackExpense, isInvoice]);
 
-    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-
     const category = transactionCategory ?? '';
-    const categoryForDisplay = emptyCategories.includes(category) ? '' : category;
+    const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
@@ -255,7 +259,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
-    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
     const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -350,6 +354,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 return translate(translationPath);
             }
 
+            if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
+                return translate('violations.customUnitOutOfPolicy');
+            }
+
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
@@ -378,6 +386,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             canEditDate,
             canEditMerchant,
             canEdit,
+            isCustomUnitOutOfPolicy,
         ],
     );
 
@@ -457,11 +466,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
-        if (hasDependentTags(policy, policyTagList)) {
+        if (hasDependentTags) {
             if (index === 0) {
                 shouldShow = true;
             } else {
@@ -482,7 +492,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 tagListIndex: index,
                 tagListName: name,
             },
-            hasDependentTags(policy, policyTagList),
+            hasDependentTags,
             tagForDisplay,
         );
 
@@ -492,7 +502,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <MenuItemWithTopDescription
-                    highlighted={shouldShow && !getTagForDisplay(transaction, index)}
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index)}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
@@ -540,7 +550,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
             return;
         }
-        revert(transaction?.transactionID ?? linkedTransactionID, getLastModifiedExpense(report?.reportID));
+        revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
@@ -565,7 +575,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         style={styles.mv3}
                     >
                         <ReceiptEmptyState
-                            hasError={hasErrors}
                             disabled={!canEditReceipt}
                             onPress={() => {
                                 if (!transaction?.transactionID || !report?.reportID) {
@@ -810,28 +819,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReportID && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
-                            description={translate('common.report')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
-                                    return;
-                                }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
-                                );
-                            }}
-                            interactive={canEditReport}
-                            shouldRenderAsHTML
-                        />
-                    </OfflineWithFeedback>
-                )}
-                {/* Note: "Billable" toggle and "View trip details" should be always the last two items */}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
@@ -854,6 +841,28 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </View>
                 )}
+                {!!parentReportID && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canEditReport}
+                            title={getReportName(parentReport) || parentReport?.reportName}
+                            description={translate('common.report')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
+                                    return;
+                                }
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                );
+                            }}
+                            interactive={canEditReport}
+                            shouldRenderAsHTML
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {/* Note: "View trip details" should be always the last item */}
                 {shouldShowViewTripDetails && (
                     <MenuItem
                         title={translate('travel.viewTripDetails')}

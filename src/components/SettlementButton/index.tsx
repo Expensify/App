@@ -1,11 +1,11 @@
 import React, {useContext} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import KYCWall from '@components/KYCWall';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
@@ -21,7 +21,6 @@ import type SettlementButtonProps from './types';
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
-    addBankAccountRoute = '',
     kycWallAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
@@ -69,7 +68,6 @@ function SettlementButton({
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const paymentButtonOptions = usePaymentOptions({
-        addBankAccountRoute,
         currency,
         iouReport,
         chatReportID,
@@ -100,7 +98,6 @@ function SettlementButton({
         <KYCWall
             onSuccessfulKYC={(paymentType) => onPress(paymentType)}
             enablePaymentsRoute={enablePaymentsRoute}
-            addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}
             source={CONST.KYC_WALL_SOURCE.REPORT}
