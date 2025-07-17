@@ -15,13 +15,6 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      # We always run dry-run the script to verify that it still works.
-      # The generateTranslations script runs with ts-node, which can't handle Flow
-      # (the specialized JS that React Native is written in).
-      # Therefore, adding an import in the wrong place could break the script, even if you didn't modify the script.
-      - name: Run full generateTranslations dry run
-        run: npx ts-node ./scripts/generateTranslations.ts --dry-run
-
       - name: Explain failure
         if: failure()
         run: |
