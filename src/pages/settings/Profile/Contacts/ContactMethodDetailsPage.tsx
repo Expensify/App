@@ -11,6 +11,7 @@ import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PrivateDomainWorkspacesList from '@components/PrivateDomainWorkspacesList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -23,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import {getAccessiblePolicies} from '@libs/actions/Policy/Policy';
 import {
     clearContactMethod,
     clearContactMethodErrors,
@@ -36,6 +38,7 @@ import {
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -61,6 +64,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {canBeMissing: true});
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES, {canBeMissing: true});
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
@@ -92,6 +98,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
         return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
     }, [route.params.contactMethod]);
+
+    const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
+    const joinablePoliciesErrorsLength = Object.keys(getAccessiblePoliciesAction?.errors ?? {}).length;
+    const newContactMethodIsOnPrivateDomain = !isEmailPublicDomain(contactMethod);
+
+    const shouldShowJoinableWorkspaces = joinablePoliciesLoading ? null : newContactMethodIsOnPrivateDomain && joinablePoliciesErrorsLength === 0 && joinablePoliciesLength > 0;
+
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
@@ -161,10 +175,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
 
+        if (shouldShowJoinableWorkspaces === null || shouldShowJoinableWorkspaces === true) {
+            return;
+        }
+
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData, shouldShowJoinableWorkspaces]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -178,6 +196,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData]);
+
+    useEffect(() => {
+        if (!loginData?.validatedDate || !newContactMethodIsOnPrivateDomain) {
+            return;
+        }
+
+        getAccessiblePolicies();
+    }, [loginData?.validatedDate, newContactMethodIsOnPrivateDomain]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -352,8 +378,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
-
-                {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
+                {!isValidateCodeFormVisible && shouldShowJoinableWorkspaces !== false && <PrivateDomainWorkspacesList />}
+                {!isValidateCodeFormVisible && !!loginData.validatedDate && shouldShowJoinableWorkspaces === false && getMenuItems()}
                 {getDeleteConfirmationModal()}
             </ScrollView>
         </ScreenWrapper>
