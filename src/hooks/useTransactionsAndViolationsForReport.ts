@@ -1,4 +1,4 @@
-import {useAllReportsTransactionsAndViolations} from '@components/OnyxProvider';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 
 const DEFAULT_RETURN_VALUE = {transactions: {}, violations: {}};

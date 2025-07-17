@@ -1,24 +1,27 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
+import {clearPolicyTitleFieldError, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,20 +44,44 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const customNameDefaultValue = Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '');
+    const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const customNameDefaultValue = Str.htmlDecode(fieldListItem?.defaultValue ?? '');
 
-    const validateCustomName = ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
-        if (!customName) {
-            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
-        } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
-            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
-                length: customName.length,
-                limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
-            });
-        }
-        return errors;
+    const validateCustomName = useCallback(
+        ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
+            if (!customName) {
+                errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
+            } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+                errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
+                    length: customName.length,
+                    limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
+                });
+            }
+            return errors;
+        },
+        [translate],
+    );
+
+    const clearTitleFieldError = () => {
+        clearPolicyTitleFieldError(policyID);
     };
+
+    // Get pending action for loading state
+    const isLoading = !!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue;
+
+    // Clear errors when modal is dismissed
+    useBeforeRemove(() => {
+        clearTitleFieldError();
+    });
+
+    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
+        setPolicyDefaultReportTitle(policyID, values.customName);
+        Navigation.goBack();
+    };
+
+    const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const titleFieldError = getLatestErrorField({errorFields: titleError ?? {}}, 'defaultValue');
 
     return (
         <AccessOrNotFoundWrapper
@@ -86,23 +113,28 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     validate={validateCustomName}
-                    onSubmit={({customName}) => {
-                        setPolicyDefaultReportTitle(policyID, customName);
-                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-                    }}
+                    onSubmit={submitForm}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    isLoading={isLoading}
                     addBottomSafeAreaPadding
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.CUSTOM_NAME}
-                        defaultValue={customNameDefaultValue}
-                        label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        ref={inputCallbackRef}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
+                        errors={titleFieldError}
+                        errorRowStyles={styles.mh0}
+                        onClose={clearTitleFieldError}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.CUSTOM_NAME}
+                            defaultValue={customNameDefaultValue}
+                            label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                            aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                            ref={inputCallbackRef}
+                        />
+                    </OfflineWithFeedback>
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
                         header={translate('workspace.rules.expenseReportRules.examples')}
