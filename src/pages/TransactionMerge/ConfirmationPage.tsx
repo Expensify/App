@@ -98,6 +98,7 @@ function Confirmation({route}: ConfirmationProps) {
                             shouldShowAnimatedBackground={false}
                             readonly
                             updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
+                            mergeTransactionID={transactionID}
                         />
                     </ShowContextMenuContext.Provider>
                 </ScrollView>

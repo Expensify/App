@@ -2042,7 +2042,15 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
+        getRoute: (
+            reportID: string | undefined,
+            transactionID: string | undefined,
+            readonly = false,
+            isFromReviewDuplicates = false,
+            action?: IOUAction,
+            iouType?: IOUType,
+            mergeTransactionID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
@@ -2051,7 +2059,7 @@ const ROUTES = {
             }
             return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
                 isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
-            }` as const;
+            }${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
         },
     },
 

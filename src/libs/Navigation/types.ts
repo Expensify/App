@@ -2081,6 +2081,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isFromReviewDuplicates?: string;
         action?: IOUAction;
         iouType?: IOUType;
+        mergeTransactionID?: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
