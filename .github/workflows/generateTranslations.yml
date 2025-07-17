@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  dryRun:
+  generateTranslations:
     runs-on: ubuntu-latest
     steps:
       # v4
