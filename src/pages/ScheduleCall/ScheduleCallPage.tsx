@@ -187,7 +187,9 @@ function ScheduleCallPage() {
                             <View style={[styles.ph5, styles.mb5]}>
                                 <Text style={[styles.mb5, styles.colorMuted]}>
                                     {translate('scheduledCall.book.slots')}
-                                    <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
+                                    <Text style={[styles.textStrong, styles.colorMuted]}>
+                                        {DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}
+                                    </Text>
                                 </Text>
                                 <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
