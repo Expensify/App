@@ -1,4 +1,4 @@
-import {getMergeableDataAndConflictFields, selectTargetAndSourceTransactionIDsForMerge} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getMergeableDataAndConflictFields, selectTargetAndSourceTransactionIDsForMerge} from '@libs/MergeTransactionUtils';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
 
