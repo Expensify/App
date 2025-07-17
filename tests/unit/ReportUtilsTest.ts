@@ -3982,7 +3982,7 @@ describe('ReportUtils', () => {
 
     describe('canUserPerformWriteAction', () => {
         it('should return false for announce room when the role of the employee is auditor ', async () => {
-            // Given a policy annouce room of a policy for which the user has an auditor role
+            // Given a policy announce room of a policy that the user has an auditor role
             const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.AUDITOR};
             const policyAnnounceRoom: Report = {
                 ...createRandomReport(50001),
