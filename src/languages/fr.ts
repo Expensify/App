@@ -872,6 +872,7 @@ const translations = {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
     },
     newMessages: 'Nouveaux messages',
+    latestMessages: 'Derniers messages',
     youHaveBeenBanned: 'Remarque : Vous avez été banni de la discussion dans ce canal.',
     reportTypingIndicator: {
         isTyping: 'est en train de taper...',
