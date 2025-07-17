@@ -5,10 +5,6 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  # We always run dry-run the script to verify that it still works.
-  # The generateTranslations script runs with ts-node, which can't handle Flow
-  # (the specialized JS that React Native is written in).
-  # Therefore, adding an import in the wrong place could break the script, even if you didn't modify the script.
   dryRun:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +15,11 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Run generateTranslations dry run
+      # We always run dry-run the script to verify that it still works.
+      # The generateTranslations script runs with ts-node, which can't handle Flow
+      # (the specialized JS that React Native is written in).
+      # Therefore, adding an import in the wrong place could break the script, even if you didn't modify the script.
+      - name: Run full generateTranslations dry run
         run: npx ts-node ./scripts/generateTranslations.ts --dry-run
 
       - name: Explain failure
@@ -27,3 +27,27 @@ jobs:
         run: |
           echo '::error:: 😦 Something you did broke scripts/generateTranslations.ts. Most likely, this means you added an import that caused react-native to be directly or indirectly imported into the script.'
           exit 1
+
+      - name: Run generateTranslations for added translations
+        run: npx ts-node ./scripts/generateTranslations.ts --compare-ref=main
+
+      - name: Post diff in PR as a comment
+        run: |
+          # Check if there are any changes after running generateTranslations
+          if git diff --quiet HEAD; then
+            echo "✅ No changes detected"
+          else
+            echo "🦜 Polyglot Parrot detected changes! 🦜"
+            COMMENT_BODY="## 🦜 Polyglot Parrot! 🦜
+
+            Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:
+
+            \`\`\`diff
+            $(git diff HEAD)
+            \`\`\`
+
+            _Note:_ You can apply these changes by copying them to your clipboard, then running \`pbpaste | git apply\`"
+            gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT_BODY"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
