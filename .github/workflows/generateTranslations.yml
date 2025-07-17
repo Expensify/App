@@ -62,46 +62,55 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
 
-      - name: Post diff in PR as a comment
+      - name: Check if there are any changes after running generateTranslations
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
+        id: checkDiff
         run: |
-          # Check if there are any changes after running generateTranslations
           if git diff --quiet HEAD; then
             echo "✅ No changes detected"
+            echo "HAS_DIFF=true" >> "$GITHUB_OUTPUT"
           else
             echo "🦜 Polyglot Parrot detected changes! 🦜"
-
-            # Find and hide any existing Polyglot Parrot comments
-            EXISTING_COMMENTS="$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
-            if [[ -n "$EXISTING_COMMENTS" ]]; then
-              echo "Found existing Polyglot Parrot comment(s), hiding as outdated..."
-              echo "$EXISTING_COMMENTS" | while read -r comment_id; do
-                # shellcheck disable=SC2016
-                gh api graphql -f query='
-                  mutation($commentId: ID!) {
-                    minimizeComment(input: {
-                      subjectId: $commentId,
-                      classifier: OUTDATED
-                    }) {
-                      minimizedComment {
-                        isMinimized
-                      }
-                    }
-                  }' -f commentId="$comment_id" || echo "Failed to minimize comment $comment_id"
-              done
-            fi
-
-            # Post the new comment
-            COMMENT_BODY="## 🦜 Polyglot Parrot! 🦜
-
-            Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:
-
-            \`\`\`diff
-            $(git diff HEAD)
-            \`\`\`
-
-            _Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
-            gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT_BODY"
+            echo "HAS_DIFF=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Hide any existing Polyglot Parrot comments
+        continue-on-error: true
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
+        run: |
+          EXISTING_COMMENTS="$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
+          if [[ -z "$EXISTING_COMMENTS" ]]; then
+            echo "🦗 No existing Polyglot Parrot comments found"
+          else
+            echo "Found existing Polyglot Parrot comment(s), hiding as outdated..."
+            echo "$EXISTING_COMMENTS" | while read -r comment_id; do
+              # shellcheck disable=SC2016
+              gh api graphql -f query='
+                mutation($commentId: ID!) {
+                  minimizeComment(input: {
+                    subjectId: $commentId,
+                    classifier: OUTDATED
+                  }) {
+                    minimizedComment {
+                      isMinimized
+                    }
+                  }
+                }' -f commentId="$comment_id" || echo "Failed to minimize comment $comment_id"
+            done
+          fi
+
+      - name: Post diff in PR as a comment
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
+        run: |
+          COMMENT_BODY="## 🦜 Polyglot Parrot! 🦜
+
+          Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:
+
+          \`\`\`diff
+          $(git diff HEAD)
+          \`\`\`
+
+          _Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
+          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT_BODY"
         env:
           GITHUB_TOKEN: ${{ github.token }}
