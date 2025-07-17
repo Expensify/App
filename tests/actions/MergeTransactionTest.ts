@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import * as MergeTransaction from '@libs/actions/MergeTransaction';
+import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction as MergeTransactionType, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -25,7 +25,7 @@ function createMockViolations(): TransactionViolation[] {
     ];
 }
 
-describe('MergeTransaction - mergeTransactionRequest', () => {
+describe('mergeTransactionRequest', () => {
     let mockFetch: MockFetch;
 
     beforeAll(() => {
@@ -74,7 +74,7 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
 
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
-        MergeTransaction.mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -163,7 +163,7 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
         // When: The merge request is executed but the API will return an error
         mockFetch?.fail?.();
 
-        MergeTransaction.mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
 
         await waitForBatchedUpdates();
 
@@ -235,7 +235,7 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
         // When: The merge request is executed, which should handle violation updates
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
-        MergeTransaction.mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
