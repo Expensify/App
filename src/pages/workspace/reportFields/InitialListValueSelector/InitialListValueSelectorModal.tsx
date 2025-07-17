@@ -41,8 +41,6 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseReanimatedModal
         >

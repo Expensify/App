@@ -47,8 +47,6 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseReanimatedModal
         >

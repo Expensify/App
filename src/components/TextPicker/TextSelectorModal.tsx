@@ -119,8 +119,6 @@ function TextSelectorModal({
             isVisible={isVisible}
             onClose={hide}
             onModalHide={hide}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseModalPaddingStyle={false}
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseReanimatedModal
