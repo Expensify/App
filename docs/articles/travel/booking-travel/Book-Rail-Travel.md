@@ -15,7 +15,7 @@ Book rail tickets using Expensify's built-in travel portal, available in both Cl
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -45,8 +45,8 @@ Book rail tickets using Expensify's built-in travel portal, available in both Cl
 
 - Your booking may require approval depending on your company’s travel policy.
 - You’ll receive a confirmation email once the train ticket is booked.
-- The booking syncs with your Expensify account for easy expense tracking.
-- If the payment card used is connected to Expensify, the receipt will automatically merge with the imported expense.
+- The booking receipt syncs with your Expensify account automatically for easy expense tracking.
+- If the payment card used is importing into your Expensify account, the receipt will automatically merge with the imported expense.
 
 **Note:** Not all regions currently support rail booking. Availability may vary.
 
