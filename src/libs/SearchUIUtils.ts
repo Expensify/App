@@ -286,7 +286,7 @@ function getSuggestedSearches(defaultFeed: string | undefined, accountID: number
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                from: [`${accountID}`],
+                to: [`${accountID}`],
             }),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -340,10 +340,10 @@ function getSuggestedSearches(defaultFeed: string | undefined, accountID: number
             },
         },
         [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY,
-            translationPath: 'search.unapproved',
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH,
+            translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
+            icon: Expensicons.MoneyHourglass,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
@@ -355,10 +355,10 @@ function getSuggestedSearches(defaultFeed: string | undefined, accountID: number
             },
         },
         [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH,
-            translationPath: 'search.unapprovedCash',
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+            translationPath: 'search.unapprovedCompanyCards',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.MoneyHourglass,
+            icon: Expensicons.CreditCardHourglass,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,

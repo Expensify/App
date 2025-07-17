@@ -325,7 +325,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
     const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
     // If we are on the 'Submit' suggested search, optimistically remove the report from the view once the action is taken
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT ? createOnyxData(null) : [];
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
     const report = (reportList.at(0) ?? {}) as SearchReport;
     const parameters: SubmitReportParams = {
@@ -354,7 +354,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
     const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE ? createOnyxData(null) : [];
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
@@ -385,8 +385,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
     const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT ? createOnyxData(null) : [];
-    const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
     const params = {
         reportIDList: reportID,
@@ -397,7 +396,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
         }),
     } satisfies ReportExportParams;
 
-    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, successData, finallyData});
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, successData});
 }
 
 function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
@@ -415,7 +414,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
     const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY ? createOnyxData(null) : [];
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
