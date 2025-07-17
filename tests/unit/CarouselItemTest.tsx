@@ -3,7 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {translateLocal} from '@libs/Localize';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -17,7 +17,7 @@ describe('CarouselItem', () => {
     it('should hide flagged attachments initially', async () => {
         // Given a CarouselItem component with a valid attributes
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <PlaybackContextProvider>
                         <AttachmentModalContextProvider>
@@ -33,7 +33,7 @@ describe('CarouselItem', () => {
                         </AttachmentModalContextProvider>
                     </PlaybackContextProvider>
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();
 
