@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 
 function Backdrop({
     style,
+    backdropOpacity,
     customBackdrop,
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
@@ -18,15 +19,21 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const Entering = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
         return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+    }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
 
         return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
+    }, [animationOutTiming, backdropOpacity]);
 
     const BackdropOverlay = useMemo(
         () => (

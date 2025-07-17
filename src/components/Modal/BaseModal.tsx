@@ -106,7 +106,7 @@ function BaseModal(
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
@@ -320,7 +320,7 @@ function BaseModal(
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
-                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : backdropOpacity}
+                        backdropOpacity={hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && (isInNarrowPane || isInNarrowPaneModal)) ? 0 : backdropOpacity}
                         backdropTransitionOutTiming={0}
                         hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
