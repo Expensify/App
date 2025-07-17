@@ -77,8 +77,8 @@ type DefaultTranslation = typeof en;
 type TranslationPaths = FlattenObject<DefaultTranslation>;
 
 type TranslationKeyError = {
-    translationKey: TranslationPaths
-}
+    translationKey: TranslationPaths;
+};
 
 type TranslationKeyErrors = Record<string, TranslationKeyError>;
 /**

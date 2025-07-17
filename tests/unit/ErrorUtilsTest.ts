@@ -1,5 +1,5 @@
-import * as ErrorUtils from '@src/libs/ErrorUtils';
 import DateUtils from '@src/libs/DateUtils';
+import * as ErrorUtils from '@src/libs/ErrorUtils';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 // Mock DateUtils
@@ -122,10 +122,12 @@ describe('ErrorUtils', () => {
         });
 
         test('should return false for objects with multiple keys', () => {
-            expect(ErrorUtils.isTranslationKeyError({
-                translationKey: 'passwordForm.error.fallback',
-                extraKey: 'extra',
-            })).toBe(false);
+            expect(
+                ErrorUtils.isTranslationKeyError({
+                    translationKey: 'passwordForm.error.fallback',
+                    extraKey: 'extra',
+                }),
+            ).toBe(false);
         });
 
         test('should return false for objects without translationKey property', () => {
@@ -148,6 +150,77 @@ describe('ErrorUtils', () => {
             expect(ErrorUtils.isTranslationKeyError(123)).toBe(false);
             expect(ErrorUtils.isTranslationKeyError(true)).toBe(false);
             expect(ErrorUtils.isTranslationKeyError(false)).toBe(false);
+        });
+    });
+
+    describe('Integration: getMicroSecondTranslationErrorWithTranslationKey and isTranslationKeyError', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test('should create translation error objects that are correctly identified by isTranslationKeyError', () => {
+            const mockMicroseconds = 1234567890123;
+            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+
+            const errorObject = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
+
+            // The error object should have one key (the timestamp)
+            const keys = Object.keys(errorObject);
+            expect(keys).toHaveLength(1);
+
+            // The value at that key should be a valid translation key error
+            const errorValue = errorObject[keys[0]];
+            expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
+        });
+
+        test('should work with custom error keys', () => {
+            const customErrorKey = 9876543210;
+            const errorObject = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.fallback', customErrorKey);
+
+            // The error object should have the custom key
+            expect(errorObject).toHaveProperty(customErrorKey.toString());
+
+            // The value should be a valid translation key error
+            const errorValue = errorObject[customErrorKey];
+            expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
+        });
+
+        test('should create objects with multiple errors that are all valid translation key errors', () => {
+            const mockMicroseconds1 = 1111111111111;
+            const mockMicroseconds2 = 2222222222222;
+
+            (DateUtils.getMicroseconds as jest.Mock).mockReturnValueOnce(mockMicroseconds1).mockReturnValueOnce(mockMicroseconds2);
+
+            const error1 = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
+            const error2 = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('session.offlineMessageRetry');
+
+            // Combine the error objects
+            const combinedErrors = {...error1, ...error2};
+
+            // All values should be valid translation key errors
+            Object.values(combinedErrors).forEach((errorValue) => {
+                expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
+            });
+        });
+
+        test('should verify the structure of created translation key errors', () => {
+            const mockMicroseconds = 5555555555555;
+            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+
+            const errorObject = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.twoFactorAuthenticationEnabled');
+            const errorValue = errorObject[mockMicroseconds];
+
+            // Verify the structure matches what isTranslationKeyError expects
+            expect(errorValue).toEqual({
+                translationKey: 'passwordForm.error.twoFactorAuthenticationEnabled',
+            });
+
+            // Verify it passes all the checks in isTranslationKeyError
+            expect(typeof errorValue).not.toBe('string');
+            expect(Array.isArray(errorValue)).toBe(false);
+            expect(Object.keys(errorValue)).toHaveLength(1);
+            expect(errorValue.translationKey).toBeDefined();
+            expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
         });
     });
 });

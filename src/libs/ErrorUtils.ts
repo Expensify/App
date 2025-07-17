@@ -209,6 +209,9 @@ function isReceiptError(message: unknown): message is ReceiptError {
  * Check if the error includes a translation key.
  */
 function isTranslationKeyError(message: unknown): message is TranslationKeyError {
+    if (!message) {
+        return false;
+    }
     if (typeof message === 'string') {
         return false;
     }
