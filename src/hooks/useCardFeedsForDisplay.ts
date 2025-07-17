@@ -34,7 +34,7 @@ const useCardFeedsForDisplay = () => {
             }
         }
 
-        // If the active policy doesnt have card feeds, use the first eligible policy that does
+        // If the active policy doesn't have card feeds, use the first eligible policy that does
         for (const eligiblePolicyID of eligiblePoliciesIDs) {
             const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
             if (policyCardFeeds?.length) {
