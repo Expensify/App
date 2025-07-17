@@ -42,19 +42,9 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
-import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
-
-/**
- * Properties passed to the top-level React Native component by HybridApp.
- * These will always be `undefined` in "pure" NewDot builds.
- */
-type AppProps = {
-    /** The URL specifying the initial navigation destination when the app opens */
-    url?: Route;
-};
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -69,14 +59,14 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url}: AppProps) {
+function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider url={url}>
+                <InitialURLContextProvider>
                     <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
@@ -130,5 +120,3 @@ function App({url}: AppProps) {
 App.displayName = 'App';
 
 export default App;
-
-export type {AppProps};

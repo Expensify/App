@@ -171,7 +171,7 @@ function ScreenWrapper(
     const {initialURL} = useContext(InitialURLContext);
     const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
 
-    usePreventRemove(isSingleNewDotEntry && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }

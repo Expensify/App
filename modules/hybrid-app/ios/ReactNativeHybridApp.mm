@@ -29,8 +29,18 @@ RCT_EXPORT_MODULE()
 
 - (void)getHybridAppSettings:(RCTPromiseResolveBlock)resolve
                       reject:(RCTPromiseRejectBlock)reject {
-    NSLog(@"[ReactNativeHybridApp] `getHybridAppSettings` should never be called in standalone `New Expensify` app");                
+    NSLog(@"[ReactNativeHybridApp] `getHybridAppSettings` should never be called in standalone `New Expensify` app");
     reject(@"NOT_IMPLEMENTED", @"This method is not available in standalone New Expensify app", nil);
+}
+
+- (void)getInitialURL:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject {
+    NSLog(@"[ReactNativeHybridApp] `getInitialURL` should never be called in standalone `New Expensify` app");
+    reject(@"NOT_IMPLEMENTED", @"This method is not available in standalone New Expensify app", nil);
+}
+
+- (void)onURLListenerAdded {
+    NSLog(@"[ReactNativeHybridApp] `onURLListenerAdded` should never be called in standalone `New Expensify` app");
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

@@ -23,6 +23,15 @@ const HybridAppModule: HybridAppModuleType = {
     getHybridAppSettings() {
         return ReactNativeHybridApp.getHybridAppSettings();
     },
+    getInitialURL() {
+        return ReactNativeHybridApp.getInitialURL();
+    },
+    onURLListenerAdded() {
+        ReactNativeHybridApp.onURLListenerAdded();
+    },
+    nativeLog(message: string) {
+        ReactNativeHybridApp.nativeLog(message);
+    },
 };
 
 export default HybridAppModule;
