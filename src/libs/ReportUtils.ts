@@ -2130,10 +2130,6 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
-    if (isAuditor(report)) {
-        return true;
-    }
-
     if (!canWriteInReport(report)) {
         return false;
     }
