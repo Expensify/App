@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
@@ -64,6 +64,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             isVisible={isVisible}
             onClose={onModalClose}
             onModalHide={onModalClose}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

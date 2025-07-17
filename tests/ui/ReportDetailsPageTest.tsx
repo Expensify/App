@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {translateLocal} from '@libs/Localize';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -71,7 +71,7 @@ describe('ReportDetailsPage', () => {
         });
 
         const {rerender} = render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <ReportDetailsPage
                         betas={[]}
@@ -83,7 +83,7 @@ describe('ReportDetailsPage', () => {
                         route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
                     />
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
@@ -102,7 +102,7 @@ describe('ReportDetailsPage', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, movedTrackExpenseReport);
 
         rerender(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <ReportDetailsPage
                         betas={[]}
@@ -114,7 +114,7 @@ describe('ReportDetailsPage', () => {
                         route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
                     />
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         expect(screen.queryByText(submitText)).not.toBeVisible();

@@ -1,5 +1,7 @@
+import * as core from '@actions/core';
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
+import GithubUtils from './GithubUtils';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
@@ -190,21 +192,35 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ *
+ * This function is being refactored to use the GitHub API instead of the git log command, but for now the
+ * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
-async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
+    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
+    console.log(`[git log] Found ${gitCommitList.length} commits.`);
+    core.startGroup('[git log] Parsed PRs:');
+    core.info(JSON.stringify(gitLogPullRequestNumbers));
+    core.endGroup();
+
+    // Test the new GitHub API method
+    // eslint-disable-next-line deprecation/deprecation
+    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
+    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    console.log(`[api] Found ${apiCommitList.length} commits.`);
+    core.startGroup('[api] Parsed PRs:');
+    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.endGroup();
+
+    return gitLogPullRequestNumbers;
 }
 
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
-    getPullRequestsMergedBetween,
+    getPullRequestsDeployedBetween,
 };
 export type {CommitType};

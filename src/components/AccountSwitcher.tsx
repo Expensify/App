@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,7 +45,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => onyxSession?.accountID});
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -230,7 +230,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                     style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                     numberOfLines={1}
                                 >
-                                    AccountID: {session?.accountID}
+                                    AccountID: {accountID}
                                 </Text>
                             )}
                         </View>

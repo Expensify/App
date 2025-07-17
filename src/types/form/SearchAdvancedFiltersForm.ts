@@ -58,6 +58,7 @@ const FILTER_KEYS = {
     ASSIGNEE: 'assignee',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
+    ACTION: 'action',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -100,6 +101,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -137,6 +142,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -174,6 +181,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         FILTER_KEYS.TYPE,
@@ -201,10 +212,10 @@ const ALLOWED_TYPE_FILTERS = {
     ],
 };
 
-type InputID = ValueOf<typeof FILTER_KEYS>;
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
 
 type SearchAdvancedFiltersForm = Form<
-    InputID,
+    SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
@@ -229,7 +240,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
-        [FILTER_KEYS.POLICY_ID]: string;
+        [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.MERCHANT]: string;
@@ -250,9 +261,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.ACTION]: string;
     }
 >;
 
-export type {SearchAdvancedFiltersForm};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS};

@@ -1,5 +1,4 @@
 import {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
@@ -23,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
@@ -81,8 +81,15 @@ function useSelectedTransactionsActions({
                 return transactionID === IOUTransactionID;
             }),
         }));
+        const deletedTransactionIDs: string[] = [];
+        transactionsWithActions.forEach(({transactionID, action}) => {
+            if (!action) {
+                return;
+            }
 
-        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+            deleteMoneyRequest(transactionID, action, undefined, deletedTransactionIDs);
+            deletedTransactionIDs.push(transactionID);
+        });
         clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
@@ -158,26 +165,18 @@ function useSelectedTransactionsActions({
         }
 
         options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
-            text: translate('common.export'),
-            backButtonText: translate('common.export'),
-            icon: Expensicons.Export,
-            subMenuItems: [
-                {
-                    text: translate('common.basicExport'),
-                    icon: Expensicons.Table,
-                    value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
-                    onSelected: () => {
-                        if (!report) {
-                            return;
-                        }
-                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                            onExportFailed?.();
-                        });
-                        clearSelectedTransactions(true);
-                    },
-                },
-            ],
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            text: translate('common.downloadAsCSV'),
+            icon: Expensicons.Download,
+            onSelected: () => {
+                if (!report) {
+                    return;
+                }
+                exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
+                    onExportFailed?.();
+                });
+                clearSelectedTransactions(true);
+            },
         });
 
         const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
@@ -203,9 +202,9 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canAllSelectedTransactionsBeRemoved = selectedTransactionIDs.every((transactionID) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
-            const action = getIOUActionForTransactionID(reportActions, transactionID);
+        const canAllSelectedTransactionsBeRemoved = Object.values(selectedTransactions).every((transaction) => {
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
+            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 

@@ -88,9 +88,27 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
     );
 }
 
+/**
+ * Filter out the active policies, which will exclude policies with pending deletion
+ * and policies the current user doesn't belong to.
+ * These will be policies that has expense chat enabled.
+ * These are policies that we can use to create reports with in NewDot.
+ */
+function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return Object.values(policies ?? {}).filter<Policy>(
+        (policy): policy is Policy =>
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            !!getPolicyRole(policy, currentUserLogin) &&
+            policy.isPolicyExpenseChatEnabled,
+    );
+}
+
 function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
     return (
-        getActivePolicies(policies, email)
+        getActivePoliciesWithExpenseChat(policies, email)
             .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
             // We filter out custom units that are undefine but ts cant' figure it out.
             .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
@@ -394,6 +412,23 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
     );
 }
 
+/**
+ * Gets a tag list of a policy by a tag's orderWeight.
+ */
+function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): ValueOf<PolicyTagLists> {
+    const tagListEmpty = {
+        name: '',
+        required: false,
+        tags: {},
+        orderWeight: 0,
+    };
+    if (isEmptyObject(policyTagList)) {
+        return tagListEmpty;
+    }
+
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
+}
+
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
     const uniqueTagNames = new Set<string>();
 
@@ -558,6 +593,9 @@ function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
         Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
+                return;
+            }
+            if (allTaxRates[taxRate.name].includes(taxRateKey)) {
                 return;
             }
             allTaxRates[taxRate.name].push(taxRateKey);
@@ -752,7 +790,7 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 /** Whether the user can submit per diem expense from the workspace */
 function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    return !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
+    return !!policy?.isPolicyExpenseChatEnabled && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
 /** Whether the user can send invoice */
@@ -1126,11 +1164,11 @@ function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): S
  * @param workspace2 Details of the second workspace to be compared.
  * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
  */
-const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceID: string | undefined): number => {
-    if (workspace1.policyID === selectedWorkspaceID) {
+const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceIDs: string[] | undefined): number => {
+    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID)) {
         return -1;
     }
-    if (workspace2.policyID === selectedWorkspaceID) {
+    if (workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
         return 1;
     }
     return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
@@ -1445,6 +1483,7 @@ export {
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
+    getTagListByOrderWeight,
     getTagListName,
     getTagLists,
     getTaxByID,
