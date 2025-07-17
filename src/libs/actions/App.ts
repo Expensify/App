@@ -306,6 +306,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
         });
     }
 
+    // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
+    // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
     const reportsHaveDraftComments = Object.entries(allReportsDraftComment ?? {})
         .filter(([, value]) => value !== null)
         .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
