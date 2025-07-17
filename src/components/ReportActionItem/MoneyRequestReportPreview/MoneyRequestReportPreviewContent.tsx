@@ -714,7 +714,7 @@ function MoneyRequestReportPreviewContent({
                                     {/* Subheader with status and count */}
                                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
                                         <Text
-                                            style={[styles.textLabelSupporting, styles.lh16, styles.mt0]}
+                                            style={[styles.textLabelSupporting, styles.lh16]}
                                             numberOfLines={1}
                                             testID="MoneyRequestReportPreview-statusAndCount"
                                         >
