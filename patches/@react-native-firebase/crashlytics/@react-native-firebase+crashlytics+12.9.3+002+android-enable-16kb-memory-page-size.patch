@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-native-firebase/crashlytics/android/build.gradle b/node_modules/@react-native-firebase/crashlytics/android/build.gradle
-index 9b89ae7..36cc020 100644
+index 9b89ae7..3069e6c 100644
 --- a/node_modules/@react-native-firebase/crashlytics/android/build.gradle
 +++ b/node_modules/@react-native-firebase/crashlytics/android/build.gradle
 @@ -67,6 +67,12 @@ project.ext {
@@ -15,16 +15,16 @@ index 9b89ae7..36cc020 100644
    }
    lintOptions {
      disable 'GradleCompatible'
-@@ -76,6 +82,12 @@ android {
-     sourceCompatibility JavaVersion.VERSION_1_8
-     targetCompatibility JavaVersion.VERSION_1_8
-   }
-+
-+  packagingOptions {
-+    jniLibs {
-+      useLegacyPackaging true
+@@ -87,7 +93,11 @@ dependencies {
+   api appProject
+   implementation platform("com.google.firebase:firebase-bom:${ReactNative.ext.getVersion("firebase", "bom")}")
+   implementation "com.google.firebase:firebase-crashlytics"
+-  implementation "com.google.firebase:firebase-crashlytics-ndk"
++  implementation ("com.google.firebase:firebase-crashlytics-ndk") {
++    version {
++      strictly "[19.0.2,)"
 +    }
 +  }
  }
  
- repositories {
+ ReactNative.shared.applyPackageVersion()
