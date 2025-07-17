@@ -728,6 +728,7 @@
         "modules/ExpensifyNitroUtils/android/build.gradle",
         "modules/ExpensifyNitroUtils/android/src/main/cpp/**",
         "modules/hybrid-app/android/build.gradle",
+        "modules/background-task/android/build.gradle",
         "src/TIMEZONES.ts",
         "tests/unit/EmojiTest.ts",
         "tests/unit/FastSearchTest.ts",
