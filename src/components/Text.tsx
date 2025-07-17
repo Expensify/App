@@ -53,7 +53,15 @@ function Text(
     }
 
     const isOnlyCustomEmoji = useMemo(() => {
-        return typeof children === 'string' ? containsOnlyCustomEmoji(children) : false;
+        if (typeof children === 'string') {
+            return containsOnlyCustomEmoji(children);
+        }
+        if (Array.isArray(children)) {
+            return children.every((child) => {
+                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+            });
+        }
+        return false;
     }, [children]);
 
     if (isOnlyCustomEmoji) {

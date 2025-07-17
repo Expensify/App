@@ -455,6 +455,8 @@
         "positionMillis",
         "Postharvest",
         "Postproduction",
+        "Powerform",
+        "POWERFORM",
         "Précédent",
         "precheck",
         "Precheck",
@@ -686,7 +688,8 @@
         "zxcv",
         "zxldvw",
         "مثال",
-        "pnrs"
+        "pnrs",
+        "POLICYCHANGELOG_ADD_EMPLOYEE"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
