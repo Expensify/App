@@ -40,10 +40,11 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
+    policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
@@ -56,7 +57,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
     const expenseReports = useMemo(
         () =>
             Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
+                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                     return [];
                 }
                 const reports = getOutstandingReportsForUser(
@@ -67,7 +68,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps],
     );
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
