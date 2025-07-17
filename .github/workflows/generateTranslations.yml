@@ -28,13 +28,29 @@ jobs:
           echo '::error:: 😦 Something you did broke scripts/generateTranslations.ts. Most likely, this means you added an import that caused react-native to be directly or indirectly imported into the script.'
           exit 1
 
+      - name: Check if English translations were modified
+        id: check-en-changes
+        run: |
+          # Check if src/languages/en.ts was changed in this PR
+          if gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -q "^src/languages/en\.ts$"; then
+            echo "EN_CHANGED=true" >> $GITHUB_OUTPUT
+            echo "✅ English translations were modified - will generate translations"
+          else
+            echo "EN_CHANGED=false" >> $GITHUB_OUTPUT
+            echo "⏭️ English translations were not modified - skipping translation generation"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Run generateTranslations for added translations
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
         run: npx ts-node ./scripts/generateTranslations.ts --compare-ref=main
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
 
       - name: Post diff in PR as a comment
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
         run: |
           # Check if there are any changes after running generateTranslations
           if git diff --quiet HEAD; then
