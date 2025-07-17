@@ -9,6 +9,7 @@ import type {ChangeTransactionsReportParams, DismissViolationParams, GetRoutePar
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -20,12 +21,24 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     findSelfDMReportID,
+    getReportTransactions,
 } from '@libs/ReportUtils';
 import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    PersonalDetails,
+    Policy,
+    RecentWaypoint,
+    Report,
+    ReportAction,
+    ReportNextStep,
+    ReviewDuplicates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -602,7 +615,7 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string, policy?: OnyxEntry<Policy>) {
+function changeTransactionsReport(transactionIDs: string[], reportID: string, policy?: OnyxEntry<Policy>, reportNextStep?: OnyxEntry<ReportNextStep>) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!newReport) {
         return;
@@ -617,6 +630,11 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     const successData: OnyxUpdate[] = [];
 
     let transactionsMoved = false;
+    let shouldFixViolations = false;
+
+    const policyTagList = getPolicyTagsData(policy?.id);
+    const policyCategories = getPolicyCategoriesData(policy?.id);
+    const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     transactions.forEach((transaction) => {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -661,22 +679,17 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
 
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const policyTagList = getPolicyTagsData(policy.id);
-            const violationData = ViolationsUtils.getViolationsOnyxData(
-                transaction,
-                allTransactionViolations,
-                policy,
-                policyTagList,
-                getPolicyCategoriesData(policy.id),
-                hasDependentTags(policy, policyTagList),
-                false,
-            );
+            const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: allTransactionViolation?.[transaction.transactionID],
             });
+            const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
+            if (transactionHasViolations) {
+                shouldFixViolations = true;
+            }
         }
 
         // 3. Keep track of the new report totals
@@ -898,6 +911,31 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
         });
+    });
+
+    const reportTransactions = getReportTransactions(reportID);
+    reportTransactions.forEach((transaction) => {
+        if (!isPaidGroupPolicy(policy) || !policy?.id) {
+            return;
+        }
+        const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+        if (Array.isArray(violationData.value) && violationData.value.length > 0) {
+            shouldFixViolations = true;
+        }
+    });
+
+    // 9. Update next step for report
+    const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport.total};
+    const optimisticNextStep = buildNextStep(nextStepReport, nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+        value: optimisticNextStep,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+        value: reportNextStep,
     });
 
     const parameters: ChangeTransactionsReportParams = {
