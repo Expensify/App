@@ -213,7 +213,6 @@ class TranslationGenerator {
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
 
             // Extract strings to translate
-            // TODO: filter stringsToTranslate based on paths
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
@@ -284,6 +283,11 @@ class TranslationGenerator {
     private shouldNodeBeTranslated(node: ts.Node): node is ts.StringLiteral | ts.TemplateExpression | ts.NoSubstitutionTemplateLiteral {
         // We only translate string literals and template expressions
         if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
+            return false;
+        }
+
+        // Don't translate property keys (the name part of property assignments)
+        if (node.parent && ts.isPropertyAssignment(node.parent) && node.parent.name === node) {
             return false;
         }
 
@@ -425,13 +429,46 @@ class TranslationGenerator {
     }
 
     /**
+     * Check if a given translation path should be translated based on the paths filter.
+     * If no paths are specified, all paths should be translated.
+     * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
+     */
+    private shouldTranslatePath(currentPath: string): boolean {
+        if (!this.paths || this.paths.length === 0) {
+            return true;
+        }
+
+        for (const targetPath of this.paths) {
+            // Exact match
+            if (currentPath === targetPath) {
+                return true;
+            }
+            // Current path is nested under target path
+            if (currentPath.startsWith(`${targetPath}.`)) {
+                return true;
+            }
+            // Target path is nested under current path (for parent path matching)
+            if (targetPath.startsWith(`${currentPath}.`)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Recursively extract all string literals and templates to translate from the subtree rooted at the given node.
      * Simple templates (as defined by this.isSimpleTemplateExpression) can be translated directly.
      * Complex templates must have each of their spans recursively translated first, so we'll extract all the lowest-level strings to translate.
      * Then complex templates will be serialized with a hash of complex spans in place of the span text, and we'll translate that.
      */
-    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
+    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>, currentPath = '') {
         if (this.shouldNodeBeTranslated(node)) {
+            // Check if this translation path should be included based on the paths filter
+            if (!this.shouldTranslatePath(currentPath)) {
+                return; // Skip this node and its children if the path doesn't match
+            }
+
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
 
@@ -448,12 +485,33 @@ class TranslationGenerator {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
-                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
+                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate, currentPath));
                     stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }
         }
-        node.forEachChild((child) => this.extractStringsToTranslate(child, stringsToTranslate));
+
+        // Continue traversing children
+        node.forEachChild((child) => {
+            let childPath = currentPath;
+
+            // If the child is a property assignment, update the path
+            if (ts.isPropertyAssignment(child)) {
+                let propName: string | undefined;
+
+                if (ts.isIdentifier(child.name)) {
+                    propName = child.name.text;
+                } else if (ts.isStringLiteral(child.name)) {
+                    propName = child.name.text;
+                }
+
+                if (propName) {
+                    childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                }
+            }
+
+            this.extractStringsToTranslate(child, stringsToTranslate, childPath);
+        });
     }
 
     /**
