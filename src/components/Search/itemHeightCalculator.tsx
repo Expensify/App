@@ -28,7 +28,7 @@ function transactionHasViolations(item: TransactionListItemType): boolean {
 /**
  * Calculates height for report action items (chat messages)
  */
-function getReportActionItemHeight(item: ReportActionListItemType, config: ItemHeightConfig): number {
+function getReportActionItemHeight(item: ReportActionListItemType): number {
     const actionName = item.actionName;
     if (actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return ITEM_HEIGHTS.CHAT.REPORT_PREVIEW;
@@ -94,7 +94,7 @@ function calculateItemHeight(item: SearchListItem, config: ItemHeightConfig): nu
     try {
         // Chat messages (report actions)
         if (isReportActionListItemType(item) && config.type === CONST.SEARCH.DATA_TYPES.CHAT) {
-            return getReportActionItemHeight(item, config);
+            return getReportActionItemHeight(item);
         }
 
         // Transactions

@@ -38,7 +38,6 @@ import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
-    getBankAccountRoute,
     getDisplayNameForParticipant,
     getInvoicePayerName,
     getMoneyReportPreviewName,
@@ -283,8 +282,6 @@ function MoneyRequestReportPreviewContent({
         managerID,
     ]);
 
-    const bankAccountRoute = getBankAccountRoute(chatReport);
-
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
      - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
@@ -456,14 +453,14 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived || isChatReportArchived, reportActions, invoiceReceiverPolicy);
+        return getReportPreviewAction(violations, isIouReportArchived || isChatReportArchived, iouReport, policy, transactions, reportActions, invoiceReceiverPolicy);
     }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
             {
                 value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-                text: translate('iou.createNewExpense'),
+                text: translate('iou.createExpense'),
                 icon: Expensicons.Plus,
                 onSelected: () => {
                     if (!iouReport?.reportID) {
@@ -527,7 +524,6 @@ function MoneyRequestReportPreviewContent({
                 onPaymentOptionsHide={onPaymentOptionsHide}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                addBankAccountRoute={bankAccountRoute}
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -600,7 +596,10 @@ function MoneyRequestReportPreviewContent({
     }, [carouselTransactions.length]);
 
     return (
-        <View onLayout={onWrapperLayout}>
+        <View
+            onLayout={onWrapperLayout}
+            testID="MoneyRequestReportPreviewContent-wrapper"
+        >
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}
                 shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}

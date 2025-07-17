@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
@@ -24,7 +25,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -62,7 +63,6 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: ContentStyle;
-    // contentContainerStyle?: StyleProp<ViewStyle>; // TODO: remove this
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -86,22 +86,15 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-    hash?: number,
-) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
+function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
             shouldAnimateInHighlight,
-            hash,
         };
     }
 
@@ -109,22 +102,18 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
         return {
             ...item,
             shouldAnimateInHighlight,
-            hash,
         };
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) =>
-                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
-              ),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
               isSelected:
                   item?.transactions?.length > 0 &&
                   item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
-              hash,
           };
 }
 
@@ -177,9 +166,24 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
+    const {currentSearch} = useSearchTypeMenuSections(hash);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
+    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        canEvict: false,
+        canBeMissing: true,
+        selector: (allReportActions) => {
+            return Object.fromEntries(
+                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
+                    return [reportID, filteredReportActions];
+                }),
+            );
+        },
+    });
+
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
         () =>
@@ -241,6 +245,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         handleSearch({queryJSON, offset});
         // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -269,8 +275,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, groupBy);
-    }, [searchResults, isDataLoaded, type, status, groupBy]);
+
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearch?.key);
+    }, [currentSearch?.key, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -584,9 +591,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
+                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, hash],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -596,7 +603,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
