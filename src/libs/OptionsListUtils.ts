@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -33,7 +32,6 @@ import type {
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {search} from './actions/Search';
 import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
@@ -1299,12 +1297,7 @@ function orderReportOptions(options: OptionData[]) {
     return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
 }
 
-// Raw data comparators for prefiltering
-const rawReportComparator = (option: OptionData) => {
-    return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
-};
-
-const rawPersonalDetailsComparator = (personalDetail: PersonalDetails) => {
+const personalDetailsComparator = (personalDetail: OptionData) => {
     // Sort by displayName or login for alphabetical ordering
     const name = personalDetail.displayName ?? personalDetail.login ?? '';
     return name.toLowerCase();
@@ -1314,9 +1307,9 @@ const recentReportComparator = (option: OptionData) => {
     return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
-function optionsOrderBy(options: OptionData[], limit: number, comparator: (option: OptionData) => number | string, filter?: (option: OptionData) => boolean | undefined): OptionData[] {
+function optionsOrderBy<T = OptionData>(options: T[], limit: number, comparator: (option: T) => number | string, filter?: (option: T) => boolean | undefined): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
-    const heap = new MinHeap<OptionData>(comparator);
+    const heap = new MinHeap<T>(comparator);
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
@@ -1944,20 +1937,19 @@ function getValidOptions(
     let filteredReports = options.reports;
     let filteredPersonalDetails = options.personalDetails;
 
-    if (maxElements) {
-        if (options.reports) {
+    // Get valid recent reports:
+    let recentReportOptions: OptionData[] = [];
+    let workspaceChats: OptionData[] = [];
+    let selfDMChat: OptionData | undefined;
+
+    if (includeRecentReports) {
+        if (maxElements) {
             const searchTerms = (searchString ?? '')
                 .toLowerCase()
                 .split(' ')
                 .filter((term) => term.length > 0);
-            const reportEntries = Object.entries(options.reports);
-            const heap = new MinHeap<[string, Report]>(([_, report]) => rawReportComparator(report));
 
-            for (const [reportID, report] of reportEntries) {
-                if (!report) {
-                    continue;
-                }
-
+            const filteringFunction = (report: OptionData) => {
                 let searchText = `${report.text ?? ''}${report.login ?? ''}`;
 
                 if (report.isThread) {
@@ -1967,65 +1959,14 @@ function getValidOptions(
                 } else if (report.isPolicyExpenseChat) {
                     searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
                 }
+                searchText = searchText.toLocaleLowerCase();
+                return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+            };
 
-                const matches = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
-
-                if (matches) {
-                    if (heap.size() < maxElements) {
-                        heap.push([reportID, report]);
-                    } else {
-                        const peeked = heap.peek();
-                        if (peeked && rawReportComparator(report) > rawReportComparator(peeked[1])) {
-                            heap.pop();
-                            heap.push([reportID, report]);
-                        }
-                    }
-                }
-            }
-
-            filteredReports = Object.fromEntries([...heap].reverse()) as unknown as typeof options.reports;
+            filteredReports = optionsOrderBy(options.reports, maxElements, recentReportComparator, filteringFunction);
         }
 
-        // Filter personal details by search string and build heap in one pass
-        if (options.personalDetails) {
-            const searchTerms = (searchString ?? '')
-                .toLowerCase()
-                .split(' ')
-                .filter((term) => term.length > 0);
-            const personalDetailEntries = Object.entries(options.personalDetails);
-            const heap = new MinHeap<[string, PersonalDetails]>(([_, pd]) => rawPersonalDetailsComparator(pd));
-
-            for (const [accountID, personalDetail] of personalDetailEntries) {
-                if (!personalDetail || personalDetail.accountID === undefined) {
-                    continue;
-                }
-
-                const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`;
-                const matches = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
-
-                if (matches) {
-                    if (heap.size() < maxElements) {
-                        heap.push([accountID, personalDetail as PersonalDetails]);
-                    } else {
-                        const peeked = heap.peek();
-                        if (peeked && rawPersonalDetailsComparator(personalDetail as PersonalDetails) > rawPersonalDetailsComparator(peeked[1])) {
-                            heap.pop();
-                            heap.push([accountID, personalDetail as PersonalDetails]);
-                        }
-                    }
-                }
-            }
-
-            filteredPersonalDetails = Object.fromEntries([...heap].reverse()) as unknown as typeof options.personalDetails;
-        }
-    }
-
-    // Get valid recent reports:
-    let recentReportOptions: OptionData[] = [];
-    let workspaceChats: OptionData[] = [];
-    let selfDMChat: OptionData | undefined;
-    if (includeRecentReports) {
-        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(Object.values(filteredReports), {
+        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
             includeP2P,
             includeDomainEmail,
@@ -2057,6 +1998,7 @@ function getValidOptions(
     const currentUserRef = {
         current: undefined as OptionData | undefined,
     };
+
     if (includeP2P) {
         let personalDetailLoginsToExclude = loginsToExclude;
         if (currentUserLogin) {
@@ -2066,7 +2008,19 @@ function getValidOptions(
             };
         }
 
-        personalDetailsOptions = getValidPersonalDetailOptions(Object.values(filteredPersonalDetails), {
+        if (maxElements) {
+            const searchTerms = (searchString ?? '')
+                .toLowerCase()
+                .split(' ')
+                .filter((term) => term.length > 0);
+            const filteringFunction = (personalDetail: OptionData) => {
+                const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
+                return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+            };
+            filteredPersonalDetails = optionsOrderBy(options.personalDetails, maxElements, personalDetailsComparator, filteringFunction);
+        }
+
+        personalDetailsOptions = getValidPersonalDetailOptions(filteredPersonalDetails, {
             loginsToExclude: personalDetailLoginsToExclude,
             shouldBoldTitleByDefault,
             includeDomainEmail,
@@ -2080,15 +2034,13 @@ function getValidOptions(
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({currentUserOption: {}, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString);
+        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '');
     }
 
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         currentUserOption: currentUserRef.current,
-        // User to invite is generated by the search input of a user.
-        // As this function isn't concerned with any search input yet, this is null (will be set when using filterOptions).
         userToInvite,
         workspaceChats,
         selfDMChat,
@@ -2106,12 +2058,13 @@ function getSearchOptions(
     searchQuery = '',
     maxResults?: number,
     includeUserToInvite?: boolean,
+    includeRecentReports = true,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getValidOptions(options, {
         betas,
-        includeRecentReports: true,
+        includeRecentReports,
         includeMultipleParticipantReports: true,
         showChatPreviewLine: isUsedInChatFinder,
         includeP2P: true,
@@ -2722,69 +2675,69 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
 }
 
 export {
-    getAvatarsForAccountIDs,
-    isCurrentUser,
-    isPersonalDetailsReady,
-    getValidOptions,
-    getValidPersonalDetailOptions,
-    getSearchOptions,
-    getShareDestinationOptions,
-    getMemberInviteOptions,
-    getHeaderMessage,
-    getHeaderMessageForNonUserList,
-    getSearchValueForPhoneOrEmail,
-    getPersonalDetailsForAccountIDs,
-    getIOUConfirmationOptionsFromPayeePersonalDetail,
-    isSearchStringMatchUserDetails,
-    getPolicyExpenseReportOption,
-    getIOUReportIDOfLastAction,
-    getParticipantsOption,
-    isSearchStringMatch,
-    shouldOptionShowTooltip,
-    getLastActorDisplayName,
-    getLastMessageTextForReport,
-    hasEnabledOptions,
-    sortAlphabetically,
+    canCreateOptimisticPersonalDetailOption,
+    combineOrderingOfReportsAndPersonalDetails,
+    createOptionFromReport,
+    createOptionList,
+    filterAndOrderOptions,
+    filterOptions,
+    filterReports,
+    filterSelfDMChat,
+    filterUserToInvite,
+    filterWorkspaceChats,
+    filteredPersonalDetailsOfRecentReports,
     formatMemberForList,
     formatSectionsFromSearchTerm,
-    getShareLogOptions,
-    orderOptions,
-    filterUserToInvite,
-    filterOptions,
-    filteredPersonalDetailsOfRecentReports,
-    orderReportOptions,
-    orderReportOptionsWithSearch,
-    orderPersonalDetailsOptions,
-    filterAndOrderOptions,
-    createOptionList,
-    createOptionFromReport,
-    getReportOption,
-    getFirstKeyForList,
-    canCreateOptimisticPersonalDetailOption,
-    getUserToInviteOption,
-    getUserToInviteContactOption,
-    getPersonalDetailSearchTerms,
+    getAlternateText,
+    getAttendeeOptions,
+    getAvatarsForAccountIDs,
     getCurrentUserSearchTerms,
     getEmptyOptions,
-    shouldUseBoldText,
-    getAttendeeOptions,
-    getAlternateText,
-    getReportDisplayOption,
-    combineOrderingOfReportsAndPersonalDetails,
-    filterWorkspaceChats,
-    orderWorkspaceOptions,
-    filterSelfDMChat,
-    filterReports,
+    getFirstKeyForList,
+    getHeaderMessage,
+    getHeaderMessageForNonUserList,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
+    getIOUReportIDOfLastAction,
     getIsUserSubmittedExpenseOrScannedReceipt,
+    getLastActorDisplayName,
+    getLastMessageTextForReport,
     getManagerMcTestParticipant,
-    shouldShowLastActorDisplayName,
+    getMemberInviteOptions,
+    getParticipantsOption,
+    getPersonalDetailSearchTerms,
+    getPersonalDetailsForAccountIDs,
+    getPolicyExpenseReportOption,
+    getReportDisplayOption,
+    getReportOption,
+    getSearchOptions,
+    getSearchValueForPhoneOrEmail,
+    getShareDestinationOptions,
+    getShareLogOptions,
+    getUserToInviteContactOption,
+    getUserToInviteOption,
+    getValidOptions,
+    getValidPersonalDetailOptions,
+    hasEnabledOptions,
+    isCurrentUser,
     isDisablingOrDeletingLastEnabledCategory,
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
-    processReport,
-    shallowOptionsListCompare,
+    isPersonalDetailsReady,
+    isSearchStringMatch,
+    isSearchStringMatchUserDetails,
     optionsOrderBy,
+    orderOptions,
+    orderPersonalDetailsOptions,
+    orderReportOptions,
+    orderReportOptionsWithSearch,
+    orderWorkspaceOptions,
+    processReport,
     recentReportComparator,
+    shallowOptionsListCompare,
+    shouldOptionShowTooltip,
+    shouldShowLastActorDisplayName,
+    shouldUseBoldText,
+    sortAlphabetically,
 };
 
-export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
+export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase};

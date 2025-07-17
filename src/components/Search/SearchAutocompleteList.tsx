@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -11,7 +10,6 @@ import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebounce from '@hooks/useDebounce';
-import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,9 +17,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import Log from '@libs/Log';
-import memoize from '@libs/memoize';
-import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
+import type {Options} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -40,7 +37,6 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
@@ -217,38 +213,6 @@ function SearchAutocompleteList(
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
 
-    const getParticipantsAutocompleteList = useMemo(
-        () =>
-            memoize(() => {
-                if (!areOptionsInitialized) {
-                    return [];
-                }
-
-                const currentUserRef = {
-                    current: undefined as OptionData | undefined,
-                };
-                const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
-                    loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
-                    shouldBoldTitleByDefault: false,
-                    currentUserRef,
-                });
-
-                // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
-                const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
-                const autocompleteOptions = Object.values(personalDetailsFromOptions)
-                    .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
-                    .map((details) => {
-                        return {
-                            name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                            accountID: details.accountID.toString(),
-                        };
-                    });
-
-                return autocompleteOptions;
-            }),
-        [areOptionsInitialized, options.personalDetails],
-    );
-
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
@@ -357,22 +321,21 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
-                const filteredParticipants = getParticipantsAutocompleteList()
-                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
-                    .slice(0, 10);
+                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false).personalDetails.filter(
+                    (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),
+                );
 
-                return filteredParticipants.map((participant) => ({
+                return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.name,
-                    autocompleteID: participant.accountID,
+                    text: participant.text ?? '',
+                    autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filterChats = (chat: OptionData) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase());
-                const filteredChats = optionsOrderBy(searchOptions.recentReports, 10, recentReportComparator, filterChats);
+                const filteredReports = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, true).recentReports;
 
-                return filteredChats.map((chat) => ({
+                return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
                     text: chat.text ?? '',
                     autocompleteID: chat.reportID,
@@ -489,8 +452,8 @@ function SearchAutocompleteList(
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
-        getParticipantsAutocompleteList,
-        searchOptions.recentReports,
+        options,
+        betas,
         typeAutocompleteList,
         groupByAutocompleteList,
         statusAutocompleteList,
