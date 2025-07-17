@@ -1,6 +1,9 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+
+HybridAppModule.nativeLog(`linkingConfig/prefixes.ts: prefix ${CONST.NEW_EXPENSIFY_URL}`);
 
 const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
     'app://-/',
