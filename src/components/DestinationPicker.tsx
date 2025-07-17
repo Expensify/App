@@ -81,6 +81,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
+            shouldHideKeyboardOnScroll={false}
         />
     );
 }
