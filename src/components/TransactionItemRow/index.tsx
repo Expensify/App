@@ -47,7 +47,7 @@ import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
 
 type ColumnComponents = {
-    [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement | null;
+    [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
 };
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
