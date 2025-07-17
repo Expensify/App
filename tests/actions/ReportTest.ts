@@ -5,8 +5,10 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -21,13 +23,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+jest.mock('@libs/NextStepUtils', () => ({
+    buildNextStep: jest.fn(),
+}));
 
 jest.mock('@libs/ReportUtils', () => {
     const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
@@ -264,7 +270,6 @@ describe('actions/Report', () => {
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
-        jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
         let report: OnyxEntry<OnyxTypes.Report>;
@@ -342,7 +347,6 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
 
                 // When the user visits the report
-                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
                 Report.readNewestAction(REPORT_ID);
@@ -358,7 +362,6 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                jest.advanceTimersByTime(10);
                 Report.markCommentAsUnread(REPORT_ID, reportActions['1']);
                 return waitForBatchedUpdates();
             })
@@ -369,7 +372,7 @@ describe('actions/Report', () => {
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
-                jest.advanceTimersByTime(10);
+
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForBatchedUpdates();
@@ -382,7 +385,6 @@ describe('actions/Report', () => {
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
-                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 2');
                 return waitForBatchedUpdates();
@@ -394,7 +396,6 @@ describe('actions/Report', () => {
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
-                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForBatchedUpdates();
@@ -415,7 +416,6 @@ describe('actions/Report', () => {
                     created: DateUtils.getDBTime(Date.now() - 3),
                 };
 
-                jest.advanceTimersByTime(10);
                 const optimisticReportActions: OnyxUpdate = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -442,7 +442,7 @@ describe('actions/Report', () => {
                         },
                     },
                 };
-                jest.advanceTimersByTime(10);
+
                 reportActionCreatedDate = DateUtils.getDBTime();
 
                 const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
@@ -1544,6 +1544,7 @@ describe('actions/Report', () => {
             });
         });
         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
+        expect(reportPreviewAction?.actorAccountID).toBe(accountID);
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -1552,9 +1553,10 @@ describe('actions/Report', () => {
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
+                    const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     // assert correctness of crucial onyx data
                     expect(createdReport?.reportID).toBe(reportID);
+                    expect(parentPolicyExpenseChat?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
                     expect(createdReport?.total).toBe(0);
                     expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
 
@@ -1590,10 +1592,11 @@ describe('actions/Report', () => {
             const adminsChatReportID = '7957055873634067';
             const onboardingPolicyID = 'A70D00C752416807';
             const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
 
             Report.completeOnboarding({
                 engagementChoice,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+                onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID,
                 onboardingPolicyID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
@@ -1754,6 +1757,29 @@ describe('actions/Report', () => {
             });
             // The length is 3 to include the CREATED action
             expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
+        });
+    });
+
+    describe('buildOptimisticChangePolicyData', () => {
+        it('should build the optimistic data next step for the change policy data', () => {
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policyID = '1';
+            Report.buildOptimisticChangePolicyData(report, policyID);
+            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+    });
+
+    describe('searchInServer', () => {
+        it('should return the same result with or without uppercase input.', () => {
+            Report.searchInServer('test');
+            Report.searchInServer('TEST');
+            const upperCaseRequest = PersistedRequests.getAll().at(0);
+            const lowerCaseRequest = PersistedRequests.getAll().at(1);
+            expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
     });
 });

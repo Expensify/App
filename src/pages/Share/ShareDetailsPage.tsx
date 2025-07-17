@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
@@ -15,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -112,7 +112,6 @@ function ShareDetailsPage({
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
                         report,
-                        undefined,
                         undefined,
                         undefined,
                         undefined,

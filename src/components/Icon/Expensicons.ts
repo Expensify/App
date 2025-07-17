@@ -170,7 +170,6 @@ import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
-import PlusMinus from '@assets/images/plus-minus.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
@@ -216,6 +215,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
@@ -385,6 +385,7 @@ export {
     QBOSquare,
     QrCode,
     QuestionMark,
+    TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
@@ -465,7 +466,6 @@ export {
     GalleryNotFound,
     Train,
     boltSlash,
-    PlusMinus,
     MagnifyingGlassSpyMouthClosed,
     EmptySquare,
     CheckSquare,
