@@ -6,7 +6,7 @@ import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -256,6 +256,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     };
 
     const continueNonUSDVBBASetup = () => {
+        const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
+        const allAgreementsChecked =
+            reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
+            reimbursementAccountDraft?.agreeToTermsAndConditions === true &&
+            reimbursementAccountDraft?.consentToPrivacyNotice === true &&
+            reimbursementAccountDraft?.provideTruthfulInformation === true;
+
         setShouldShowContinueSetupButton(false);
         if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
@@ -277,8 +284,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
+        if (isPastSignerStep && !allAgreementsChecked) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep && allAgreementsChecked) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+            return;
         }
 
         if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
@@ -391,19 +404,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = (
-            <Text style={styles.flexRow}>
-                <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />
-            </Text>
-        );
+        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />;
     } else if (throttledDate) {
-        errorText = translate('bankAccount.hasBeenThrottledError');
+        errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        errorText = (
-            <Text style={styles.flexRow}>
-                <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />
-            </Text>
-        );
+        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
     }
 
     if (errorText) {
@@ -414,9 +419,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                     subtitle={policyName}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <View style={[styles.m5, styles.mv3, styles.flex1]}>
-                    <Text>{errorText}</Text>
-                </View>
+                <View style={[styles.m5, styles.mv3, styles.flex1]}>{errorText}</View>
             </ScreenWrapper>
         );
     }
@@ -442,6 +445,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                 policyID={policyIDParam}
                 shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
+                policyCurrency={policyCurrency}
             />
         );
     }
