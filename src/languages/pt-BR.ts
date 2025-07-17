@@ -3829,6 +3829,18 @@ const translations = {
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Por favor, adicione a conta no Xero e sincronize a conexão novamente.',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
@@ -5932,11 +5944,16 @@ const translations = {
                 title: 'Nenhuma despesa para exportar',
                 subtitle: 'Hora de relaxar, bom trabalho.',
             },
+            emptyStatementsResults: {
+                title: 'Nenhuma despesa a ser exibida',
+                subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
                 subtitle: 'Zero despesas. Máximo relaxamento. Bem feito!',
             },
         },
+        statements: 'Declarações',
         unapproved: 'Não aprovado',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCompanyCards: 'Cartões corporativos não aprovados',
