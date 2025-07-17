@@ -43,6 +43,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
     const filesToValidate = useRef<FileObject[]>([]);
+    const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<ErrorObject[]>([]);
 
     const deduplicateErrors = useCallback((errors: ErrorObject[]) => {
@@ -70,6 +71,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         validatedPDFs.current = [];
         validFiles.current = [];
         filesToValidate.current = [];
+        dataTransferItemList.current = [];
         collectedErrors.current = [];
     }, [setIsLoaderVisible]);
 
@@ -85,7 +87,16 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         setIsErrorModalVisible(true);
     };
 
-    const isValidFile = (originalFile: FileObject, isCheckingMultipleFiles?: boolean) => {
+    const isValidFile = (originalFile: FileObject, item: DataTransferItem | undefined, isCheckingMultipleFiles?: boolean) => {
+        if (item && item.kind === 'file' && 'webkitGetAsEntry' in item) {
+            const entry = item.webkitGetAsEntry();
+
+            if (entry?.isDirectory) {
+                collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED});
+                return Promise.resolve(false);
+            }
+        }
+
         return normalizeFileObject(originalFile)
             .then((normalizedFile) =>
                 validateImageForCorruption(normalizedFile).then(() => {
@@ -149,7 +160,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         }
     }, [deduplicateErrors, pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
 
-    const validateAndResizeFiles = (files: FileObject[]) => {
+    const validateAndResizeFiles = (files: FileObject[], items: DataTransferItem[]) => {
         // Early return for empty files
         if (files.length === 0) {
             return;
@@ -158,7 +169,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // Reset collected errors for new validation
         collectedErrors.current = [];
 
-        Promise.all(files.map((file) => isValidFile(file, files.length > 1).then((isValid) => (isValid ? file : null))))
+        Promise.all(files.map((file, index) => isValidFile(file, items.at(index), files.length > 1).then((isValid) => (isValid ? file : null))))
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
                 const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
@@ -224,22 +235,25 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             });
     };
 
-    const validateFiles = (files: FileObject[]) => {
+    const validateFiles = (files: FileObject[], items?: DataTransferItem[]) => {
         if (files.length > 1) {
             setIsValidatingMultipleFiles(true);
         }
         if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
             filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+            if (items) {
+                dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT)
+            }
             setErrorAndOpenModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
         } else {
-            validateAndResizeFiles(files);
+            validateAndResizeFiles(files, items ?? []);
         }
     };
 
     const onConfirm = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             setIsErrorModalVisible(false);
-            validateAndResizeFiles(filesToValidate.current);
+            validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current);
             return;
         }
 

@@ -531,7 +531,7 @@ function ReportActionCompose({
             const file = e?.dataTransfer?.files?.[0];
             if (file) {
                 file.uri = URL.createObjectURL(file);
-                validateFiles([file]);
+                validateFiles([file], Array.from(e.dataTransfer?.items ?? []));
                 return;
             }
         }
@@ -545,7 +545,7 @@ function ReportActionCompose({
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -592,14 +592,14 @@ function ReportActionCompose({
                                             file.uri = URL.createObjectURL(file);
                                             return file;
                                         });
-                                        displayFilesInModal(files);
+                                        displayFilesInModal(files, Array.from(event.dataTransfer?.items ?? []));
                                         return;
                                     }
 
                                     const data = event.dataTransfer?.files[0];
                                     if (data) {
                                         data.uri = URL.createObjectURL(data);
-                                        displayFilesInModal([data]);
+                                        displayFilesInModal([data], Array.from(event.dataTransfer?.items ?? []));
                                     }
                                 };
 

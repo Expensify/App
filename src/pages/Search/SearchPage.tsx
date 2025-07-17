@@ -442,7 +442,7 @@ function SearchPage({route}: SearchPageProps) {
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     const createExportAll = useCallback(() => {

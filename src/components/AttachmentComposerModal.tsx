@@ -35,7 +35,7 @@ type ImagePickerResponse = {
 type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
-    displayFilesInModal: (data: FileObject[]) => void;
+    displayFilesInModal: (data: FileObject[], items?: DataTransferItem[]) => void;
     show: () => void;
 };
 
@@ -67,8 +67,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
-    const [isFileErrorModalVisible, setIsFileErrorModalVisible] = useState(false);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -139,7 +137,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
             return;
         }
 
-        if (validFilesToUpload.length > 0 && !fileError) {
+        if (validFilesToUpload.length > 0) {
             // Convert all files to attachments
             const newAttachments = validFilesToUpload.map((fileObject) => {
                 const source = fileObject.uri ?? '';
@@ -158,40 +156,39 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
 
             setIsModalOpen(true);
         }
-    }, [fileError, validFilesToUpload, convertFileToAttachment, getModalType]);
+    }, [validFilesToUpload, convertFileToAttachment, getModalType]);
 
     const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(setValidFilesToUpload, false);
 
-    const confirmAndContinue = () => {
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-            validateFiles(validFilesToUpload);
-        }
-        setIsFileErrorModalVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            setFileError(null);
-        });
-    };
-
     const validateAndDisplayMultipleFilesToUpload = useCallback(
-        (data: FileObject[]) => {
+        (data: FileObject[], items?: DataTransferItem[]) => {
             if (!data?.length) {
                 return;
             }
 
+            const validIndices: number[] = [];
             const fileObjects = data
-                .map((item) => {
+                .map((item, index) => {
                     let fileObject = item;
                     if ('getAsFile' in item && typeof item.getAsFile === 'function') {
                         fileObject = item.getAsFile() as FileObject;
                     }
-                    return cleanFileObjectName(fileObject);
+                    const cleanedFileObject = cleanFileObjectName(fileObject);
+                    if (cleanedFileObject !== null) {
+                        validIndices.push(index);
+                    }
+                    return cleanedFileObject;
                 })
                 .filter((fileObject): fileObject is FileObject => fileObject !== null);
 
             if (!fileObjects.length) {
                 return;
             }
-            validateFiles(fileObjects);
+
+            // Create a filtered items array that matches the fileObjects
+            const filteredItems = items && validIndices.length > 0 ? validIndices.map((index) => items.at(index) ?? ({} as DataTransferItem)) : undefined;
+
+            validateFiles(fileObjects, filteredItems);
         },
         [cleanFileObjectName, validateFiles],
     );
@@ -199,14 +196,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
     }, []);
-
-    const closeAndResetModal = useCallback(() => {
-        closeModal();
-        InteractionManager.runAfterInteractions(() => {
-            setFileError(null);
-            setValidFilesToUpload([]);
-        });
-    }, [closeModal]);
 
     const openModal = useCallback(() => {
         setIsModalOpen(true);
@@ -296,16 +285,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                     </LayoutAnimationConfig>
                 </GestureHandlerRootView>
             </Modal>
-            <ConfirmModal
-                title={getFileValidationErrorText(fileError).title}
-                onConfirm={confirmAndContinue}
-                onCancel={closeAndResetModal}
-                isVisible={isFileErrorModalVisible}
-                prompt={getFileValidationErrorText(fileError).reason}
-                confirmText={translate(validFilesToUpload.length ? 'common.continue' : 'common.close')}
-                shouldShowCancelButton={!!validFilesToUpload.length}
-                cancelText={translate('common.cancel')}
-            />
             {children?.({
                 displayFilesInModal: validateAndDisplayMultipleFilesToUpload,
                 show: openModal,
