@@ -5085,27 +5085,6 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeight,
         },
 
-        transactionListItemStyle: {
-            borderRadius: 8,
-            minHeight: variables.optionRowHeight,
-            backgroundColor: theme.transparent,
-            flex: 1,
-            userSelect: 'none',
-        },
-
-        transactionGroupListItemStyle: {
-            borderRadius: 8,
-            minHeight: variables.optionRowHeight,
-            backgroundColor: theme.transparent,
-            paddingVertical: 8,
-            flex: 1,
-            userSelect: 'none',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            overflow: 'hidden',
-            flexDirection: 'row',
-        },
-
         searchQueryListItemStyle: {
             alignItems: 'center',
             flexDirection: 'row',
@@ -5248,6 +5227,15 @@ const styles = (theme: ThemeColors) =>
             right: 4,
             zIndex: 1,
             top: 4,
+        },
+
+        plaidIconExtraSmall: {
+            height: variables.iconSizeXSmall,
+            width: variables.iconSizeXSmall,
+            position: 'absolute',
+            right: 1,
+            zIndex: 1,
+            top: 1,
         },
 
         walletCardNumber: {
