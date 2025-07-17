@@ -31,10 +31,13 @@ function Confirmation({route}: ConfirmationProps) {
 
     const {transactionID, backTo} = route.params;
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+
     const iouActionOfTargetTransaction = getIOUActionForReportID(targetTransaction?.reportID, targetTransaction?.transactionID);
-    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouActionOfTargetTransaction?.childReportID}`, {canBeMissing: false});
+    const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionOfTargetTransaction?.childReportID}`];
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 
     const sourceTransaction = getSourceTransaction(mergeTransaction);
 
@@ -89,6 +92,8 @@ function Confirmation({route}: ConfirmationProps) {
                     </View>
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <MoneyRequestView
+                            allReports={allReports}
+                            policy={policy}
                             report={targetTransactionThreadReport}
                             shouldShowAnimatedBackground={false}
                             readonly
