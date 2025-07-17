@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
 
@@ -7,7 +8,7 @@ export default function SoftKillTestToolRow() {
             <Button
                 small
                 text="Kill"
-                onPress={() => {}}
+                onPress={() => NativeModules.TestToolsBridge.softKillApp()}
             />
         </TestToolRow>
     );
