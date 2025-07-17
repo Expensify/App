@@ -260,7 +260,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
         offset,
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
-
+    // return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
     API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
 }
 

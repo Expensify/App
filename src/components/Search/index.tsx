@@ -43,7 +43,7 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import {setActiveReportIDs} from '@userActions/ReportNavigation';
+import {saveLastSearchParams, setActiveReportIDs} from '@userActions/ReportNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -253,6 +253,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
             debugger;
+            saveLastSearchParams({
+                hasMoreResults: searchResults.search.hasMoreResults,
+                offset,
+                queryJSON,
+            });
             setActiveReportIDs(result.map((element) => element?.reportID ?? ''));
         }
 

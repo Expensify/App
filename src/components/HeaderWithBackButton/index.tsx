@@ -23,6 +23,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,6 +90,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const rawReports = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
+    const [lastSearchQuery] = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const allReports = rawReports?.[0] ?? [];
     const currentIndex = allReports.indexOf(report?.reportID ?? '');
     const allReportsCount = allReports?.length ?? 0;
@@ -102,10 +104,25 @@ function HeaderWithBackButton({
     };
 
     const goToNextReport = () => {
-        const currentIndex = allReports.indexOf(report?.reportID ?? '');
-
         if (currentIndex === -1 || allReports.length === 0) {
             return '';
+        }
+
+        debugger;
+        // if (currentIndex > allReports.length * 0.75 && lastSearchQuery?.hasMoreResults) {
+        if (true) {
+            // search({
+            //     queryJSON: lastSearchQuery.queryJSON,
+            //     offset: lastSearchQuery.offset,
+            // }).then((results) => {
+            //     console.log('________dupa___________');
+            //     console.log(results);
+            //     console.log('________dupa___________');
+            // });
+            search({
+                queryJSON: lastSearchQuery.queryJSON,
+                offset: lastSearchQuery.offset,
+            });
         }
 
         const nextIndex = (currentIndex + 1) % allReports.length;
