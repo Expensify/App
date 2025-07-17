@@ -16,7 +16,6 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,13 +41,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    columns,
     groupBy,
+    policies,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
@@ -95,24 +95,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
-
-    const sampleTransaction = groupItem.transactions.at(0);
-    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
-
-    const columns = [
-        COLUMNS.RECEIPT,
-        COLUMNS.TYPE,
-        COLUMNS.DATE,
-        COLUMNS.MERCHANT,
-        ...(sampleTransaction?.shouldShowDescription ? [COLUMNS.DESCRIPTION] : []),
-        ...(sampleTransaction?.shouldShowFrom ? [COLUMNS.FROM] : []),
-        ...(sampleTransaction?.shouldShowTo ? [COLUMNS.TO] : []),
-        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
-        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
-        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.TOTAL_AMOUNT,
-        COLUMNS.ACTION,
-    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     const getHeader = (isHovered: boolean) => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
@@ -200,7 +182,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
+                                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                                     onButtonPress={() => {
                                         openReportInRHP(transaction);
                                     }}

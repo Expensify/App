@@ -99,6 +99,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
@@ -330,8 +331,8 @@ export default {
     optionRowWideItemHeight: 64,
 
     // Narrow screen with drawer layout
-    optionRowNarrowWithDrawerItemHeight: 96,
-    optionRowNarrowWithDrawerItemHeightWithButton: 104,
+    optionRowNarrowWithDrawerItemHeight: 100,
+    optionRowNarrowWithDrawerItemHeightWithButton: 124,
 
     // Narrow screen without drawer (mobile-like) layout
     optionRowNarrowWithoutDrawerItemHeight: 92,
@@ -345,22 +346,20 @@ export default {
     searchListItemHeightSmallScreen: 96,
     searchListItemHeightChat: 351,
     searchListItemHeightChatCompact: 105,
-    searchOptionRowTransactionHeight: 52,
+    searchOptionRowTransactionHeightSmallScreen: 60,
+    searchOptionRowTransactionHeightLargeScreen: 52,
     searchOptionRowBaseHeight: 52,
     searchOptionRowSmallFooterHeight: 28,
     searchOptionRowLargeFooterHeight: 17,
-    searchOptionRowMargin: 6,
+    searchOptionRowMargin: 8,
 
     // Search item violation warning mark height
-    searchViolationWarningMarkHeight: 24,
+    searchViolationWarningMarkHeight: 22,
 
     // Search item base padding/margin
     searchItemBasePadding: 8,
 
     // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
-    searchChatReportPreviewHeightLargeScreen: 434,
-    searchChatReportPreviewWithViolationsHeightLargeScreen: 460,
-    searchChatReportPreviewHeightSmallScreen: 598,
-    searchChatReportPreviewWithViolationsHeightSmallScreen: 624,
+    searchChatReportPreviewHeight: 434,
     searchChatStandardItemHeight: 97,
 } as const;

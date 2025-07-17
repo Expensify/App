@@ -212,6 +212,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -442,7 +445,10 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+};
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -467,6 +473,8 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    policies?: OnyxCollection<Policy>;
+    columns?: SortableColumnName[];
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -477,6 +485,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
 };
 
 type ValidListItem =
@@ -550,6 +561,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * Only use this if we're handling some non-standard items, most of the time the default value is correct
      */
     getItemHeight?: (item: TItem) => number;
+
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -820,6 +834,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
