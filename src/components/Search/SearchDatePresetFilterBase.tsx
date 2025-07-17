@@ -1,48 +1,71 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import Button from '@components/Button';
+import React, {useCallback, useImperativeHandle, useMemo, useState} from 'react';
+import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
-import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {SearchDateFilterKeys, SearchDatePreset} from './types';
+import type {SearchDatePreset} from './types';
+
+type SearchDateValues = Record<SearchDateModifier, string | undefined>;
+
+type SearchDatePresetFilterBaseHandle = {
+    /** Gets date values */
+    getDateValues: () => SearchDateValues;
+
+    /** Clears date values */
+    clearDateValues: () => void;
+
+    /** Sets the date value of the selected date modifier to the ephemeral date value (the selected date in calendar) */
+    setDateValueOfSelectedDateModifier: () => void;
+
+    /** Clears the date value of the selected date modifier */
+    clearDateValueOfSelectedDateModifier: () => void;
+};
 
 type SearchDatePresetFilterBaseProps = {
-    /** Key used for the date filter */
-    dateKey: SearchDateFilterKeys;
+    /** Default date values */
+    defaultDateValues: SearchDateValues;
 
-    /** The translation key for the page title */
-    titleKey: TranslationPaths;
+    /** Selected date modifier */
+    selectedDateModifier: SearchDateModifier | null;
+
+    /** Callback when a date modifier is selected */
+    onSelectDateModifier: (dateModifier: SearchDateModifier | null) => void;
 
     /** The date presets */
     presets?: SearchDatePreset[];
+
+    /** Whether we should display the horizontal rule after the presets list */
+    shouldShowHorizontalRule?: boolean;
+
+    /** The ref handle */
+    ref: Ref<SearchDatePresetFilterBaseHandle>;
 };
 
-function SearchDatePresetFilterBase({dateKey, titleKey, presets}: SearchDatePresetFilterBaseProps) {
+/**
+ * SearchDatePresetFilterBase is a partially controlled component:
+ * - The selected date modifier is controlled.
+ * - The date values are uncontrolled. This is done to avoid duplicating the `setDateValue` logic and also to avoid exposing the `ephemeralDateValue` state.
+ *
+ * There are cases where the parent is required to alter the internal date values e.g. reset the values, in such cases you should use the ref handle.
+ * Typically you are expected to use this component with a save and a reset button.
+ * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
+ * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
+ */
+function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, shouldShowHorizontalRule = false, ref}: SearchDatePresetFilterBaseProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
-    const [dateValues, setDateValues] = useState<Record<SearchDateModifier, string | undefined>>(() => ({
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
-    }));
-
+    const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
         setDateValues((prevDateValues) => {
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
@@ -65,146 +88,117 @@ function SearchDatePresetFilterBase({dateKey, titleKey, presets}: SearchDatePres
         });
     }, []);
 
-    const dateDisplayValues = useMemo<Record<SearchDateModifier, string | undefined>>(() => {
+    const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
-        const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
         const dateAfter = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+        const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
 
         return {
             // dateOn could be a preset e.g. Last month which should not be displayed as the On field
             [CONST.SEARCH.DATE_MODIFIERS.ON]: isSearchDatePreset(dateOn) ? undefined : dateOn,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
         };
     }, [dateValues]);
 
     const getInitialEphemeralDateValue = useCallback((dateModifier: SearchDateModifier | null) => (dateModifier ? dateDisplayValues[dateModifier] : undefined), [dateDisplayValues]);
     const [ephemeralDateValue, setEphemeralDateValue] = useState<string | undefined>(() => getInitialEphemeralDateValue(selectedDateModifier));
-
-    const chooseDateModifier = useCallback(
-        (dateModifier: SearchDateModifier) => {
-            setSelectedDateModifier(dateModifier);
-            setEphemeralDateValue(getInitialEphemeralDateValue(dateModifier));
-        },
+    const resetEphemeralDateValue = useCallback(
+        (dateModifier: SearchDateModifier | null) => setEphemeralDateValue(getInitialEphemeralDateValue(dateModifier)),
         [getInitialEphemeralDateValue],
     );
 
-    const goBack = useCallback(() => {
-        if (!selectedDateModifier) {
-            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-            return;
-        }
+    const selectDateModifier = useCallback(
+        (dateModifier: SearchDateModifier | null) => {
+            resetEphemeralDateValue(dateModifier);
+            onSelectDateModifier(dateModifier);
+        },
+        [resetEphemeralDateValue, onSelectDateModifier],
+    );
 
-        setSelectedDateModifier(null);
-        setEphemeralDateValue(getInitialEphemeralDateValue(null));
-    }, [selectedDateModifier, getInitialEphemeralDateValue]);
+    useImperativeHandle(
+        ref,
+        () => ({
+            getDateValues() {
+                return dateValues;
+            },
 
-    const reset = useCallback(() => {
-        if (!selectedDateModifier) {
-            setDateValues({[CONST.SEARCH.DATE_MODIFIERS.ON]: undefined, [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined});
-            return;
-        }
+            clearDateValues() {
+                setDateValues({[CONST.SEARCH.DATE_MODIFIERS.ON]: undefined, [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined});
+            },
 
-        setDateValue(selectedDateModifier, undefined);
-        goBack();
-    }, [selectedDateModifier, setDateValue, goBack]);
+            setDateValueOfSelectedDateModifier() {
+                if (!selectedDateModifier) {
+                    return;
+                }
 
-    const save = useCallback(() => {
-        if (!selectedDateModifier) {
-            updateAdvancedFilters({
-                [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
-                [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
-                [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
-            });
-            goBack();
-            return;
-        }
+                setDateValue(selectedDateModifier, ephemeralDateValue);
+            },
 
-        setDateValue(selectedDateModifier, ephemeralDateValue);
-        goBack();
-    }, [selectedDateModifier, setDateValue, goBack, ephemeralDateValue, dateKey, dateValues]);
+            clearDateValueOfSelectedDateModifier() {
+                if (!selectedDateModifier) {
+                    return;
+                }
 
-    const title = useMemo(() => {
-        if (!selectedDateModifier) {
-            return translate(titleKey);
-        }
+                setDateValue(selectedDateModifier, undefined);
+            },
+        }),
+        [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue],
+    );
 
-        return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
-    }, [selectedDateModifier, titleKey, translate]);
-
-    return (
-        <ScreenWrapper
-            testID={SearchDatePresetFilterBase.displayName}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={title}
-                onBackButtonPress={goBack}
+    return !selectedDateModifier ? (
+        <>
+            {presets?.map((preset) => (
+                <SingleSelectListItem
+                    key={preset}
+                    showTooltip
+                    item={{
+                        text: translate(`search.filters.date.presets.${preset}`),
+                        isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                    }}
+                    onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
+                    wrapperStyle={styles.flexReset}
+                />
+            ))}
+            {shouldShowHorizontalRule && (
+                <SpacerView
+                    shouldShow
+                    style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
+                />
+            )}
+            <MenuItem
+                shouldShowRightIcon
+                viewMode={CONST.OPTION_MODE.COMPACT}
+                title={translate('common.on')}
+                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.ON]}
+                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.ON)}
             />
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                {!selectedDateModifier ? (
-                    <>
-                        {presets?.map((preset) => (
-                            <SingleSelectListItem
-                                key={preset}
-                                showTooltip
-                                item={{
-                                    text: translate(`search.filters.date.presets.${preset}`),
-                                    isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
-                                }}
-                                onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
-                            />
-                        ))}
-                        <MenuItem
-                            shouldShowRightIcon
-                            viewMode={CONST.OPTION_MODE.COMPACT}
-                            title={translate('common.on')}
-                            description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.ON]}
-                            onPress={() => chooseDateModifier(CONST.SEARCH.DATE_MODIFIERS.ON)}
-                        />
-                        <MenuItem
-                            shouldShowRightIcon
-                            viewMode={CONST.OPTION_MODE.COMPACT}
-                            title={translate('common.before')}
-                            description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
-                            onPress={() => chooseDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
-                        />
-                        <MenuItem
-                            shouldShowRightIcon
-                            viewMode={CONST.OPTION_MODE.COMPACT}
-                            title={translate('common.after')}
-                            description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
-                            onPress={() => chooseDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
-                        />
-                    </>
-                ) : (
-                    <CalendarPicker
-                        value={ephemeralDateValue}
-                        onSelected={setEphemeralDateValue}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    />
-                )}
-            </ScrollView>
-            <Button
-                text={translate('common.reset')}
-                onPress={reset}
-                style={[styles.mh4, styles.mt4]}
-                large
+            <MenuItem
+                shouldShowRightIcon
+                viewMode={CONST.OPTION_MODE.COMPACT}
+                title={translate('common.after')}
+                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
+                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
             />
-            <FormAlertWithSubmitButton
-                buttonText={translate('common.save')}
-                containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                onSubmit={save}
-                enabledWhenOffline
+            <MenuItem
+                shouldShowRightIcon
+                viewMode={CONST.OPTION_MODE.COMPACT}
+                title={translate('common.before')}
+                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
+                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
             />
-        </ScreenWrapper>
+        </>
+    ) : (
+        <CalendarPicker
+            value={ephemeralDateValue}
+            onSelected={setEphemeralDateValue}
+            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+        />
     );
 }
 
 SearchDatePresetFilterBase.displayName = 'SearchDatePresetFilterBase';
 
+export type {SearchDateValues, SearchDatePresetFilterBaseHandle};
 export default SearchDatePresetFilterBase;
