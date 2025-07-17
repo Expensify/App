@@ -47,7 +47,7 @@ android {
     externalNativeBuild {
       cmake {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
-        arguments "-DANDROID_STL=c++_shared -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
         abiFilters (*reactNativeArchitectures())
       }
     }
@@ -60,10 +60,6 @@ android {
   }
 
   packagingOptions {
-    jniLibs {
-      useLegacyPackaging true
-    }
-
     excludes = [
             "META-INF",
             "META-INF/**",
