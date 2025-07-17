@@ -30,6 +30,9 @@ jobs:
 
       - name: Run generateTranslations for added translations
         run: npx ts-node ./scripts/generateTranslations.ts --compare-ref=main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
 
       - name: Post diff in PR as a comment
         run: |
