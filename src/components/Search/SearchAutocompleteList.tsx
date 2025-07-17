@@ -178,7 +178,7 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, 30);
+        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, 30, true);
     }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
