@@ -7,8 +7,9 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
     let indexToSlice = Math.max(0, lastSplitIndex);
     const hasPrevRoute = lastSplitIndex > 0;
     const isPrevFullScreen = isFullScreenName(state.routes.at(lastSplitIndex - 1)?.name);
-    // If the route before the last fullscreen is e.g. RHP, we should leave it to avoid bugs when going back to this screen.
-    // This solves the issue: https://github.com/Expensify/App/pull/65500#issuecomment-3061323128
+
+    // If the route before the last full screen is e.g. RHP, we should leave it in the rendered routes,
+    // as there may be display issues (blank screen) when navigating back and recreating that route to render.
     if (hasPrevRoute && !isPrevFullScreen) {
         indexToSlice = lastSplitIndex - 1;
     }

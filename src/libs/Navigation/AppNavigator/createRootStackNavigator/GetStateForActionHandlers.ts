@@ -84,6 +84,7 @@ function handlePushFullscreenAction(
 ) {
     const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
+
     // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         isSplitNavigatorName(navigatorName) &&
