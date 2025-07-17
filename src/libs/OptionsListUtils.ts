@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-
-/* eslint-disable no-continue */
 import {Str} from 'expensify-common';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
@@ -62,6 +60,7 @@ import {
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getLastVisibleMessage,
     getLeaveRoomMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
@@ -78,6 +77,7 @@ import {
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionOfType,
+    isAddCommentAction,
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedAction,
@@ -720,6 +720,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
@@ -875,6 +876,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         if (transactionThreadReportID) {
             lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
         }
+    }
+
+    // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
+    if (reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)) {
+        lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
