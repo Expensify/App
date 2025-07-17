@@ -1,0 +1,17 @@
+diff --git a/node_modules/@rnmapbox/maps/android/build.gradle b/node_modules/@rnmapbox/maps/android/build.gradle
+index 09cee53..40ee8c7 100644
+--- a/node_modules/@rnmapbox/maps/android/build.gradle
++++ b/node_modules/@rnmapbox/maps/android/build.gradle
+@@ -123,6 +123,12 @@ android {
+         versionCode 1
+         versionName "1.0"
+         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
++
++        externalNativeBuild {
++            cmake {
++                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
++            }
++        }
+     }
+ 
+     compileOptions {
