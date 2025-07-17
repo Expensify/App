@@ -84,6 +84,7 @@ To reduce delays and improve PR turnaround, reviewers should follow these additi
 
 3. **If you find a bug, test if it exists on `main`.**
     - If the issue also appears on `main`, **do not block the PR** — it likely wasn’t introduced by the current changes.
+    - Report such bug in `#expensify-bugs` Slack channel following the bug template to make sure its addressed.
 
 4. **Don’t block or delay review due to unrelated failing workflows or test flakes.**  
    - If failures are clearly not introduced by the PR, don’t treat them as blockers. These can be resolved when syncing with `main` later.
