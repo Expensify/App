@@ -71,12 +71,6 @@ android {
     targetCompatibility JavaVersion.VERSION_1_8
   }
 
-  packagingOptions {
-    jniLibs {
-      useLegacyPackaging true
-    }
-  }
-
   sourceSets {
     main {
       if (isNewArchitectureEnabled()) {

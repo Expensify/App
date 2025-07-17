@@ -1,15 +1,17 @@
 diff --git a/node_modules/react-native-safe-area-context/android/build.gradle b/node_modules/react-native-safe-area-context/android/build.gradle
-index f324b9a..d35b98f 100644
+index f324b9a..4aca83e 100644
 --- a/node_modules/react-native-safe-area-context/android/build.gradle
 +++ b/node_modules/react-native-safe-area-context/android/build.gradle
-@@ -80,6 +80,10 @@ android {
-         // only the ones that make the build fail (ideally we should only include libsafeareacontext_modules but we
-         // are only allowed to specify exclude patterns)
-         exclude "**/libreact_render*.so"
+@@ -68,6 +68,12 @@ android {
+         ndk {
+             abiFilters (*reactNativeArchitectures())
+         }
 +
-+        jniLibs {
-+            useLegacyPackaging true
++        externalNativeBuild {
++            cmake {
++                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
++            }
 +        }
      }
-     sourceSets.main {
-         java {
+ 
+     lintOptions{
