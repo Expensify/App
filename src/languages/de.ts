@@ -545,6 +545,7 @@ const translations = {
         tax: 'Steuer',
         shared: 'Geteilt',
         drafts: 'Entwürfe',
+        draft: 'Entwurf',
         finished: 'Fertiggestellt',
         upgrade: 'Upgrade',
         downgradeWorkspace: 'Arbeitsbereich herabstufen',
