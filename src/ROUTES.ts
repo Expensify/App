@@ -2110,7 +2110,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'workspaces/:policyID/accounting/xero/import/tracking-categories',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES route');
+            }
+            return `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
         route: 'workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
