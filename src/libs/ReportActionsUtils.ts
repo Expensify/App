@@ -733,12 +733,6 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): repo
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
-function isActionableMentionInviteToSubmitExpenseConfirmWhisper(
-    reportAction: OnyxEntry<ReportAction>,
-): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER);
-}
-
 /**
  * Checks if a given report action corresponds to an actionable report mention whisper.
  * @param reportAction
@@ -1198,7 +1192,7 @@ function isTagModificationAction(actionName: string): boolean {
  * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
  * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
  */
-function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>) {
+function getSendMoneyFlowAction(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>): ReportAction<'IOU'> | undefined {
     if (!chatReport) {
         return undefined;
     }
@@ -1218,7 +1212,7 @@ function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions
     // ...and can only be triggered on DM chats
     const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
 
-    return isFirstActionPay && isDM ? iouActions.at(0)?.childReportID : undefined;
+    return isFirstActionPay && isDM ? iouActions.at(0) : undefined;
 }
 
 /** Whether action has no linked report by design */
@@ -1253,16 +1247,16 @@ const isIOUActionMatchingTransactionList = (
 };
 
 /**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
  */
-function getOneTransactionThreadReportID(
+function getOneTransactionThreadReportAction(
     report: OnyxEntry<Report>,
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
-): string | undefined {
+): ReportAction<'IOU'> | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
@@ -1273,10 +1267,10 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, chatReport);
+    const sendMoneyFlow = getSendMoneyFlowAction(reportActions, chatReport);
 
-    if (sendMoneyFlowID) {
-        return sendMoneyFlowID;
+    if (sendMoneyFlow?.childReportID) {
+        return sendMoneyFlow;
     }
 
     const iouRequestActions = [];
@@ -1284,7 +1278,6 @@ function getOneTransactionThreadReportID(
         // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
         // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
         if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-            // eslint-disable-next-line no-continue
             continue;
         }
 
@@ -1321,8 +1314,15 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Ensure we have a childReportID associated with the IOU report action
-    return singleAction?.childReportID;
+    return singleAction;
+}
+
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
+ */
+function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
+    return getOneTransactionThreadReportAction(...args)?.childReportID;
 }
 
 /**
@@ -2968,6 +2968,7 @@ export {
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getAddedApprovalRuleMessage,
@@ -2992,7 +2993,6 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
-    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
@@ -3091,7 +3091,7 @@ export {
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitRateAddedMessage,
-    getSendMoneyFlowOneTransactionThreadID,
+    getSendMoneyFlowAction,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

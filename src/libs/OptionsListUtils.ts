@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-
-/* eslint-disable no-continue */
 import {Str} from 'expensify-common';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';

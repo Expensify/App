@@ -1,6 +1,7 @@
+import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -10,6 +11,7 @@ import {
     getPolicyName,
     getReportActionActorAccountID,
     getWorkspaceIcon,
+    isDM,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom,
@@ -21,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import useOnyx from './useOnyx';
+import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type ReportAvatarDetails = {
     reportPreviewSenderID: number | undefined;
@@ -97,7 +100,7 @@ function getIconDetails({
 
         const defaultAvatar = {
             source: avatar ?? FallbackAvatar,
-            id: actorAccountID,
+            id: accountID,
             name: defaultDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -219,10 +222,8 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
         selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
     });
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
-        selector: (allTransactions) => selectAllTransactionsForReport(allTransactions, action?.childReportID, iouActions ?? []),
-    });
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(action?.childReportID);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, iouActions ?? []), [reportTransactions, iouActions]);
 
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canBeMissing: true,
@@ -258,14 +259,14 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
     const attendeesIDs = transactions
         // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
         ?.flatMap<number | undefined>((tr) =>
-            tr.comment?.attendees?.map((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
+            tr.comment?.attendees?.map?.((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
         )
         .filter((accountID) => !!accountID);
 
     const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1;
+    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1 && isDM(report);
     const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
 
     const reportPreviewSenderID = areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;

@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
@@ -22,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -36,6 +37,7 @@ import {
     isSystemChat,
     isThread,
 } from '@libs/ReportUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
@@ -106,6 +108,11 @@ function OptionRowLHN({
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
 
+    const alternateTextContainsCustomEmojiWithText = useMemo(
+        () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
+        [optionItem?.alternateText],
+    );
+
     if (!optionItem && !isOptionFocused) {
         // rendering null as a render item causes the FlashList to render all
         // its children and consume significant memory on the first render. We can avoid this by
@@ -127,7 +134,7 @@ function OptionRowLHN({
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
+    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
     const alternateTextStyle = isInFocusMode
         ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
@@ -187,7 +194,6 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -297,7 +303,7 @@ function OptionRowLHN({
                                                         isSystemChat(report)
                                                     }
                                                 />
-                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}
@@ -307,15 +313,23 @@ function OptionRowLHN({
                                                     </Tooltip>
                                                 )}
                                             </View>
-                                            {optionItem.alternateText ? (
+                                            {!!optionItem.alternateText && (
                                                 <Text
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                                 >
-                                                    {Parser.htmlToText(optionItem.alternateText)}
+                                                    {alternateTextContainsCustomEmojiWithText ? (
+                                                        <TextWithEmojiFragment
+                                                            message={Parser.htmlToText(optionItem.alternateText)}
+                                                            style={[alternateTextStyle, styles.mh0]}
+                                                            alignCustomEmoji
+                                                        />
+                                                    ) : (
+                                                        Parser.htmlToText(optionItem.alternateText)
+                                                    )}
                                                 </Text>
-                                            ) : null}
+                                            )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
                                             <View style={[styles.flexWrap]}>
