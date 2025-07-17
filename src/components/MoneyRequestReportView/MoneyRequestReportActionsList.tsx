@@ -106,6 +106,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     }
     return parentReportActions[parentReportActionID];
 }
+const keyExtractor = (item: OnyxTypes.ReportAction) => item.reportActionID;
 
 function MoneyRequestReportActionsList({
     report,
@@ -549,8 +550,7 @@ function MoneyRequestReportActionsList({
     }, []);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
-    // Wrapped into useCallback to stabilize children re-renders
-    const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
+
     return (
         <View
             style={styles.flex1}
