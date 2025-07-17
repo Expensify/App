@@ -17,7 +17,6 @@ import type {SearchContext, SearchContextData, SelectedTransactions} from './typ
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
-    currentSearchKey: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -27,6 +26,7 @@ const defaultSearchContextData: SearchContextData = {
 
 const defaultSearchContext: SearchContext = {
     ...defaultSearchContextData,
+    currentSearchKey: undefined,
     lastSearchType: undefined,
     isExportMode: false,
     shouldShowExportModeOption: false,
@@ -53,26 +53,25 @@ function SearchContextProvider({children}: ChildrenProps) {
     const defaultCardFeed = useDefaultCardFeed();
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed, accountID), [defaultCardFeed, accountID]);
 
-    const setCurrentSearchHash = useCallback(
-        (searchHash: number) => {
-            setSearchContextData((prevState) => {
-                const suggestedSearches = getSuggestedSearches(defaultCardFeed, accountID);
-                const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchHash);
+    const currentSearchKey = useMemo(() => {
+        const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchContextData.currentSearchHash);
+        return currentSearch?.key;
+    }, [suggestedSearches, searchContextData.currentSearchHash]);
 
-                if (searchHash === prevState.currentSearchHash && currentSearch?.key === prevState.currentSearchKey) {
-                    return prevState;
-                }
+    const setCurrentSearchHash = useCallback((searchHash: number) => {
+        setSearchContextData((prevState) => {
+            if (searchHash === prevState.currentSearchHash) {
+                return prevState;
+            }
 
-                return {
-                    ...prevState,
-                    currentSearchHash: searchHash,
-                    currentSearchKey: currentSearch?.key,
-                };
-            });
-        },
-        [accountID, defaultCardFeed],
-    );
+            return {
+                ...prevState,
+                currentSearchHash: searchHash,
+            };
+        });
+    }, []);
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
         if (selectedTransactions instanceof Array) {
@@ -191,6 +190,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
+            currentSearchKey,
             removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
@@ -206,16 +206,15 @@ function SearchContextProvider({children}: ChildrenProps) {
         }),
         [
             searchContextData,
+            currentSearchKey,
+            removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowExportModeOption,
-            setShouldShowExportModeOption,
             isExportMode,
-            setExportMode,
-            removeTransaction,
         ],
     );
 
