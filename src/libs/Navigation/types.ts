@@ -34,6 +34,7 @@ type NavigationRoot = NavigationHelpers<RootNavigatorParamList>;
 type GoBackAction = Extract<CommonActions.Action, {type: 'GO_BACK'}>;
 type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
 type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
+type NavigateDeprecatedAction = Extract<CommonActions.Action, {type: 'NAVIGATE_DEPRECATED'}>;
 
 type ActionNavigate = {
     type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
@@ -49,7 +50,7 @@ type ActionNavigate = {
     target?: string;
 };
 
-type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | undefined;
+type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | NavigateDeprecatedAction | undefined;
 
 type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
@@ -168,7 +169,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
-    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -585,6 +585,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
@@ -1010,6 +1011,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
@@ -1420,6 +1424,10 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+        transactionID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
         action: IOUAction;
         iouType: IOUType;
@@ -1720,7 +1728,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
         token: string;
-        isTestAccount?: boolean;
+        isTestAccount?: string;
     };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
@@ -1730,7 +1738,8 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
-        reservationIndex: number;
+        sequenceIndex: number;
+        pnr: string;
         backTo?: string;
     };
     [SCREENS.TRAVEL.TCS]: {
@@ -1765,6 +1774,7 @@ type ReportsSplitNavigatorParamList = {
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
+    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -1972,6 +1982,7 @@ type SharedScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
@@ -1980,6 +1991,7 @@ type SharedScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes | HybridAppRoute;
     };
 };
@@ -2011,6 +2023,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
@@ -2059,6 +2072,7 @@ type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
         reportActionID?: string;
+        backTo?: Routes;
     };
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         /** ID of the transaction the page was opened for */
@@ -2178,7 +2192,9 @@ type ScheduleCallParamList = {
 };
 
 type TestToolsModalModalNavigatorParamList = {
-    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;

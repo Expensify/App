@@ -6,7 +6,6 @@ import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
@@ -23,7 +22,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -52,9 +50,6 @@ type MoneyRequestAmountFormProps = {
     /** The policyID of the request */
     policyID?: string;
 
-    /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: Route;
-
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
 
@@ -70,8 +65,8 @@ type MoneyRequestAmountFormProps = {
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    /** Whether to allow flipping the amount */
-    allowFlippingAmount?: boolean;
+    /** The chatReportID of the request */
+    chatReportID?: string;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -92,12 +87,11 @@ function MoneyRequestAmountForm(
         skipConfirmation = false,
         iouType = CONST.IOU.TYPE.SUBMIT,
         policyID = '',
-        bankAccountRoute = '',
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
-        allowFlippingAmount = false,
+        chatReportID,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -108,8 +102,6 @@ function MoneyRequestAmountForm(
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
-    const [isNegative, setIsNegative] = useState(false);
-
     const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -117,8 +109,6 @@ function MoneyRequestAmountForm(
     const wasFocused = usePrevious(isFocused);
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
-
-    const absoluteAmount = Math.abs(amount);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -171,18 +161,10 @@ function MoneyRequestAmountForm(
     );
 
     useEffect(() => {
-        if (amount >= 0) {
+        if (!currency || typeof amount !== 'number') {
             return;
         }
-
-        setIsNegative(true);
-    }, [amount]);
-
-    useEffect(() => {
-        if (!currency || typeof absoluteAmount !== 'number') {
-            return;
-        }
-        initializeAmount(absoluteAmount);
+        initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
@@ -244,11 +226,9 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
-
-            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
@@ -267,98 +247,48 @@ function MoneyRequestAmountForm(
         setFormError('');
     }, [selectedTab]);
 
-    const toggleNegative = useCallback(() => {
-        setIsNegative((prevIsNegative) => !prevIsNegative);
-    }, []);
-
-    const clearNegative = useCallback(() => {
-        setIsNegative(false);
-    }, []);
-
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View
-                    id={AMOUNT_VIEW_ID}
-                    onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                    style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                >
-                    <MoneyRequestAmountInput
-                        amount={absoluteAmount}
-                        autoGrowExtraSpace={variables.w80}
-                        currency={currency}
-                        isCurrencyPressable={false}
-                        onCurrencyButtonPress={onCurrencyButtonPress}
-                        onAmountChange={() => {
-                            if (!formError) {
-                                return;
-                            }
-                            setFormError('');
-                        }}
-                        shouldUpdateSelection={shouldUpdateSelection}
-                        ref={(ref) => {
-                            if (typeof forwardedRef === 'function') {
-                                forwardedRef(ref);
-                            } else if (forwardedRef?.current) {
-                                // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = ref;
-                            }
-                            textInput.current = ref;
-                        }}
-                        shouldKeepUserInput={shouldKeepUserInput}
-                        moneyRequestAmountInputRef={moneyRequestAmountInput}
-                        inputStyle={[styles.iouAmountTextInput]}
-                        containerStyle={[styles.iouAmountTextInputContainer]}
-                        toggleNegative={toggleNegative}
-                        clearNegative={clearNegative}
-                        isNegative={isNegative}
-                        allowFlippingAmount={allowFlippingAmount}
-                    />
-                    {!!formError && (
-                        <FormHelpMessage
-                            style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
-                            isError
-                            message={formError}
-                        />
-                    )}
-                </View>
-                {isCurrencyPressable && !canUseTouchScreen && (
-                    <Button
-                        shouldShowRightIcon
-                        small
-                        iconRight={Expensicons.DownArrow}
-                        onPress={onCurrencyButtonPress}
-                        style={styles.minWidth18}
-                        isContentCentered
-                        text={currency}
+            <View
+                id={AMOUNT_VIEW_ID}
+                onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
+                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+            >
+                <MoneyRequestAmountInput
+                    amount={amount}
+                    autoGrowExtraSpace={variables.w80}
+                    currency={currency}
+                    isCurrencyPressable={isCurrencyPressable}
+                    onCurrencyButtonPress={onCurrencyButtonPress}
+                    onAmountChange={() => {
+                        if (!formError) {
+                            return;
+                        }
+                        setFormError('');
+                    }}
+                    shouldUpdateSelection={shouldUpdateSelection}
+                    ref={(ref) => {
+                        if (typeof forwardedRef === 'function') {
+                            forwardedRef(ref);
+                        } else if (forwardedRef?.current) {
+                            // eslint-disable-next-line no-param-reassign
+                            forwardedRef.current = ref;
+                        }
+                        textInput.current = ref;
+                    }}
+                    shouldKeepUserInput={shouldKeepUserInput}
+                    moneyRequestAmountInputRef={moneyRequestAmountInput}
+                    inputStyle={[styles.iouAmountTextInput]}
+                    containerStyle={[styles.iouAmountTextInputContainer]}
+                    testID="moneyRequestAmountInput"
+                />
+                {!!formError && (
+                    <FormHelpMessage
+                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
+                        isError
+                        message={formError}
                     />
                 )}
-            </View>
-            <View>
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
-                    {isCurrencyPressable && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.DownArrow}
-                            onPress={onCurrencyButtonPress}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={currency}
-                        />
-                    )}
-                    {allowFlippingAmount && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.PlusMinus}
-                            onPress={toggleNegative}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={translate('iou.flip')}
-                        />
-                    )}
-                </View>
             </View>
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
@@ -378,7 +308,6 @@ function MoneyRequestAmountForm(
                             pressOnEnter
                             onPress={submitAndNavigateToNextPage}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={currency ?? CONST.CURRENCY.USD}
                             policyID={policyID}
@@ -394,6 +323,7 @@ function MoneyRequestAmountForm(
                             }}
                             shouldShowPersonalBankAccountOption
                             enterKeyEventListenerPriority={1}
+                            chatReportID={chatReportID}
                         />
                     ) : (
                         <Button

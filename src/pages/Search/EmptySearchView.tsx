@@ -2,7 +2,6 @@ import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, Linking, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
@@ -21,6 +20,8 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +35,6 @@ import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -82,9 +82,9 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const {typeMenuSections} = useSearchTypeMenuSections(hash);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -99,10 +99,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
-        return createTypeMenuSections(session, allPolicies)
-            .map((section) => section.menuItems)
-            .flat();
-    }, [session, allPolicies]);
+        return typeMenuSections.map((section) => section.menuItems).flat();
+    }, [typeMenuSections]);
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
@@ -205,7 +203,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                 if (
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+                    (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                 ) {
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -375,6 +374,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
+        introSelected?.inviteType,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,

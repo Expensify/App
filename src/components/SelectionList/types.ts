@@ -15,7 +15,7 @@ import type {
 import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import type {SearchColumnType} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -25,7 +25,7 @@ import type CONST from '@src/CONST';
 import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -33,8 +33,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
-import type ReportListItem from './Search/ReportListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
+import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
@@ -212,6 +212,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -316,17 +319,22 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
-type ReportListItemType = ListItem &
-    SearchReport & {
+type TransactionGroupListItemType = ListItem & {
+    /** List of grouped transactions */
+    transactions: TransactionListItemType[];
+};
+
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
-
-        /** List of transactions that belong to this report */
-        transactions: TransactionListItemType[];
     };
+
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
+
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -428,7 +436,10 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+};
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -450,7 +461,10 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    groupBy?: SearchGroupBy;
+    policies?: OnyxCollection<Policy>;
+};
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
@@ -460,6 +474,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
 };
 
 type ValidListItem =
@@ -468,7 +485,7 @@ type ValidListItem =
     | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
-    | typeof ReportListItem
+    | typeof TransactionGroupListItem
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
@@ -533,6 +550,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * Only use this if we're handling some non-standard items, most of the time the default value is correct
      */
     getItemHeight?: (item: TItem) => number;
+
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -703,6 +723,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
+    // eslint-disable-next-line deprecation/deprecation
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */
@@ -802,6 +823,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -845,7 +869,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 
 export type {
     BaseListItemProps,
@@ -860,8 +884,11 @@ export type {
     RadioListItemProps,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
-    ReportListItemProps,
-    ReportListItemType,
+    TransactionGroupListItemProps,
+    TransactionGroupListItemType,
+    TransactionReportGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionCardGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

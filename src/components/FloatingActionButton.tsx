@@ -2,9 +2,9 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +46,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false, canBeMissing: true});
+    const [isSidebarLoaded = false] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,

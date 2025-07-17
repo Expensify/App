@@ -442,6 +442,7 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_IMPORT_CUSTOMERS: 'UpdateXeroImportCustomers',
     UPDATE_XERO_ENABLE_NEW_CATEGORIES: 'UpdateXeroEnableNewCategories',
     UPDATE_XERO_AUTO_SYNC: 'UpdateXeroAutoSync',
+    UPDATE_XERO_ACCOUNTING_METHOD: 'UpdateXeroAccountingMethod',
     UPDATE_XERO_EXPORT_BILL_STATUS: 'UpdateXeroExportBillStatus',
     UPDATE_XERO_EXPORT_BILL_DATE: 'UpdateXeroExportBillDate',
     UPDATE_XERO_EXPORT_EXPORTER: 'UpdateXeroExportExporter',
@@ -486,7 +487,8 @@ const WRITE_COMMANDS = {
     COMPLETE_CONCIERGE_CALL: 'CompleteConciergeCall',
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
-    DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
+    TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
+    IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -786,6 +788,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksOnlineAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_XERO_ACCOUNTING_METHOD]: Parameters.UpdateXeroAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
@@ -838,7 +841,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL]: Parameters.CompleteConciergeCallParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
-    [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
@@ -990,9 +992,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER]: Parameters.ChangeReportPolicyAndInviteSubmitterParams;
 
     [WRITE_COMMANDS.PAY_AND_DOWNGRADE]: null;
+    [WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS]: Parameters.ImportPlaidAccountsParams;
 
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
+    [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
 };
 
 const READ_COMMANDS = {
@@ -1060,7 +1064,6 @@ const READ_COMMANDS = {
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
     START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
     OPEN_CARD_DETAILS_PAGE: 'OpenCardDetailsPage',
-    GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
@@ -1136,7 +1139,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
-    [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: Parameters.GetAssignedSupportDataParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
@@ -1166,7 +1168,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CREATE_DIGITAL_WALLET: 'CreateDigitalWallet',
     VERIFY_TEST_DRIVE_RECIPIENT: 'VerifyTestDriveRecipient',
     LOCK_ACCOUNT: 'LockAccount',
-    SET_VACATION_DELEGATE: 'SetVacationDelegate',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1190,7 +1191,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateDigitalWalletParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT]: Parameters.VerifyTestDriveRecipientParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT]: Parameters.LockAccountParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

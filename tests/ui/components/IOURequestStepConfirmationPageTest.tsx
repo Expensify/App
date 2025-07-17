@@ -2,7 +2,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as IOU from '../../../src/libs/actions/IOU';
@@ -36,8 +36,7 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => true,
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
     useFocusEffect: jest.fn(),
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    UNSTABLE_usePreventRemove: jest.fn(),
+    usePreventRemove: jest.fn(),
 }));
 
 describe('IOURequestStepConfirmationPageTest', () => {
@@ -64,7 +63,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <IOURequestStepConfirmationWithWritableReportOrNotFound
                         route={{
@@ -81,7 +80,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         navigation={undefined}
                     />
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdates();
