@@ -1933,7 +1933,6 @@ function getValidOptions(
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
-    // Early optimization: prefilter raw data if searchString and maxElements are provided
     let filteredReports = options.reports;
     let filteredPersonalDetails = options.personalDetails;
 
@@ -1943,6 +1942,7 @@ function getValidOptions(
     let selfDMChat: OptionData | undefined;
 
     if (includeRecentReports) {
+        // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
         if (maxElements) {
             const searchTerms = (searchString ?? '')
                 .toLowerCase()
@@ -2008,6 +2008,7 @@ function getValidOptions(
             };
         }
 
+        // if maxElements is passed, filter the personal details by searchString and return only maxElements personal details sorted alphabetically (@see personalDetailsComparator)
         if (maxElements) {
             const searchTerms = (searchString ?? '')
                 .toLowerCase()
