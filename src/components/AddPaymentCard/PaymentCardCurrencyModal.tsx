@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type PaymentCardCurrencyModalProps = {
@@ -51,8 +52,10 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             isVisible={isVisible}
             onClose={() => onClose?.()}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
+            onBackdropPress={() => {
+                onClose?.();
+                Navigation.dismissModal();
+            }}
             shouldUseReanimatedModal
         >
             <ScreenWrapper
