@@ -1176,7 +1176,7 @@ index 0000000..998f79b
 +@end
 diff --git a/node_modules/@onfido/react-native-sdk/js/NativeOnfidoModule.ts b/node_modules/@onfido/react-native-sdk/js/NativeOnfidoModule.ts
 new file mode 100644
-index 0000000..c48f86e
+index 0000000..8ed5cd0
 --- /dev/null
 +++ b/node_modules/@onfido/react-native-sdk/js/NativeOnfidoModule.ts
 @@ -0,0 +1,13 @@
@@ -1227,7 +1227,7 @@ index db35471..fa6c1ef 100644
  
    addCustomMediaCallback(callback: (result: OnfidoMediaResult) => OnfidoMediaResult) {
 diff --git a/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec b/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec
-index a9de0d0..da83d9f 100644
+index a9de0d0..ed1e6fd 100644
 --- a/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec
 +++ b/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec
 @@ -2,6 +2,8 @@ require "json"
@@ -1265,35 +1265,6 @@ index a9de0d0..da83d9f 100644
 +    s.dependency "React"
 +  end
  end
-diff --git a/node_modules/@onfido/react-native-sdk/package.json b/node_modules/@onfido/react-native-sdk/package.json
-index 50a331b..754c3c0 100644
---- a/node_modules/@onfido/react-native-sdk/package.json
-+++ b/node_modules/@onfido/react-native-sdk/package.json
-@@ -24,7 +24,8 @@
-     ],
-     "testPathIgnorePatterns": [
-       "/TestApp",
--      "/SampleApp"
-+      "/SampleApp",
-+      "/FabricSample"
-     ],
-     "globals": {
-       "__DEV__": true
-@@ -82,6 +83,14 @@
-     "react-native": "0.72.6",
-     "typescript": "^4.6.4"
-   },
-+  "codegenConfig": {
-+    "name": "rnonfidosdk",
-+    "type": "modules",
-+    "jsSrcsDir": "./js",
-+    "android": {
-+      "javaPackageName": "com.onfido.reactnative.sdk"
-+    }
-+  },
-   "dependencies": {
-     "js-base64": "3.7.5"
-   },
 diff --git a/node_modules/@onfido/react-native-sdk/scripts/update-integration-versions.sh b/node_modules/@onfido/react-native-sdk/scripts/update-integration-versions.sh
 index 49f9d4c..1b9f304 100755
 --- a/node_modules/@onfido/react-native-sdk/scripts/update-integration-versions.sh
