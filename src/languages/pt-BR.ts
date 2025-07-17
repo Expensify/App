@@ -2697,6 +2697,8 @@ const translations = {
             validationAmounts: 'Os valores de validação que você inseriu estão incorretos. Por favor, verifique novamente seu extrato bancário e tente novamente.',
             fullName: 'Por favor, insira um nome completo válido.',
             ownershipPercentage: 'Por favor, insira um número percentual válido',
+            deletePaymentBankAccount:
+                'Este banco conta não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim deseja excluir essa conta, entre em contato com o Concierge.',
         },
     },
     addPersonalBankAccount: {
