@@ -1,7 +1,5 @@
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -9,20 +7,15 @@ import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account} from '@src/types/onyx';
 import SignInPageLayout from './SignInPageLayout';
 
-type ThirdPartySignInPageOnyxProps = {
-    /** State for the account */
-    account: OnyxEntry<Account>;
-};
-
-type ThirdPartySignInPageProps = ThirdPartySignInPageOnyxProps & {
+type ThirdPartySignInPageProps = {
     /** Which sign in provider we are using. */
     signInProvider: ValueOf<typeof CONST.SIGN_IN_METHOD>;
 };
@@ -31,12 +24,13 @@ type ThirdPartySignInPageProps = ThirdPartySignInPageOnyxProps & {
  * sign-in cannot work fully within Electron, so we escape to web and redirect
  * to desktop once we have an Expensify auth token.
  */
-function ThirdPartySignInPage({account, signInProvider}: ThirdPartySignInPageProps) {
+function ThirdPartySignInPage({signInProvider}: ThirdPartySignInPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const goBack = () => {
         Navigation.navigate(ROUTES.HOME);
     };
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     return (
         <SafeAreaView style={[styles.signInPage]}>
@@ -83,8 +77,4 @@ function ThirdPartySignInPage({account, signInProvider}: ThirdPartySignInPagePro
 
 ThirdPartySignInPage.displayName = 'ThirdPartySignInPage';
 
-export default withOnyx<ThirdPartySignInPageProps, ThirdPartySignInPageOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-})(ThirdPartySignInPage);
+export default ThirdPartySignInPage;
