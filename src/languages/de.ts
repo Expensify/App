@@ -2680,6 +2680,8 @@ const translations = {
             validationAmounts: 'Die eingegebenen Validierungsbeträge sind falsch. Bitte überprüfen Sie Ihren Kontoauszug und versuchen Sie es erneut.',
             fullName: 'Bitte geben Sie einen gültigen vollständigen Namen ein',
             ownershipPercentage: 'Bitte geben Sie eine gültige Prozentzahl ein.',
+            deletePaymentBankAccount:
+                'Dieses Bankkonto kann nicht gelöscht werden, da es für Expensify-Karten-Zahlungen verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an den Concierge.',
         },
     },
     addPersonalBankAccount: {
