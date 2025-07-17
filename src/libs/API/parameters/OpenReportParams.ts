@@ -16,12 +16,6 @@ type OpenReportParams = {
     file?: File | CustomRNImageManipulatorResult;
     guidedSetupData?: string;
     /**
-     * This flag decides in what order should the api return report actions, and it's used by MoneyRequestReportView
-     * By default api returns report actions newest-first, and then older ones on subsequent pagination calls.
-     * If this flag is set to true, api will return oldest first starting from the beginning of report.
-     */
-    useTableReportView?: boolean;
-    /**
      * The ID of the unreported transaction to create a thread for.
      * Used when displaying unreported expenses that have no transaction thread associated with them.
      */
