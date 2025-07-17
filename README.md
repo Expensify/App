@@ -125,8 +125,8 @@ After completing these steps, you should be able to build Android apps with preb
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-## Receiving Notifications
-To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+## Receiving Mobile Push Notifications
+To receive mobile push notifications in the development build while hitting the Staging or Production API, you need to use the production airship config.
 ### Android
 
 #### HybridApp
