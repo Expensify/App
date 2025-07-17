@@ -1,19 +1,18 @@
-import { Str } from 'expensify-common';
-import { Alert, Linking, Platform } from 'react-native';
+import {Str} from 'expensify-common';
+import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import type { TupleToUnion, ValueOf } from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
-import { translateLocal } from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
-import type { FileObject } from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
-import type { ReadFileAsync, SplitExtensionFromFileName } from './types';
-
+import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
