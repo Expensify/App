@@ -13,6 +13,7 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
+import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {buildOptimisticExportIntegrationAction, hasHeldExpenses} from '@libs/ReportUtils';
 import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
@@ -362,10 +363,11 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
 }
 
 function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SuggestedSearchKey) {
-    const action = buildOptimisticExportIntegrationAction(connectionName);
-    const optimisticReportActionID = action.reportActionID;
+    const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
+    const successAction = {...optimisticAction, pending: null};
+    const optimisticReportActionID = optimisticAction.reportActionID;
 
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null, reportAction?: OptimisticExportIntegrationAction | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -379,15 +381,16 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [optimisticReportActionID]: action,
+                [optimisticReportActionID]: reportAction,
             },
         },
     ];
 
-    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true}, optimisticAction);
+    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}, null);
     // If we are on the 'Export' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+    const successData: OnyxUpdate[] =
+        currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT ? createOnyxData(null, successAction) : createOnyxData({isActionLoading: false}, successAction);
 
     const params = {
         reportIDList: reportID,
