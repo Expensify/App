@@ -2692,6 +2692,8 @@ const translations = {
             validationAmounts: "Gli importi di convalida inseriti non sono corretti. Si prega di ricontrollare l'estratto conto bancario e riprovare.",
             fullName: 'Per favore, inserisci un nome completo valido',
             ownershipPercentage: 'Per favore, inserisci un numero percentuale valido',
+            deletePaymentBankAccount:
+                'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con la carta Expensify. Se desideri comunque eliminare questo conto, contatta il Concierge.',
         },
     },
     addPersonalBankAccount: {

@@ -5142,6 +5142,8 @@ const CONST = {
     VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
     LOTTIE_VIEW_TEST_ID: 'LottieView',
 
+    DOT_INDICATOR_TEST_ID: 'DotIndicator',
+
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
     HORIZONTAL_SPACER: {
