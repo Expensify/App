@@ -58,9 +58,7 @@ const STUBS = {
 };
 
 // Override require to intercept React Native modules
-Module.prototype.require = function (...args) {
-    const id = args[0];
-
+Module.prototype.require = function (id, ...args) {
     // Check if this is a module we want to stub
     if (MODULES_TO_STUB.includes(id) || id.startsWith('react-native')) {
         const stub = STUBS[id] || {};
