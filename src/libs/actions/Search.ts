@@ -364,7 +364,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
 
 function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SuggestedSearchKey) {
     const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
-    const successAction = {...optimisticAction, pending: null};
+    const successAction: OptimisticExportIntegrationAction = {...optimisticAction, pendingAction: null};
     const optimisticReportActionID = optimisticAction.reportActionID;
 
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null, reportAction?: OptimisticExportIntegrationAction | null): OnyxUpdate[] => [
@@ -387,7 +387,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
     ];
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true}, optimisticAction);
-    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}, null);
+    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), isActionLoading: false}, null);
     // If we are on the 'Export' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
     const successData: OnyxUpdate[] =
         currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT ? createOnyxData(null, successAction) : createOnyxData({isActionLoading: false}, successAction);
