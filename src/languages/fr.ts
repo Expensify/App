@@ -5256,6 +5256,7 @@ const translations = {
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour de l'espace de travail. Veuillez réessayer.",
             avatarUploadFailureMessage: "Une erreur s'est produite lors du téléchargement de l'avatar. Veuillez réessayer.",
             addressContext: "Une adresse de l'espace de travail est requise pour activer Expensify Travel. Veuillez entrer une adresse associée à votre entreprise.",
+            policy: 'Politique de dépenses',
         },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',

@@ -5244,6 +5244,7 @@ const translations = {
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji przestrzeni roboczej. Proszę spróbować ponownie.',
             avatarUploadFailureMessage: 'Wystąpił błąd podczas przesyłania awatara. Proszę spróbować ponownie.',
             addressContext: 'Aby włączyć Expensify Travel, wymagany jest adres Workspace. Proszę wprowadzić adres powiązany z Twoją firmą.',
+            policy: 'Polityka wydatków',
         },
         bankAccount: {
             continueWithSetup: 'Kontynuuj konfigurację',

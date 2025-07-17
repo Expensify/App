@@ -5235,6 +5235,7 @@ const translations = {
             genericFailureMessage: 'Se ha producido un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
             addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
+            policy: 'Política de gastos',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
