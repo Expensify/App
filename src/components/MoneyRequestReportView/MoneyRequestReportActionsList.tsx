@@ -616,7 +616,6 @@ function MoneyRequestReportActionsList({
                     />
                 </>
             )}
-
             <FloatingMessageCounter
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
