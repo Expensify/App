@@ -41,6 +41,27 @@ jobs:
             echo "✅ No changes detected"
           else
             echo "🦜 Polyglot Parrot detected changes! 🦜"
+
+            # Find and hide any existing Polyglot Parrot comments
+            EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')
+            if [ ! -z "$EXISTING_COMMENTS" ]; then
+              echo "Found existing Polyglot Parrot comment(s), hiding as outdated..."
+              echo "$EXISTING_COMMENTS" | while read -r comment_id; do
+                gh api graphql -f query='
+                  mutation($commentId: ID!) {
+                    minimizeComment(input: {
+                      subjectId: $commentId,
+                      classifier: OUTDATED
+                    }) {
+                      minimizedComment {
+                        isMinimized
+                      }
+                    }
+                  }' -f commentId="$comment_id"
+              done
+            fi
+
+            # Post the new comment
             COMMENT_BODY="## 🦜 Polyglot Parrot! 🦜
 
             Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:
@@ -49,7 +70,7 @@ jobs:
             $(git diff HEAD)
             \`\`\`
 
-            _Note:_ You can apply these changes by copying them to your clipboard, then running \`pbpaste | git apply\`"
+            _Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
             gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT_BODY"
           fi
         env:
