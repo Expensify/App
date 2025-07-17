@@ -147,7 +147,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
 
-function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
+function getShortLivedLoginParams(authToken: string, isSupportAuthTokenUsed = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -167,6 +167,11 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
                 isSupportAuthTokenUsed,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_SHORT_LIVED_TOKEN,
+            value: authToken
+        }
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
@@ -669,7 +674,7 @@ function beginGoogleSignIn(token: string | null) {
  * re-authenticating after an authToken expires.
  */
 function signInWithShortLivedAuthToken(authToken: string) {
-    const {optimisticData, finallyData} = getShortLivedLoginParams();
+    const {optimisticData, finallyData} = getShortLivedLoginParams(authToken);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
 }
 

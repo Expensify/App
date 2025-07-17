@@ -19,10 +19,16 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [lastShortLivedToken] = useOnyx(ONYXKEYS.NVP_SHORT_LIVED_TOKEN, {canBeMissing: true});
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const token = shortLivedAuthToken || shortLivedToken;
+
+        // This is to prevent re-authenticating when logging out if the initial URL (deep link) hasn't changed.
+        if (token && token === lastShortLivedToken) {
+            return;
+        }
 
         if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
             signInWithSupportAuthToken(shortLivedAuthToken);
