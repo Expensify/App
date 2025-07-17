@@ -79,12 +79,12 @@ function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFie
  * @param field - The merge field key to get the translation key for
  * @returns The translation key string for the specified field
  */
-function getMergeFieldTransalationKey(field: MergeFieldKey) {
+function getMergeFieldTranslationKey(field: MergeFieldKey) {
     return MERGE_FIELDS_UTILS[field].translationKey;
 }
 
 /**
- * Get mergable data if one is missing, and conflict fields that need to be resolved by the user
+ * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param transactionID - The merge transaction id
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
@@ -165,7 +165,7 @@ export {
     shouldNavigateToReceiptReview,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
-    getMergeFieldTransalationKey,
+    getMergeFieldTranslationKey,
     buildMergedTransactionData,
     selectTargetAndSourceTransactionIDsForMerge,
 };

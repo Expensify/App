@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {getMergeableDataAndConflictFields, getMergeFieldTransalationKey, getMergeFieldValue, getSourceTransaction} from '@libs/MergeTransactionUtils';
+import {getMergeableDataAndConflictFields, getMergeFieldTranslationKey, getMergeFieldValue, getSourceTransaction} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeValueType} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -113,7 +113,7 @@ function DetailsReview({route}: DetailsReviewProps) {
                         const sourceValue = getMergeFieldValue(sourceTransaction, field);
 
                         const selectedValue = mergeTransaction?.[field] as MergeValueType | undefined;
-                        const fieldTranslated = translate(getMergeFieldTransalationKey(field) as TranslationPaths);
+                        const fieldTranslated = translate(getMergeFieldTranslationKey(field) as TranslationPaths);
 
                         return (
                             <MergeFieldReview
