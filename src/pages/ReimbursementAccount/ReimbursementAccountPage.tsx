@@ -106,10 +106,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
 
     const getInitialCurrentStep = () => {
-        if (!isPreviousPolicy) {
-            return CONST.BANK_ACCOUNT.STEP.COUNTRY;
-        }
-
         if (!hasConfirmedUSDCurrency) {
             return CONST.BANK_ACCOUNT.STEP.COUNTRY;
         }
@@ -258,7 +254,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
+        [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
     );
 
     const continueUSDVBBASetup = useCallback(() => {
@@ -270,7 +266,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         });
     }, [achData?.subStep, currentStep]);
 
-    const continueNonUSDVBBASetup = useCallback(() => {
+    const continueNonUSDVBBASetup = () => {
         const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
         const allAgreementsChecked =
             reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
@@ -312,33 +308,20 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
         }
-    }, [
-        achData?.corpay?.anyIndividualOwn25PercentOrMore,
-        achData?.corpay?.authorizedToBindClientToAgreement,
-        achData?.corpay?.companyName,
-        achData?.corpay?.signerFullName,
-        achData?.created,
-        achData?.state,
-        nonUSDCountryDraftValue,
-        reimbursementAccountDraft?.agreeToTermsAndConditions,
-        reimbursementAccountDraft?.authorizedToBindClientToAgreement,
-        reimbursementAccountDraft?.consentToPrivacyNotice,
-        reimbursementAccountDraft?.provideTruthfulInformation,
-    ]);
+    };
 
     const goBack = useCallback(() => {
         const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.COUNTRY:
-                setUSDBankAccountStep(null);
                 if (hasInProgressVBBA()) {
                     setShouldShowContinueSetupButton(true);
                 }
+                setUSDBankAccountStep(null);
+                setBankAccountSubStep(null);
                 break;
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                setShouldShowContinueSetupButton(true);
-                setBankAccountSubStep(null);
                 setPlaidEvent(null);
                 goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
                 break;

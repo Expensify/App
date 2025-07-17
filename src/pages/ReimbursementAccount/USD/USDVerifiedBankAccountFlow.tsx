@@ -32,7 +32,6 @@ function USDVerifiedBankAccountFlow({
 }: USDVerifiedBankAccountFlowProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    console.log(USDBankAccountStep);
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.COUNTRY:
             return (

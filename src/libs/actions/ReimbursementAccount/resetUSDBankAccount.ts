@@ -21,7 +21,6 @@ function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEnt
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
-
     if (!session?.email) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
