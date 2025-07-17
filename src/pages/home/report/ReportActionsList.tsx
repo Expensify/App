@@ -368,6 +368,7 @@ function ReportActionsList({
             return;
         }
         const hasAnyUnreadActions = sortedReportActions.some((action) => isReportActionUnread(action, report?.lastReadTime ?? ''));
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)) || hasAnyUnreadActions) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
