@@ -1,10 +1,11 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -695,6 +696,18 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    const ListComponent = isTransactionThread(parentReportAction) ? FlatList : InvertedFlatList;
+
+    const contentContainerStyle = useMemo(() => {
+        const baseStyles: StyleProp<ViewStyle> = [styles.chatContentScrollView];
+
+        if (isTransactionThread(parentReportAction)) {
+            baseStyles.push(styles.pb0, styles.pt4);
+        }
+
+        return baseStyles;
+    }, [parentReportAction, styles.chatContentScrollView, styles.pb0, styles.pt4]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -707,7 +720,7 @@ function ReportActionsList({
                 nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
             >
-                <InvertedFlatList
+                <ListComponent
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
@@ -715,6 +728,7 @@ function ReportActionsList({
                     data={visibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderScrollComponent}
+                    contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
