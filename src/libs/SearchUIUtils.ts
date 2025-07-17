@@ -46,7 +46,8 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
-import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from './CardFeedUtils';
+import type {CardFeedForDisplay} from './CardFeedUtils';
+import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -230,7 +231,7 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
  *
  * These searches should be as static as possible, and should not contain conditionals, or any other logic
  */
-function getSuggestedSearches(defaultFeed: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<SuggestedSearchKey, SearchTypeMenuItem> {
+function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<SuggestedSearchKey, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
@@ -332,7 +333,7 @@ function getSuggestedSearches(defaultFeed: string | undefined, accountID: number
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.CARDS,
-                feed: defaultFeed ? [defaultFeed] : undefined,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
             get hash() {
@@ -362,7 +363,7 @@ function getSuggestedSearches(defaultFeed: string | undefined, accountID: number
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                feed: defaultFeed ? [defaultFeed] : undefined,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get hash() {
@@ -377,7 +378,7 @@ function getSuggestedSearches(defaultFeed: string | undefined, accountID: number
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                feed: defaultFeed ? [defaultFeed] : undefined,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get hash() {
@@ -1484,11 +1485,11 @@ function isCorrectSearchUserName(displayName?: string) {
 function createTypeMenuSections(
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
-    feeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    defaultCardFeed: string | undefined,
+    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
+    defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
-    const suggestedSearches = getSuggestedSearches(defaultCardFeed, currentUserAccountID);
+    const suggestedSearches = getSuggestedSearches(defaultCardFeed?.id, currentUserAccountID);
 
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
@@ -1652,11 +1653,7 @@ function createTypeMenuSections(
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
-    const activePolicy = getActivePolicy();
-    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
-
-    // The active (default) policy is prioritized to correctly set the default feed
-    [activePolicy, ...Object.values(policies)].some((policy) => {
+    Object.values(policies).some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
         }
@@ -1665,9 +1662,9 @@ function createTypeMenuSections(
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = false; // s77rt TODO
 
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;

@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useDefaultCardFeed from './useDefaultCardFeed';
+import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useOnyx from './useOnyx';
 
 /**
@@ -9,15 +9,14 @@ import useOnyx from './useOnyx';
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const defaultCardFeed = useDefaultCardFeed();
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
 
     const typeMenuSections = useMemo(
-        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, allFeeds, defaultCardFeed, allPolicies),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, allFeeds, defaultCardFeed, allPolicies],
+        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies),
+        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies],
     );
 
     return {typeMenuSections};
