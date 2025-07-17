@@ -58,7 +58,7 @@ function Text(
         }
         if (Array.isArray(children)) {
             return children.every((child) => {
-                return child === null || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
             });
         }
         return false;
