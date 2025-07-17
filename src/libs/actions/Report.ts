@@ -380,6 +380,14 @@ Onyx.connect({
     },
 });
 
+let onboardingInitialPath: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+    callback: (value) => {
+        onboardingInitialPath = value;
+    },
+});
+
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -3472,6 +3480,7 @@ function openReportFromDeepLink(url: string) {
                                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
                                     currentOnboardingPurposeSelected,
                                     currentOnboardingCompanySize,
+                                    onboardingInitialPath,
                                 }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
