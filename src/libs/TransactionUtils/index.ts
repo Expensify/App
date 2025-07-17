@@ -1413,14 +1413,14 @@ function getValidDuplicateTransactionIDs(transactionID: string, currentTransacti
     let foundDuplicateViolation = false;
 
     for (const violation of currentTransactionViolations) {
-        if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION){
+        if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) {
             continue;
         }
 
         // Skip further violations
         if (foundDuplicateViolation) {
             Log.warn(`Multiple duplicate violations found for transaction ${transactionID}. Only one expected.`);
-            continue; 
+            continue;
         }
 
         foundDuplicateViolation = true;
@@ -1436,7 +1436,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, currentTransacti
         for (const duplicateID of duplicatesID) {
             // Skip self-reference
             if (duplicateID === transactionID) {
-                continue; 
+                continue;
             }
 
             if (seen.has(duplicateID)) {
@@ -1467,7 +1467,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, currentTransacti
 }
 
 /**
- * Adds onyx updates to the passed onyxData to update the DUPLICATED_TRANSACTION violation data 
+ * Adds onyx updates to the passed onyxData to update the DUPLICATED_TRANSACTION violation data
  * by removing the passed transactionID from any violation that referenced it.
  * @param onyxData - An object to store optimistic and failure updates.
  * @param transactionID - The ID of the transaction being deleted or updated.
