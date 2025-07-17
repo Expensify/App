@@ -6941,7 +6941,7 @@ const translations = {
         indicatorStatus: {
             theresAReportAwaitingAction: "There's a report awaiting action",
             theresAReportWithErrors: "There's a report with errors",
-            theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors and stuff",
+            theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
             theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
             theresAProblemWithAWorkspaceQBOExport: 'There was a problem with a workspace connection export setting.',
             theresAProblemWithAContactMethod: "There's a problem with a contact method",
