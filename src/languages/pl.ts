@@ -3823,6 +3823,18 @@ const translations = {
             },
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Proszę dodać konto w Xero i ponownie zsynchronizować połączenie.',
+            accountingMethods: {
+                label: 'Kiedy eksportować',
+                description: 'Wybierz, kiedy eksportować wydatki:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Rozliczenia międzyokresowe',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Preferowany eksporter',
@@ -5920,11 +5932,16 @@ const translations = {
                 title: 'Brak wydatków do eksportu',
                 subtitle: 'Czas się zrelaksować, dobra robota.',
             },
+            emptyStatementsResults: {
+                title: 'Brak wydatków do wyświetlenia',
+                subtitle: 'Brak wyników. Spróbuj dostosować filtry.',
+            },
             emptyUnapprovedResults: {
                 title: 'Brak wydatków do zatwierdzenia',
                 subtitle: 'Zero wydatków. Maksymalny relaks. Dobra robota!',
             },
         },
+        statements: 'Oświadczenia',
         unapproved: 'Niezatwierdzony',
         unapprovedCash: 'Niezatwierdzone środki pieniężne',
         unapprovedCompanyCards: 'Niezatwierdzone karty firmowe',

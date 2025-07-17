@@ -3772,6 +3772,18 @@ const translations = {
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在Xero中添加账户并再次同步连接',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: '首选导出工具',
@@ -5828,11 +5840,16 @@ const translations = {
                 title: '没有费用可导出',
                 subtitle: '是时候放松一下了，干得好。',
             },
+            emptyStatementsResults: {
+                title: '无费用显示',
+                subtitle: '无结果。请尝试调整过滤器。',
+            },
             emptyUnapprovedResults: {
                 title: '没有费用需要批准',
                 subtitle: '零报销。最大限度地放松。干得好！',
             },
         },
+        statements: '发言',
         unapproved: '未经批准',
         unapprovedCash: '未经批准的现金',
         unapprovedCompanyCards: '未经批准的公司卡',

@@ -446,6 +446,38 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
     return cardFeedsForDisplay;
 }
 
+/**
+ * Given a collection of card feeds, return formatted card feeds grouped per policy.
+ *
+ * Note: "Expensify Card" feeds are not included.
+ */
+function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>): Record<string, CardFeedForDisplay[]> {
+    const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
+
+    Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
+        // sharedNVP_private_domain_member_123456 -> 123456
+        const fundID = domainKey.split('_').at(-1);
+        if (!fundID) {
+            return;
+        }
+
+        Object.entries(getCompanyFeeds(cardFeeds, true, true)).forEach(([key, feedData]) => {
+            const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
+            const feed = key as CompanyCardFeed;
+            const id = `${fundID}_${feed}`;
+
+            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
+                id,
+                feed,
+                fundID,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+            });
+        });
+    });
+
+    return cardFeedsForDisplayPerPolicy;
+}
+
 export type {CardFilterItem, CardFeedNamesWithType};
 export {
     buildCardsData,
@@ -459,4 +491,5 @@ export {
     generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,
+    getCardFeedsForDisplayPerPolicy,
 };

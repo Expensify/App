@@ -3821,6 +3821,18 @@ const translations = {
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xeroにアカウントを追加し、再度接続を同期してください。',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: '優先エクスポーター',
@@ -5903,11 +5915,16 @@ const translations = {
                 title: 'エクスポートする経費はありません',
                 subtitle: 'ゆっくりする時間です。お疲れ様でした。',
             },
+            emptyStatementsResults: {
+                title: '表示する経費がない',
+                subtitle: '結果がありません。フィルターを調整してください。',
+            },
             emptyUnapprovedResults: {
                 title: '承認する経費はありません',
                 subtitle: '経費ゼロ。最大限のリラックス。よくやった！',
             },
         },
+        statements: 'ステートメント',
         unapproved: '未承認',
         unapprovedCash: '未承認現金',
         unapprovedCompanyCards: '未承認の社用カード',

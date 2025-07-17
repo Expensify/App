@@ -3805,6 +3805,18 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
+            accountingMethods: {
+                label: 'When to Export',
+                description: 'Choose when to export the expenses:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
@@ -5900,11 +5912,16 @@ const translations = {
                 title: 'No expenses to export',
                 subtitle: 'Time to take it easy, nice work.',
             },
+            emptyStatementsResults: {
+                title: 'No expenses to display',
+                subtitle: 'No results. Please try adjusting your filters.',
+            },
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
             },
         },
+        statements: 'Statements',
         unapproved: 'Unapproved',
         unapprovedCash: 'Unapproved cash',
         unapprovedCompanyCards: 'Unapproved company cards',
