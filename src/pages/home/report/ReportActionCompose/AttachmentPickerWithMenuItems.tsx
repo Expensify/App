@@ -311,19 +311,12 @@ function AttachmentPickerWithMenuItems({
     // 4. And the Create button is at the bottom.
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
-    const isMultipleDragAndDropEnabled = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
-
     return (
         <AttachmentPicker
-            allowMultiple={isMultipleDragAndDropEnabled}
-            onOpenPicker={() => {
-                if (!isMultipleDragAndDropEnabled) {
-                    return;
-                }
-                setIsLoaderVisible(true);
-            }}
-            fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
-            shouldValidateImage={!isMultipleDragAndDropEnabled}
+            allowMultiple
+            onOpenPicker={() => setIsLoaderVisible(true)}
+            fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
+            shouldValidateImage={false}
         >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {

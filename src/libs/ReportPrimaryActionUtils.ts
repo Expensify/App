@@ -55,11 +55,11 @@ type GetReportPrimaryActionParams = {
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
-    isChatReportArchived?: boolean;
+    isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived = false) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
     if (isChatReportArchived) {
         return false;
     }
@@ -124,6 +124,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -393,4 +397,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, getAllExpensesToHoldIfApplicable};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, getAllExpensesToHoldIfApplicable};

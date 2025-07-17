@@ -1,53 +1,50 @@
 ---
 layout: product
-title: Expensify Chat
+title: Reports Page
 ---
 
+# Reports Page
 
-# Reports
+The Reports page helps you explore and filter all reports and related expenses. It complements the Inbox by giving you a complete view of your expense history and what expenses and reports require your action. Use this page to create and download spending reports, track report actions, and view the recent expense activity on your workspace(s).
 
-Virtually all data can be analyzed and reported upon in the Reports page. The major elements of this page include:
+---
 
-## Data type
+## Expenses & Reports
 
-Start first by choosing the type of data you want to analyze, which can be:
+- **Managing expenses**: Click on any expense row to see its details in a side panel. Use checkboxes to select multiple expenses, then use bulk actions like Move, Download, or Delete from the action menu.
 
-- **Expense** - Individual standalone expenses.  
-- **Expense reports** - Groups of expenses processed in a batch.  
-- **Chats** - Comments written by you and others.  
-- **Invoices** - Expenses submitted to clients for payment.  
-- **Trips** - Travel expenses booked with Expensify Travel or scanned with SmartScan.
+- **Filters**: Looking for something specific? Use filters to narrow things down by date, category, merchant, tag, workspace, or report status. You can also combine filters with keywords for even more precise results.
 
-## Search
+- **Sort reports by status**:
+      - Draft – Only you can see it
+      - Outstanding – Waiting on someone else
+      - Approved – Ready to pay
+      - Done or Paid – All wrapped up
 
-A quick method of narrowing the results by keyword or more.
+- **Download what you need**: Generate a report to download filtered expense data as a CSV. Perfect for spreadsheets, monthly close, or syncing with accounting.
 
-## State filter
+---
 
-Simple methods to filter the results by "state", including:
+## Chats
 
-- **All**
-- **Expenses/Expense/Invoices reports:**
-  - Draft - Only you can see that hasn't been shared yet.  
-  - Outstanding - Submitted to someone and awaiting action.  
-  - Approved - Approved, but awaiting payment.  
-  - Done - Fully processed, no further action needed.  
-  - Paid - Fully paid, no further action needed.
+- **Viewing report previews**: Each report preview shows up right in your workspace chat with the status, up to 10 expenses, and buttons like Submit or Approve, depending on your role.
 
-- **Chats:**
-  - Unread - Not seen yet by you.  
-  - Sent - Sent by you.  
-  - Attachments - Image, movie, or document.  
-  - Links - Hyperlinks.  
-  - Pinned - Highlighted by you as important.
+- **Filter chats:** Use filters to find the exact chat you're looking for. 
 
-- **Trips:**
-  - Current - Happening or in the future.  
-  - Past - Already happened.
+---
 
-## Results
+## To-Do
 
-The core of the Reports page are the search results themselves.
+- **Stay on top of tasks**: The To-do section shows exactly what needs your attention. This is your go-to spot to keep things moving.
 
-- Select a row to see additional options.  
-- Tap on a row to see more detail.
+- **Action items:** Whether you need to submit, approve, or pay expenses, you can click the corresponding action to complete any outstanding to-dos. 
+
+---
+
+## Learn More
+
+- [The Reports Page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page)
+- [Understanding Reports Statuses and Actions](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions)
+- [Suggested Search](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Suggested-Search)
+- [Search and Download Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses)
+

@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -434,6 +435,8 @@ const SCREENS = {
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_AUTO_SYNC: 'Policy_Accounting_Xero_Auto_Sync',
+            XERO_ACCOUNTING_METHOD: 'Policy_Accounting_Xero_Accounting_Method',
             XERO_BILL_STATUS_SELECTOR: 'Policy_Accounting_Xero_Export_Bill_Status_Selector',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
