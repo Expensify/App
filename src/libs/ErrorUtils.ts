@@ -1,12 +1,12 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {TranslationPathError, TranslationPathErrors, TranslationPaths} from '@src/languages/types';
+import type {TranslationKeyError, TranslationKeyErrors, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
@@ -42,11 +42,15 @@ function getAuthenticateErrorMessage(response: Response): TranslationPaths {
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+    return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 
-function getMicroSecondTranslationErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): TranslationPathErrors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: {translationPath: error}};
+/**
+ * Creates an error object with a timestamp (in microseconds) as the key and the translation key as the value.
+ * @param translationKey - The translation key for the error message.
+ */
+function getMicroSecondTranslationErrorWithTranslationKey(translationKey: TranslationPaths, errorKey?: number): TranslationKeyErrors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: {translationKey}};
 }
 
 /**
@@ -201,17 +205,20 @@ function isReceiptError(message: unknown): message is ReceiptError {
     return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
 }
 
-function isTranslationPathError(message: unknown): message is TranslationPathError {
+/**
+ * Check if the error includes a translation key.
+ */
+function isTranslationKeyError(message: unknown): message is TranslationKeyError {
     if (typeof message === 'string') {
         return false;
     }
     if (Array.isArray(message)) {
         return false;
     }
-    if (Object.keys(message as Record<string, unknown>).length === 0) {
+    if (Object.keys(message as Record<string, unknown>).length !== 1) {
         return false;
     }
-    return (message as Record<string, unknown>)?.translationPath !== undefined;
+    return (message as Record<string, unknown>)?.translationKey !== undefined;
 }
 
 export {
@@ -229,7 +236,7 @@ export {
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
     isReceiptError,
-    isTranslationPathError,
+    isTranslationKeyError,
     getMicroSecondTranslationErrorWithTranslationKey,
 };
 

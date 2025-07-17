@@ -1,5 +1,9 @@
 import * as ErrorUtils from '@src/libs/ErrorUtils';
+import DateUtils from '@src/libs/DateUtils';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+// Mock DateUtils
+jest.mock('@src/libs/DateUtils');
 
 describe('ErrorUtils', () => {
     test('should add a new error message for a given inputID', () => {
@@ -60,6 +64,90 @@ describe('ErrorUtils', () => {
 
         expect(errors).toEqual({
             username: 'Username cannot be empty\nUsername must be at least 6 characters long\nUsername must contain at least one letter\nUsername must not contain special characters',
+        });
+    });
+
+    describe('getMicroSecondTranslationErrorWithTranslationKey', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test('should create an error object with microsecond timestamp and translation key', () => {
+            const mockMicroseconds = 1234567890123;
+            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+
+            const result = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
+
+            expect(result).toEqual({
+                [mockMicroseconds]: {translationKey: 'passwordForm.error.incorrectLoginOrPassword'},
+            });
+            expect(DateUtils.getMicroseconds).toHaveBeenCalledTimes(1);
+        });
+
+        test('should use provided errorKey instead of generating microsecond timestamp', () => {
+            const customErrorKey = 9876543210;
+            const result = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.fallback', customErrorKey);
+
+            expect(result).toEqual({
+                [customErrorKey]: {translationKey: 'passwordForm.error.fallback'},
+            });
+            expect(DateUtils.getMicroseconds).not.toHaveBeenCalled();
+        });
+
+        test('should handle different translation keys', () => {
+            const mockMicroseconds = 1111111111111;
+            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+
+            const result = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
+
+            expect(result).toEqual({
+                [mockMicroseconds]: {translationKey: 'passwordForm.error.incorrectLoginOrPassword'},
+            });
+        });
+    });
+
+    describe('isTranslationKeyError', () => {
+        test('should return false for string messages', () => {
+            expect(ErrorUtils.isTranslationKeyError('This is a string error')).toBe(false);
+            expect(ErrorUtils.isTranslationKeyError('')).toBe(false);
+        });
+
+        test('should return false for array messages', () => {
+            expect(ErrorUtils.isTranslationKeyError(['error1', 'error2'])).toBe(false);
+            expect(ErrorUtils.isTranslationKeyError([])).toBe(false);
+        });
+
+        test('should return false for empty objects', () => {
+            expect(ErrorUtils.isTranslationKeyError({})).toBe(false);
+        });
+
+        test('should return false for objects with multiple keys', () => {
+            expect(ErrorUtils.isTranslationKeyError({
+                translationKey: 'passwordForm.error.fallback',
+                extraKey: 'extra',
+            })).toBe(false);
+        });
+
+        test('should return false for objects without translationKey property', () => {
+            expect(ErrorUtils.isTranslationKeyError({error: 'generic error'})).toBe(false);
+            expect(ErrorUtils.isTranslationKeyError({message: 'error message'})).toBe(false);
+        });
+
+        test('should return true for valid TranslationKeyError objects', () => {
+            expect(ErrorUtils.isTranslationKeyError({translationKey: 'passwordForm.error.fallback'})).toBe(true);
+            expect(ErrorUtils.isTranslationKeyError({translationKey: 'passwordForm.error.incorrectLoginOrPassword'})).toBe(true);
+            expect(ErrorUtils.isTranslationKeyError({translationKey: 'session.offlineMessageRetry'})).toBe(true);
+        });
+
+        test('should return false for null and undefined', () => {
+            expect(ErrorUtils.isTranslationKeyError(null)).toBe(false);
+            expect(ErrorUtils.isTranslationKeyError(undefined)).toBe(false);
+        });
+
+        test('should return false for primitive types', () => {
+            expect(ErrorUtils.isTranslationKeyError(123)).toBe(false);
+            expect(ErrorUtils.isTranslationKeyError(true)).toBe(false);
+            expect(ErrorUtils.isTranslationKeyError(false)).toBe(false);
         });
     });
 });
