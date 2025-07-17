@@ -142,7 +142,7 @@ function SearchList(
         }
         return data;
     }, [data, groupBy]);
-    const flattenedItemsWithoutPendingDelete = flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, [flattenedItems]);
 
     const selectedItemsLength = useMemo(
         () =>
