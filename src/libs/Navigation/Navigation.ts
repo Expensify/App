@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -652,6 +652,11 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function clearPreloadedRoutes() {
+    const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
+    navigationRef.reset(rootStateWithoutPreloadedRoutes);
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -685,6 +690,7 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    clearPreloadedRoutes,
 };
 
 export {navigationRef};
