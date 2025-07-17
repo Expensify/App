@@ -85,12 +85,11 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
 
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
- * @param transactionID - The merge transaction id
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(transactionID: string, targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
+function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
@@ -98,10 +97,13 @@ function getMergeableDataAndConflictFields(transactionID: string, targetTransact
         const targetValue = getMergeFieldValue(targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransaction, field);
 
-        if (!targetValue || !sourceValue || targetValue === sourceValue) {
-            // We use the logical OR (||) here instead of ?? because some fields can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            mergeableData[field] = targetValue || sourceValue;
+        // Check if either value is truly "empty" (null, undefined, or empty string)
+        // For boolean fields, false is a valid value, not an empty value
+        const isTargetValueEmpty = targetValue === null || targetValue === undefined || targetValue === '';
+        const isSourceValueEmpty = sourceValue === null || sourceValue === undefined || sourceValue === '';
+
+        if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
+            mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
         } else {
             conflictFields.push(field);
         }

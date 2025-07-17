@@ -46,7 +46,7 @@ function DetailsReview({route}: DetailsReviewProps) {
             return;
         }
 
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(transactionID, targetTransaction, sourceTransaction);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setDiffFields(conflictFields as MergeFieldKey[]);
