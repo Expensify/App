@@ -1,5 +1,5 @@
-import _isEmpty from 'lodash/isEmpty';
-import _keyBy from 'lodash/keyBy';
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
@@ -168,10 +168,10 @@ function getTagViolationsForMultiLevelTags(
  * Returns a dot-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
  */
 function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
-    if (_isEmpty(errorIndexes) || _isEmpty(tags)) {
+    if (isEmpty(errorIndexes) || isEmpty(tags)) {
         return translate('violations.someTagLevelsRequired', {tagName});
     }
-    const tagsWithIndexes = _keyBy(Object.values(tags), 'orderWeight');
+    const tagsWithIndexes = keyBy(Object.values(tags), 'orderWeight');
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join('. ');
 }
 

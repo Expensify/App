@@ -451,9 +451,14 @@ function getCleanedTagName(tag: string) {
  * Normalizes a tag string by unescaping colons, trimming leading/trailing colons, and converting internal colons to comma-separated format.
  */
 function getCommaSeparatedTagNameWithSanitizedColons(tag: string) {
-    return getCleanedTagName(tag)
-        .replace(/^:+|:+$/g, '') // Remove leading and trailing colons
-        .replace(/:+/g, ', '); // Replace inner colons with comma+space
+    return (
+        getCleanedTagName(tag)
+            // Remove leading and trailing colons
+            .replace(/^:+|:+$/g, '')
+
+            // Replace inner colons with comma+space
+            .replace(/:+/g, ', ')
+    );
 }
 
 /**
