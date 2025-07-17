@@ -2699,6 +2699,8 @@ const translations = {
             validationAmounts: 'De ingevoerde validatiebedragen zijn onjuist. Controleer uw bankafschrift en probeer het opnieuw.',
             fullName: 'Voer een geldige volledige naam in alstublieft',
             ownershipPercentage: 'Voer een geldig percentage in.',
+            deletePaymentBankAccount:
+                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
         },
     },
     addPersonalBankAccount: {
