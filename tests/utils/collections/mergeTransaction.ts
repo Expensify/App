@@ -6,10 +6,7 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
     return {
         targetTransactionID: index.toString(),
         sourceTransactionID: randWord(),
-        eligibleTransactions: [
-            createRandomTransaction(0),
-            createRandomTransaction(1),
-        ],
+        eligibleTransactions: [createRandomTransaction(0), createRandomTransaction(1)],
         amount: randAmount(),
         merchant: randWord(),
         category: randWord(),
@@ -21,5 +18,5 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
         reimbursable: randBoolean(),
         billable: randBoolean(),
         receipt: {},
-    }
+    };
 }

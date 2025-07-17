@@ -3,8 +3,8 @@ import * as MergeTransaction from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction as MergeTransactionType, Transaction, TransactionViolation} from '@src/types/onyx';
-import createRandomTransaction from '../utils/collections/transaction';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -74,12 +74,7 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
 
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
-        MergeTransaction.mergeTransactionRequest(
-            mergeTransactionID,
-            mergeTransaction,
-            targetTransaction,
-            sourceTransaction
-        );
+        MergeTransaction.mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -168,13 +163,8 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
         // When: The merge request is executed but the API will return an error
         mockFetch?.fail?.();
 
-        MergeTransaction.mergeTransactionRequest(
-            mergeTransactionID,
-            mergeTransaction,
-            targetTransaction,
-            sourceTransaction
-        );
-        
+        MergeTransaction.mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+
         await waitForBatchedUpdates();
 
         // Resume fetch to process the failed API response
@@ -245,12 +235,7 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
         // When: The merge request is executed, which should handle violation updates
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
-        MergeTransaction.mergeTransactionRequest(
-            mergeTransactionID,
-            mergeTransaction,
-            targetTransaction,
-            sourceTransaction
-        );
+        MergeTransaction.mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -272,10 +257,10 @@ describe('MergeTransaction - mergeTransactionRequest', () => {
         expect(updatedTargetViolations).toEqual([
             expect.objectContaining({
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
-            })
+            }),
         ]);
 
         // Should not contain duplicate transaction violations
-        expect(updatedTargetViolations?.some(v => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeFalsy();
+        expect(updatedTargetViolations?.some((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeFalsy();
     });
-}); 
+});

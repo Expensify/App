@@ -1,6 +1,6 @@
 import * as MergeTransactionUtils from '@libs/MergeTransactionUtils';
-import createRandomTransaction from '../utils/collections/transaction';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomTransaction from '../utils/collections/transaction';
 
 describe('MergeTransactionUtils', () => {
     describe('getMergeableDataAndConflictFields', () => {
@@ -29,10 +29,7 @@ describe('MergeTransactionUtils', () => {
                 billable: undefined, // Undefined value
             };
 
-            const result = MergeTransactionUtils.getMergeableDataAndConflictFields(
-                targetTransaction,
-                sourceTransaction,
-            );
+            const result = MergeTransactionUtils.getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['category', 'description', 'reimbursable']);
@@ -100,10 +97,7 @@ describe('MergeTransactionUtils', () => {
 
     describe('selectTargetAndSourceTransactionIDsForMerge', () => {
         it('should handle undefined transactions gracefully', () => {
-            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(
-                undefined,
-                undefined,
-            );
+            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
 
             expect(result).toEqual({
                 targetTransactionID: undefined,
@@ -123,10 +117,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: true,
             };
 
-            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(
-                cashTransaction,
-                cardTransaction,
-            );
+            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
                 targetTransactionID: 'card1',
@@ -146,10 +137,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(
-                cardTransaction,
-                cashTransaction,
-            );
+            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
                 targetTransactionID: 'card1',
@@ -169,10 +157,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(
-                cashTransaction1,
-                cashTransaction2,
-            );
+            const result = MergeTransactionUtils.selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
                 targetTransactionID: 'cash1',
@@ -180,4 +165,4 @@ describe('MergeTransactionUtils', () => {
             });
         });
     });
-}); 
+});
