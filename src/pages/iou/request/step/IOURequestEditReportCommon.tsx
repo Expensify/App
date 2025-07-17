@@ -86,6 +86,9 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
                     ...matchingOption,
+                    // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
+                    // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
+                    brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
