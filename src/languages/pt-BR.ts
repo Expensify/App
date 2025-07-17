@@ -620,6 +620,7 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        merge: 'Mesclar',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1339,6 +1340,31 @@ const translations = {
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Mesclar despesas',
+            noEligibleExpenseFound: 'Nenhuma despesa elegível encontrada',
+            noEligibleExpenseFoundSubtitle: `Você não tem despesas que possam ser mescladas com esta. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Saiba mais</a> sobre despesas elegíveis.`,
+            mergeButton: 'Mesclar transações',
+            selectTransactionToMerge: `Selecione uma <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">despesa elegível</a> para mesclar`,
+        },
+        receiptPage: {
+            header: 'Selecionar recibo',
+            pageTitle: 'Selecione o recibo que deseja manter:',
+        },
+        detailsPage: {
+            header: 'Selecionar detalhes',
+            pageTitle: 'Selecione os detalhes que deseja manter:',
+            noDifferences: 'Nenhuma diferença encontrada entre as transações',
+            pleaseSelectError: ({field}: {field: string}) => `Por favor selecione um(a) ${field}`,
+            selectAllDetailsError: 'Selecione todos os detalhes antes de continuar.',
+        },
+        confirmationPage: {
+            header: 'Confirmar detalhes',
+            pageTitle: 'Confirme os detalhes que deseja manter. Os demais serão excluídos.',
+            confirmButton: 'Mesclar despesas',
+        },
     },
     share: {
         shareToExpensify: 'Compartilhar no Expensify',
