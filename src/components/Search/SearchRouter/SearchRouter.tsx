@@ -1,12 +1,12 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -83,7 +84,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
@@ -429,64 +435,66 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
     return (
-        <GestureHandlerRootView style={{flex: 1}}>
-            <GestureDetector gesture={Gesture.Tap().runOnJS(true).onFinalize(Keyboard.dismiss)}>
-                <View
-                    style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
-                    testID={SearchRouter.displayName}
-                    ref={ref}
-                >
-                    {shouldUseNarrowLayout && (
-                        <HeaderWithBackButton
-                            title={translate('common.search')}
-                            onBackButtonPress={() => onRouterClose()}
-                            shouldDisplayHelpButton={false}
-                        />
-                    )}
-                    {isRecentSearchesDataLoaded && (
-                        <>
-                            <SearchInputSelectionWrapper
-                                value={textInputValue}
-                                isFullWidth={shouldUseNarrowLayout}
-                                onSearchQueryChange={onSearchQueryChange}
-                                onSubmit={() => {
-                                    const focusedOption = listRef.current?.getFocusedOption();
+        <View
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+            testID={SearchRouter.displayName}
+            ref={ref}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={Keyboard.dismiss}
+        >
+            {shouldUseNarrowLayout && (
+                <HeaderWithBackButton
+                    title={translate('common.search')}
+                    onBackButtonPress={() => onRouterClose()}
+                    shouldDisplayHelpButton={false}
+                />
+            )}
+            {isRecentSearchesDataLoaded && (
+                <>
+                    <SearchInputSelectionWrapper
+                        value={textInputValue}
+                        isFullWidth={shouldUseNarrowLayout}
+                        onSearchQueryChange={onSearchQueryChange}
+                        onSubmit={() => {
+                            const focusedOption = listRef.current?.getFocusedOption();
 
-                                    if (!focusedOption) {
-                                        submitSearch(textInputValue);
-                                        return;
-                                    }
+                            if (!focusedOption) {
+                                submitSearch(textInputValue);
+                                return;
+                            }
 
-                                    onListItemPress(focusedOption);
-                                }}
-                                caretHidden={shouldHideInputCaret}
-                                autocompleteListRef={listRef}
-                                shouldShowOfflineMessage
-                                wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
-                                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                                wrapperFocusedStyle={styles.borderColorFocus}
-                                isSearchingForReports={isSearchingForReports}
-                                selection={selection}
-                                substitutionMap={autocompleteSubstitutions}
-                                ref={textInputRef}
-                            />
-                            <SearchAutocompleteList
-                                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                                handleSearch={searchInServer}
-                                searchQueryItem={searchQueryItem}
-                                getAdditionalSections={getAdditionalSections}
-                                onListItemPress={onListItemPress}
-                                setTextQuery={setTextAndUpdateSelection}
-                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                                onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                                ref={listRef}
-                                textInputRef={textInputRef}
-                            />
-                        </>
-                    )}
-                </View>
-            </GestureDetector>
-        </GestureHandlerRootView>
+                            onListItemPress(focusedOption);
+                        }}
+                        caretHidden={shouldHideInputCaret}
+                        autocompleteListRef={listRef}
+                        shouldShowOfflineMessage
+                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                        outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+                        wrapperFocusedStyle={styles.borderColorFocus}
+                        isSearchingForReports={isSearchingForReports}
+                        selection={selection}
+                        substitutionMap={autocompleteSubstitutions}
+                        ref={textInputRef}
+                    />
+                    <SearchAutocompleteList
+                        autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                        handleSearch={searchInServer}
+                        searchQueryItem={searchQueryItem}
+                        getAdditionalSections={getAdditionalSections}
+                        onListItemPress={onListItemPress}
+                        setTextQuery={setTextAndUpdateSelection}
+                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                        ref={listRef}
+                        textInputRef={textInputRef}
+                        personalDetails={personalDetails}
+                        reports={reports}
+                        allFeeds={allFeeds}
+                        allCards={allCards}
+                    />
+                </>
+            )}
+        </View>
     );
 }
 

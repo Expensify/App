@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInRight, FadeOutRight} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
@@ -387,6 +387,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 setTextQuery={setTextAndUpdateSelection}
                                 updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
+                                personalDetails={personalDetails}
+                                reports={reports}
+                                allCards={allCards}
+                                allFeeds={allFeeds}
                             />
                         </View>
                     )}
@@ -454,6 +458,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+                            personalDetails={personalDetails}
+                            reports={reports}
+                            allCards={allCards}
+                            allFeeds={allFeeds}
                         />
                     </View>
                 </View>
