@@ -38,6 +38,10 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `onURLListenerAdded` should never be called on web');
     },
+    nativeLog(message: string) {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `nativeLog` should never be called on web');
+    },
 };
 
 export default HybridAppModule;

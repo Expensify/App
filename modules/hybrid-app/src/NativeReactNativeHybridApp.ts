@@ -12,6 +12,7 @@ export interface Spec extends TurboModule {
     getHybridAppSettings: () => Promise<string | null>;
     getInitialURL(): Promise<string | null>;
     onURLListenerAdded: () => void;
+    nativeLog: (message: string) => void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('ReactNativeHybridApp');

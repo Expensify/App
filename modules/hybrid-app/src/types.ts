@@ -8,6 +8,7 @@ type HybridAppModuleType = {
     getHybridAppSettings: () => Promise<string | null>;
     getInitialURL(): Promise<string | null>;
     onURLListenerAdded: () => void;
+    nativeLog: (message: string) => void;
 };
 
 export default HybridAppModuleType;

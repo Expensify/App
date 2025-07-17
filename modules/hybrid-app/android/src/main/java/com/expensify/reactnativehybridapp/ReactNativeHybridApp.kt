@@ -51,4 +51,8 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
   override fun onURLListenerAdded() {
     Log.d(NAME, "`onURLListenerAdded` should never be called in standalone `New Expensify` app")
   }
+
+  override fun nativeLog(message: String) {
+    Log.d(NAME, "`nativeLog` should never be called in standalone `New Expensify` app")
+  }
 }

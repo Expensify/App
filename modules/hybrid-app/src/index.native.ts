@@ -29,6 +29,9 @@ const HybridAppModule: HybridAppModuleType = {
     onURLListenerAdded() {
         ReactNativeHybridApp.onURLListenerAdded();
     },
+    nativeLog(message: string) {
+        ReactNativeHybridApp.nativeLog(message);
+    },
 };
 
 export default HybridAppModule;

@@ -202,16 +202,19 @@ function Expensify() {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
+        HybridAppModule.nativeLog('Expensify.tsx: useEffect: Linking.getInitialURL');
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });
 
-        // Open chat report from a deep link (only mobile native)
+        HybridAppModule.nativeLog('Expensify.tsx: useEffect: Linking.addEventListener');
         Linking.addEventListener('url', (state) => {
             Report.openReportFromDeepLink(state.url);
         });
+
         if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.nativeLog('Expensify.tsx: useEffect: onURLListenerAdded');
             HybridAppModule.onURLListenerAdded();
         }
 
