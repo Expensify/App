@@ -15,7 +15,7 @@ Book rental cars directly in Expensify using the integrated travel portal, avail
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -43,8 +43,8 @@ Book rental cars directly in Expensify using the integrated travel portal, avail
 
 - Your company’s travel policy may require additional approval before confirmation.
 - You’ll receive a confirmation email once your reservation is complete.
-- The booking syncs with your Expensify account for easy expense tracking.
-- If the payment card used is connected to Expensify, the receipt will automatically merge with the imported expense.
+- The booking receipt automatically syncs with your Expensify account for easy expense tracking.
+- If the payment card used is importing into your Expensify account, the receipt will automatically merge with the imported expense.
 
 ---
 
@@ -54,7 +54,7 @@ Book rental cars directly in Expensify using the integrated travel portal, avail
 Yes, many providers support one-way rentals. Just enter different pickup and drop-off locations during booking.
 
 ## Is insurance included?
-Insurance offerings vary by provider. Review included coverage and optional extras during checkout.
+Insurance offerings vary by provider. Review included coverage and optional extras during checkout. 
 
 ## Can I choose the rental company?
 Yes! Use the filters to select your preferred rental provider.
