@@ -687,10 +687,6 @@ async function main(): Promise<void> {
                     const validatedPaths: TranslationPaths[] = [];
                     const invalidPaths: string[] = [];
 
-                    // We disable eslint here and do a dynamic require because tests mock the en.ts file using fs, and normal imports can't be mocked by jest
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                    // const en = require(enSourceFile).default;
-
                     for (const rawPath of rawPaths) {
                         if (get(en, rawPath)) {
                             validatedPaths.push(rawPath as TranslationPaths);
