@@ -268,14 +268,15 @@ function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
-function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
+function search({queryJSON, offset, shouldCalculateTotals = false}: {queryJSON: SearchQueryJSON; offset?: number; shouldCalculateTotals?: boolean}) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
-    const queryWithOffset = {
+    const query = {
         ...queryJSONWithoutFlatFilters,
         offset,
+        shouldCalculateTotals,
     };
-    const jsonQuery = JSON.stringify(queryWithOffset);
+    const jsonQuery = JSON.stringify(query);
 
     API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
 }
