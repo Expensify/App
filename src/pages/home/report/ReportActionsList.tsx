@@ -189,6 +189,10 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
 
+    // FlatList displays items from top to bottom, so we need the oldest actions first.
+    // Since sortedReportActions and sortedVisibleReportActions are ordered from newest to oldest,
+    // we use toReversed() to reverse the order when using FlatList, ensuring the oldest action appears at the top.
+    // InvertedFlatList automatically shows the newest action at the bottom, so no reversal is needed there.
     const reportActions = useMemo(() => (isTransactionThread(parentReportAction) ? sortedReportActions.toReversed() : sortedReportActions), [parentReportAction, sortedReportActions]);
     const visibleReportActions = useMemo(
         () => (isTransactionThread(parentReportAction) ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
@@ -696,12 +700,17 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    // FlatList is used for transaction threads to keep the list scrolled at the top and display actions in chronological order.
+    // InvertedFlatList is used for regular reports, always scrolling to the bottom initially and showing the newest messages at the bottom.
     const ListComponent = isTransactionThread(parentReportAction) ? FlatList : InvertedFlatList;
 
     const contentContainerStyle = useMemo(() => {
         const baseStyles: StyleProp<ViewStyle> = [styles.chatContentScrollView];
 
         if (isTransactionThread(parentReportAction)) {
+            // InvertedFlatList applies a scale: -1 transform, so top padding becomes bottom padding and vice versa.
+            // When using FlatList for transaction threads, we need to manually add top padding (pt4) and remove bottom padding (pb0)
+            // to maintain consistent spacing and visual appearance at the top of the list.
             baseStyles.push(styles.pb0, styles.pt4);
         }
 
