@@ -11125,6 +11125,42 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
     return getReportName(iouReport) || action.childReportName;
 }
 
+/**
+ * Returns the current status of the report based on its state and status numbers.
+ * The status is determined by the stateNum and statusNum of the report.
+ * The mapping is as follows:
+ * ========================================
+ * State  |  Status  |  What to display?  |
+ * 0	  |  0	     |  Draft             |
+ * 1	  |  1	     |  Outstanding       |
+ * 2	  |  2	     |  Done              |
+ * 2	  |  3	     |  Approved          |
+ * 2	  |  4	     |  Paid              |
+ * 3	  |  4	     |  Paid              |
+ * ========================================
+ */
+function getReportStatus(report?: Report) {
+    if (report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        return translateLocal('common.draft');
+    }
+    if (report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return translateLocal('common.outstanding');
+    }
+    if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+        return translateLocal('common.done');
+    }
+    if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return translateLocal('iou.approved');
+    }
+    if (
+        (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) || 
+        (report?.stateNum === CONST.REPORT.STATE_NUM.BILLING && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED)
+    ) {
+        return translateLocal('iou.settledExpensify');
+    }
+    return ('');
+};
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11504,6 +11540,7 @@ export {
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,
+    getReportStatus,
 };
 
 export type {

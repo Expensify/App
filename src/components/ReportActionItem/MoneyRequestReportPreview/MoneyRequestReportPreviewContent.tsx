@@ -59,6 +59,7 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
+    getReportStatus,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -294,50 +295,11 @@ function MoneyRequestReportPreviewContent({
      * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const {expenseCountText} = useMemo(() => {
-        return {
-            expenseCountText: translate('iou.expenseCount', {
-                count: numberOfRequests,
-            }),
-        };
-    }, [translate, numberOfRequests]);
+    const expenseCount = useMemo(() => translate('iou.expenseCount', {
+        count: numberOfRequests,
+    }), [translate, numberOfRequests]);
 
-    // Nedded for the status in the subheader of the report preview
-    // ========================================
-    // State  |  Status  |  What to display?  |
-    // 0	  |  0	     |  Draft             |
-    // 1	  |  1	     |  Outstanding       |
-    // 2	  |  2	     |  Done              |
-    // 2	  |  3	     |  Approved          |
-    // 2	  |  4	     |  Paid              |
-    // 3	  |  4	     |  Paid              |
-    // 6	  |  4	     |  Paid              |
-    // ========================================
-    const {getReportStatus} = useMemo(() => {
-        if (iouReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-            return {
-                getReportStatus: translate('common.draft'),
-            };
-        }
-        if (iouReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            return {
-                getReportStatus: translate('common.outstanding'),
-            };
-        }
-        if (iouReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
-            return {
-                getReportStatus: translate('common.done'),
-            };
-        }
-        if (iouReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-            return {
-                getReportStatus: translate('iou.approved'),
-            };
-        }
-        return {
-            getReportStatus: translate('iou.settledExpensify'),
-        };
-    }, [translate, iouReport]);
+    const reportStatus = useMemo(() => getReportStatus(iouReport), [iouReport]);
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
@@ -752,7 +714,7 @@ function MoneyRequestReportPreviewContent({
                                             numberOfLines={1}
                                             testID="MoneyRequestReportPreview-statusAndCount"
                                         >
-                                            {`${getReportStatus} • ${expenseCountText}`}
+                                            {`${reportStatus} • ${expenseCount}`}
                                         </Text>
                                     </View>
 
