@@ -700,7 +700,7 @@ async function main(): Promise<void> {
                     }
 
                     if (invalidPaths.length > 0) {
-                        throw new Error(`⚠️  Warning: --paths contains the following invalid paths: ${invalidPaths.join(', ')}`);
+                        throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
                     }
 
                     return validatedPaths;

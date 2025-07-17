@@ -9,7 +9,8 @@ import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Translator from '@scripts/utils/Translator/Translator';
 
-let mockExit: jest.SpyInstance;
+let processExitSpy: jest.SpyInstance;
+let consoleErrorSpy: jest.SpyInstance;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 let mockEn: any = jest.requireActual('@src/languages/en');
@@ -33,7 +34,8 @@ describe('generateTranslations', () => {
     const ORIGINAL_ARGV = process.argv;
 
     beforeEach(() => {
-        mockExit = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+        processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+        consoleErrorSpy = jest.spyOn(console, 'error');
 
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-test-'));
         LANGUAGES_DIR = path.join(tempDir, 'src/languages');
@@ -730,8 +732,9 @@ describe('generateTranslations', () => {
         process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'nonexistent.path'];
 
         // Expect the script to throw an error during CLI parsing
-        await expect(generateTranslations()).rejects.toThrow('Translation path not found: nonexistent.path');
-        expect(mockExit).toHaveBeenCalledWith(1);
+        await generateTranslations();
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid value for --paths: found the following invalid paths: ["nonexistent.path"]');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('validates paths against actual translation structure', async () => {
