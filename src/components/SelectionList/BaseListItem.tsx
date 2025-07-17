@@ -142,6 +142,7 @@ function BaseListItem<TItem extends ListItem>({
                     {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
+                                testID={CONST.DOT_INDICATOR_TEST_ID}
                                 src={Expensicons.DotIndicator}
                                 fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
                             />
