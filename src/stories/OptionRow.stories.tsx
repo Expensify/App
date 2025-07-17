@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionRow from '@components/OptionRow';
 import type {OptionRowProps} from '@components/OptionRow';
 
@@ -45,9 +45,9 @@ export default {
 
 function Template(props: OptionRowProps) {
     return (
-        <OnyxProvider>
+        <OnyxListItemProvider>
             <OptionRow {...props} />
-        </OnyxProvider>
+        </OnyxListItemProvider>
     );
 }
 
