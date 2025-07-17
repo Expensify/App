@@ -15,12 +15,6 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Explain failure
-        if: failure()
-        run: |
-          echo '::error:: 😦 Something you did broke scripts/generateTranslations.ts. Most likely, this means you added an import that caused react-native to be directly or indirectly imported into the script.'
-          exit 1
-
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
