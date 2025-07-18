@@ -4,8 +4,6 @@ description: Understand how Expensify Travel helps businesses meet their duty of
 keywords: [duty of care, employee safety, travel tracking, risk management, travel map]
 ---
 
-# Traveler safety
-
 Expensify Travel supports your company’s duty of care obligations by giving admins real-time visibility into employee travel. This helps you respond quickly in emergencies, support travelers in crisis, and fulfill your legal and ethical responsibility to keep employees safe.
 
 ## How to access Expensify Travel
