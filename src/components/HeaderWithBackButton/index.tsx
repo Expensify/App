@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -22,7 +23,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@navigation/navigationRef';
 import variables from '@styles/variables';
+import {saveLastSearchParams, setActiveReportIDs} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +85,6 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
-    arrowButtons,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -93,14 +95,16 @@ function HeaderWithBackButton({
     const [lastSearchQuery] = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const allReports = rawReports?.[0] ?? [];
     const currentIndex = allReports.indexOf(report?.reportID ?? '');
-    const allReportsCount = allReports?.length ?? 0;
-
+    const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
+    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
+    const hidePrevButton = currentIndex === 0;
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
             return;
         }
-        const backTo = Navigation.getActiveRoute();
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportId, backTo}));
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportId, backTo: focusedRoute?.params?.backTo}), {forceReplace: true});
     };
 
     const goToNextReport = () => {
@@ -109,22 +113,37 @@ function HeaderWithBackButton({
         }
 
         debugger;
-        // if (currentIndex > allReports.length * 0.75 && lastSearchQuery?.hasMoreResults) {
-        if (true) {
-            // search({
-            //     queryJSON: lastSearchQuery.queryJSON,
-            //     offset: lastSearchQuery.offset,
-            // }).then((results) => {
-            //     console.log('________dupa___________');
-            //     console.log(results);
-            //     console.log('________dupa___________');
-            // });
+        if (currentIndex > allReportsCount * 0.75 && lastSearchQuery?.hasMoreResults) {
             search({
-                queryJSON: lastSearchQuery.queryJSON,
-                offset: lastSearchQuery.offset,
+                queryJSON: {...lastSearchQuery.queryJSON, filters: null},
+                offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+            }).then((results) => {
+                debugger;
+                console.log(results);
+                const data = results?.onyxData?.[0]?.value?.data;
+                if (data) {
+                    const reportNumbers = Object.keys(data)
+                        .filter((key) => key.startsWith('report_'))
+                        .map((key) => key.replace('report_', ''));
+                    console.log(reportNumbers);
+                    setActiveReportIDs([...allReports, ...reportNumbers]);
+                }
+                saveLastSearchParams({
+                    queryJSON: {...lastSearchQuery.queryJSON, filters: null},
+                    offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                    hasMoreResults: !!results?.onyxData?.[0]?.value?.search?.hasMoreResults,
+                    previousLengthOfResults: allReportsCount < allReports.length && currentIndex === allReports.length ? allReports.length : allReportsCount,
+                });
+                console.log(lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
             });
         }
-
+        if (currentIndex === allReportsCount - 1) {
+            debugger;
+            saveLastSearchParams({
+                ...lastSearchQuery,
+                previousLengthOfResults: allReports.length,
+            });
+        }
         const nextIndex = (currentIndex + 1) % allReports.length;
         goToReportId(allReports.at(nextIndex));
     };
@@ -368,8 +387,8 @@ function HeaderWithBackButton({
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                         <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>
                         <PrevNextButtons
-                            isPrevButtonDisabled={false}
-                            isNextButtonDisabled={false}
+                            isPrevButtonDisabled={hidePrevButton}
+                            isNextButtonDisabled={hideNextButton}
                             onNext={goToNextReport}
                             onPrevious={goToPrevReport}
                         />

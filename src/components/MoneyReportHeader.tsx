@@ -435,8 +435,6 @@ function MoneyReportHeader({
 
     const shouldDisplayNavigationArrows = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
-    debugger;
-
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {

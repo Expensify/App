@@ -15,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch, search, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -221,6 +221,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         handleSearch({queryJSON, offset});
+        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+            saveLastSearchParams({
+                hasMoreResults: searchResults.search.hasMoreResults,
+                offset,
+                queryJSON,
+                previousLengthOfResults: data.length,
+            });
+        }
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -252,12 +260,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         const result = getSections(type, status, searchResults.data, searchResults.search, groupBy);
 
         if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-            debugger;
-            saveLastSearchParams({
-                hasMoreResults: searchResults.search.hasMoreResults,
-                offset,
-                queryJSON,
-            });
             setActiveReportIDs(result.map((element) => element?.reportID ?? ''));
         }
 

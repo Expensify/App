@@ -5,7 +5,11 @@ import type {SearchParams} from '@components/Search/types';
  */
 type LastSearchParams = {
     /**
-     *lolololol
+     *
+     */
+    previousLengthOfResults?: number;
+    /**
+     *
      */
     hasMoreResults: boolean;
 } & SearchParams;
