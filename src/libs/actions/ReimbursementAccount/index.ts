@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -49,6 +51,13 @@ function cancelResetBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
 }
 
+/**
+ *  Sets pressed option during connecting reimbursement account
+ */
+function setReimbursementAccountOptionPressed(optionPressed: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, optionPressed);
+}
+
 export {
     resetUSDBankAccount,
     resetNonUSDBankAccount,
@@ -59,4 +68,5 @@ export {
     cancelResetBankAccount,
     clearReimbursementAccountDraft,
     setBankAccountState,
+    setReimbursementAccountOptionPressed,
 };

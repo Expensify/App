@@ -476,6 +476,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the VBA flow
+            COUNTRY: 'CountryStep',
             BANK_ACCOUNT: 'BankAccountStep',
             REQUESTOR: 'RequestorStep',
             COMPANY: 'CompanyStep',
@@ -484,12 +485,8 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
-        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEPS_HEADER_HEIGHT: 40,
-        SUBSTEP: {
-            MANUAL: 'manual',
-            PLAID: 'plaid',
-        },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
             THROTTLED: 'verifications.throttled',
@@ -508,6 +505,7 @@ const CONST = {
         SETUP_TYPE: {
             MANUAL: 'manual',
             PLAID: 'plaid',
+            EMPTY: '',
         },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
