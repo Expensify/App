@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import {isAnonymousUser} from './actions/Session';
 import Log from './Log';
@@ -58,11 +59,11 @@ Onyx.connect({
     },
 });
 
-function shouldUseOldApp(tryNewDot?: TryNewDot) {
-    if (!!tryNewDot && !tryNewDot.classicRedirect) {
+function shouldUseOldApp(tryNewDot: TryNewDot) {
+    if (isEmptyObject(tryNewDot) || isEmptyObject(tryNewDot.classicRedirect)) {
         return true;
     }
-    return tryNewDot?.classicRedirect?.dismissed === true;
+    return tryNewDot.classicRedirect.dismissed;
 }
 
 function handleChangeInHybridAppSignInFlow(
