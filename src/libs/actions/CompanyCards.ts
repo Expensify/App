@@ -8,6 +8,7 @@ import type {
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
+    SetFeedStatementPeriodEndDate,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -811,6 +812,36 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
     API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
+function setFeedStatementPeriodEndDate(policyID: string, bankName: string, domainAccountID: number, newStatementPeriodEndDate: string, oldStatementPeriodEndDate: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            statementPeriodEndDay: newStatementPeriodEndDate,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: SetFeedStatementPeriodEndDate = {
+        authToken,
+        policyID,
+        bankName,
+        domainAccountID,
+        statementPeriodEndDate: newStatementPeriodEndDate,
+    };
+
+    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DATE, parameters);
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -831,4 +862,5 @@ export {
     openAssignFeedCardPage,
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
+    setFeedStatementPeriodEndDate,
 };
