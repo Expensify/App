@@ -1,5 +1,5 @@
 ---
-title: editing-travel-arrangements.md
+title: Editing Travel Arrangements
 description: Learn how to make changes to your existing travel bookings directly in Expensify, including flights, hotels, and car rentals.
 keywords: [edit travel, change booking, update itinerary, modify trip, expensify travel, classic, new expensify]
 ---
