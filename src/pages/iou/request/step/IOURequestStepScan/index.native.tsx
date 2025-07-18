@@ -107,6 +107,7 @@ function IOURequestStepScan({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const platform = getPlatform(true);
@@ -573,7 +574,7 @@ function IOURequestStepScan({
             setReceiptFiles(newReceiptFiles);
             const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
             if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt ?? '');
 
                 if (beginLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
@@ -591,7 +592,7 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
                 if (gpsRequired) {
-                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt ?? '');
                     if (beginLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
                         return;

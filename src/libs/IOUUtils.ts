@@ -1,8 +1,6 @@
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -13,12 +11,6 @@ import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
-
-let lastLocationPermissionPrompt: string;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT,
-    callback: (val) => (lastLocationPermissionPrompt = val ?? ''),
-});
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -208,7 +200,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
-function shouldStartLocationPermissionFlow() {
+function shouldStartLocationPermissionFlow(lastLocationPermissionPrompt: string) {
     return (
         !lastLocationPermissionPrompt ||
         (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
