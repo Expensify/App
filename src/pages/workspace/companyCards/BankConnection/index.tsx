@@ -130,7 +130,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 return;
             }
             if (isPlaid) {
-                onImportPlaidAccounts();
                 return;
             }
             if (url) {
