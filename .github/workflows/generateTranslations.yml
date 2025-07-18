@@ -138,4 +138,5 @@ jobs:
           # Post comment using the temp file
           gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          # Use OS_BOTIFY_TOKEN so that we can create a gist
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
