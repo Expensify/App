@@ -15,7 +15,7 @@ Use the **Trips** dropdown in the travel tool to view and manage upcoming, compl
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -24,7 +24,7 @@ Use the **Trips** dropdown in the travel tool to view and manage upcoming, compl
 To see your own trips:
 
 1. Click **Trips** in the top navigation bar.
-2. Under the **Individual** section, select **My Trips**.
+2. Your trips will be under **My Trips**.
 
 You’ll see a list of all trips associated with your account.
 
@@ -43,10 +43,9 @@ Click any trip to open the full **Trip view**, where you can:
 
 ## For travel admins
 
-Admins will see an additional **Company** section in the **Trips** dropdown.
-
 1. Click **Trips** in the top navigation bar.
-2. Under **Company**, select **All Trips**.
+2. Click **All Trips**.
+3. Apply additional filters or edit the visible columns as needed.
 
 This view shows all trips booked by travelers in your organization. You can filter by:
 
@@ -68,7 +67,7 @@ To the far right of each trip row, click the **three-dot menu** to:
 # FAQ
 
 ## Can I view trips I booked for someone else?
-Yes. Travel arrangers can view these under **My Trips**, and travel admins can access all company bookings under **All Trips**.
+Yes. Travel arrangers can view these under **My Trips** by filtering for the traveler using the Pencil icon on the traveler selector. All travel admins can access all company bookings under **All Trips**.
 
 ## Will canceled bookings still show up?
 Yes. Use the **Canceled** filter or open the **Trip view** and toggle **Show canceled bookings** to see the individual canceled bookings within a specific trip.
