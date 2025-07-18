@@ -13,6 +13,8 @@ Streamline rail travel by defining booking rules based on class, cost, and timin
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
 # Configuring Rail settings
 
 To configure your rail booking policy:  
@@ -21,7 +23,7 @@ To configure your rail booking policy:
 3. Select an existing policy or click **Add new** to create one.  
 4. Expand the **Rail** tab.
 
-> **Note:** Settings with a chainlink icon indicate the value is inherited from a parent policy. To override and customize the setting, click the link icon.
+Note: Settings with a chainlink icon indicate the value is inherited from a parent policy. To override and customize the setting, click the link icon.
 
 ## Rail policy settings
 
@@ -49,9 +51,6 @@ Define how many days before departure a rail booking becomes out of policy.
 
 **Can I allow longer rail trips to have more comfortable seating?**  
 Yes, use the **Highest travel class** setting to configure different options based on trip duration.
-
-**Are taxes and fees included in the maximum price setting?**  
-No, the maximum price is based on the fare only and does not include taxes and fees.
 
 **What happens if a rail booking violates the policy?**  
 The system will flag the booking as out of policy, and the traveler will be asked to select or enter a reason code if enabled.
