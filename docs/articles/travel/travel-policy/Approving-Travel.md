@@ -1,5 +1,5 @@
 ---
-title: approving-travel.md
+title: Approving Travel
 description: Learn how to review, approve, or deny travel requests in Expensify Travel and configure approval workflows to fit your organization.
 keywords: [approve travel, deny travel request, soft approval, hard approval, travel policy approval, manager approval, designated approver, secondary approver, travel workflows]
 ---
