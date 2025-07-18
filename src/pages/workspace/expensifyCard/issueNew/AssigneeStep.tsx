@@ -104,7 +104,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text');
 
         return membersList;
-    }, [isOffline, policy?.employeeList]);
+    }, [isOffline, policy?.employeeList, countryCodeByIP]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {

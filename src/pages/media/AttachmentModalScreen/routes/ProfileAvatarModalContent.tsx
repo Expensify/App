@@ -38,7 +38,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
                 shouldShowNotFoundPage: !avatarURL,
                 maybeIcon: true,
             }) satisfies Partial<AttachmentModalBaseContentProps>,
-        [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata],
+        [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata, countryCodeByIP],
     );
 
     return (

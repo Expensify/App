@@ -172,7 +172,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
             ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
         });
-    }, [selectedEmployees, translate, policy, currentUserAccountID]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID, countryCodeByIP]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
