@@ -7,7 +7,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withS
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome, isMobileSafari, isMobileWebKit} from '@libs/Browser';
+import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
@@ -226,7 +226,7 @@ function MagicCodeInput(
         // so this change to correct the scroll position when the input field gains focus.
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                htmlDivElementRef(containerRef).current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
+                htmlDivElementRef(containerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
             });
         });
     };

@@ -79,6 +79,7 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+            shouldEnableMaxHeight
             testID={stepName}
             style={{marginTop: viewportOffsetTop}}
         >
