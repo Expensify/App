@@ -46,7 +46,6 @@ function formatPhoneNumber(number: string): string {
     return parsedPhoneNumber.number.international;
 }
 
-
 /**
  * This is a TEMPORARY function to be used until we have migrated away from using Onyx.Connect
  * Returns a locally converted phone number for numbers from the same region
