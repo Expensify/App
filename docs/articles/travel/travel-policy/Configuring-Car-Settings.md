@@ -1,5 +1,5 @@
 ---
-title: configuring-car-settings.md
+title: Configuring Car Settings
 description: Learn how to manage car rental booking settings in a Spotnana travel policy.
 keywords: [car rental policy, car booking rules, rental car settings, expensify travel policy, spotnana car settings]
 ---
