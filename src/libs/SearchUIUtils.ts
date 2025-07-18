@@ -38,7 +38,6 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
-    SearchResultsInfo,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -901,7 +900,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     isWhisperActionTargetedToOthers(reportAction) ||
                     (isMoneyRequestAction(reportAction) && !!report?.isWaitingOnBankAccount && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney)
                 ) {
-                    // eslint-disable-next-line no-continue
                     continue;
                 }
 
@@ -1721,13 +1719,13 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(searchResults: SearchResultsInfo | undefined, queryJSON: SearchQueryJSON | undefined) {
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
-        (searchResults?.hasResults ?? searchResults?.hasMoreResults) &&
-        searchResults?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.status === status.join(',') : searchResults?.status === status);
+        searchResults?.data !== undefined &&
+        searchResults?.search?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
 
     return isDataLoaded;
 }

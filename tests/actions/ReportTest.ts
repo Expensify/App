@@ -8,6 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -29,6 +30,10 @@ import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+jest.mock('@libs/NextStepUtils', () => ({
+    buildNextStep: jest.fn(),
+}));
 
 jest.mock('@libs/ReportUtils', () => {
     const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
@@ -1823,6 +1828,19 @@ describe('actions/Report', () => {
                 });
             });
             expect(isArchived).toBe(false);
+        });
+    });
+
+    describe('buildOptimisticChangePolicyData', () => {
+        it('should build the optimistic data next step for the change policy data', () => {
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policyID = '1';
+            Report.buildOptimisticChangePolicyData(report, policyID);
+            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
     });
 

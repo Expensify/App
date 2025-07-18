@@ -7,7 +7,7 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -243,7 +243,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
                             });
 
-                            const isInitialItem = initialSearchKeys.current.includes(item.key);
+                            const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
 
                             return (
                                 <Animated.View
