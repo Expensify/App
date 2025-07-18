@@ -12005,8 +12005,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 
     if (!isReverseSplitOperation) {
+        // The new expenses are added to Onyx using the SET method. We use SET here as well to ensure the original transaction update isn't delayed.
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
                 ...originalTransaction,

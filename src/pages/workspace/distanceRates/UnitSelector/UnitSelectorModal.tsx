@@ -36,6 +36,7 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}
