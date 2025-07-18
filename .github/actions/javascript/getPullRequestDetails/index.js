@@ -11625,7 +11625,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getStringInput = exports.getJSONInput = void 0;
+exports.convertToNumber = exports.getStringInput = exports.getJSONInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
@@ -11654,6 +11654,23 @@ function getStringInput(name, options, defaultValue) {
     return input;
 }
 exports.getStringInput = getStringInput;
+/**
+ * Converts a value to a number, returning 0 for non-numeric values.
+ */
+function convertToNumber(value) {
+    switch (typeof value) {
+        case 'number':
+            return value;
+        case 'string':
+            if (!Number.isNaN(Number(value))) {
+                return Number(value);
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
+exports.convertToNumber = convertToNumber;
 
 
 /***/ }),
@@ -11681,6 +11698,13 @@ const CONST = {
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
     },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
+    },
     ACTIONS: {
         CREATED: 'created',
         EDITED: 'edited',
@@ -11699,6 +11723,7 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
@@ -12058,6 +12083,14 @@ class GithubUtils {
             issue_number: issueNumber,
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
+    }
+    static getAllCommentDetails(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data);
     }
     /**
      * Create comment on pull request

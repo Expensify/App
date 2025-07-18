@@ -1,7 +1,7 @@
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import Composer from '@components/Composer';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,9 +25,9 @@ describe('Composer', () => {
 
     it('should show large emoji size if only has header markdown + emoji', async () => {
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <Composer value="# 😄" />
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdates();
