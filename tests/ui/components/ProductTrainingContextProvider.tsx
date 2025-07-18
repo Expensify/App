@@ -23,7 +23,6 @@ jest.mock('@libs/Fullstory', () => ({
     default: {
         consentAndIdentify: jest.fn(),
     },
-    parseFSAttributes: jest.fn(),
 }));
 
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {

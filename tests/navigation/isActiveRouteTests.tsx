@@ -17,7 +17,6 @@ jest.mock('@libs/Fullstory', () => ({
     default: {
         consentAndIdentify: jest.fn(),
     },
-    parseFSAttributes: jest.fn(),
 }));
 
 jest.mock('@pages/home/sidebar/NavigationTabBarAvatar');

@@ -175,6 +175,7 @@ function GenericPressable(
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
+            fsClass={CONST.FULL_STORY.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onHoverOut={(event) => {
