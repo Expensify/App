@@ -663,13 +663,7 @@ function MoneyRequestReportPreviewContent({
                                                         >
                                                             {getMoneyReportPreviewName(action, iouReport, isInvoice)}
                                                         </Text>
-                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
-                                                    {doesReportNameOverflow && (
-                                                        <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
-                                                            {approvedOrSettledIcon}
-                                                        </View>
-                                                    )}
                                                 </Animated.View>
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
@@ -723,7 +717,7 @@ function MoneyRequestReportPreviewContent({
                                                 style={[styles.textLabelSupporting, styles.lh16]}
                                                 numberOfLines={1}
                                             >
-                                                {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
+                                                {approvedOrSettledIcon} {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
                                             </Text>
                                         </View>
                                     )}
