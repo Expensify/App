@@ -1,5 +1,5 @@
 ---
-title: traveler.safety.md
+title: traveler-safety.md
 description: Understand how Expensify Travel helps businesses meet their duty of care obligations by tracking employee travel and supporting traveler safety.
 keywords: [duty of care, employee safety, travel tracking, risk management, travel map]
 ---
