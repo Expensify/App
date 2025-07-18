@@ -1,5 +1,5 @@
 ---
-title: adding-a-secondary-approver.md
+title: Adding a Secondary Approver
 description: Learn how to assign a secondary approver to your travel profile so someone else can approve trips on your behalf if needed.
 keywords: [secondary approver, travel approval, backup approver, travel configuration, expensify travel, classic, new expensify]
 ---
