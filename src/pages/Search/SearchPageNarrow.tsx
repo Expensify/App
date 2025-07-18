@@ -57,21 +57,18 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
 
-    const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
-
     const handleBackButtonPress = useCallback(() => {
         if (!isMobileSelectionModeEnabled) {
             return false;
         }
-        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-        clearSelectedTransactions();
-        turnOffMobileSelectionMode();
+        clearSelectedTransactions(undefined, true);
         return true;
-    }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
+    }, [isMobileSelectionModeEnabled, clearSelectedTransactions]);
 
     useHandleBackButton(handleBackButtonPress);
 
+    const scrollOffset = useSharedValue(0);
+    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));
