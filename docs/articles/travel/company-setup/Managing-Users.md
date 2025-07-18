@@ -47,7 +47,7 @@ Clicking a traveler's name opens their full profile, which includes three editab
   - _Preferred name_ is only used within the platform and does not affect bookings.
 
 **Contact Details**
-- Phone country code, phone number, and email (email is imported from Expensify and not editable)
+- Phone country code, phone number, and the email, which is imported from Expensify and is not editable.
 
 **Employment Details**
 - Job title, Employee ID, Accounting code, Worker type
