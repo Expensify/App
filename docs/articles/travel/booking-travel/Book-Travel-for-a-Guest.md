@@ -1,5 +1,5 @@
 ---
-title: book-travel-for-a-guest.md
+title: Book Travel for a Guest
 description: Learn how to book travel for guests in Expensify, even if they don’t have an Expensify account, with instructions for Classic and New Expensify.
 keywords: [book guest travel, guest traveler, expensify travel, book for non-member, travel booking, classic, new expensify]
 ---
