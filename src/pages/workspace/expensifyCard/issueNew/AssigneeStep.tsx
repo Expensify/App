@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -34,6 +34,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
@@ -92,7 +93,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
-                        name: formatPhoneNumber(email),
+                        name: formatPhoneNumberWithCountryCode(email, countryCodeByIP),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
                     },
