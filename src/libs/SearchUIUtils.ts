@@ -181,7 +181,7 @@ type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
-type SuggestedSearchKey = ValueOf<typeof CONST.SEARCH.SUGGESTED_SEARCH_KEYS>;
+type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -196,7 +196,7 @@ type SearchTypeMenuSection = {
 };
 
 type SearchTypeMenuItem = {
-    key: SuggestedSearchKey;
+    key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
@@ -230,10 +230,10 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
  *
  * These searches should be as static as possible, and should not contain conditionals, or any other logic
  */
-function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<SuggestedSearchKey, SearchTypeMenuItem> {
+function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<ValueOf<typeof CONST.SEARCH.SEARCH_LIST>, SearchTypeMenuItem> {
     return {
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
+        [CONST.SEARCH.SEARCH_LIST.EXPENSES]: {
+            key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             translationPath: 'common.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
@@ -242,8 +242,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS,
+        [CONST.SEARCH.SEARCH_LIST.REPORTS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'common.reports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Document,
@@ -252,8 +252,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS,
+        [CONST.SEARCH.SEARCH_LIST.CHATS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.CHATS,
             translationPath: 'common.chats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: Expensicons.ChatBubbles,
@@ -262,8 +262,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
+        [CONST.SEARCH.SEARCH_LIST.SUBMIT]: {
+            key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Pencil,
@@ -277,8 +277,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
+        [CONST.SEARCH.SEARCH_LIST.APPROVE]: {
+            key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.ThumbsUp,
@@ -292,8 +292,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
+        [CONST.SEARCH.SEARCH_LIST.PAY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.PAY,
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyBag,
@@ -308,8 +308,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
+        [CONST.SEARCH.SEARCH_LIST.EXPORT]: {
+            key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CheckCircle,
@@ -324,8 +324,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.STATEMENTS]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.STATEMENTS,
+        [CONST.SEARCH.SEARCH_LIST.STATEMENTS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             translationPath: 'search.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCard,
@@ -339,8 +339,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH,
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyHourglass,
@@ -354,8 +354,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
             translationPath: 'search.unapprovedCompanyCards',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCardHourglass,
@@ -369,8 +369,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY,
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
             translationPath: 'search.unapproved',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Hourglass,
@@ -384,8 +384,8 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH_ONLY]: {
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH_ONLY,
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             translationPath: 'search.unapproved',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Hourglass,
@@ -695,7 +695,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SuggestedSearchKey): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -868,13 +868,13 @@ function getAction(
     data: OnyxTypes.SearchResults['data'],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
-    currentSearch: SuggestedSearchKey,
+    currentSearch: SearchKey,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
 
-    if (currentSearch === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT) {
+    if (currentSearch === CONST.SEARCH.SEARCH_KEYS.EXPORT) {
         return CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING;
     }
 
@@ -1110,7 +1110,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
-    currentSearch: SuggestedSearchKey,
+    currentSearch: SearchKey,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1237,7 +1237,7 @@ function getSections(
     metadata: OnyxTypes.SearchResults['search'],
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    currentSearch: SuggestedSearchKey = CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
+    currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1494,11 +1494,7 @@ function createTypeMenuSections(
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
-            menuItems: [
-                suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES],
-                suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS],
-                suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS],
-            ],
+            menuItems: [suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPENSES], suggestedSearches[CONST.SEARCH.SEARCH_LIST.REPORTS], suggestedSearches[CONST.SEARCH.SEARCH_LIST.CHATS]],
         },
     ];
 
@@ -1562,7 +1558,7 @@ function createTypeMenuSections(
         if (showSubmitSuggestion) {
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.SUBMIT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
@@ -1608,7 +1604,7 @@ function createTypeMenuSections(
 
         if (showApproveSuggestion) {
             section.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.APPROVE],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
@@ -1619,7 +1615,7 @@ function createTypeMenuSections(
 
         if (showPaySuggestion) {
             section.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.PAY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
@@ -1630,7 +1626,7 @@ function createTypeMenuSections(
 
         if (showExportSuggestion) {
             section.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPORT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
@@ -1677,7 +1673,7 @@ function createTypeMenuSections(
 
     if (shouldShowStatementsSuggestion) {
         accountingSection.menuItems.push({
-            ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.STATEMENTS],
+            ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.STATEMENTS],
             emptyState: {
                 headerMedia: DotLottieAnimations.GenericEmptyState,
                 title: 'search.searchResults.emptyStatementsResults.title',
@@ -1689,7 +1685,7 @@ function createTypeMenuSections(
     if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push(
             {
-                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -1697,7 +1693,7 @@ function createTypeMenuSections(
                 },
             },
             {
-                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -1707,7 +1703,7 @@ function createTypeMenuSections(
         );
     } else if (showShowUnapprovedCashSuggestion) {
         accountingSection.menuItems.push({
-            ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH_ONLY],
+            ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY],
             emptyState: {
                 headerMedia: DotLottieAnimations.Fireworks,
                 title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -1716,7 +1712,7 @@ function createTypeMenuSections(
         });
     } else if (showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push({
-            ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY],
+            ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY],
             emptyState: {
                 headerMedia: DotLottieAnimations.Fireworks,
                 title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -1843,4 +1839,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SuggestedSearchKey};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey as SuggestedSearchKey};
