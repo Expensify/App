@@ -13,6 +13,8 @@ Customize hotel booking policies to guide travelers toward compliant, cost-effec
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
 ---
 
 # Configuring Hotel settings
@@ -23,7 +25,7 @@ To configure your hotel booking policy:
 3. Select an existing policy or click **Add new** to create one.
 4. Expand the **Hotel** tab.
 
-> **Note:** Any setting with a chain link icon (🔗) that is not crossed out is inherited from a parent policy. To customize it, click the icon and unlock it from the parent.
+Note: Any setting with a chain link icon (🔗) that is not crossed out is inherited from a parent policy. To customize it, click the icon and unlock it from the parent.
 
 ---
 
@@ -72,12 +74,9 @@ Enable travelers to create or select a reason when selecting an out-of-policy ho
 
 # FAQ
 
-**What happens if a traveler tries to book a restricted hotel rate?**  
-They won’t be able to complete the booking, and if a custom message is set, it will appear explaining why the option is unavailable.
-
 **Does the “cheapest rate” rule consider taxes and fees?**  
 It depends on your configuration under the **Maximum price** setting — you can choose whether to include taxes and fees when evaluating the cheapest rate.
 
 **Can we use reason codes to track exceptions?**  
-Yes. Reason codes help you understand booking behaviors and justify policy exceptions for reporting or compliance purposes. When viewing policy violations in the **Analytics** > **Company reports** section, you can see data on reason usage as well.
+Yes. Reason codes help you understand booking behaviors and justify policy exceptions for reporting or compliance purposes. When viewing policy violations in the **Analytics** > **Company reports** < **Compliance** section, you can see data on reason usage as well.
 
