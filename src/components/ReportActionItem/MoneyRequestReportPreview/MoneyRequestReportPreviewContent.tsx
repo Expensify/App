@@ -716,7 +716,6 @@ function MoneyRequestReportPreviewContent({
                                         <Text
                                             style={[styles.textLabelSupporting, styles.lh16]}
                                             numberOfLines={1}
-                                            testID="MoneyRequestReportPreview-statusAndCount"
                                         >
                                             {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
                                         </Text>
