@@ -1,5 +1,5 @@
 ---
-title: configuring-rail-settings.md
+title: Configuring Rail Settings
 description: Learn how to configure rail booking policies within a Spotnana travel policy in Expensify.
 keywords: [rail booking policy, train travel settings, rail travel configuration, expensify travel policy, spotnana rail rules]
 ---
