@@ -1,5 +1,5 @@
 ---
-title: book-rail-travel.md
+title: Book Rail Travel
 description: Learn how to book train travel using Expensify's integrated travel tool, with instructions for both Classic and New Expensify.
 keywords: [book rail, train travel, travel booking, rail tickets, expensify travel, classic, new expensify]
 ---
