@@ -94,6 +94,7 @@ function FormWrapper({
     shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    enterKeyEventListenerPriority = 1,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -179,7 +180,7 @@ function FormWrapper({
                     enabledWhenOffline={enabledWhenOffline}
                     isSubmitActionDangerous={isSubmitActionDangerous}
                     disablePressOnEnter={disablePressOnEnter}
-                    enterKeyEventListenerPriority={1}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
                     shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
@@ -212,6 +213,7 @@ function FormWrapper({
             submitFlexEnabled,
             shouldRenderFooterAboveSubmit,
             shouldPreventDefaultFocusOnPressSubmit,
+            enterKeyEventListenerPriority,
         ],
     );
 

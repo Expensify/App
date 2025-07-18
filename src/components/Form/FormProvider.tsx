@@ -115,6 +115,7 @@ function FormProvider(
         shouldRenderFooterAboveSubmit = false,
         shouldUseStrictHtmlTagValidation = false,
         shouldPreventDefaultFocusOnPressSubmit = false,
+        enterKeyEventListenerPriority = 1,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -459,6 +460,7 @@ function FormProvider(
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
+                enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>
