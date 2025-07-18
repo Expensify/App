@@ -1,5 +1,5 @@
 ---
-title: setting-approval-types-and-adding-members.md
+title: Setting Approval Types and Adding Members
 description: Learn how to configure approval types and assign members to a travel policy in Expensify Travel.
 keywords: [travel policy, approval type, soft approval, hard approval, add policy members, default approver, spotnana policy]
 ---
@@ -17,6 +17,8 @@ Expensify Travel policies give admins powerful tools to control booking behavior
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
 ---
 
 ## Set approval types and add members
@@ -31,11 +33,12 @@ Note: Only Travel Admins can create or manage travel policies in Expensify Trave
 
 - **Parent Policy**: Select a parent policy to inherit approval and restriction settings.
 - **Policy Name**: Choose a clear, easily identifiable name.
-- **Approval Type** (for Air, Hotel, Car, Rail): Choose a separate approval action for in-policy and out-of-policy bookings.
+- **Policy group actions** (for Air, Hotel, Car, Rail): Choose a separate approval action for in-policy and out-of-policy bookings.
   - **No action**: Bookings proceed with no approval.
   - **Passive approval**: No approval required, but the approver receives an email.
   - **Soft approval** (Recommended): Booking proceeds unless declined.
   - **Hard approval**: Booking is canceled unless explicitly approved.
+  - **Block booking**: Booking is blocked and employees have no way to request an exception.
 - **Approver Type**:
   - **Manager Approval**: Uses the manager from the employee's Expensify workflow.
   - **Designated Approver**: Sends bookings to a pre-defined approver.
@@ -46,7 +49,7 @@ Note: Only Travel Admins can create or manage travel policies in Expensify Trave
 Admins assign those who are subject to the policy's booking rules. Add members by group:
 
 - **Individual users** - Enter a specific user by name or email to the policy.
-- **Departments** - Add all users with the same department in their travel profile. This could be helpful for a Sales team that needs different travel booking rules compared to another department.
+- **Departments** - Add all users with the same department in their travel profile.
 - **Legal Entities** - Select an Expensify workspace to add all members of the workspace to the travel policy.
 - **Offices** - Adds all users with the same office location in their travel profile.
 
