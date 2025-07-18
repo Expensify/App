@@ -1,5 +1,5 @@
 ---
-title: adding-a-travel-arranger.md
+title: Adding a Travel Arranger
 description: Learn how to assign a travel arranger to your profile so someone else can book travel on your behalf.
 keywords: [travel arranger, book for others, travel booking permissions, travel configuration, expensify travel, classic, new expensify]
 ---
