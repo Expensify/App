@@ -29,9 +29,9 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
 
     const submit = useCallback(
-        // s77rt make use of statementCloseDate / statementCustomCloseDate and remove disable lint rule
+        // s77rt make use of statementCloseDate and remove disable lint rule
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => {
+        (statementCloseDate: CompanyCardStatementCloseDate) => {
             if (selectedFeed) {
                 // s77rt call API command
             }

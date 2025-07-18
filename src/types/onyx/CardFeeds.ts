@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Card statement close date */
-type CompanyCardStatementCloseDate = ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>;
+type CompanyCardStatementCloseDate = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH> | number;
 
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;

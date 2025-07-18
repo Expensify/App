@@ -22,7 +22,7 @@ type StatementCloseDateListItem = ListItem & {
 
 type WorkspaceCompanyCardStatementCloseDateSelectionListProps = {
     confirmText: string;
-    onSubmit: (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => void;
+    onSubmit: (statementCloseDate: CompanyCardStatementCloseDate) => void;
     onBackButtonPress: () => void;
     enabledWhenOffline: boolean;
     defaultDate?: CompanyCardStatementCloseDate;
@@ -39,10 +39,8 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const styles = useThemeStyles();
 
     const [selectedDate, setSelectedDate] = useState<CompanyCardStatementCloseDate | undefined>(defaultDate);
-    const [selectedCustomDate, setSelectedCustomDate] = useState<number | undefined>(undefined);
-    const [error, setError] = useState<string | undefined>(undefined);
-
     const [isChoosingCustomDate, setIsChoosingCustomDate] = useState(false);
+    const [error, setError] = useState<string | undefined>(undefined);
 
     const title = useMemo(
         () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
@@ -58,28 +56,52 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
         onBackButtonPress();
     }, [isChoosingCustomDate, onBackButtonPress]);
 
-    const selectDateAndClearError = useCallback((item: StatementCloseDateListItem) => {
-        setSelectedDate(item.value);
-        setError(undefined);
-    }, []);
-
-    const selectCustomDateAndClearError = useCallback(
-        (day: number) => {
-            setSelectedCustomDate(day);
-            setError(undefined);
-            goBack();
-        },
-        [goBack],
-    );
-
     const submit = useCallback(() => {
-        if (!selectedDate || (selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && !selectedCustomDate)) {
+        if (!selectedDate) {
             setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
             return;
         }
 
-        onSubmit(selectedDate, selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH ? selectedCustomDate : undefined);
-    }, [selectedDate, selectedCustomDate, onSubmit, translate]);
+        onSubmit(selectedDate);
+    }, [selectedDate, onSubmit, translate]);
+
+    const options = useMemo(() => {
+        return Object.values(CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE)?.map((option) => {
+            let value: CompanyCardStatementCloseDate;
+            let isSelected: boolean;
+
+            if (option === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH) {
+                if (typeof selectedDate === 'number') {
+                    value = selectedDate;
+                } else if (typeof defaultDate === 'number') {
+                    value = defaultDate;
+                } else {
+                    value = NaN;
+                }
+                isSelected = typeof selectedDate === 'number';
+            } else {
+                value = option;
+                isSelected = selectedDate === option;
+            }
+
+            return (
+                <SingleSelectListItem
+                    wrapperStyle={[styles.flexReset]}
+                    key={option}
+                    showTooltip
+                    item={{
+                        text: translate(`workspace.companyCards.statementCloseDate.${option}`),
+                        value,
+                        isSelected,
+                    }}
+                    onSelectRow={(item: StatementCloseDateListItem) => {
+                        setSelectedDate(item.value);
+                        setError(undefined);
+                    }}
+                />
+            );
+        });
+    }, [translate, defaultDate, selectedDate]);
 
     return (
         <ScreenWrapper
@@ -94,32 +116,24 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
             />
             {isChoosingCustomDate ? (
                 <CustomCloseDateSelectionList
-                    initiallySelectedDay={selectedCustomDate}
-                    onConfirmSelectedDay={selectCustomDateAndClearError}
+                    initiallySelectedDay={typeof selectedDate === 'number' && selectedDate ? selectedDate : undefined}
+                    onConfirmSelectedDay={(day) => {
+                        setSelectedDate(day);
+                        setError(undefined);
+                        goBack();
+                    }}
                 />
             ) : (
                 <>
                     <ScrollView contentContainerStyle={[styles.gap7, styles.flexGrow1]}>
                         <Text style={[styles.ph5]}>{translate('workspace.moreFeatures.companyCards.statementCloseDateDescription')}</Text>
                         <View>
-                            {Object.values(CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE)?.map((option) => (
-                                <SingleSelectListItem
-                                    wrapperStyle={[styles.flexReset]}
-                                    key={option}
-                                    showTooltip
-                                    item={{
-                                        value: option,
-                                        text: translate(`workspace.companyCards.statementCloseDate.${option}`),
-                                        isSelected: selectedDate === option,
-                                    }}
-                                    onSelectRow={selectDateAndClearError}
-                                />
-                            ))}
-                            {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (
+                            {options}
+                            {typeof selectedDate === 'number' && (
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     brickRoadIndicator={error ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    title={selectedCustomDate?.toString()}
+                                    title={selectedDate ? selectedDate.toString() : undefined}
                                     description={translate('workspace.companyCards.customCloseDate')}
                                     onPress={() => setIsChoosingCustomDate(true)}
                                     viewMode={CONST.OPTION_MODE.COMPACT}
