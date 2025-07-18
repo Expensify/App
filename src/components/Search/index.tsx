@@ -273,6 +273,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
+        const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+        const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+        if (groupBy && (isChat || isTask)) {
+            return [];
+        }
+
         return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearch?.key);
     }, [currentSearch?.key, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
