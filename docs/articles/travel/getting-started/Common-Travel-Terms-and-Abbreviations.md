@@ -1,5 +1,5 @@
 ---
-title: common-travel-terms-and-abbreviations.md
+title: Common Travel Terms and Abbreviations
 description: Learn the most common terms and abbreviations used in the travel industry to better understand your bookings and travel policies.
 keywords: [travel terms, travel abbreviations, business travel glossary, common travel lingo, travel vocabulary, industry jargon]
 ---
