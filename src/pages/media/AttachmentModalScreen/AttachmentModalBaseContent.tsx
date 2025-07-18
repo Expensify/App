@@ -2,7 +2,6 @@ import type {RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -22,6 +21,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -39,7 +39,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,7 +49,7 @@ type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: Fil
 
 type OnCloseOptions = {
     shouldCallDirectly?: boolean;
-    navigateBack?: () => void;
+    onAfterClose?: () => void;
 };
 
 type AttachmentModalBaseContentProps = {
@@ -132,9 +131,6 @@ type AttachmentModalBaseContentProps = {
     /** The link of the attachment */
     attachmentLink?: string;
 
-    /** Fallback route when the modal is closed */
-    fallbackRoute?: Route;
-
     /** Determines if the attachment is invalid or not */
     isAttachmentInvalid?: boolean;
 
@@ -199,13 +195,12 @@ function AttachmentModalBaseContent({
     shouldShowNotFoundPage = false,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = true,
-    fallbackRoute,
     isDeleteReceiptConfirmModalVisible = false,
     isAttachmentInvalid = false,
     attachmentInvalidReason,
     attachmentInvalidReasonTitle,
     submitRef,
-    onClose = () => Navigation.goBack(fallbackRoute),
+    onClose,
     onConfirm,
     onConfirmModalClose,
     onRequestDeleteReceipt,
@@ -336,7 +331,7 @@ function AttachmentModalBaseContent({
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
         onDeleteReceipt?.();
-        onClose();
+        onClose?.();
     }, [onClose, onDeleteReceipt, transaction?.transactionID]);
 
     // Close the modal when the escape key is pressed
@@ -345,7 +340,7 @@ function AttachmentModalBaseContent({
         const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                onClose();
+                onClose?.();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
@@ -367,7 +362,7 @@ function AttachmentModalBaseContent({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    const navigateBack = () => {
+                    const goToScanScreen = () => {
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -381,7 +376,7 @@ function AttachmentModalBaseContent({
                         });
                     };
 
-                    onClose?.({shouldCallDirectly: true, navigateBack});
+                    onClose?.({shouldCallDirectly: true, onAfterClose: goToScanScreen});
                 },
             });
         }

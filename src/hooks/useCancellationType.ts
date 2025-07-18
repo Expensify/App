@@ -1,8 +1,8 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {CancellationType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 function useCancellationType(): CancellationType | undefined {
     const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);

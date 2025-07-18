@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {setMoneyRequestAccountant} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces as hasActiveAdminWorkspacesUtil} from '@libs/PolicyUtils';
@@ -39,7 +39,7 @@ function IOURequestStepAccountant({
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
     }, [iouType, transactionID, reportID, action, currentUserLogin]);
 
     const navigateBack = useCallback(() => {

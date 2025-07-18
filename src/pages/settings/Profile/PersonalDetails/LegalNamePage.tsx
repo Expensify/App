@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,11 +9,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {doesContainReservedWord, isValidLegalName} from '@libs/ValidationUtils';
+import {updateLegalName as updateLegalNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/LegalNameForm';
@@ -22,12 +22,12 @@ import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 const updateLegalName = (values: PrivatePersonalDetails) => {
-    PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
+    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
 };
 
 function LegalNamePage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -39,36 +39,36 @@ function LegalNamePage() {
             const errors: Errors = {};
 
             if (typeof values.legalFirstName === 'string') {
-                if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
-                } else if (!values.legalFirstName) {
+                if (!values.legalFirstName) {
                     errors.legalFirstName = translate('common.error.fieldRequired');
+                } else if (!isValidLegalName(values.legalFirstName)) {
+                    addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                    ErrorUtils.addErrorMessage(
+                    addErrorMessage(
                         errors,
                         'legalFirstName',
                         translate('common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
                     );
                 }
-                if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('personalDetails.error.containsReservedWord'));
+                if (doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                    addErrorMessage(errors, 'legalFirstName', translate('personalDetails.error.containsReservedWord'));
                 }
             }
 
             if (typeof values.legalLastName === 'string') {
-                if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
-                } else if (!values.legalLastName) {
+                if (!values.legalLastName) {
                     errors.legalLastName = translate('common.error.fieldRequired');
+                } else if (!isValidLegalName(values.legalLastName)) {
+                    addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                    ErrorUtils.addErrorMessage(
+                    addErrorMessage(
                         errors,
                         'legalLastName',
                         translate('common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
                     );
                 }
-                if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('personalDetails.error.containsReservedWord'));
+                if (doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                    addErrorMessage(errors, 'legalLastName', translate('personalDetails.error.containsReservedWord'));
                 }
             }
 

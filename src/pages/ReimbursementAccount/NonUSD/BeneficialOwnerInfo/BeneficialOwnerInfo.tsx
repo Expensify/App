@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -29,6 +29,9 @@ type BeneficialOwnerInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
@@ -45,7 +48,7 @@ type BeneficialOwnerDetailsFormProps = SubStepProps & {
 
 const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
 
-function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoProps) {
+function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -282,7 +285,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             wrapperID={BeneficialOwnerInfo.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={3}
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (

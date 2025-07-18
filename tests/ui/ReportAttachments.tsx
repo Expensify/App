@@ -5,7 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -13,8 +13,8 @@ import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import type {AuthScreensParamList} from '@navigation/types';
-import ReportAttachments from '@pages/home/report/ReportAttachments';
-import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsContext';
+import AttachmentModalScreen from '@pages/media/AttachmentModalScreen';
+import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
@@ -42,12 +42,12 @@ jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHan
 
 const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.ATTACHMENTS]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={initialRouteName}>
                     <Stack.Screen
                         name={SCREENS.ATTACHMENTS}
-                        component={ReportAttachments}
+                        component={AttachmentModalScreen}
                         initialParams={initialParams}
                     />
                 </Stack.Navigator>

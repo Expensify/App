@@ -25,7 +25,7 @@ import type CONST from '@src/CONST';
 import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -213,8 +213,8 @@ type ListItem<K extends string | number = string> = {
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
 
-    /** Used to initiate payment from search page */
-    hash?: number;
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -266,12 +266,6 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
-
-        /** IOUs report */
-        iouReportID?: string | undefined;
-
-        /** Whether the report is policyExpenseChat */
-        isPolicyExpenseChat?: boolean;
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
@@ -330,8 +324,7 @@ type TransactionGroupListItemType = ListItem & {
     transactions: TransactionListItemType[];
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType &
-    SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -339,7 +332,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType &
         to: SearchPersonalDetails;
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
+
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -441,7 +436,10 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+};
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -465,6 +463,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    policies?: OnyxCollection<Policy>;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -475,6 +474,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
 };
 
 type ValidListItem =
@@ -548,6 +550,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * Only use this if we're handling some non-standard items, most of the time the default value is correct
      */
     getItemHeight?: (item: TItem) => number;
+
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -818,6 +823,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -880,6 +888,7 @@ export type {
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionCardGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
