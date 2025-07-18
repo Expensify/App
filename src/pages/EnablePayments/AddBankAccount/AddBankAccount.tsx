@@ -75,7 +75,7 @@ function AddBankAccount() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
-            fsClass={CONST.FULL_STORY.MASK}
+            forwardFSClass={CONST.FULL_STORY.MASK}
         >
             <HeaderWithBackButton
                 shouldShowBackButton

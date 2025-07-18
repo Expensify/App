@@ -2,13 +2,13 @@ import React, {forwardRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {FSClassProps} from '@libs/Fullstory/types';
+import type {ForwardFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
 
-type InteractiveStepWrapperProps = FSClassProps & {
+type InteractiveStepWrapperProps = ForwardFSClassProps & {
     // Step content
     children: React.ReactNode;
 
@@ -71,7 +71,7 @@ function InteractiveStepWrapper(
         offlineIndicatorStyle,
         shouldKeyboardOffsetBottomSafeAreaPadding,
         enableEdgeToEdgeBottomSafeAreaPadding,
-        fsClass,
+        forwardFSClass,
     }: InteractiveStepWrapperProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -88,7 +88,7 @@ function InteractiveStepWrapper(
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
             offlineIndicatorStyle={offlineIndicatorStyle}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
-            fsClass={fsClass}
+            forwardFSClass={forwardFSClass}
         >
             <HeaderWithBackButton
                 title={headerTitle}

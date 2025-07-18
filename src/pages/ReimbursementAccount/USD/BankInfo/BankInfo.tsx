@@ -135,7 +135,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
             headerTitle={translate('bankAccount.bankInfo')}
             startStepIndex={0}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-            fsClass={CONST.FULL_STORY.MASK}
+            forwardFSClass={CONST.FULL_STORY.MASK}
         >
             <SubStep
                 isEditing={isEditing}

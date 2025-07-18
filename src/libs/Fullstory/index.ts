@@ -6,7 +6,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
-import type NavigationProperties from './types';
+import type {NavigationProperties} from './types';
 
 function getChatFSClass(context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): string {
     if (isConciergeChatReport(report)) {

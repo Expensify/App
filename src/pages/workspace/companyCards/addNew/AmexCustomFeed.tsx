@@ -74,7 +74,7 @@ function AmexCustomFeed() {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            fsClass={CONST.FULL_STORY.MASK}
+            forwardFSClass={CONST.FULL_STORY.MASK}
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}

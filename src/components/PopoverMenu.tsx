@@ -14,7 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
-import type {FSClassProps} from '@libs/Fullstory/types';
+import type {ForwardFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -73,7 +73,7 @@ type PopoverMenuItem = MenuItemProps & {
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> &
-    FSClassProps & {
+    ForwardFSClassProps & {
         /** Callback method fired when the user requests to close the modal */
         onClose: () => void;
 
@@ -211,7 +211,7 @@ function PopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     testID,
-    fsClass,
+    forwardFSClass,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -431,7 +431,7 @@ function PopoverMenu({
                 <View
                     onLayout={onLayout}
                     style={[menuContainerStyle, containerStyles]}
-                    fsClass={fsClass}
+                    fsClass={forwardFSClass}
                 >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}

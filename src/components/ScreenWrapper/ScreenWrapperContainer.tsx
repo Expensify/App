@@ -13,12 +13,12 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
-import type {FSClassProps} from '@libs/Fullstory/types';
+import type {ForwardFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 
-type ScreenWrapperContainerProps = FSClassProps &
+type ScreenWrapperContainerProps = ForwardFSClassProps &
     React.PropsWithChildren<{
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
@@ -106,7 +106,7 @@ function ScreenWrapperContainer(
         includePaddingTop = true,
         includeSafeAreaPaddingBottom = false,
         isFocused = true,
-        fsClass,
+        forwardFSClass,
     }: ScreenWrapperContainerProps,
     ref: ForwardedRef<View>,
 ) {
@@ -206,7 +206,7 @@ function ScreenWrapperContainer(
             // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
             {...panResponder.panHandlers}
             testID={testID}
-            fsClass={fsClass}
+            fsClass={forwardFSClass}
         >
             <View
                 style={[style, paddingTopStyle]}
