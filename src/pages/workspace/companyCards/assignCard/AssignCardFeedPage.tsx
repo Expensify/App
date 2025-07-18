@@ -60,7 +60,12 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
-            return <PlaidConnectionStep feed={feed} />;
+            return (
+                <PlaidConnectionStep
+                    feed={feed}
+                    policyID={policyID}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return (
                 <AssigneeStep
