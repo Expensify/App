@@ -33,7 +33,7 @@ To import corporate hotel rates:
 2. Provide the following:
    - **Hotel name**
    - **Name and email** of your main contact at the hotel
-3. Expensify will reach out to the hotel (with you cc'd) and request that your corporate rates be added to the Global Distribution System (GDS) used by Expensify Travel.
+3. Expensify will reach out to the hotel (with you CC'd) and request that your corporate rates be added to the Global Distribution System (GDS) used by Expensify Travel.
 4. Once the hotel confirms the rates are uploaded, Expensify will enable them for use in your company’s travel bookings.
 
 You’ll be notified when your corporate rates are active.
@@ -49,6 +49,6 @@ No. Corporate rates must be uploaded into the GDS by the hotel and activated by 
 Reach out to your Account Manager or message Concierge. We’ll help you get started.
 
 ## How long does it take for rates to be available?
-It depends on how quickly the hotel uploads the rate to the GDS. Once confirmed, activation is fast on Expensify’s side.
+It depends on how quickly the hotel uploads the rate to the GDS. Once the hotel takes action, activation can be completed on Expensify's side in 2-3 business days.
 
 </div>
