@@ -1,5 +1,5 @@
 ---
-title: canceling-travel-arrangements.md
+title: Canceling Travel Arrangements
 description: Learn how to cancel flights, hotels, car rentals, or rail bookings directly in Expensify, and what to expect when doing so.
 keywords: [cancel trip, cancel booking, travel cancellation, refunds, travel credits, expensify travel, classic, new expensify]
 ---
