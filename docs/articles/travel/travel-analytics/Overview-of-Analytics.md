@@ -1,5 +1,5 @@
 ---
-title: overview-of-analytics.md
+title: Overview of Analytics
 description: Learn how to use Expensify Travel analytics to monitor spend, track bookings, and access company-wide travel insights.
 keywords: [travel analytics, reporting, travel spend, usage insights, expensify travel reports]
 ---
