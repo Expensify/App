@@ -758,6 +758,7 @@ function MoneyRequestReportPreviewContent({
                                         <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
                                             {carouselTransactions.map((item, index) => (
                                                 <PressableWithFeedback
+                                                    key={item.transactionID}
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
