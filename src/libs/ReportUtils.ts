@@ -11126,7 +11126,7 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
 }
 
 /**
- * Returns the current status of the report based on its state and status numbers.
+ * Returns the translated, human-readable status of the report based on its state and status values.
  * The status is determined by the stateNum and statusNum of the report.
  * The mapping is as follows:
  * ========================================
@@ -11139,7 +11139,10 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
  * 3	  |  4	     |  Paid              |
  * ========================================
  */
-function getReportStatus(report?: Report) {
+function getReportStatusTranslation(report?: Report) {
+    if (!report) {
+        return '';
+    }
     if (report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         return translateLocal('common.draft');
     }
@@ -11158,7 +11161,6 @@ function getReportStatus(report?: Report) {
     ) {
         return translateLocal('iou.settledExpensify');
     }
-    return '';
 }
 
 export {
@@ -11540,7 +11542,7 @@ export {
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,
-    getReportStatus,
+    getReportStatusTranslation,
 };
 
 export type {

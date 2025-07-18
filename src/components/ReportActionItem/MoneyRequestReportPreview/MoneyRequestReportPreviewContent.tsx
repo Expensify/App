@@ -46,7 +46,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
-    getReportStatus,
+    getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -303,7 +303,9 @@ function MoneyRequestReportPreviewContent({
         [translate, numberOfRequests],
     );
 
-    const reportStatus = useMemo(() => getReportStatus(iouReport), [iouReport]);
+    const reportStatus = useMemo(() => getReportStatusTranslation(iouReport), [iouReport]);
+
+    const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsBaseline];
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
@@ -710,18 +712,15 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-
-                                    {/* Subheader with status and count */}
                                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
                                         <Text
                                             style={[styles.textLabelSupporting, styles.lh16]}
                                             numberOfLines={1}
                                             testID="MoneyRequestReportPreview-statusAndCount"
                                         >
-                                            {`${reportStatus} • ${expenseCount}`}
+                                            {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
                                         </Text>
                                     </View>
-
                                     {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
@@ -765,11 +764,10 @@ function MoneyRequestReportPreviewContent({
                                             {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={reportPreviewActions[reportPreviewAction]} />}
                                         </View>
                                     )}
-                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
+                                    <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View
                                             style={[
-                                                shouldUseNarrowLayout ? styles.flexColumnReverse : styles.flexRow,
-                                                shouldUseNarrowLayout ? styles.alignItemsStretch : styles.alignItemsBaseline,
+                                                totalAmountStyle,
                                                 styles.justifyContentBetween,
                                                 styles.gap3,
                                                 StyleUtils.getMinimumHeight(variables.h28),
@@ -789,7 +787,6 @@ function MoneyRequestReportPreviewContent({
                                                     </Text>
                                                     <Text
                                                         style={[styles.headerText]}
-                                                        testID="MoneyRequestReportPreview-currencyAndAmount"
                                                     >
                                                         {convertToDisplayString(totalDisplaySpend, iouReport?.currency)}
                                                     </Text>
