@@ -2501,7 +2501,7 @@ function isMergeableMoneyRequestReport(moneyRequestReport: OnyxEntry<Report>, is
  * Rules:
  * - **Admins**: reports that are in "Open" or "Processing" status
  * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
- * - **Approvers**: Expenses on Open or Processing repor
+ * - **Approvers**: Expenses on Open or Processing reports
  *
  * @param reportID - The ID of the money request report to check for merge eligibility
  * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
