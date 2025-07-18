@@ -141,6 +141,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InternationalDepositAccountContent.displayName}
+            fsClass={CONST.FULL_STORY.MASK}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
