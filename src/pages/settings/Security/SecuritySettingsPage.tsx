@@ -257,7 +257,7 @@ function SecuritySettingsPage() {
         () =>
             delegators.map(({email, role}) => {
                 const personalDetail = getPersonalDetailByEmail(email);
-                const formattedEmail = formatPhoneNumber(email);
+                const formattedEmail = formatPhoneNumberWithCountryCode(email, countryCodeByIP);
 
                 return {
                     title: personalDetail?.displayName ?? formattedEmail,
