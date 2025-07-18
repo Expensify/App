@@ -2138,7 +2138,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-performance (5.1.0):
+  - react-native-performance (5.1.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2848,7 +2848,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.289):
+  - RNLiveMarkdown (0.1.294):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3829,7 +3829,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
   react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
-  react-native-performance: 85b6f39ae9e568471bdad270106f5cdd6681b79f
+  react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: e83dc18fa6752fcfb1a9bbe995f78a8a7c659fe1
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
   react-native-safe-area-context: 6cec90ce53951d3b52dc73e873323a4a7662fc0c
@@ -3880,7 +3880,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: b249b5be5a3659025aed8898aaaafd567dc2d660
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 579c9907ebace91678a587424c5bc7729d574be3
+  RNLiveMarkdown: a2f598d3a4a025543185c2b5aa6ab86e9dfaaf8c
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: a5569b64e3ca5fcd1be1f9d5bb478bf601d2a033
   RNNitroSQLite: a1b0f1a665c54fc0f2510a292c1bf8ac4d44231b
@@ -3901,6 +3901,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: ac945490ab986e5a54f4f0f1f3d05c8d4f335481
+PODFILE CHECKSUM: f7a8d931f2dd2be0fed9bb22df37140219a07ff3
 
 COCOAPODS: 1.15.2
