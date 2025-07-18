@@ -15,7 +15,7 @@ Add your loyalty programs for air, hotel, car, and rail travel to earn rewards a
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -31,7 +31,7 @@ You can add as many loyalty programs as you're enrolled in.
 
 ## How to add loyalty programs
 
-1. Click your **profile icon** in the top-right corner of the travel portal.
+1. Click your **user icon** in the top-right corner of the travel portal.
 2. Select **My Profile**.
 3. Click the **Loyalty** tab in the left-hand menu.
 4. Choose a category: Air, Hotel, Car, or Rail.
@@ -58,7 +58,6 @@ You can add as many loyalty programs as you're enrolled in.
 
 **Car loyalty programs**
 
-- Follow the same process as hotel:
   - Click the **+** button to add a car loyalty program.
   - Choose from the list of supported programs, or select **Custom program** if your program isn’t listed.
   - Enter your program number
