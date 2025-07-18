@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {useCustomHistoryParam} from '@libs/Navigation/AppNavigator/customHistory';
@@ -19,11 +20,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DelegateMagicCodeModal from './DelegateMagicCodeModal';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
