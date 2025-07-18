@@ -13,6 +13,8 @@ Remove outdated or unused travel policies to keep your Expensify Travel setup or
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
 # Deleting a travel policy
 
 To delete a travel policy:
