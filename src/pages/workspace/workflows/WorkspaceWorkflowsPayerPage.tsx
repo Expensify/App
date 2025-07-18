@@ -11,7 +11,8 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import useOnyx from '@hooks/useOnyx';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,6 +26,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -44,6 +46,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -83,13 +86,13 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 accountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details?.login ?? ''),
+                text: formatPhoneNumberWithCountryCode(getDisplayNameOrDefault(details), countryCodeByIP),
+                alternateText: formatPhoneNumberWithCountryCode(details?.login ?? '', countryCodeByIP),
                 rightElement: roleBadge,
                 icons: [
                     {
                         source: details.avatar ?? FallbackAvatar,
-                        name: formatPhoneNumber(details?.login ?? ''),
+                        name: formatPhoneNumberWithCountryCode(details?.login ?? '', countryCodeByIP),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
@@ -105,7 +108,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser]);
+    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser, countryCodeByIP]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
