@@ -52,7 +52,17 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-    const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
+    const statementPeriodEndDay = useMemo(() => {
+        if (!selectedFeedData?.statementPeriodEndDay) {
+            return;
+        }
+
+        if (typeof selectedFeedData.statementPeriodEndDay === 'number') {
+            return selectedFeedData.statementPeriodEndDay;
+        }
+
+        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }, [selectedFeedData?.statementPeriodEndDay]);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
