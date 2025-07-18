@@ -1,5 +1,5 @@
 ---
-title: configuring-email-notifications.md
+title: Configuring Email Notifications
 description: Learn how travel admins can configure email notification rules and approver alerts in Expensify Travel.
 keywords: [travel notifications, email rules, approval emails, travel alerts, expensify travel, classic, new expensify]
 ---
