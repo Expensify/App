@@ -499,7 +499,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                    shouldShowSubscriptAvatar
+                                    iconReportID={currentUserPolicyExpenseChatReportID}
                                 />
                             </OfflineWithFeedback>
                         </View>

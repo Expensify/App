@@ -1,8 +1,7 @@
 import React, {memo, useMemo} from 'react';
-import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,55 +9,11 @@ import {getUserDetailTooltipText} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import SingleReportAvatar from './ReportActionItem/SingleReportAvatar';
-import SubscriptAvatar from './SubscriptAvatar';
-import type {SubIcon} from './SubscriptAvatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
-
-type Subscript = {
-    /** Whether to show the subscript avatar */
-    shouldShow: boolean;
-
-    /** Border color for the subscript avatar */
-    borderColor?: ColorValue;
-
-    /** Whether to show the subscript avatar without margin */
-    noMargin?: boolean;
-
-    /** Subscript icon to display */
-    subIcon?: SubIcon;
-
-    /** A fallback main avatar icon */
-    fallbackIcon?: Icon;
-
-    /** Size of the secondary avatar */
-    secondaryAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-};
-
-type SingleAvatar = {
-    /** Whether to show the single report avatar */
-    shouldShow: boolean;
-
-    /** Details for the report avatar */
-    reportPreviewDetails: ReportAvatarDetails | undefined;
-
-    /** Personal details for the report avatar */
-    personalDetails: PersonalDetailsList | undefined;
-
-    /** Styles for the container */
-    containerStyles?: ViewStyle[];
-
-    /** The account ID of the actor */
-    actorAccountID: number | null | undefined;
-
-    /** Size of the avatar */
-    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-};
 
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
@@ -105,11 +60,6 @@ type MultipleAvatarsProps = {
 
     /** Prop to limit the amount of avatars displayed horizontally */
     overlapDivider?: number;
-
-    /** Subscript avatar properties */
-    subscript?: Subscript;
-
-    singleReportAvatar?: SingleAvatar;
 };
 
 type AvatarStyles = {
@@ -137,8 +87,6 @@ function MultipleAvatars({
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
     overlapDivider = 3,
-    subscript,
-    singleReportAvatar,
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -196,39 +144,6 @@ function MultipleAvatars({
         // Update the state with the two rows as an array
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
-
-    const subscriptMainAvatar = icons.at(0) ?? subscript?.fallbackIcon;
-
-    if (!!singleReportAvatar?.shouldShow && !!singleReportAvatar.reportPreviewDetails) {
-        const {reportPreviewDetails, personalDetails, containerStyles, actorAccountID, size: singleAvatarSize} = singleReportAvatar;
-
-        return (
-            <SingleReportAvatar
-                reportPreviewDetails={reportPreviewDetails}
-                personalDetails={personalDetails}
-                containerStyles={containerStyles}
-                actorAccountID={actorAccountID}
-                size={singleAvatarSize ?? size}
-            />
-        );
-    }
-
-    if (!!subscript?.shouldShow && subscriptMainAvatar) {
-        const {borderColor, noMargin, subIcon, secondaryAvatarSize} = subscript;
-
-        return (
-            <SubscriptAvatar
-                showTooltip={shouldShowTooltip}
-                size={size}
-                mainAvatar={subscriptMainAvatar}
-                secondaryAvatar={icons.at(1)}
-                backgroundColor={borderColor}
-                noMargin={noMargin}
-                subscriptIcon={subIcon}
-                secondaryAvatarSize={secondaryAvatarSize}
-            />
-        );
-    }
 
     if (!icons.length) {
         return null;
@@ -413,3 +328,4 @@ function MultipleAvatars({
 MultipleAvatars.displayName = 'MultipleAvatars';
 
 export default memo(MultipleAvatars);
+export type {MultipleAvatarsProps};

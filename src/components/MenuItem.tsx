@@ -39,6 +39,7 @@ import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
+import ReportAvatar from './ReportAvatar';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -232,12 +233,6 @@ type MenuItemBaseProps = {
     /** Prop to represent the size of the float right avatar images to be shown */
     floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Whether the secondary right avatar should show as a subscript */
-    shouldShowSubscriptRightAvatar?: boolean;
-
-    /** Whether the secondary avatar should show as a subscript */
-    shouldShowSubscriptAvatar?: boolean;
-
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -380,6 +375,10 @@ type MenuItemBaseProps = {
 
     /** Plaid image for the bank */
     plaidUrl?: string;
+
+    iconReportID?: string;
+
+    rightIconReportID?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -436,6 +435,7 @@ function MenuItem(
         shouldShowRedDotIndicator,
         hintText,
         success = false,
+        iconReportID,
         focused = false,
         disabled = false,
         title,
@@ -456,8 +456,7 @@ function MenuItem(
         rightComponent,
         floatRightAvatars = [],
         floatRightAvatarSize,
-        shouldShowSubscriptRightAvatar = false,
-        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
+        rightIconReportID,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -535,8 +534,6 @@ function MenuItem(
         titleStyle ?? {},
     );
     const shouldShowAvatar = !!icon && Array.isArray(icon);
-    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
-    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -716,23 +713,34 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {shouldShowAvatar && (
-                                                        <MultipleAvatars
-                                                            subscript={{
-                                                                shouldShow: shouldShowSubscriptAvatar,
-                                                                borderColor: getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG),
-                                                            }}
-                                                            isHovered={isHovered}
-                                                            isPressed={pressed}
-                                                            icons={icon as IconType[]}
-                                                            size={avatarSize}
-                                                            secondAvatarStyle={[
-                                                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                                pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
-                                                                isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
-                                                            ]}
-                                                        />
-                                                    )}
+                                                    {shouldShowAvatar &&
+                                                        (iconReportID ? (
+                                                            <ReportAvatar
+                                                                subscriptBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                                isHovered={isHovered}
+                                                                isPressed={pressed}
+                                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                                                size={avatarSize}
+                                                                secondAvatarStyle={[
+                                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                                    pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
+                                                                    isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
+                                                                ]}
+                                                                reportID={iconReportID}
+                                                            />
+                                                        ) : (
+                                                            <MultipleAvatars
+                                                                isHovered={isHovered}
+                                                                isPressed={pressed}
+                                                                icons={icon as IconType[]}
+                                                                size={avatarSize}
+                                                                secondAvatarStyle={[
+                                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                                    pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
+                                                                    isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
+                                                                ]}
+                                                            />
+                                                        ))}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[
@@ -907,19 +915,29 @@ function MenuItem(
                                                 )}
                                                 {floatRightAvatars?.length > 0 && !!firstRightIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                                        <MultipleAvatars
-                                                            subscript={{
-                                                                shouldShow: shouldShowSubscriptRightAvatar,
-                                                                borderColor: isHovered ? theme.activeComponentBG : theme.componentBG,
-                                                            }}
-                                                            isHovered={isHovered}
-                                                            isPressed={pressed}
-                                                            icons={shouldShowSubscriptRightAvatar ? [firstRightIcon, ...floatRightAvatars.slice(1)] : floatRightAvatars}
-                                                            size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                            fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                                            shouldStackHorizontally={shouldStackHorizontally}
-                                                            isFocusMode
-                                                        />
+                                                        {rightIconReportID ? (
+                                                            <ReportAvatar
+                                                                subscriptBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                                isHovered={isHovered}
+                                                                isPressed={pressed}
+                                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
+                                                                reportID={rightIconReportID}
+                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
+                                                                fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
+                                                                shouldStackHorizontally
+                                                                isFocusMode
+                                                            />
+                                                        ) : (
+                                                            <MultipleAvatars
+                                                                isHovered={isHovered}
+                                                                isPressed={pressed}
+                                                                icons={floatRightAvatars}
+                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
+                                                                fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
+                                                                shouldStackHorizontally={shouldStackHorizontally}
+                                                                isFocusMode
+                                                            />
+                                                        )}
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (

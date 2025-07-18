@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReportAvatar from '@components/ReportAvatar';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -109,19 +109,18 @@ function UserListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )}
                     {!!item.icons && (
-                        <MultipleAvatars
-                            subscript={{
-                                shouldShow: !!item.shouldShowSubscript,
-                                fallbackIcon,
-                                borderColor: hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor,
-                            }}
-                            icons={item.icons}
+                        <ReportAvatar
+                            subscriptFallbackIcon={fallbackIcon}
+                            subscriptBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
                             secondAvatarStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                 isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                 hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                             ]}
+                            reportID={item.reportID}
+                            accountIDs={[Number(item.accountID)]}
+                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                         />
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

@@ -24,7 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -42,13 +41,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     groupBy,
-    policies,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -117,7 +114,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
                     report={groupItem as TransactionReportGroupListItemType}
-                    policy={policy}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}

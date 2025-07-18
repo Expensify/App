@@ -463,7 +463,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
-    policies?: OnyxCollection<Policy>;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

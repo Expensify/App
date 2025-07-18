@@ -1,11 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
-import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +13,6 @@ import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
-    getIcons,
     getParentNavigationSubtitle,
     getReportName,
     isChatThread,
@@ -26,29 +23,25 @@ import {
     isMoneyRequestReport,
     isTrackExpenseReport,
     navigateToDetailsPage,
-    shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
 import {FallbackAvatar} from './Icon/Expensicons';
-import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportAvatar from './ReportAvatar';
 import type {TransactionListItemType} from './SelectionList/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy?: OnyxEntry<Policy>;
 
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -73,9 +66,6 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
-
-    /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
-    singleAvatarDetails?: ReportAvatarDetails;
 };
 
 const fallbackIcon: Icon = {
@@ -162,7 +152,6 @@ function getCustomDisplayName(
 }
 
 function AvatarWithDisplayName({
-    policy,
     report,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
@@ -170,7 +159,6 @@ function AvatarWithDisplayName({
     shouldEnableAvatarNavigation = true,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
-    singleAvatarDetails,
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
 }: AvatarWithDisplayNameProps) {
@@ -190,11 +178,8 @@ function AvatarWithDisplayName({
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
 
     const actorAccountID = useRef<number | null>(null);
@@ -243,31 +228,14 @@ function AvatarWithDisplayName({
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
-    const multipleAvatarDetails = useMemo(
-        () => ({
-            singleReportAvatar: {
-                shouldShow: !!singleAvatarDetails?.reportPreviewSenderID && !singleAvatarDetails.shouldDisplayAllActors && !shouldShowSubscriptAvatar,
-                personalDetails,
-                reportPreviewDetails: singleAvatarDetails,
-                containerStyles: [styles.actionAvatar, styles.mr3],
-                actorAccountID: singleAvatarDetails?.reportPreviewSenderID,
-            },
-            subscript: {
-                shouldShow: shouldShowSubscriptAvatar,
-                borderColor: avatarBorderColor,
-                fallbackIcon,
-            },
-        }),
-        [avatarBorderColor, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, styles],
-    );
-
     const multipleAvatars = (
-        <MultipleAvatars
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...multipleAvatarDetails}
-            icons={icons}
+        <ReportAvatar
+            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+            subscriptBorderColor={avatarBorderColor}
+            subscriptFallbackIcon={fallbackIcon}
             size={size}
             secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+            reportID={report?.reportID}
         />
     );
 

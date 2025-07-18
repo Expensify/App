@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import ReportAvatar from '@components/ReportAvatar';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -111,19 +111,16 @@ function InviteMemberListItem<TItem extends ListItem>({
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {!!item.icons && (
-                            <MultipleAvatars
-                                subscript={{
-                                    fallbackIcon,
-                                    shouldShow: !!item.shouldShowSubscript,
-                                    borderColor: hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor,
-                                }}
-                                icons={item.icons}
+                            <ReportAvatar
+                                subscriptFallbackIcon={fallbackIcon}
+                                subscriptBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 shouldShowTooltip={showTooltip}
                                 secondAvatarStyle={[
                                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                     isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                     hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                 ]}
+                                reportID={item.reportID}
                             />
                         )}
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

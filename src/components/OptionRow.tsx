@@ -16,9 +16,9 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
-import MultipleAvatars from './MultipleAvatars';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import ReportAvatar from './ReportAvatar';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
@@ -207,12 +207,9 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
-                                    <MultipleAvatars
-                                        subscript={{
-                                            shouldShow: !!option.shouldShowSubscript,
-                                            borderColor: hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor,
-                                        }}
-                                        icons={option.icons}
+                                    <ReportAvatar
+                                        subscriptBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                        reportID={option.iouReportID ?? option.reportID}
                                         size={CONST.AVATAR_SIZE.DEFAULT}
                                         secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                         shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
