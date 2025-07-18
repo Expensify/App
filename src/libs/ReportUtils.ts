@@ -2487,6 +2487,50 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 }
 
 /**
+ * Checks whether the supplied report supports merging transactions from it.
+ * Return true if:
+ * - report is editable
+ * - expense is unreported (draft expense)
+ */
+function isMergeableMoneyRequestReport(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
+}
+
+/**
+ * Determines whether a money request report is eligible for merging transactions based on the user's role and permissions.
+ * Rules:
+ * - **Admins**: reports that are in "Open" or "Processing" status
+ * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
+ * - **Approvers**: Expenses on Open or Processing reports
+ *
+ * @param reportID - The ID of the money request report to check for merge eligibility
+ * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
+ * @param isSubmitter - Whether the current user is the submitter of the target report
+ *
+ * @returns True if the report is eligible for merging transactions, false otherwise
+ */
+function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean, isSubmitter: boolean): boolean {
+    const report = getReportOrDraftReport(reportID);
+
+    if (!isMoneyRequestReport(report)) {
+        return false;
+    }
+
+    // Admins: return expenses on Open or Processing reports
+    if (isAdmin) {
+        return isOpenReport(report) || isProcessingReport(report);
+    }
+
+    // Submitters: return IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
+    if (isSubmitter) {
+        return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report));
+    }
+
+    // Approvers: return expenses that haven’t been approved, on Processing reports assigned to them for approval
+    return isExpenseReport(report) && isProcessingReport(report) && isReportManager(report);
+}
+
+/**
  * Checks whether the card transaction support deleting based on liability type
  */
 function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
@@ -11469,6 +11513,8 @@ export {
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,
+    isMergeableMoneyRequestReport,
+    isMoneyRequestReportEligibleForMerge,
 };
 
 export type {
