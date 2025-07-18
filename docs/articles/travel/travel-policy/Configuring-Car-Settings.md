@@ -24,7 +24,7 @@ To configure your car booking policy:
 3. Select an existing policy or click **Add new** to create one.
 4. Expand the **Car** tab.
 
-**Note:** Settings with a chainlink icon indicate that the value is inherited from a parent policy. To override and customize the value, click the link icon.
+**Note:** Settings with a chain link icon indicate that the value is inherited from a parent policy. To override and customize the value, click the link icon.
 
 # Car policy settings
 
