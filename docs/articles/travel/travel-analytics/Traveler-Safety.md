@@ -17,7 +17,7 @@ Note: Only Travel admins can access the duty of care and safety tool.
 
 ---
 
-## What is duty of care in travel?
+## What is _duty of care_ in travel?
 
 In business travel, *duty of care* refers to a company’s legal and moral obligation to protect employees while they travel for work. This includes minimizing risks, providing timely support, and ensuring safety throughout every trip.
 
