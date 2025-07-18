@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
-import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
 
 type StatementCloseDateListItem = ListItem & {
