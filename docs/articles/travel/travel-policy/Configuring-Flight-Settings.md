@@ -1,5 +1,5 @@
 ---
-title: configuring-flight-settings.md
+title: Configuring Flight Settings
 description: Learn how to configure flight booking rules and cabin class restrictions in your Spotnana travel policy.
 keywords: [flight policy, cabin class, travel approval, air booking rules, lowest logical fare, booking restrictions, expensify travel]
 ---
