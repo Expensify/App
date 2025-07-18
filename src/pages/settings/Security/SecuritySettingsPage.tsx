@@ -14,7 +14,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,6 +22,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -62,6 +63,8 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -147,6 +150,13 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
+                    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                        Navigation.navigate(
+                            ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                        );
+                        return;
+                    }
+
                     Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
                 },
             },
@@ -191,7 +201,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, privateSubscription, currentUserPersonalDetails]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
