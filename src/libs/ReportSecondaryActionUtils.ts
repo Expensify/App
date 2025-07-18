@@ -48,6 +48,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
+    isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -56,7 +57,7 @@ import {
 } from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (!isReportSubmitter || reportTransactions.length === 0) {
         return false;
@@ -95,7 +96,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
 
@@ -131,7 +132,7 @@ function isSubmitAction(
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === getCurrentUserAccountID();
@@ -184,7 +185,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
@@ -222,12 +223,18 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = report.managerID === getCurrentUserAccountID();
 
-    if (isReportSettled || isPaymentProcessing) {
+    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
         return false;
     }
 
-    return isExpenseReport && isReportApprover && isReportApproved;
+    if (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return isManager || isAdmin;
+    }
+
+    return isReportApprover;
 }
 
 function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
@@ -325,7 +332,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isReportSender = isCurrentUserSubmitter(report.reportID);
+    const isReportSender = isCurrentUserSubmitter(report);
 
     if (isInvoiceReport && isReportSender) {
         return true;
@@ -393,7 +400,7 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     }
 
     const isOpenReport = isOpenReportUtils(report);
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isSubmitter = isCurrentUserSubmitter(report);
     const isReportManager = isReportManagerUtils(report);
 
     if (isOpenReport && (isSubmitter || isReportManager)) {
@@ -405,14 +412,14 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
     const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
     }
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
@@ -425,6 +432,10 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
     const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
+        return true;
+    }
 
     if (isUnreported) {
         return isOwner;
@@ -448,7 +459,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
             return false;
         }
 
-        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+        const isReportSubmitter = isCurrentUserSubmitter(report);
         const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
 
@@ -468,7 +479,7 @@ function isRetractAction(report: Report, policy?: Policy, betas?: OnyxEntry<Beta
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     if (!isReportSubmitter) {
         return false;
     }
@@ -589,7 +600,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    if (isChangeWorkspaceAction(report, policies)) {
+    if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 

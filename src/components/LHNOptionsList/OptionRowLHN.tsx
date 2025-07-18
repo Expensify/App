@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
@@ -134,7 +134,7 @@ function OptionRowLHN({
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
+    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
     const alternateTextStyle = isInFocusMode
         ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
@@ -303,7 +303,7 @@ function OptionRowLHN({
                                                         isSystemChat(report)
                                                     }
                                                 />
-                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}
@@ -323,7 +323,7 @@ function OptionRowLHN({
                                                         <TextWithEmojiFragment
                                                             message={Parser.htmlToText(optionItem.alternateText)}
                                                             style={[alternateTextStyle, styles.mh0]}
-                                                            isAlternateText
+                                                            alignCustomEmoji
                                                         />
                                                     ) : (
                                                         Parser.htmlToText(optionItem.alternateText)
