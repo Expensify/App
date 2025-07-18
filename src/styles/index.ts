@@ -4044,6 +4044,7 @@ const styles = (theme: ThemeColors) =>
                     backgroundSize: '100% 100%',
                     backgroundRepeat: 'no-repeat',
                 }),
+                // fallback for the desktop and other browsers that this svg doesn't work with
                 ...(!isSafariOrChromeBrowser && {
                     borderWidth: 2,
                     borderStyle: 'dashed',
@@ -4062,11 +4063,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textAttachmentDropZone,
         },
 
-        attachmentDropInnerWrapper: (isActive?: boolean) => ({
-            borderColor: isActive ? theme.attachmentDropBorderColorActive : theme.attachmentDropBorderColor,
-            transition: '0.2s ease-in',
-        }),
-
         receiptDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
             transition: 'background-color 0.2s ease-in',
@@ -4075,11 +4071,6 @@ const styles = (theme: ThemeColors) =>
         receiptDropText: {
             color: theme.textReceiptDropZone,
         },
-
-        receiptDropInnerWrapper: (isActive?: boolean) => ({
-            borderColor: isActive ? theme.receiptDropBorderColorActive : theme.receiptDropBorderColor,
-            transition: '0.2s ease-in',
-        }),
 
         flashButtonContainer: {
             position: 'absolute',
