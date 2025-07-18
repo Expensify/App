@@ -61,6 +61,9 @@ type FullPageNotFoundViewProps = {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Whether the component is in report screen */
+    isReportScreen?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -81,6 +84,7 @@ function FullPageNotFoundView({
     shouldDisplaySearchRouter,
     addBottomSafeAreaPadding = true,
     addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    isReportScreen = false,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
@@ -113,6 +117,7 @@ function FullPageNotFoundView({
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                         testID={FullPageNotFoundView.displayName}
+                        isReportScreen={isReportScreen}
                     />
                 </View>
             </ForceFullScreenView>

@@ -63,6 +63,9 @@ type BaseBlockingViewProps = {
 
     /** A testing ID that can be applied to the element on the page */
     testID?: string;
+
+    /** Whether the component is in report screen */
+    isReportScreen?: boolean;
 };
 
 type BlockingViewIconProps = {
@@ -116,12 +119,39 @@ function BlockingView({
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     testID,
+    isReportScreen = false,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const subtitleText = useMemo(
-        () => (
+    const subtitleText = useMemo(() => {
+        if (isReportScreen && shouldShowLink) {
+            return (
+                <>
+                    <Text style={[styles.textAlignCenter]}>
+                        {!!subtitle && (
+                            <AutoEmailLink
+                                style={[styles.textAlignCenter, subtitleStyle]}
+                                text={subtitle}
+                            />
+                        )}
+                        <TextLink
+                            onPress={onLinkPress}
+                            style={[styles.link, styles.mt2, !!subtitleKeyBelowLink && styles.textAlignCenter]}
+                        >
+                            {` ${translate(linkKey)}`}
+                        </TextLink>
+                    </Text>
+                    {!!subtitleKeyBelowLink && (
+                        <AutoEmailLink
+                            style={[styles.textAlignCenter, subtitleStyle, styles.mt2]}
+                            text={translate(subtitleKeyBelowLink)}
+                        />
+                    )}
+                </>
+            );
+        }
+        return (
             <>
                 {!!subtitle && (
                     <AutoEmailLink
@@ -132,21 +162,14 @@ function BlockingView({
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}
-                        style={[styles.link, styles.mt2, !!subtitleKeyBelowLink && styles.textAlignCenter]}
+                        style={[styles.link, styles.mt2]}
                     >
                         {translate(linkKey)}
                     </TextLink>
                 ) : null}
-                {!!subtitleKeyBelowLink && (
-                    <AutoEmailLink
-                        style={[styles.textAlignCenter, subtitleStyle, styles.mt2]}
-                        text={translate(subtitleKeyBelowLink)}
-                    />
-                )}
             </>
-        ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, subtitleKeyBelowLink],
-    );
+        );
+    }, [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, subtitleKeyBelowLink, isReportScreen]);
 
     const subtitleContent = useMemo(() => {
         if (CustomSubtitle) {
