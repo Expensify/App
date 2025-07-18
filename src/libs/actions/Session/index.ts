@@ -201,7 +201,7 @@ function getShortLivedLoginParams(authToken: string, isSupportAuthTokenUsed = fa
  * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
  */
 function signInWithSupportAuthToken(authToken: string) {
-    const {optimisticData, finallyData} = getShortLivedLoginParams(true);
+    const {optimisticData, finallyData} = getShortLivedLoginParams(authToken, true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
 }
 
