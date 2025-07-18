@@ -129,6 +129,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
             headerTitle={translate('bankAccount.bankInfo')}
             stepNames={stepNames}
             startStepIndex={1}
+            fsClass={CONST.FULL_STORY.MASK}
         >
             <SubStep
                 isEditing={isEditing}
