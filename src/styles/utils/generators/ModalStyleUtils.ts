@@ -302,7 +302,6 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     };
                 }
 
-                hideBackdrop = true;
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;
                 shouldAddTopSafeAreaPadding = true;

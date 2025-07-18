@@ -36,8 +36,6 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseReanimatedModal
         >

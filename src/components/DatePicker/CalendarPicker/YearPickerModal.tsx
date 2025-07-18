@@ -52,8 +52,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             isVisible={isVisible}
             onClose={() => onClose?.()}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldHandleNavigationBack
             shouldUseCustomBackdrop
             onBackdropPress={onClose}
