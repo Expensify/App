@@ -1,5 +1,5 @@
 ---
-title: configuring-hotel-settings.md
+title: Configuring Hotel Settings
 description: Learn how to manage hotel booking settings within a Spotnana travel policy.
 keywords: [hotel policy, hotel settings, spotnana travel, booking rules, hotel restrictions]
 ---
