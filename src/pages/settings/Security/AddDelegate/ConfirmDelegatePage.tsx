@@ -12,7 +12,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {useCustomHistoryParam} from '@libs/Navigation/AppNavigator/customHistory';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,6 +22,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DelegateMagicCodeModal from './DelegateMagicCodeModal';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
@@ -33,13 +35,13 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
     const [shouldDisableModalAnimation, setShouldDisableModalAnimation] = useState(true);
-
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useCustomHistoryParam();
     const [shouldShowLoading, setShouldShowLoading] = useState(isValidateCodeActionModalVisible ?? false);
 
     const personalDetails = getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
-    const formattedLogin = formatPhoneNumber(login ?? '');
+    const formattedLogin = formatPhoneNumberWithCountryCode(login ?? '', countryCodeByIP);
     const displayName = personalDetails?.displayName ?? formattedLogin;
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
