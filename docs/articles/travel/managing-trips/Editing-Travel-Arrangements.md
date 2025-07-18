@@ -15,7 +15,7 @@ Make changes to your travel bookings directly in Expensify without needing to co
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -23,9 +23,9 @@ Make changes to your travel bookings directly in Expensify without needing to co
 
 1. Go to **Trips** > **My Trips** and click on the trip you'd like to update.
 2. In the **Trip view**, find the booking you want to edit (flight, hotel, car, or rail).
-3. Click the **three-dot menu** next to the booking.
-4. Select **Edit**.
-5. Make any allowed changes, then click **Save** to confirm the update.
+3. Click the green **Modify** button.
+4. Select the booking you want to modify.
+5. Make allowed changes, then follow the prompts to confirm the changes.
 
 Depending on the provider, available edits may include:
 - Changing flight times or seats
@@ -68,6 +68,6 @@ No. You can make edits yourself for free. If support helps, a $25 fee applies pe
 Yes, as long as you rebook within the same trip, no new trip fee is charged.
 
 ## Can I change a booking directly through the airline?
-Yes, but the change may not reflect in Expensify automatically. For best results, make edits directly in Expensify.
+Yes, but the change may not automatically reflect in Expensify. For best results, make edits directly in Expensify.
 
 </div>
