@@ -1227,7 +1227,7 @@ describe('getSecondaryAction', () => {
 
         const policy = {
             connections: {
-                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {},
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {},
             },
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
