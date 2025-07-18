@@ -20,7 +20,7 @@ import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
-import OnyxProvider from './components/OnyxProvider';
+import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
 import SafeArea from './components/SafeArea';
@@ -54,8 +54,6 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 type AppProps = {
     /** The URL specifying the initial navigation destination when the app opens */
     url?: Route;
-    /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
-    hybridAppSettings?: string;
 };
 
 LogBox.ignoreLogs([
@@ -71,7 +69,7 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, hybridAppSettings}: AppProps) {
+function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
@@ -79,19 +77,19 @@ function App({url, hybridAppSettings}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider url={url}>
-                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
+                    <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
-                                OnyxProvider,
+                                OnyxListItemProvider,
                                 ThemeProvider,
                                 ThemeStylesProvider,
                                 ThemeIllustrationsProvider,
                                 SafeAreaProvider,
+                                HTMLEngineProvider,
                                 PortalProvider,
                                 SafeArea,
                                 LocaleContextProvider,
-                                HTMLEngineProvider,
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,

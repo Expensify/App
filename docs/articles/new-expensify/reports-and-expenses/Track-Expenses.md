@@ -27,7 +27,7 @@ Use this guide to create expenses that stay in your account for later reference.
    - **Enter manually**
 4. Fill in the required details based on your selection.
 5. Click **Next**.
-6. Select **Just track it (don’t submit it)**.
+6. Choose yourself under Personal.
 7. Update or edit fields based on your Workspace configuration.
 8. Click **Create expense**.
 
