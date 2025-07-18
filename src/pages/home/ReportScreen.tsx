@@ -138,7 +138,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function useKeyboardAnimation() {
     const progress = useSharedValue(0);
     const height = useSharedValue(0);
-    const inset = useSharedValue(0);
     const offset = useSharedValue(0);
     const scrollY = useSharedValue(0);
 
@@ -146,8 +145,21 @@ function useKeyboardAnimation() {
         onStart: (e) => {
             'worklet';
 
+            const scrollYValueAtStart = scrollY.get();
+            const prevHeight = height.get();
+
             progress.set(e.progress);
             height.set(e.height);
+
+            const willKeyboardOpen = e.progress === 1;
+
+            if (willKeyboardOpen) {
+                return offset.set(scrollYValueAtStart);
+            }
+
+            // When we close the keyboard we need to maintain the position that we had when the keyboard was open
+            // The position is: currentScroll + keyboardHeight (as we add keyboard height to the scrollOfffset)
+            return offset.set(scrollYValueAtStart + prevHeight);
         },
         onInteractive: (e) => {
             'worklet';
@@ -158,21 +170,14 @@ function useKeyboardAnimation() {
         onMove: (e) => {
             'worklet';
 
-            const isAtBottom = scrollY.get() <= 10;
-
-            if (isAtBottom) {
-                offset.set(e.height);
-            }
-
-            inset.set(e.height);
             progress.set(e.progress);
             height.set(e.height);
         },
         onEnd: (e) => {
             'worklet';
 
-            height.set(e.height);
             progress.set(e.progress);
+            height.set(e.height);
         },
     });
 
@@ -180,11 +185,11 @@ function useKeyboardAnimation() {
         onScroll: (e) => {
             'worklet';
 
-            scrollY.set(e.contentOffset.y + inset.get());
+            scrollY.set(e.contentOffset.y);
         },
     });
 
-    return {height, progress, onScroll, inset, offset, scrollY};
+    return {height, progress, onScroll, offset, scrollY};
 }
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
@@ -202,7 +207,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
-    const {scrollY, height: keyboardHeight, inset: keyboardInset, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
@@ -915,9 +920,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             transactionThreadReportID={transactionThreadReportID}
                                             onScroll={onScroll}
                                             scrollingVerticalOffset={scrollY}
-                                            keyboardInset={keyboardInset}
                                             keyboardOffset={keyboardOffset}
                                             composerHeight={composerHeight}
+                                            keyboardHeight={keyboardHeight}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -957,5 +962,4 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

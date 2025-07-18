@@ -11,7 +11,7 @@ import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -44,8 +44,6 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
-    canShowReportRecipientLocalTime,
-    canUserPerformWriteAction,
     chatIncludesChronosWithID,
     getOriginalReportID,
     getReportLastVisibleActionCreated,
@@ -109,16 +107,13 @@ type ReportActionsListProps = {
     /** Function to load newer chats */
     loadNewerChats: (force?: boolean) => void;
 
-    /** Whether the composer is in full size */
-    isComposerFullSize?: boolean;
-
     /** ID of the list */
     listID: number;
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
-    keyboardInset: SharedValue<number>;
+    keyboardHeight: SharedValue<number>;
 
     keyboardOffset: SharedValue<number>;
 
@@ -157,22 +152,21 @@ function ReportActionsList({
     loadNewerChats,
     loadOlderChats,
     onLayout,
-    isComposerFullSize,
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     scrollingVerticalOffset,
-    keyboardInset,
     keyboardOffset,
     composerHeight,
+    keyboardHeight,
 }: ReportActionsListProps) {
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const {isKeyboardActive} = useKeyboardState();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -713,8 +707,6 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
@@ -775,17 +767,20 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    const animatedProps = useAnimatedProps(() => ({
-        contentInset: {
-            top: keyboardInset.get(),
-        },
-        contentOffset: {
-            x: 0,
-            y: -keyboardOffset.get(),
-        },
-    }));
+    const animatedProps = useAnimatedProps(() => {
+        return {
+            contentInset: {
+                top: keyboardHeight.get(),
+            },
+            contentOffset: {
+                x: 0,
+                y: -keyboardHeight.get() + keyboardOffset.get(),
+            },
+        };
+    });
 
-    const paddingBottom = useMemo(() => (Platform.OS === 'ios' ? composerHeight + (unmodifiedPaddings.bottom ?? 0) : 0), [composerHeight, unmodifiedPaddings.bottom]);
+    const safeAreaBottom = isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
+    const bottomSpacer = useMemo(() => (Platform.OS === 'ios' ? composerHeight + safeAreaBottom : 0), [composerHeight, safeAreaBottom]);
 
     return (
         <>
@@ -795,7 +790,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, !hideComposer ? {paddingBottom} : {}]}
+                style={[styles.flexGrow1, {paddingBottom: bottomSpacer}]}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
