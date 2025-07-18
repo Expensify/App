@@ -557,9 +557,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         opacity.set(
-            withTiming(0, {duration: 100}, () => {
+            withTiming(0, {duration: window.animationDuration || 200}, () => {
                 setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, {duration: 100}));
+                opacity.set(withTiming(1, {duration: window.animationDuration || 200}));
             }),
         );
     }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset]);
