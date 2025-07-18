@@ -4,7 +4,6 @@ import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMem
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -708,7 +707,6 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderScrollComponent}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
@@ -716,8 +714,8 @@ function ReportActionsList({
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={listFooterComponent}
+                    ListFooterComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
@@ -725,7 +723,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    initialScrollIndex={reportActionID}
                 />
             </View>
         </>
