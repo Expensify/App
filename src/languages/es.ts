@@ -6006,9 +6006,10 @@ const translations = {
             billable: 'Facturable',
             reimbursable: 'Reembolsable',
             groupBy: {
-                reports: 'Informe',
-                members: 'Miembro',
-                cards: 'Tarjeta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Informe',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Miembro',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Tarjeta',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Retiro bancario',
             },
             feed: 'Feed',
         },

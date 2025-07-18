@@ -6024,9 +6024,10 @@ const translations = {
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
-                reports: 'Rapport',
-                members: 'Membre',
-                cards: 'Carte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Membre',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Carte',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Retrait bancaire',
             },
             feed: 'Flux',
         },

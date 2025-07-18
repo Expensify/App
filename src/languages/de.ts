@@ -6013,9 +6013,10 @@ const translations = {
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             groupBy: {
-                reports: 'Bericht',
-                members: 'Mitglied',
-                cards: 'Karte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Mitglied',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Karte',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Bankabhebung',
             },
             feed: 'Feed',
         },

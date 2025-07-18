@@ -468,6 +468,13 @@ type SearchCard = {
     accountID: number;
 };
 
+/** Model of bank search result */
+// s77rt sync with BE
+type SearchBank = {
+    /** string like 'Account ending in XXXX' */
+    description?: string;
+};
+
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -490,6 +497,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
+        Partial<Record<typeof ONYXKEYS.BANK_ACCOUNT_LIST, Record<string, SearchBank>>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
@@ -515,4 +523,5 @@ export type {
     SearchReportAction,
     SearchPolicy,
     SearchCard,
+    SearchBank,
 };
