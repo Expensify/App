@@ -1,5 +1,5 @@
 ---
-title: setting-approval-types-and-adding-members.md
+title: Setting Approval Types and Adding Members
 description: Learn how to configure approval types and assign members to a travel policy in Expensify Travel.
 keywords: [travel policy, approval type, soft approval, hard approval, add policy members, default approver, spotnana policy]
 ---
