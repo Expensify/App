@@ -219,6 +219,7 @@ module.exports = {
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
         'arrow-body-style': 'off',
+        'no-continue': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],

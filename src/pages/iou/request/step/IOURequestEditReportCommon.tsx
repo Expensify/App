@@ -1,7 +1,5 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -11,7 +9,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, getPolicyName, isIOUReport} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -42,13 +40,11 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
+    policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
-    removeFromReport?: () => void;
-    isEditing?: boolean;
-    isUnreported?: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, removeFromReport, isEditing = false, isUnreported}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
@@ -58,15 +54,10 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
-    const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
-    const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
-
     const expenseReports = useMemo(
         () =>
             Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
+                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                     return [];
                 }
                 const reports = getOutstandingReportsForUser(
@@ -77,7 +68,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps],
     );
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
@@ -85,20 +76,25 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             return [];
         }
 
+        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+
         return expenseReports
-            .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
+            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
                     ...matchingOption,
+                    // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
+                    // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
+                    brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [allReports, debouncedSearchValue, expenseReports, onlyReport, options.reports]);
+    }, [allReports, debouncedSearchValue, expenseReports, options.reports, transactionsReports]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -125,16 +121,6 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
-                listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={Expensicons.Close}
-                        />
-                    ) : undefined
-                }
             />
         </StepScreenWrapper>
     );

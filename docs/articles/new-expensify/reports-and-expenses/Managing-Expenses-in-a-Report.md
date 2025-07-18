@@ -15,7 +15,7 @@ You can add expenses to a report in two ways:
 
 ### Create a new expense
 1. Open the draft report.
-2. Select **Add expense** > **Create new expense**.
+2. Select **Add expense** > **Create expense**.
 3. Enter the expense details and click **Save**.
 4. The new expense appears instantly in the report.
 
