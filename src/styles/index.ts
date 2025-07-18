@@ -1262,6 +1262,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        selectedTextInputContainer: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -5531,6 +5535,12 @@ const styles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
             marginHorizontal: 20,
             marginBottom: 20,
+        }),
+
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number) => ({
