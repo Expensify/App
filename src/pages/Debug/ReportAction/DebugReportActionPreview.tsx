@@ -17,6 +17,10 @@ type DebugReportActionPreviewProps = {
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     return (
@@ -34,6 +38,10 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 index={0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                userWallet={userWallet}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                userBillingFundID={userBillingFundID}
             />
         </ScrollView>
     );

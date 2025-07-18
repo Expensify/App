@@ -7,7 +7,10 @@ import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/R
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction, ReportActionsDrafts} from '@src/types/onyx';
+import { getOriginalReportID } from '@libs/ReportUtils';
+
+
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
@@ -19,6 +22,10 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
 
@@ -26,6 +33,20 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         return IOUTransactionID === transaction?.transactionID;
+    });
+
+    const originalReportID = getOriginalReportID(report?.reportID, action);
+
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
+        canBeMissing: true});
+
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`, {
+        canBeMissing: true,
+    });
+
+     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
+        canBeMissing: true,
+        selector: (transactionItem) => transactionItem?.errorFields?.route ?? null,
     });
 
     if (!action || !report) {
@@ -47,6 +68,13 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
                 isMostRecentIOUReportAction={false}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                userWallet={userWallet}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                draftMessage={draftMessage as OnyxEntry<string & ReportActionsDrafts>}
+                emojiReactions={emojiReactions}
+                linkedTransactionRouteError={linkedTransactionRouteError}
+                userBillingFundID={userBillingFundID ?? 0}
             />
         </View>
     );

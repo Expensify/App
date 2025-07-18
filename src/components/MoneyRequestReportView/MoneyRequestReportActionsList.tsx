@@ -12,6 +12,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -140,6 +141,11 @@ function MoneyRequestReportActionsList({
         canBeMissing: true,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
+
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -489,6 +495,10 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
+                    userWallet={userWallet}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetails}
+                    userBillingFundID={userBillingFundID}
                 />
             );
         },
@@ -504,6 +514,10 @@ function MoneyRequestReportActionsList({
             linkedReportActionID,
             allReports,
             policies,
+            userWallet,
+            isUserValidated,
+            personalDetails,
+            userBillingFundID,
         ],
     );
 

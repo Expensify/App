@@ -50,7 +50,11 @@ function DebugReportActionCreatePage({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
@@ -120,6 +124,13 @@ function DebugReportActionCreatePage({
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
+                                    userWallet={userWallet}
+                                    isUserValidated={isUserValidated}
+                                    personalDetails={personalDetailsList}
+                                    userBillingFundID={userBillingFundID}
+                                    draftMessage={undefined}
+                                    emojiReactions={undefined}
+                                    linkedTransactionRouteError={undefined}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>
