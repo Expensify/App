@@ -1,5 +1,5 @@
 ---
-title: setting-travel-preferences.md
+title: Setting Travel Preferences
 description: Learn how to set travel preferences in your profile to personalize bookings across air, hotel, car, and rail.
 keywords: [travel preferences, flight preferences, seat preferences, airline selection, hotel preferences, car rental, train preferences, expensify travel, classic, new expensify]
 ---
