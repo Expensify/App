@@ -601,7 +601,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation, lastLocationPermissionPrompt],
     );
 
     const capturePhoto = useCallback(() => {
