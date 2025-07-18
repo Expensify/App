@@ -85,7 +85,7 @@ target 'NewExpensify' do
   config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
-  # flags = get_default_flags()
+  flags = get_default_flags()
 
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
