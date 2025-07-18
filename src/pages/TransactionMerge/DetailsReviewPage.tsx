@@ -71,7 +71,7 @@ function DetailsReview({route}: DetailsReviewProps) {
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
         diffFields.forEach((field) => {
-            if (mergeTransaction[field]) {
+            if (mergeTransaction[field] !== undefined && mergeTransaction[field] !== null) {
                 return;
             }
 
