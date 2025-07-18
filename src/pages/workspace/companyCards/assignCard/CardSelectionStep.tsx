@@ -14,6 +14,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useEnvironment from '@hooks/useEnvironment';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -66,6 +67,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
+
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const handleSelectCard = (cardNumber: string) => {
         setCardSelected(cardNumber);
