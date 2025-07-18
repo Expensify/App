@@ -3,6 +3,7 @@ package com.expensify.reactnativehybridapp
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
 import android.util.Log
+import com.facebook.react.bridge.Promise
 
 @ReactModule(name = NativeReactNativeHybridAppSpec.NAME)
 class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
@@ -35,5 +36,19 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
 
   override fun sendAuthToken(authToken: String?) {
     Log.d(NAME, "`sendAuthToken` should never be called in standalone `New Expensify` app")
+  }
+
+  override fun getHybridAppSettings(promise: Promise) {
+    Log.d(NAME, "`getHybridAppSettings` should never be called in standalone `New Expensify` app")
+    promise.reject("NOT_IMPLEMENTED", "getHybridAppSettings is not implemented in standalone New Expensify app")
+  }
+
+  override fun getInitialURL(promise: Promise) {
+    Log.d(NAME, "`getInitialURL` should never be called in standalone `New Expensify` app")
+    promise.reject("NOT_IMPLEMENTED", "getInitialURL is not implemented in standalone New Expensify app")
+  }
+
+  override fun onURLListenerAdded() {
+    Log.d(NAME, "`onURLListenerAdded` should never be called in standalone `New Expensify` app")
   }
 }

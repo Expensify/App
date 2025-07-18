@@ -55,20 +55,19 @@ type GetReportPrimaryActionParams = {
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
-    isChatReportArchived?: boolean;
+    isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived = false) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
     if (isChatReportArchived) {
         return false;
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const canAddTransaction = canAddTransactionUtil(report);
 
-    return isExpenseReport && canAddTransaction && isReportSubmitter && reportTransactions.length === 0;
+    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
@@ -77,7 +76,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
@@ -132,7 +131,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
@@ -266,7 +265,7 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
     }
 
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
 
@@ -294,7 +293,7 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
         return true;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -315,6 +314,10 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy} = params;
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
 
     if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
@@ -364,7 +367,7 @@ function isMarkAsCashActionForTransaction(parentReport: Report, violations: Tran
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(parentReport.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(parentReport);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -393,4 +396,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, getAllExpensesToHoldIfApplicable};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, getAllExpensesToHoldIfApplicable};

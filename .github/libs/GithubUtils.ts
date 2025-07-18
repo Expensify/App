@@ -11,9 +11,9 @@ import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/di
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arrayDifference from '@src/utils/arrayDifference';
+import arrayDifference from './arrayDifference';
 import CONST from './CONST';
+import {isEmptyObject} from './isEmptyObject';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
