@@ -92,22 +92,46 @@ jobs:
       - name: Post diff in PR as a comment
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
         run: |
-          # Create temp file and set up cleanup
+          # Create temp files and set up cleanup
           TEMP_COMMENT_FILE=$(mktemp)
-          trap 'rm -f "$TEMP_COMMENT_FILE"' EXIT
+          TEMP_PATCH_FILE=$(mktemp --suffix=.patch)
+          trap 'rm -f "$TEMP_COMMENT_FILE" "$TEMP_PATCH_FILE"' EXIT
 
-          # Write comment to temp file
-          {
-            echo "## 🦜 Polyglot Parrot! 🦜"
-            echo ""
-            echo "Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
-            echo ""
-            echo '```diff'
-            git diff HEAD
-            echo '```'
-            echo ""
-            echo "_Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
-          } > "$TEMP_COMMENT_FILE"
+          # Generate the diff and save to patch file
+          git diff HEAD > "$TEMP_PATCH_FILE"
+
+          # Check file size (65536 chars is ~64KB, let's use 60KB as safety margin)
+          PATCH_SIZE=$(wc -c < "$TEMP_PATCH_FILE")
+          readonly MAX_COMMENT_SIZE=61440  # 60KB in bytes
+
+          if [ "$PATCH_SIZE" -le "$MAX_COMMENT_SIZE" ]; then
+            # Small diff - include in comment
+            {
+              echo "## 🦜 Polyglot Parrot! 🦜"
+              echo ""
+              echo "Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
+              echo ""
+              echo '```diff'
+              cat "$TEMP_PATCH_FILE"
+              echo '```'
+              echo ""
+              echo "_Note:_ You can apply these changes to your branch by copying them to your clipboard, then running \`pbpaste | git apply\` 😉"
+            } > "$TEMP_COMMENT_FILE"
+          else
+            # Large diff - upload as gist and link
+            echo "📁 Creating gist for large diff..."
+            GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --public --desc "Polyglot Parrot translations for PR #${{ github.event.pull_request.number }}" --filename "translations.patch")
+            
+            {
+              echo "## 🦜 Polyglot Parrot! 🦜"
+              echo ""
+              echo "Squawk! Looks like you added some shiny new English strings. The diff is too large to include in this comment (${PATCH_SIZE} bytes), so I've created a gist for you:"
+              echo ""
+              echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
+              echo ""
+              echo "_Note:_ You can apply these changes to your branch by downloading the patch file and running \`git apply translations.patch\` 😉"
+            } > "$TEMP_COMMENT_FILE"
+          fi
 
           # Post comment using the temp file
           gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
