@@ -4066,6 +4066,10 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
+        textSuccess: {
+            color: theme.success,
+        },
+
         footerRow: {
             paddingVertical: 4,
             marginBottom: 8,
