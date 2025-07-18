@@ -448,4 +448,115 @@ describe('TSCompilerUtils', () => {
             expect(result).toBe('translations');
         });
     });
+
+    describe('extractKeyFromPropertyNode', () => {
+        it('extracts key from property assignment with identifier', () => {
+            const code = dedent(`
+                const obj = {
+                    myKey: 'value'
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
+            expect(result).toBe('myKey');
+        });
+
+        it('extracts key from property assignment with string literal', () => {
+            const code = dedent(`
+                const obj = {
+                    "myStringKey": 'value'
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
+            expect(result).toBe('myStringKey');
+        });
+
+        it('extracts key from method declaration', () => {
+            const code = dedent(`
+                const obj = {
+                    myMethod() {
+                        return 'hello';
+                    }
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const methodDeclaration = objLiteral.properties[0] as ts.MethodDeclaration;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(methodDeclaration);
+            expect(result).toBe('myMethod');
+        });
+
+        it('handles computed property names by returning undefined', () => {
+            const code = dedent(`
+                const obj = {
+                    [computedKey]: 'value'
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
+            expect(result).toBeUndefined();
+        });
+
+        it('handles numeric literal property names by returning undefined', () => {
+            const code = dedent(`
+                const obj = {
+                    123: 'value'
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
+            expect(result).toBeUndefined();
+        });
+
+        it('handles method declaration with complex name by returning undefined', () => {
+            const code = dedent(`
+                const obj = {
+                    [Symbol.iterator]() {
+                        return {};
+                    }
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const methodDeclaration = objLiteral.properties[0] as ts.MethodDeclaration;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(methodDeclaration);
+            expect(result).toBeUndefined();
+        });
+
+        it('handles arrow function property assignment', () => {
+            const code = dedent(`
+                const obj = {
+                    arrowFunc: () => 'hello'
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+
+            const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
+            expect(result).toBe('arrowFunc');
+        });
+    });
 });
