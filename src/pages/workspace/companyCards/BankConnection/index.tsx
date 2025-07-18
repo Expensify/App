@@ -165,6 +165,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         <ScreenWrapper
             testID={BankConnection.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            fsClass={CONST.FULL_STORY.MASK}
         >
             <HeaderWithBackButton
                 title={headerTitle}

@@ -183,6 +183,7 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            fsClass={CONST.FULL_STORY.MASK}
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
