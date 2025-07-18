@@ -62,7 +62,7 @@ function WorkspaceCompanyCardsSettingsPage({
         }
 
         return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
-    }, [selectedFeedData?.statementPeriodEndDay]);
+    }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));

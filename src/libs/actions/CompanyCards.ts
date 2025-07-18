@@ -830,6 +830,52 @@ function setFeedStatementEndDay(
                     companyCards: {
                         [bankName]: {
                             statementPeriodEndDay: newStatementPeriodEndDate,
+                            pendingFields: {
+                                statementPeriodEndDay: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                statementPeriodEndDay: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            pendingFields: {
+                                statementPeriodEndDay: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            statementPeriodEndDay: oldStatementPeriodEndDate,
+                            pendingFields: {
+                                statementPeriodEndDay: null,
+                            },
+                            errorFields: {
+                                statementPeriodEndDay: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
@@ -845,7 +891,7 @@ function setFeedStatementEndDay(
         statementPeriodEndDate: newStatementPeriodEndDate,
     };
 
-    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
 export {
