@@ -88,6 +88,8 @@ jobs:
                 }' -f commentId="$comment_id" || echo "Failed to minimize comment $comment_id"
             done
           fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Post diff in PR as a comment
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
