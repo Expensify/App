@@ -1,18 +1,9 @@
 import OpenAI from 'openai';
 import type {ChatCompletionMessageParam, ChatModel} from 'openai/resources';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
-import type CONST from '@github/libs/CONST';
+import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
-
-type AssistantResponse = {
-    action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED | typeof CONST.ACTION_EDIT;
-    message: string;
-};
-
-type DuplicateProposalResponse = AssistantResponse & {
-    similarity?: number;
-};
 
 class OpenAIUtils {
     /**
@@ -190,4 +181,3 @@ class OpenAIUtils {
 }
 
 export default OpenAIUtils;
-export type {AssistantResponse, DuplicateProposalResponse};

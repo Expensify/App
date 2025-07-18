@@ -11543,11 +11543,35 @@ function wrappy (fn, cb) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __nccwpck_require__(42186);
+const core = __importStar(__nccwpck_require__(42186));
 const github_1 = __nccwpck_require__(95438);
 const date_fns_1 = __nccwpck_require__(25468);
 const date_fns_tz_1 = __nccwpck_require__(99297);
@@ -11611,7 +11635,9 @@ async function run() {
         // Fetch all comments in the issue
         console.log('Get comments for issue #', issueNumber);
         const commentsResponse = await GithubUtils_1.default.getAllCommentDetails(issueNumber);
+        core.startGroup('Comments Response');
         console.log('commentsResponse', commentsResponse);
+        core.endGroup();
         let didFindDuplicate = false;
         for (const previousProposal of commentsResponse) {
             const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
@@ -11629,7 +11655,9 @@ async function run() {
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
+            core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            core.endGroup();
             if (parsedDuplicateCheckResponse) {
                 const { similarity = 0 } = parsedDuplicateCheckResponse ?? {};
                 similarityPercentage = (0, ActionUtils_1.convertToNumber)(similarity);
@@ -11663,7 +11691,9 @@ async function run() {
         : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
+    core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
+    core.endGroup();
     // fallback to empty strings to avoid crashing in case parsing fails
     const { action = '', message = '' } = parsedAssistantResponse ?? {};
     const isNoAction = action.trim() === CONST_1.default.NO_ACTION;
@@ -12485,24 +12515,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
-class ProposalPoliceTemplates {
-    static getPromptForNewProposalTemplateCheck(commentBody) {
+const PROPOSAL_POLICE_TEMPLATES = {
+    getPromptForNewProposalTemplateCheck: (commentBody) => {
         return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
-    }
-    static getPromptForNewProposalDuplicateCheck(existingProposal, newProposalBody) {
+    },
+    getPromptForNewProposalDuplicateCheck: (newProposalBody, existingProposal) => {
         return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
-    }
-    static getPromptForEditedProposal(previousBody, editedBody) {
+    },
+    getPromptForEditedProposal: (previousBody, editedBody) => {
         return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
-    }
-    static getDuplicateCheckWithdrawMessage() {
+    },
+    getDuplicateCheckWithdrawMessage: () => {
         return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
-    }
-    static getDuplicateCheckNoticeMessage(proposalAuthor) {
+    },
+    getDuplicateCheckNoticeMessage: (proposalAuthor) => {
         return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
-    }
-}
-exports["default"] = ProposalPoliceTemplates;
+    },
+};
+exports["default"] = PROPOSAL_POLICE_TEMPLATES;
 
 
 /***/ }),

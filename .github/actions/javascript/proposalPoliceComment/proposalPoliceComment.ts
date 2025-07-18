@@ -1,4 +1,5 @@
 import {getInput, setFailed} from '@actions/core';
+import * as core from '@actions/core';
 import {context} from '@actions/github';
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
 import {format} from 'date-fns';
@@ -6,9 +7,17 @@ import {toZonedTime} from 'date-fns-tz';
 import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import ProposalPoliceTemplates from '@prompts/proposalPolice';
+import PROPOSAL_POLICE_TEMPLATES from '@prompts/proposalPolice';
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
-import type {AssistantResponse, DuplicateProposalResponse} from '@scripts/utils/OpenAIUtils';
+
+type AssistantResponse = {
+    action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED | typeof CONST.ACTION_EDIT;
+    message: string;
+};
+
+type DuplicateProposalResponse = AssistantResponse & {
+    similarity?: number;
+};
 
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
@@ -77,7 +86,9 @@ async function run() {
         // Fetch all comments in the issue
         console.log('Get comments for issue #', issueNumber);
         const commentsResponse = await GithubUtils.getAllCommentDetails(issueNumber);
+        core.startGroup('Comments Response');
         console.log('commentsResponse', commentsResponse);
+        core.endGroup();
 
         let didFindDuplicate = false;
         for (const previousProposal of commentsResponse) {
@@ -93,11 +104,13 @@ async function run() {
                 continue;
             }
 
-            const duplicateCheckPrompt = ProposalPoliceTemplates.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
+            const duplicateCheckPrompt = PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
+            core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            core.endGroup();
             if (parsedDuplicateCheckResponse) {
                 const {similarity = 0} = parsedDuplicateCheckResponse ?? {};
                 similarityPercentage = convertToNumber(similarity);
@@ -110,8 +123,8 @@ async function run() {
         }
 
         if (didFindDuplicate) {
-            const duplicateCheckWithdrawMessage = ProposalPoliceTemplates.getDuplicateCheckWithdrawMessage();
-            const duplicateCheckNoticeMessage = ProposalPoliceTemplates.getDuplicateCheckNoticeMessage(newProposalAuthor);
+            const duplicateCheckWithdrawMessage = PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckWithdrawMessage();
+            const duplicateCheckNoticeMessage = PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckNoticeMessage(newProposalAuthor);
             // If a duplicate proposal is detected, update the comment to withdraw it
             console.log('ProposalPolice™ withdrawing duplicated proposal...');
             await GithubUtils.octokit.issues.updateComment({
@@ -129,12 +142,14 @@ async function run() {
     }
 
     const prompt = isCommentCreatedEvent(payload)
-        ? ProposalPoliceTemplates.getPromptForNewProposalTemplateCheck(payload.comment?.body)
-        : ProposalPoliceTemplates.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
+        ? PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalTemplateCheck(payload.comment?.body)
+        : PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
+    core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
+    core.endGroup();
 
     // fallback to empty strings to avoid crashing in case parsing fails
     const {action = '', message = ''} = parsedAssistantResponse ?? {};
@@ -175,3 +190,5 @@ run().catch((error) => {
     // which means that no failure notification is sent to issue's subscribers
     process.exit(0);
 });
+
+export type {AssistantResponse, DuplicateProposalResponse};
