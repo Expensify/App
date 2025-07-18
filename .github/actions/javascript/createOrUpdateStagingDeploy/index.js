@@ -11585,7 +11585,7 @@ async function run() {
             core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
         }
         core.endGroup();
-        console.info(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
+        console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
@@ -11946,14 +11946,12 @@ async function getPullRequestsDeployedBetween(fromTag, toTag) {
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
+    core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
     const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[api] Found ${apiCommitList.length} commits.`);
     core.startGroup('[api] Parsed PRs:');
-    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
     return apiPullRequestNumbers;
 }

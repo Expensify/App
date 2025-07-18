@@ -73,7 +73,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
         }
         core.endGroup();
-        console.info(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
+        console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';

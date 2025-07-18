@@ -201,16 +201,14 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
+    core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
 
     const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
 
     console.log(`[api] Found ${apiCommitList.length} commits.`);
     core.startGroup('[api] Parsed PRs:');
-    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
 
     return apiPullRequestNumbers;
