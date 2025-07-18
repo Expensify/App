@@ -84,4 +84,4 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
     }
 }
 
-export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle};
+export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing};
