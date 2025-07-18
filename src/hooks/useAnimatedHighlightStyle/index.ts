@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
@@ -94,25 +95,27 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(false);
-        runOnJS(() => {
-            nonRepeatableProgress.set(
-                withDelay(
-                    itemEnterDelay,
-                    withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
-                        if (!finished) {
-                            return;
-                        }
+        InteractionManager.runAfterInteractions(() => {
+            runOnJS(() => {
+                nonRepeatableProgress.set(
+                    withDelay(
+                        itemEnterDelay,
+                        withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
+                            if (!finished) {
+                                return;
+                            }
 
-                        repeatableProgress.set(
-                            withSequence(
-                                withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
-                                withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
-                            ),
-                        );
-                    }),
-                ),
-            );
-        })();
+                            repeatableProgress.set(
+                                withSequence(
+                                    withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+                                    withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+                                ),
+                            );
+                        }),
+                    ),
+                );
+            })();
+        });
     }, [
         didScreenTransitionEnd,
         startHighlight,
