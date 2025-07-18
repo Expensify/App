@@ -423,9 +423,9 @@ function MoneyRequestReportPreviewContent({
         <ImageSVG
             src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
             fill={isApproved ? theme.icon : theme.iconSuccessFill}
-            width={variables.iconSizeNormal}
-            height={variables.iconSizeNormal}
-            style={{transform: 'translateY(4px)'}}
+            width={variables.iconSizeExtraSmall}
+            height={variables.iconSizeExtraSmall}
+            style={{transform: 'translateY(1px)'}}
             contentFit="cover"
         />
     );
@@ -707,16 +707,22 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {shouldShowEmptyPlaceholder ? (
-                                        <MoneyReportHeaderStatusBarSkeleton />
-                                    ) : (
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
-                                            <Text
-                                                style={[styles.textLabelSupporting, styles.lh16]}
-                                                numberOfLines={1}
-                                            >
-                                                {approvedOrSettledIcon} {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
-                                            </Text>
+                                    {shouldShowEmptyPlaceholder ? <MoneyReportHeaderStatusBarSkeleton/> : (
+                                        <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                                <Text
+                                                    style={[styles.textLabelSupporting, styles.lh16]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {approvedOrSettledIcon}
+                                                </Text>
+                                                <Text
+                                                    style={[styles.textLabelSupporting, styles.lh16]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
+                                                </Text>
+                                            </View>
                                         </View>
                                     )}
                                     {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
