@@ -1,5 +1,5 @@
 ---
-title: book-a-hotel.md
+title: Book a Hotel
 description: Learn how to book a hotel using the integrated travel tool in Classic and New Expensify, with step-by-step instructions.
 keywords: [book a hotel, travel booking, hotel reservations, expensify travel, classic, new expensify]
 ---
