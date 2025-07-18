@@ -3,7 +3,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getSelectedFeed} from '@libs/CardUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {setFeedStatementEndDay} from '@libs/actions/CompanyCards';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -27,18 +29,20 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const submit = useCallback(
-        // s77rt make use of statementCloseDate and remove disable lint rule
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (statementCloseDate: CompanyCardStatementCloseDate) => {
             if (selectedFeed) {
-                // s77rt call API command
+                setFeedStatementEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, statementCloseDate, selectedFeedData?.statementPeriodEndDay ?? null);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed],
+        [policyID, selectedFeed, selectedFeedData, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {

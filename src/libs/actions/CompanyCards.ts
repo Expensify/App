@@ -817,7 +817,7 @@ function setFeedStatementEndDay(
     bankName: string,
     domainAccountID: number,
     newStatementPeriodEndDate: CompanyCardStatementCloseDate,
-    oldStatementPeriodEndDate: CompanyCardStatementCloseDate,
+    oldStatementPeriodEndDate: CompanyCardStatementCloseDate | null,
 ) {
     const authToken = NetworkStore.getAuthToken();
 
