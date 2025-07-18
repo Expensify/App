@@ -13,6 +13,7 @@ import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInve
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePrevious from '@hooks/usePrevious';
@@ -115,7 +116,7 @@ type ReportActionsListProps = {
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
-    keyboardInset: SharedValue<number>;
+    keyboardHeight: SharedValue<number>;
 
     keyboardOffset: SharedValue<number>;
 
@@ -161,9 +162,9 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     scrollingVerticalOffset,
-    keyboardInset,
     keyboardOffset,
     composerHeight,
+    keyboardHeight,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -172,6 +173,7 @@ function ReportActionsList({
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const {isKeyboardActive} = useKeyboardState();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -698,17 +700,20 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
-    const animatedProps = useAnimatedProps(() => ({
-        contentInset: {
-            top: keyboardInset.get(),
-        },
-        contentOffset: {
-            x: 0,
-            y: -keyboardOffset.get(),
-        },
-    }));
+    const animatedProps = useAnimatedProps(() => {
+        return {
+            contentInset: {
+                top: keyboardHeight.get(),
+            },
+            contentOffset: {
+                x: 0,
+                y: -keyboardHeight.get() + keyboardOffset.get(),
+            },
+        };
+    });
 
-    const paddingBottom = useMemo(() => (Platform.OS === 'ios' ? composerHeight + (unmodifiedPaddings.bottom ?? 0) : 0), [composerHeight, unmodifiedPaddings.bottom]);
+    const safeAreaBottom = isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
+    const bottomSpacer = useMemo(() => (Platform.OS === 'ios' ? composerHeight + safeAreaBottom : 0), [composerHeight, safeAreaBottom]);
 
     return (
         <>
@@ -717,7 +722,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, !hideComposer ? {paddingBottom} : {}]}
+                style={[styles.flexGrow1, {paddingBottom: bottomSpacer}]}
                 testID={reportActionsListTestID}
                 nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
