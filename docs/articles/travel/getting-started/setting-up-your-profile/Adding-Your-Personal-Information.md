@@ -1,5 +1,5 @@
 ---
-title: adding-your-personal-information.md
+title: Adding Your Personal Information
 description: Learn how to complete your personal travel profile in Expensify to streamline future bookings.
 keywords: [travel profile, personal information, traveler details, travel booking, expensify travel, classic, new expensify]
 ---
