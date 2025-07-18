@@ -94,7 +94,7 @@ jobs:
         run: |
           # Create temp file and set up cleanup
           TEMP_COMMENT_FILE=$(mktemp)
-          trap "rm -f $TEMP_COMMENT_FILE" EXIT
+          trap 'rm -f "$TEMP_COMMENT_FILE"' EXIT
 
           # Write comment to temp file
           {
