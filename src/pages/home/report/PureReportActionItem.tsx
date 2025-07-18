@@ -1075,10 +1075,10 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
             const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+            const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(report)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
