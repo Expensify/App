@@ -581,7 +581,7 @@ function MoneyRequestParticipantsSelector(
         return (
             <>
                 {ClickableImportContactTextComponent}
-                <EmptySelectionListContent contentType={iouType} />;
+                <EmptySelectionListContent contentType={iouType} />
             </>
         );
     }, [iouType, ClickableImportContactTextComponent]);
