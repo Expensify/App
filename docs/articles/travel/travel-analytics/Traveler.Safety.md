@@ -13,7 +13,9 @@ Expensify Travel supports your company’s duty of care obligations by giving ad
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Note**: Only Travel admins can access the duty of care and safety tool.
+Note: Only Travel admins can access the duty of care and safety tool.
+
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
