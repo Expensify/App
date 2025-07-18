@@ -11,7 +11,7 @@ Set rental car preferences that balance traveler convenience with company policy
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -20,11 +20,11 @@ Note: Only Travel Admins can create or manage travel policies in Expensify Trave
 To configure your car booking policy:
 
 1. Open Expensify Travel.
-2. Go to **Program > Policies**.
+2. Go to **Program** > **Policies**.
 3. Select an existing policy or click **Add new** to create one.
 4. Expand the **Car** tab.
 
-> **Note:** Settings with a chainlink icon indicate that the value is inherited from a parent policy. To override and customize the value, click the link icon.
+**Note:** Settings with a chainlink icon indicate that the value is inherited from a parent policy. To override and customize the value, click the link icon.
 
 # Car policy settings
 
@@ -51,7 +51,7 @@ Enable travelers to submit a reason when booking a car that’s out of policy.
 # FAQ
 
 **What happens if a traveler tries to book a restricted car type?**  
-They won’t be able to complete the booking and will see an error or custom message depending on the policy setup.
+They won’t be able to complete the booking and will see an error or custom message depending on whether or not you're blocked out of policy bookings or allow them with explicit approval (hard approval).
 
 **Can admins customize car booking rules by region or traveler group?**  
 Not within the Car tab, but different travel policies can be assigned to specific departments, legal entities, or user groups to achieve that flexibility.
