@@ -200,11 +200,11 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
-function shouldStartLocationPermissionFlow(lastLocationPermissionPrompt: string) {
+function shouldStartLocationPermissionFlow(lastLocationPermissionPrompt?: string) {
     return (
         !lastLocationPermissionPrompt ||
-        (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-            DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS)
+        (DateUtils.isValidDateString(lastLocationPermissionPrompt) &&
+            DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt)) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS)
     );
 }
 

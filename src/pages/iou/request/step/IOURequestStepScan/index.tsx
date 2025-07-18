@@ -607,7 +607,7 @@ function IOURequestStepScan({
             setReceiptFiles(newReceiptFiles);
             const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
             if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt ?? '');
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt);
 
                 if (beginLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
@@ -660,7 +660,7 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
                 if (gpsRequired) {
-                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt ?? '');
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt);
                     if (beginLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
                         return;
