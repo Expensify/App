@@ -101,7 +101,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                 />
             );
         });
-    }, [translate, defaultDate, selectedDate]);
+    }, [translate, defaultDate, selectedDate, styles.flexReset]);
 
     return (
         <ScreenWrapper
