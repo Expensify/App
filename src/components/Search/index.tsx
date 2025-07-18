@@ -3,6 +3,7 @@ import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -27,6 +28,7 @@ import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMe
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
@@ -50,6 +52,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -509,6 +512,57 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [shouldShowLoadingState, isFocused],
     );
 
+    // If a column was previously shown, keep it shown
+    const previousColumnsRef = useRef<SearchColumnType[] | null>(null);
+    const currentColumns = useMemo(() => {
+        if (!searchResults?.data) {
+            return [];
+        }
+        const columns = getColumnsToShow(searchResults?.data);
+
+        (Object.keys(columns) as SearchColumnType[]).forEach((col) => {
+            if (!previousColumnsRef.current?.includes(col)) {
+                return;
+            }
+            columns[col] = true;
+        });
+
+        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
+    }, [searchResults?.data]);
+
+    // Only update if columns actually changed
+    useEffect(() => {
+        if (previousColumnsRef.current && arraysEqual(currentColumns, previousColumnsRef.current)) {
+            return;
+        }
+        previousColumnsRef.current = [...currentColumns];
+    }, [currentColumns]);
+
+    // Custom animation for fade effect
+    const opacity = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.get(),
+    }));
+
+    const previousColumns = usePrevious(currentColumns);
+    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
+
+    // If columns have changed, trigger an animation before settings columnsToShow to prevent
+    // new columns appearing before the fade out animation happens
+    useEffect(() => {
+        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0) {
+            setColumnsToShow(currentColumns);
+            return;
+        }
+
+        opacity.set(
+            withTiming(0, {duration: window.animationDuration || 200}, () => {
+                setColumnsToShow(currentColumns);
+                opacity.set(withTiming(1, {duration: window.animationDuration || 200}));
+            }),
+        );
+    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset]);
+
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
@@ -577,7 +631,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+    const onLayoutWithScrollRestore = useCallback(() => {
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+        // Restore scroll position after layout if needed
+        // Removed scroll position restoration logic
+    }, [handleSelectionListScroll, sortedSelectedData]);
 
     if (shouldShowLoadingState) {
         return (
@@ -632,50 +690,57 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     return (
         <SearchScopeProvider isOnSearch>
-            <SearchList
-                ref={searchListRef}
-                data={sortedSelectedData}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                onCheckboxPress={toggleTransaction}
-                onAllCheckboxPress={toggleAllTransactions}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                SearchTableHeader={
-                    !shouldShowTableHeader ? undefined : (
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            data={searchResults?.data}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            isAmountColumnWide={shouldShowAmountInWideColumn}
-                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                            shouldShowSorting={shouldShowSorting}
-                        />
-                    )
-                }
-                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-                queryJSON={queryJSON}
-                onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-            />
+            <Animated.View
+                entering={FadeIn.duration(300)}
+                exiting={FadeOut.duration(300)}
+                style={[styles.flex1, animatedStyle]}
+            >
+                <SearchList
+                    ref={searchListRef}
+                    data={sortedSelectedData}
+                    ListItem={ListItem}
+                    onSelectRow={openReport}
+                    onCheckboxPress={toggleTransaction}
+                    onAllCheckboxPress={toggleAllTransactions}
+                    canSelectMultiple={canSelectMultiple}
+                    shouldPreventLongPressRow={isChat || isTask}
+                    SearchTableHeader={
+                        !shouldShowTableHeader ? undefined : (
+                            <SearchTableHeader
+                                canSelectMultiple={canSelectMultiple}
+                                metadata={searchResults?.search}
+                                onSortPress={onSortPress}
+                                sortOrder={sortOrder}
+                                sortBy={sortBy}
+                                shouldShowYear={shouldShowYear}
+                                isAmountColumnWide={shouldShowAmountInWideColumn}
+                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                shouldShowSorting={shouldShowSorting}
+                                columns={columnsToShow}
+                            />
+                        )
+                    }
+                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    onScroll={onSearchListScroll}
+                    onEndReachedThreshold={0.75}
+                    onEndReached={fetchMoreResults}
+                    ListFooterComponent={
+                        shouldShowLoadingMoreItems ? (
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                fixedNumItems={5}
+                            />
+                        ) : undefined
+                    }
+                    queryJSON={queryJSON}
+                    columns={columnsToShow}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onLayout={onLayoutWithScrollRestore}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                />
+            </Animated.View>
         </SearchScopeProvider>
     );
 }
