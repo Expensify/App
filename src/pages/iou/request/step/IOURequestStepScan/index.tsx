@@ -973,16 +973,13 @@ function IOURequestStepScan({
 
     const [containerHeight, setContainerHeight] = useState(0);
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
-    const [bannerHeight, setBannerHeight] = useState(0);
-    const shouldHideBanner = bannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
+    const shouldHideDownloadAppBanner = isMobile || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
-            style={[!isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}
+            style={[styles.alignItemsCenter, styles.justifyContentCenter]}
             onLayout={(e) => {
-                if (isMobile()) {
-                    return;
-                }
                 setDesktopUploadViewHeight(e.nativeEvent.layout.height);
             }}
         >
@@ -1040,9 +1037,7 @@ function IOURequestStepScan({
             {(isDraggingOverWrapper) => (
                 <View
                     onLayout={(event) => {
-                        if (!isMobile()) {
-                            setContainerHeight(event.nativeEvent.layout.height);
-                        }
+                        setContainerHeight(event.nativeEvent.layout.height);
                         if (!onLayout) {
                             return;
                         }
@@ -1079,7 +1074,7 @@ function IOURequestStepScan({
                         />
                     )}
                     {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
-                    {!isMobile() && !shouldHideBanner && <DownloadAppBanner onLayout={(e) => setBannerHeight(e.nativeEvent.layout.height)} />}
+                    {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal
