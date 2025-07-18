@@ -75,7 +75,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         // We need to replace the space at the beginning of each line with &nbsp;
-        const escapedHtml = html.replace(/(^|<br \/>)[ ]+/gm, (match, p1) => p1 + '&nbsp;'.repeat(match.length - p1.length));
+        const escapedHtml = html.replace(/(^|<br \/>)[ ]+/gm, (match: string, p1: string) => p1 + '&nbsp;'.repeat(match.length - p1.length));
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${escapedHtml}</del>` : escapedHtml;
 
         let htmlContent = htmlWithDeletedTag;
