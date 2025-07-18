@@ -243,7 +243,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
                             });
 
-                            const isInitialItem = initialSearchKeys.current.includes(item.key);
+                            const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
 
                             return (
                                 <Animated.View
