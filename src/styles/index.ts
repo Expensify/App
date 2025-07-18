@@ -4038,7 +4038,7 @@ const styles = (theme: ThemeColors) =>
             const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
 
             return {
-                position: 'absolute' as const,
+                position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
