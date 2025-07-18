@@ -1,20 +1,12 @@
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {parsePhoneNumber} from './PhoneNumber';
-
-let countryCodeByIP: number;
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: (val) => (countryCodeByIP = val ?? 1),
-});
 
 /**
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
-function formatPhoneNumber(number: string): string {
+function formatPhoneNumber(number: string, countryCodeByIP: number): string {
     if (!number) {
         return '';
     }

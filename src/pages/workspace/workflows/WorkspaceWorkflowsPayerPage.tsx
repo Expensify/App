@@ -11,6 +11,7 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,6 +26,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -44,6 +46,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -83,13 +86,13 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 accountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details?.login ?? ''),
+                text: formatPhoneNumber(getDisplayNameOrDefault(details), countryCodeByIP),
+                alternateText: formatPhoneNumber(details?.login ?? '', countryCodeByIP),
                 rightElement: roleBadge,
                 icons: [
                     {
                         source: details.avatar ?? FallbackAvatar,
-                        name: formatPhoneNumber(details?.login ?? ''),
+                        name: formatPhoneNumber(details?.login ?? '', countryCodeByIP),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
@@ -105,7 +108,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser]);
+    }, [policy?.employeeList, policy?.owner, policy?.achAccount?.reimburser, policy?.pendingFields?.reimburser, personalDetails, isDeletedPolicyEmployee, translate, countryCodeByIP]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];

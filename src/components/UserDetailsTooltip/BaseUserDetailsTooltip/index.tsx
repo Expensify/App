@@ -20,6 +20,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
@@ -41,7 +42,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     }
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
-    let subtitle = userLogin.trim() && formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
+    let subtitle = userLogin.trim() && formatPhoneNumber(userLogin, countryCodeByIP) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
 

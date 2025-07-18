@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import useOnyx from '@src/hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The member currently being looked at */
@@ -28,8 +30,11 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const [formattedDisplayName, formattedLogin] = useMemo(() => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')], [memberItem]);
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [formattedDisplayName, formattedLogin] = useMemo(
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem), countryCodeByIP), formatPhoneNumber(memberItem.login ?? '', countryCodeByIP)],
+        [memberItem, countryCodeByIP],
+    );
 
     // s77rt add total cell, action cell and collapse/expand button
 

@@ -32,6 +32,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const StyleUtils = useStyleUtils();
     const htmlAttribAccountID = tnode.attributes.accountid;
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const htmlAttributeAccountID = tnode.attributes.accountid;
 
     let accountID: number;
@@ -43,7 +44,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
+        mentionDisplayText = formatPhoneNumber(user?.login ?? '', countryCodeByIP) || getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {

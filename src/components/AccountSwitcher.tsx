@@ -46,6 +46,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => onyxSession?.accountID});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -205,7 +206,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                         numberOfLines={1}
                                         style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
                                     >
-                                        {formatPhoneNumber(displayName)}
+                                        {formatPhoneNumber(displayName, countryCodeByIP)}
                                     </Text>
                                 )}
                                 {!!canSwitchAccounts && (

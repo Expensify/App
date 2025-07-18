@@ -15,6 +15,8 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useOnyx from '@src/hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -41,8 +43,8 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
-
-    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem]);
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem), countryCodeByIP), [cardItem, countryCodeByIP]);
 
     const [memberAvatar, cardIcon] = useMemo(() => {
         const avatar: Icon = {
