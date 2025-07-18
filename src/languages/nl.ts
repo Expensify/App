@@ -1070,8 +1070,6 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
-        removeFromReport: 'Verwijder uit rapport',
-        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
@@ -2701,6 +2699,8 @@ const translations = {
             validationAmounts: 'De ingevoerde validatiebedragen zijn onjuist. Controleer uw bankafschrift en probeer het opnieuw.',
             fullName: 'Voer een geldige volledige naam in alstublieft',
             ownershipPercentage: 'Voer een geldig percentage in.',
+            deletePaymentBankAccount:
+                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3834,6 +3834,18 @@ const translations = {
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg alstublieft het account toe in Xero en synchroniseer de verbinding opnieuw.',
+            accountingMethods: {
+                label: 'Wanneer exporteren',
+                description: 'Kies wanneer u de uitgaven wilt exporteren:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze definitief zijn goedgekeurd.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze zijn betaald.',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Voorkeurs-exporteur',
@@ -5936,11 +5948,16 @@ const translations = {
                 title: 'Geen uitgaven om te exporteren',
                 subtitle: 'Tijd om het rustig aan te doen, goed werk.',
             },
+            emptyStatementsResults: {
+                title: 'Geen uitgaven om weer te geven',
+                subtitle: 'Geen resultaten. Probeer uw filters aan te passen.',
+            },
             emptyUnapprovedResults: {
                 title: 'Geen uitgaven om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale ontspanning. Goed gedaan!',
             },
         },
+        statements: 'Verklaringen',
         unapproved: 'Niet goedgekeurd',
         unapprovedCash: 'Niet goedgekeurd contant geld',
         unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',

@@ -10,7 +10,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
-import {useSession} from './OnyxProvider';
+import {useSession} from './OnyxListItemProvider';
 
 type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
