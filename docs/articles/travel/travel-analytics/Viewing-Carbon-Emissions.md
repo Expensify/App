@@ -1,5 +1,5 @@
 ---
-title: viewing-carbon-emissions.md
+title: Viewing Carbon Emissions
 description: Learn how to view and export carbon emission data in Expensify, including traveler-level and company-wide reporting.
 keywords: [carbon emissions, CO2 emissions, sustainability, travel analytics, emissions reporting, expensify travel, classic, new expensify]
 ---
