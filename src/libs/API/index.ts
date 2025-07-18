@@ -7,6 +7,7 @@ import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
+import * as OptimisticReportNames from '@libs/OptimisticReportNames';
 import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -74,7 +75,21 @@ function prepareRequest<TCommand extends ApiCommand>(
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
-        Onyx.update(optimisticData);
+        
+        // Process optimistic data through report name middleware
+        OptimisticReportNames.createUpdateContext()
+            .then((context) => {
+                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(
+                    optimisticData,
+                    context,
+                );
+                Onyx.update(processedOptimisticData);
+            })
+            .catch((error) => {
+                Log.warn('[API] Failed to process optimistic report names', {error});
+                // Fallback to original optimistic data if processing fails
+                Onyx.update(optimisticData);
+            });
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
