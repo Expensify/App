@@ -15,7 +15,7 @@ Set your personal travel preferences for flights, hotels, cars, and trains so th
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -190,8 +190,5 @@ No, but we recommend filling in at least your air preferences for the best resul
 
 ## Can my travel arranger see these preferences?
 Yes. Travel arrangers will see and follow your saved preferences when booking on your behalf.
-
-## What happens if I don’t click Save?
-Changes won’t apply until you click **Save** at the bottom of the page.
 
 </div>
