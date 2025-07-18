@@ -1,5 +1,5 @@
 ---
-title: expensify-travel-walkthrough.md
+title: Expensify Travel Walkthrough
 description: Learn the most common terms and abbreviations used in the travel industry to better understand your bookings and travel policies.
 keywords: [travel terms, travel abbreviations, business travel glossary, common travel lingo, travel vocabulary, industry jargon]
 ---
