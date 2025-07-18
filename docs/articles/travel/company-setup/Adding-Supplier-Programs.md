@@ -1,5 +1,5 @@
 ---
-title: adding-supplier-programs.md
+title: Adding Supplier Programs
 description: Learn how travel admins can add airline and car rental supplier programs to apply corporate discounts and billing options in Expensify Travel.
 keywords: [supplier program, airline discount, car rental discount, uatp, united passplus, travel admin, expensify travel]
 ---
