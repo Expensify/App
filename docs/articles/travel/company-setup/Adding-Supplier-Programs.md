@@ -15,7 +15,7 @@ Travel admins can add supplier programs to ensure corporate discounts and direct
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -35,9 +35,9 @@ Only users with the **Travel Admin** role can view or manage supplier program se
 
 ## Supplier Programs: Air
 
-Under the **Air** tab, there are two configuration types: **Corporate Discount Codes** and **Airline Programs**.
+Under the **Air** tab, there are two configuration types: **Corporate discount codes** and **Airline program**.
 
-**Corporate Discount Codes**
+**Corporate discount codes**
 
 1. Click the green **+** button.
 2. Fill out the required fields:
@@ -53,7 +53,7 @@ Under the **Air** tab, there are two configuration types: **Corporate Discount C
    - Associated **Airline**
 5. Click **Save** to apply.
 
-### Airline Programs
+### Airline program
 
 1. Click **Add New** in the Airline Programs section.
 2. Choose to add a **UATP Travel Card** or a **United PassPlus program**.
