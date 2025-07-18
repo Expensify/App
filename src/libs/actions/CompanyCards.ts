@@ -8,7 +8,7 @@ import type {
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
-    SetFeedStatementPeriodEndDate,
+    SetFeedStatementEndDay,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -812,7 +812,7 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
     API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
-function setFeedStatementPeriodEndDate(policyID: string, bankName: string, domainAccountID: number, newStatementPeriodEndDate: string, oldStatementPeriodEndDate: string) {
+function setFeedStatementEndDay(policyID: string, bankName: string, domainAccountID: number, newStatementPeriodEndDate: string, oldStatementPeriodEndDate: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -831,7 +831,7 @@ function setFeedStatementPeriodEndDate(policyID: string, bankName: string, domai
         },
     ];
 
-    const parameters: SetFeedStatementPeriodEndDate = {
+    const parameters: SetFeedStatementEndDay = {
         authToken,
         policyID,
         bankName,
@@ -839,7 +839,7 @@ function setFeedStatementPeriodEndDate(policyID: string, bankName: string, domai
         statementPeriodEndDate: newStatementPeriodEndDate,
     };
 
-    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DATE, parameters);
+    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters);
 }
 
 export {
@@ -862,5 +862,5 @@ export {
     openAssignFeedCardPage,
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
-    setFeedStatementPeriodEndDate,
+    setFeedStatementEndDay,
 };
