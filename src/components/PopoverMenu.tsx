@@ -343,7 +343,7 @@ function PopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pt4, headerStyles]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -406,6 +406,8 @@ function PopoverMenu({
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -431,18 +433,20 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
-            innerContainerStyle={innerContainerStyle}
+            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles]}
+                    style={[menuContainerStyle, containerStyles, styles.pv0]}
                 >
                     {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                    <View style={{paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}}>
+                        {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                        {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                    </View>
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
