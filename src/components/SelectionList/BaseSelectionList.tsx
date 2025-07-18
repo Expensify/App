@@ -171,6 +171,7 @@ function BaseSelectionList<TItem extends ListItem>(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
+    /** Calculates on which page is selected item so we can scroll to it on first render  */
     const calculateInitialCurrentPage = useCallback(() => {
         if (canSelectMultiple || sections.length === 0) {
             return 1;
