@@ -1,5 +1,5 @@
 ---
-title: adding-a-company-card-or-personal-card-for-travel.md
+title: Adding a Company Card or Personal Card for Travel
 description: Learn how to add personal and company cards credit cards to your Expensify travel profile so you can easily select them during checkout.
 keywords: [travel payment card, credit card, travel booking payment, personal card, expensify travel, classic, new expensify]
 ---
