@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedDetails, CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedDetails, CompanyCardFeed, CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type AddNewCompanyCardFlowData = {
@@ -812,7 +812,13 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
     API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
-function setFeedStatementEndDay(policyID: string, bankName: string, domainAccountID: number, newStatementPeriodEndDate: string, oldStatementPeriodEndDate: string) {
+function setFeedStatementEndDay(
+    policyID: string,
+    bankName: string,
+    domainAccountID: number,
+    newStatementPeriodEndDate: CompanyCardStatementCloseDate,
+    oldStatementPeriodEndDate: CompanyCardStatementCloseDate,
+) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -839,7 +845,7 @@ function setFeedStatementEndDay(policyID: string, bankName: string, domainAccoun
         statementPeriodEndDate: newStatementPeriodEndDate,
     };
 
-    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters);
+    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters, {optimisticData});
 }
 
 export {

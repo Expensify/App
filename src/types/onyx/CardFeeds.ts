@@ -65,10 +65,13 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     reportTitleFormat?: string;
 
     /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay?: string;
+    statementPeriodEndDay?: CompanyCardStatementCloseDate;
 
     /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** Direct card feed data */
@@ -92,10 +95,13 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     pending?: boolean;
 
     /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay?: string;
+    statementPeriodEndDay?: CompanyCardStatementCloseDate;
 
     /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** Card feed data */
