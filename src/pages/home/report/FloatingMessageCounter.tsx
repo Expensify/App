@@ -75,7 +75,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
                             />
 
                             <Text
-                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
+                                style={[styles.ml2, styles.buttonSmallText, hasNewMessages && styles.textWhite, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {hasNewMessages ? translate('newMessages') : translate('latestMessages')}
