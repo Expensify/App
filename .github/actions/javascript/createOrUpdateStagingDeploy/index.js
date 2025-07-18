@@ -11879,25 +11879,26 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
     const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? versionUpdater_1.SEMANTIC_VERSION_LEVELS.PATCH : versionUpdater_1.SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    core.info(`[git log] Getting pull requests merged between the following tags: ${fromTag} ${toTag}`);
+    core.startGroup('[git log] Fetching commits');
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
         const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
+        core.info(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = (0, child_process_1.spawn)('git', args);
-        spawnedProcess.on('message', console.log);
+        spawnedProcess.on('message', core.info);
         spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
+            core.info(chunk.toString());
             stdout += chunk.toString();
         });
         spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
+            core.error(chunk.toString());
             stderr += chunk.toString();
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
-                console.log('code: ', code);
+                core.error(`Git command failed with code: ${code}`);
                 return reject(new Error(`${stderr}`));
             }
             resolve(stdout);
@@ -11908,6 +11909,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
         // Then remove newlines, format as JSON and convert to a proper JS object
         const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        core.endGroup();
         return JSON.parse(json);
     });
 }

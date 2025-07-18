@@ -124,25 +124,26 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    core.info(`[git log] Getting pull requests merged between the following tags: ${fromTag} ${toTag}`);
+    core.startGroup('[git log] Fetching commits');
     return new Promise<string>((resolve, reject) => {
         let stdout = '';
         let stderr = '';
         const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
+        core.info(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = spawn('git', args);
-        spawnedProcess.on('message', console.log);
+        spawnedProcess.on('message', core.info);
         spawnedProcess.stdout.on('data', (chunk: Buffer) => {
-            console.log(chunk.toString());
+            core.info(chunk.toString());
             stdout += chunk.toString();
         });
         spawnedProcess.stderr.on('data', (chunk: Buffer) => {
-            console.error(chunk.toString());
+            core.error(chunk.toString());
             stderr += chunk.toString();
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
-                console.log('code: ', code);
+                core.error(`Git command failed with code: ${code}`);
                 return reject(new Error(`${stderr}`));
             }
 
@@ -156,6 +157,7 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
         // Then remove newlines, format as JSON and convert to a proper JS object
         const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
 
+        core.endGroup();
         return JSON.parse(json) as CommitType[];
     });
 }
