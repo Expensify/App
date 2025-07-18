@@ -490,6 +490,7 @@ const CONST = {
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',
+            EMPTY: '',
         },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
