@@ -6,7 +6,7 @@ keywords: [book guest travel, guest traveler, expensify travel, book for non-mem
 
 <div id="new-expensify" markdown="1">
 
-Travel arrangers can book travel for a guest, aka someone who doesn’t have an Expensify account, in Expensify Travel.
+Any member with guest booking permission can book travel for a guest, aka someone who doesn’t have an Expensify account.
 
 ---
 
@@ -27,8 +27,7 @@ Before arranging travel for another traveler, a Travel Admin must assign you the
 
 1. Head to Expensify Travel.
 2. Click on **Program** > **Users** > search and select the name of the user who needs to arrange travel.
-3. Click the **Roles** tab and then select **Travel Arranger** from the dropdown.
-4. Click **Save**.
+3. Click the **Configuration** tab and then click the toggle for **Allow employee to book for guests**.
 
 ---
 
