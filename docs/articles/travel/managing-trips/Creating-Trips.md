@@ -1,5 +1,5 @@
 ---
-title: creating-trips.md
+title: Creating Trips
 description: Learn how to create trips in Expensify before or during booking, and how to manage multiple travel components under one itinerary.
 keywords: [create trip, trip ID, travel booking, roundtrip, expensify travel, classic, new expensify]
 ---
