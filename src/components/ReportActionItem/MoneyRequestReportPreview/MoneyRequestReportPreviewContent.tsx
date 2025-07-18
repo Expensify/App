@@ -76,6 +76,8 @@ import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 
 type WebLayoutNativeEvent = {
     layout: LayoutRectangle;
@@ -712,14 +714,19 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.lh16]}
-                                            numberOfLines={1}
-                                        >
-                                            {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
-                                        </Text>
-                                    </View>
+                                    {shouldShowEmptyPlaceholder && (
+                                        MoneyReportHeaderStatusBarSkeleton()
+                                    )}
+                                    {!shouldShowEmptyPlaceholder && (
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.lh16]}
+                                                numberOfLines={1}
+                                            >
+                                                {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
+                                            </Text>
+                                        </View>
+                                    )}
                                     {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
