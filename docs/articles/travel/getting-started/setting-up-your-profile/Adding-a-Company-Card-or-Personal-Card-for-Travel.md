@@ -15,21 +15,21 @@ Add a personal or company credit card to your travel profile so you can quickly 
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
 ## Why add a payment card?
 
-Adding a personal or company credit card up front means you won’t have to enter your payment details each time you book. The cards you add will be available at checkout and charged directly when you finalize your travel reservation.
+Adding a personal or company credit card to your traveler profile makes the card available at checkout when you finalize your travel reservation.
 
-If your card is also connected to your Expensify account, the travel expense and receipt will automatically merge the travel receipt into the card expense automatically.
+If your card is also connected to your Expensify account, the credit card expense and booking receipt will automatically merge.
 
 ---
 
 ## How to add a credit card to book travel
 
-1. Click your **profile icon** in the top-right corner of the travel portal.
+1. Click your **user icon** in the top-right corner of the travel portal.
 2. Select **My Profile**.
 3. Click the **Payment** tab from the left-hand menu.
 4. In the **Personal credit cards** section, click the **+** button.
@@ -66,6 +66,6 @@ Yes. You can store multiple cards and specify which types of bookings each one a
 Yes. The card you select during checkout will be charged as part of the travel booking flow.
 
 ## What happens if my card is also connected to my Expensify account?
-If the same card is importing into your account, the travel expense and receipt will automatically merge.
+If the same card is importing expenses into your account, the credit card expense and the booking receipt will automatically merge.
 
 </div>
