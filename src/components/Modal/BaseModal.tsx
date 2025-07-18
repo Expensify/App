@@ -322,7 +322,7 @@ function BaseModal(
                         backdropColor={theme.overlay}
                         backdropOpacity={hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && (isInNarrowPane || isInNarrowPaneModal)) ? 0 : backdropOpacity}
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={hasBackdrop ?? fullscreen}
+                        hasBackdrop={hasBackdrop ?? (fullscreen && !(type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && isSmallScreenWidth))}
                         coverScreen={fullscreen}
                         style={[modalStyle, sidePanelStyle]}
                         deviceHeight={windowHeight}
