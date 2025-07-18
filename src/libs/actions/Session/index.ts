@@ -247,6 +247,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
+    Navigation.clearPreloadedRoutes();
 
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -1279,7 +1280,6 @@ function AddWorkEmail(workEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
-                onboardingWorkEmail: workEmail,
                 isLoading: false,
             },
         },
@@ -1290,8 +1290,14 @@ function AddWorkEmail(workEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
-                onboardingWorkEmail: null,
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                isMergingAccountBlocked: true,
             },
         },
     ];

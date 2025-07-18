@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1033,6 +1031,9 @@ const translations = {
         createExpense: '创建报销单',
         trackDistance: '跟踪距离',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `创建${expensesNumber}笔费用`,
+        removeExpense: '删除费用',
+        removeThisExpense: '删除此费用',
+        removeExpenseConfirmation: '您确定要删除这张收据吗？此操作不可撤销。',
         addExpense: '添加费用',
         chooseRecipient: '选择收件人',
         createExpenseWithAmount: ({amount}: {amount: string}) => `创建 ${amount} 报销单`,
@@ -1062,8 +1063,6 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
-        removeFromReport: '不在此报告中',
-        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -1121,20 +1120,10 @@ const translations = {
         individual: '个人',
         business: '商务',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `使用 Expensify 支付 ${formattedAmount}` : `使用Expensify支付`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以个人身份支付${formattedAmount}` : `用个人账户支付`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `用钱包支付${formattedAmount}` : `用钱包支付`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以个人身份支付${formattedAmount}` : `以个人身份支付`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `支付 ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付${formattedAmount}` : `用企业账户支付`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `标记${formattedAmount}为已支付` : `标记为已支付`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用个人账户${last4Digits}支付${amount}` : `已用个人账户支付`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用企业账户${last4Digits}支付${amount}` : `已用企业账户支付`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `通过${policyName}支付${formattedAmount}` : `通过${policyName}支付`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用银行账户${last4Digits}支付${amount} ` : `已用银行账户${last4Digits}支付 `),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `已使用尾号为${last4Digits}的银行账户支付${amount} 通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `个人账户 • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `企业账户 • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付${formattedAmount}` : `以企业身份支付`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `在其他地方支付${formattedAmount}` : `在其他地方支付`),
         nextStep: '下一步',
         finished: '完成',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
@@ -1167,8 +1156,8 @@ const translations = {
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}取消了付款`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `取消了${amount}付款，因为${submitterDisplayName}在30天内未启用他们的Expensify Wallet。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}已标记为已支付`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}已用钱包支付`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}在其他地方支付`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}通过Expensify支付`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用Expensify支付`,
         noReimbursableExpenses: '此报告的金额无效',
@@ -1234,7 +1223,6 @@ const translations = {
         unheldExpense: '取消搁置此费用',
         moveUnreportedExpense: '移动未报告的费用',
         addUnreportedExpense: '添加未报告的费用',
-        createNewExpense: '创建新费用',
         selectUnreportedExpense: '请选择至少一个费用添加到报告中。',
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
@@ -1820,7 +1808,6 @@ const translations = {
         enableWallet: '启用钱包',
         addBankAccountToSendAndReceive: '获得报销您提交到工作区的费用。',
         addBankAccount: '添加银行账户',
-        addDebitOrCreditCard: '添加借记卡或信用卡',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些是由工作区管理员分配的卡片，用于管理公司支出。',
         expensifyCard: 'Expensify Card',
@@ -2028,7 +2015,6 @@ const translations = {
         cardLastFour: '卡号末尾为',
         addFirstPaymentMethod: '添加支付方式以便直接在应用中发送和接收付款。',
         defaultPaymentMethod: '默认',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `银行账户 • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2683,6 +2669,7 @@ const translations = {
             validationAmounts: '您输入的验证金额不正确。请仔细检查您的银行对账单，然后重试。',
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入一个有效的百分比数字',
+            deletePaymentBankAccount: '由于该银行账户用于Expensify卡支付，因此无法删除。如果您仍希望删除此账户，请联系Concierge。',
         },
     },
     addPersonalBankAccount: {
@@ -3785,6 +3772,18 @@ const translations = {
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在Xero中添加账户并再次同步连接',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: '首选导出工具',
@@ -5841,11 +5840,16 @@ const translations = {
                 title: '没有费用可导出',
                 subtitle: '是时候放松一下了，干得好。',
             },
+            emptyStatementsResults: {
+                title: '无费用显示',
+                subtitle: '无结果。请尝试调整过滤器。',
+            },
             emptyUnapprovedResults: {
                 title: '没有费用需要批准',
                 subtitle: '零报销。最大限度地放松。干得好！',
             },
         },
+        statements: '发言',
         unapproved: '未经批准',
         unapprovedCash: '未经批准的现金',
         unapprovedCompanyCards: '未经批准的公司卡',
@@ -6337,8 +6341,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
-        receiptNotSmartScanned:
-            '费用详情和收据已手动添加。请核实详情。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多</a>关于所有收据的自动审核。',
+        receiptNotSmartScanned: '收据和费用详情手动添加。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多。</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '需要收据';
             if (formattedLimit ?? category) {
