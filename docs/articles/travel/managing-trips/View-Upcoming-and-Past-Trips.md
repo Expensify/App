@@ -1,5 +1,5 @@
 ---
-title: view-upcoming-and-past-trips.md
+title: View Upcoming and Past Trips
 description: Learn how to view, filter, and access upcoming, completed, and canceled trips in Expensify’s travel tool.
 keywords: [my trips, trip history, upcoming trips, past trips, all trips, canceled trips, travel admin, expensify travel, classic, new expensify]
 ---
