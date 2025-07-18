@@ -15,7 +15,7 @@ You can cancel flights, hotels, cars, or rail bookings directly from your trip v
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -23,8 +23,7 @@ You can cancel flights, hotels, cars, or rail bookings directly from your trip v
 
 1. Go to **Trips** > **My Trips** and open the trip that contains the booking you want to cancel.
 2. In the **Trip view**, locate the booking (flight, hotel, car, or rail).
-3. Click the **three-dot menu** next to the booking.
-4. Select **Cancel**.
+3. Click the green **Cancel** button.
 5. Confirm the cancellation.
 
 If cancellation in product isn’t available for a particular booking, you’ll be directed to contact support.
@@ -47,7 +46,7 @@ If cancellation in product isn’t available for a particular booking, you’ll 
 - If a credit is issued, it will be automatically associated with the traveler’s account and can be used toward a future booking.
 - The availability and amount of credit depend on the airline or vendor's policies.
 
-Canceled bookings will still appear in the Trip view unless hidden using the *Show canceled bookings** toggle.
+Canceled bookings can be shown in the Trip view using the *Show canceled items** toggle.
 
 ---
 
@@ -63,7 +62,7 @@ If your payment card is connected to Expensify:
 # FAQ
 
 ## Will I be charged to cancel a booking?
-No. You can cancel bookings for free in Expensify. A $25 fee only applies if support cancels it for you.
+No. You can cancel bookings for free in Expensify. A $25 fee applies only if support cancels for you.
 
 ## Can I rebook later on the same trip?
 Yes. If you rebook on the same trip, no new trip fee applies.
