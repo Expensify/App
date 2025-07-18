@@ -1,5 +1,5 @@
 ---
-title: arrange-travel-for-another-user.md
+title: Arrange Travel for Another User
 description: Learn how to arrange travel in Expensify on behalf of another member, using either Classic or New Expensify.
 keywords: [arrange travel, book for others, travel arranger, expensify travel, classic, new expensify]
 ---
