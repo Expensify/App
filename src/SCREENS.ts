@@ -165,6 +165,7 @@ const SCREENS = {
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
             REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+            SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
         },
     },
     TWO_FACTOR_AUTH: {
