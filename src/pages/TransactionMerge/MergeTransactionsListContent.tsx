@@ -34,24 +34,27 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
+    const currentUserLogin = session?.email;
 
     useEffect(() => {
-        // If the transactions are already loaded, don't fetch them again
+        // If the eligible transactions are already loaded, don't fetch them again
         if (Array.isArray(mergeTransaction?.eligibleTransactions)) {
             return;
         }
 
         if (isOffline) {
-            getTransactionsForMergingLocally(transactionID, transactions);
+            getTransactionsForMergingLocally(transactionID, transactions, policy, report, currentUserLogin);
         } else {
             getTransactionsForMerging(transactionID);
         }
-    }, [transactionID, transactions, isOffline, mergeTransaction]);
+    }, [transactionID, transactions, isOffline, mergeTransaction, policy, report, currentUserLogin]);
 
     const sections = useMemo(() => {
         return [

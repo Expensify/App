@@ -1,12 +1,14 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getTransactionViolationsOfTransaction} from '@src/libs/TransactionUtils';
+import {getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
 
 /**
  * Setup merge transaction data for merging flow
@@ -33,25 +35,42 @@ function getTransactionsForMerging(transactionID: string) {
     API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
 }
 
+function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
+    // If the supplied transaction is from a card, return only cash expenses
+    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-function getTransactionsForMergingLocally(transactionID: string, transactions: OnyxCollection<Transaction>) {
+
+function getTransactionsForMergingLocally(
+    targetTransactionID: string,
+    transactions: OnyxCollection<Transaction>,
+    policy: OnyxEntry<Policy>,
+    report: OnyxEntry<Report>,
+    currentUserLogin: string | undefined,
+) {
     const transactionsArray = Object.values(transactions ?? {});
+    const targetTransaction = transactionsArray.find((transaction) => transaction?.transactionID === targetTransactionID);
+    const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+    const isSubmitter = isCurrentUserSubmitter(report);
 
-    const targetTransaction = transactionsArray.find((transaction) => transaction?.transactionID === transactionID);
-    if (!targetTransaction || !transactionsArray) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
-            eligibleTransactions: [],
-        });
-        return;
-    }
+    const eligibleTransactions: Transaction[] = targetTransaction
+        ? transactionsArray.filter((transaction): transaction is Transaction => {
+              if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
+                  return false;
+              }
+              return areTransactionsEligibleForMerge(targetTransaction, transaction) && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin, isSubmitter);
+          })
+        : [];
 
-    // TODO: Will implement this later
-    const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => !!transaction && transaction.transactionID !== transactionID);
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransactionID}`, {
         eligibleTransactions,
     });
 }
