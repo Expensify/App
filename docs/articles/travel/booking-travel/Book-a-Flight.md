@@ -1,5 +1,5 @@
 ---
-title: book-a-flight.md
+title: Book a Flight
 description: Learn how to book flights in Expensify using the built-in travel portal, with platform-specific steps for Classic and New Expensify.
 keywords: [book a flight, travel booking, flight reservations, expensify travel, classic, new expensify]
 ---
