@@ -28,10 +28,9 @@ describe('ReportActionItemSingle', () => {
         Onyx.clear();
     });
 
-    describe('when the Report is a policy expense chat', () => {
-        describe('and the property "shouldShowSubscriptAvatar" is true', () => {
-            const shouldShowSubscriptAvatar = true;
-            const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
+    describe('when the Report is a DM chat', () => {
+        describe('component properly renders both avatar & name of the sender', () => {
+            const fakeReport = {...LHNTestUtils.getFakeReportWithPolicy([1, 2]), chatType: undefined};
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
             const faceAccountId = fakeReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -56,12 +55,12 @@ describe('ReportActionItemSingle', () => {
                         }),
                     )
                     .then(() => {
-                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, fakeReportAction);
                     });
             }
 
             it('renders secondary Avatar properly', async () => {
-                const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
+                const expectedSecondaryIconTestId = 'Avatar';
 
                 await setup();
                 await waitFor(() => {

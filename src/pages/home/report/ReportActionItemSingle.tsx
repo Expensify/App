@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +27,7 @@ import {
     isOptimisticPersonalDetail,
     isPolicyExpenseChat,
     isTripRoom as isTripRoomReportUtils,
+    shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,9 +52,6 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** Show header for action */
     showHeader?: boolean;
-
-    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar?: boolean;
 
     /** If the message has been flagged for moderation */
     hasBeenFlagged?: boolean;
@@ -80,7 +79,6 @@ function ReportActionItemSingle({
     children,
     wrapperStyle,
     showHeader = true,
-    shouldShowSubscriptAvatar = false,
     hasBeenFlagged = false,
     report,
     iouReport,
@@ -91,6 +89,9 @@ function ReportActionItemSingle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const reportID = report?.reportID;
+    const iouReportID = iouReport?.reportID;
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
@@ -102,6 +103,8 @@ function ReportActionItemSingle({
         action,
         chatReport: report,
     });
+
+    const isReportArchived = useReportIsArchived(iouReportID);
 
     const [primaryAvatar, secondaryAvatar] = getPrimaryAndSecondaryAvatar({
         chatReport: report,
@@ -123,6 +126,7 @@ function ReportActionItemSingle({
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || shouldDisplayAllActors));
     const policyID = report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? iouReport?.policyID : report?.policyID;
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const {login, pendingFields, status} = personalDetails?.[accountID] ?? {};
@@ -145,9 +149,6 @@ function ReportActionItemSingle({
               },
           ]
         : action?.person;
-
-    const reportID = report?.reportID;
-    const iouReportID = iouReport?.reportID;
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {

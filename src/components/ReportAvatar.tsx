@@ -132,7 +132,14 @@ function getPrimaryAndSecondaryAvatar({
         fallbackIcon,
     };
 
-    const defaultSecondaryAvatar = {name: '', source: '', type: CONST.ICON_TYPE_AVATAR, id: 0, fill: undefined, fallbackIcon};
+    const defaultSecondaryAvatar = {
+        name: '',
+        source: '',
+        type: CONST.ICON_TYPE_AVATAR,
+        id: 0,
+        fill: undefined,
+        fallbackIcon,
+    };
 
     const getPrimaryAvatar = () => {
         if (isWorkspaceActor) {
