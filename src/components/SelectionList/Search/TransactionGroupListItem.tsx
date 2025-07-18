@@ -5,6 +5,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
+    TransactionBankWithdrawalGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
@@ -26,6 +27,7 @@ import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavig
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import BankWithdrawalListItemHeader from './BankWithdrawalListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
@@ -141,6 +143,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isDisabled={isDisabledOrEmpty}
                     isHovered={isHovered}
                     isFocused={isFocused}
+                    canSelectMultiple={canSelectMultiple}
+                />
+            ),
+            [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: (
+                <BankWithdrawalListItemHeader
+                    bankWithdrawal={groupItem as TransactionBankWithdrawalGroupListItemType}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
                 />
             ),

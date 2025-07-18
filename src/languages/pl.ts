@@ -6004,9 +6004,10 @@ const translations = {
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
-                reports: 'Raport',
-                members: 'Członek',
-                cards: 'Karta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Raport',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Członek',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Karta',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Wypłata z banku',
             },
             feed: 'Kanal',
         },

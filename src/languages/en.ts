@@ -552,6 +552,7 @@ const translations = {
         network: 'Network',
         reportID: 'Report ID',
         longID: 'Long ID',
+        entryID: 'Entry ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -5984,9 +5985,10 @@ const translations = {
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
-                reports: 'Report', // s77rt use singular key name
-                members: 'Member', // s77rt use singular key name
-                cards: 'Card', // s77rt use singular key name
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Member',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Card',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Bank withdrawal',
             },
             feed: 'Feed',
         },

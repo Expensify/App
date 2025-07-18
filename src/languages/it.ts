@@ -6027,9 +6027,10 @@ const translations = {
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
-                reports: 'Rapporto',
-                members: 'Membro',
-                cards: 'Carta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Membro',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Carta',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Prelievo bancario',
             },
             feed: 'Feed',
         },

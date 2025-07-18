@@ -6019,9 +6019,10 @@ const translations = {
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             groupBy: {
-                reports: 'Verslag',
-                members: 'Lid',
-                cards: 'Kaart',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Verslag',
+                [CONST.SEARCH.GROUP_BY.MEMBERS]: 'Lid',
+                [CONST.SEARCH.GROUP_BY.CARDS]: 'Kaart',
+                [CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL]: 'Bankopname',
             },
             feed: 'Feed',
         },
