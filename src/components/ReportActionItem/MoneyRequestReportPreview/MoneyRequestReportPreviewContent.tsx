@@ -10,6 +10,7 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -18,6 +19,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -76,8 +78,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 
 type WebLayoutNativeEvent = {
     layout: LayoutRectangle;
@@ -708,10 +708,7 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {shouldShowEmptyPlaceholder && (
-                                        MoneyReportHeaderStatusBarSkeleton()
-                                    )}
-                                    {!shouldShowEmptyPlaceholder && (
+                                    {shouldShowEmptyPlaceholder? <MoneyReportHeaderStatusBarSkeleton/> : (
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
                                             <Text
                                                 style={[styles.textLabelSupporting, styles.lh16]}
@@ -767,9 +764,7 @@ function MoneyRequestReportPreviewContent({
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
                                             {/* height is needed to avoid flickering on animation */}
-                                            {!shouldShowEmptyPlaceholder && (
-                                                <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
-                                            )}
+                                            <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
                                             {transactions.length > 1 && (
                                                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsBaseline]}>
                                                     <Text
