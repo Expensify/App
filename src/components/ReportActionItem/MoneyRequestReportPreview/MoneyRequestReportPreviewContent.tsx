@@ -764,14 +764,7 @@ function MoneyRequestReportPreviewContent({
                                         </View>
                                     )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
-                                        <View
-                                            style={[
-                                                totalAmountStyle,
-                                                styles.justifyContentBetween,
-                                                styles.gap4,
-                                                StyleUtils.getMinimumHeight(variables.h28),
-                                            ]}
-                                        >
+                                        <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
                                             {/* height is needed to avoid flickering on animation */}
                                             {!shouldShowEmptyPlaceholder && (
                                                 <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
@@ -784,11 +777,7 @@ function MoneyRequestReportPreviewContent({
                                                     >
                                                         Total
                                                     </Text>
-                                                    <Text
-                                                        style={[styles.headerText]}
-                                                    >
-                                                        {convertToDisplayString(totalDisplaySpend, iouReport?.currency)}
-                                                    </Text>
+                                                    <Text style={[styles.headerText]}>{convertToDisplayString(totalDisplaySpend, iouReport?.currency)}</Text>
                                                 </View>
                                             )}
                                         </View>
