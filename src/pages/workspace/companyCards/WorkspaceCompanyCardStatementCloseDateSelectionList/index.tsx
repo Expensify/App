@@ -5,6 +5,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
@@ -14,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
 
 type StatementCloseDateListItem = ListItem & {
@@ -26,6 +28,9 @@ type WorkspaceCompanyCardStatementCloseDateSelectionListProps = {
     onBackButtonPress: () => void;
     enabledWhenOffline: boolean;
     defaultDate?: CompanyCardStatementCloseDate;
+    pendingAction?: PendingAction;
+    errors?: Errors | null;
+    onCloseError?: () => void;
 };
 
 function WorkspaceCompanyCardStatementCloseDateSelectionList({
@@ -34,6 +39,9 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     onBackButtonPress,
     enabledWhenOffline,
     defaultDate,
+    pendingAction,
+    errors,
+    onCloseError,
 }: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -127,19 +135,27 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                 <>
                     <ScrollView contentContainerStyle={[styles.gap7, styles.flexGrow1]}>
                         <Text style={[styles.ph5]}>{translate('workspace.moreFeatures.companyCards.statementCloseDateDescription')}</Text>
-                        <View>
-                            {options}
-                            {typeof selectedDate === 'number' && (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    brickRoadIndicator={error ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    title={selectedDate ? selectedDate.toString() : undefined}
-                                    description={translate('workspace.companyCards.customCloseDate')}
-                                    onPress={() => setIsChoosingCustomDate(true)}
-                                    viewMode={CONST.OPTION_MODE.COMPACT}
-                                />
-                            )}
-                        </View>
+                        <OfflineWithFeedback
+                            errors={errors}
+                            errorRowStyles={[styles.mb2, styles.pl5, styles.pr3]}
+                            onClose={onCloseError}
+                            pendingAction={pendingAction}
+                            shouldDisplayErrorAbove
+                        >
+                            <View>
+                                {options}
+                                {typeof selectedDate === 'number' && (
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        brickRoadIndicator={error ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        title={selectedDate ? selectedDate.toString() : undefined}
+                                        description={translate('workspace.companyCards.customCloseDate')}
+                                        onPress={() => setIsChoosingCustomDate(true)}
+                                        viewMode={CONST.OPTION_MODE.COMPACT}
+                                    />
+                                )}
+                            </View>
+                        </OfflineWithFeedback>
                     </ScrollView>
                     <FixedFooter
                         style={styles.gap3}

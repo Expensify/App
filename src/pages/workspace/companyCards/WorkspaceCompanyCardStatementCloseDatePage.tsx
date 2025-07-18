@@ -4,7 +4,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {setFeedStatementEndDay} from '@libs/actions/CompanyCards';
+import {clearErrorField, setFeedStatementEndDay} from '@libs/actions/CompanyCards';
 import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -50,6 +50,14 @@ function WorkspaceCompanyCardStatementCloseDatePage({
         Navigation.goBack();
     }, []);
 
+    const clearError = useCallback(() => {
+        if (!selectedFeed) {
+            return;
+        }
+
+        clearErrorField(selectedFeed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
+    }, [selectedFeed, domainOrWorkspaceAccountID]);
+
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;
     }
@@ -66,6 +74,9 @@ function WorkspaceCompanyCardStatementCloseDatePage({
                 onBackButtonPress={goBack}
                 enabledWhenOffline
                 defaultDate={statementPeriodEndDay}
+                pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}
+                errors={selectedFeedData?.errorFields?.statementPeriodEndDay}
+                onCloseError={clearError}
             />
         </AccessOrNotFoundWrapper>
     );
