@@ -1,5 +1,5 @@
 ---
-title: configuring-booking-restrictions.md
+title: Configuring Booking Restrictions
 description: Learn how travel admins can restrict travel bookings in Expensify by user, country, or legal entity.
 keywords: [booking restrictions, restrict travel, block countries, user restrictions, legal entity, expensify travel, classic, new expensify]
 ---
