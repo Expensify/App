@@ -33,16 +33,17 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
     const submit = useCallback(
-        (statementCloseDate: CompanyCardStatementCloseDate) => {
+        (newStatementPeriodEndDate: CompanyCardStatementCloseDate) => {
             if (selectedFeed) {
-                setFeedStatementEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, statementCloseDate, selectedFeedData?.statementPeriodEndDay ?? null);
+                setFeedStatementEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDate, statementPeriodEndDay ?? null);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed, selectedFeedData, domainOrWorkspaceAccountID],
+        [policyID, selectedFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {
@@ -64,6 +65,7 @@ function WorkspaceCompanyCardStatementCloseDatePage({
                 onSubmit={submit}
                 onBackButtonPress={goBack}
                 enabledWhenOffline
+                defaultDate={statementPeriodEndDay}
             />
         </AccessOrNotFoundWrapper>
     );
