@@ -15,7 +15,7 @@ Assign travel arrangers to your profile so designated teammates can book trips o
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -23,13 +23,13 @@ Assign travel arrangers to your profile so designated teammates can book trips o
 
 Travel arrangers are team members who can book travel for others. Adding one (or several) to your profile is helpful if someone regularly handles your bookings, such as an executive assistant or office manager.
 
-Only users with the **Travel Arranger** role can be assigned as an arranger. Learn more about assigning the travel arranger role here.
+Only users with the **Travel Arranger** role can be assigned as an arranger.
 
 ---
 
 ## How to add a travel arranger
 
-1. Click your **profile icon** in the top-right corner of the travel portal.
+1. Click your **user icon** in the top-right corner of the travel portal.
 2. Select **My Profile**.
 3. Go to the **Configuration** tab.
 4. Click the **+ Add arranger** button.
@@ -49,7 +49,7 @@ You can repeat these steps to add multiple arrangers. They’ll be listed in a t
 Yes! You can assign multiple arrangers—everyone listed will be able to book travel for you.
 
 ## Why don't I see someone in the search results?
-They must be assigned the **Travel Arranger** role by a Domain Admin before they’ll appear as an option. Steps to do that are here.
+They must be assigned the **Travel Arranger** role by a Domain Admin before they’ll appear as an option.
 
 ## Can arrangers see or approve my bookings?
 Travel arrangers can book on your behalf, but they don’t approve trips or access your personal bookings unless they created them.
