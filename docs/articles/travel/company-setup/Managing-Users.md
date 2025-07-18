@@ -1,5 +1,5 @@
 ---
-title: managing-users.md
+title: Managing Users
 description: Learn how travel admins can view and manage traveler profiles, roles, and configuration settings in Expensify Travel.
 keywords: [manage users, travel roles, edit traveler profile, expensify travel admin, legal entity, secondary approvers, travel arranger]
 ---
