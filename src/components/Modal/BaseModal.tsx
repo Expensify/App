@@ -338,9 +338,11 @@ function BaseModal(
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
-                        backdropOpacity={hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && (isInNarrowPane || isInNarrowPaneModal)) ? 0 : backdropOpacity}
+                        backdropOpacity={
+                            hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal)) ? 0 : backdropOpacity
+                        }
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={hasBackdrop ?? (fullscreen && !(type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && isSmallScreenWidth))}
+                        hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
                         style={[modalStyle, sidePanelStyle]}
                         deviceHeight={windowHeight}
