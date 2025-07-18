@@ -6087,10 +6087,6 @@ function getDeletedTransactionMessage(action: ReportAction) {
 }
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
-    // const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-    // const {reportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    // const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     const reportUrl = `${environmentURL}/r/${report?.reportID}`;
     const message = translateLocal('iou.movedTransaction', {
