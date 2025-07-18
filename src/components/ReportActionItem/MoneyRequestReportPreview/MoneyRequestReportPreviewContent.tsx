@@ -708,7 +708,9 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {shouldShowEmptyPlaceholder? <MoneyReportHeaderStatusBarSkeleton/> : (
+                                    {shouldShowEmptyPlaceholder ? (
+                                        <MoneyReportHeaderStatusBarSkeleton />
+                                    ) : (
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
                                             <Text
                                                 style={[styles.textLabelSupporting, styles.lh16]}
