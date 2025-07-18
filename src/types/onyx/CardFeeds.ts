@@ -71,7 +71,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 }>;
 
 /** Direct card feed data */
@@ -101,7 +101,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 }>;
 
 /** Card feed data */

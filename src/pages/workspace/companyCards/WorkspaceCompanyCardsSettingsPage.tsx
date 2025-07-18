@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -123,14 +124,17 @@ function WorkspaceCompanyCardsSettingsPage({
                             titleStyle={styles.flex1}
                             onPress={navigateToChangeFeedName}
                         />
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={statementPeriodEndDay?.toString()}
-                            description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={navigateToChangeStatementCloseDate}
-                        />
+                        <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={statementPeriodEndDay?.toString()}
+                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                onPress={navigateToChangeStatementCloseDate}
+                                brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
                                 title={translate('workspace.moreFeatures.companyCards.personal')}
