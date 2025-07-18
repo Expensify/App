@@ -1,0 +1,161 @@
+name: Test Coverage
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.js', 'src/**/*.jsx']
+
+jobs:
+  coverage:
+    if: |
+      github.actor != 'OSBotify' &&
+      github.actor != 'imgbot[bot]' &&
+      github.actor != 'github-actions' &&
+      github.actor != 'melvin-bot' &&
+      github.actor != 'BlameGPT' &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    name: Generate coverage report
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Check if src files changed
+        id: check-src-changes
+        run: |
+          # Get changed files in src directory
+          readarray -t ALL_CHANGED_FILES < <(git diff --name-only origin/main...HEAD | grep '^src/' | grep -E '\.(ts|tsx|js|jsx)$' || true)
+          
+          # Filter out excluded directories and files
+          CHANGED_FILES=()
+          for file in "${ALL_CHANGED_FILES[@]}"; do
+            # Skip excluded directories
+            if [[ "$file" =~ ^src/(CONST|languages|setup|stories|styles|types)/ ]]; then
+              echo "Skipping excluded directory: $file"
+              continue
+            fi
+            
+            # Skip excluded files in src root
+            filename=$(basename "$file")
+            if [[ "$filename" =~ ^(App\.tsx|CONFIG\.ts|Expensify\.tsx|HybridAppHandler\.tsx|NAICS\.ts|NAVIGATORS\.ts|ONYXKEYS\.ts|ROUTES\.ts|SCREENS\.ts|SplashScreenStateContext\.tsx|TIMEZONES\.ts)$ ]]; then
+              echo "Skipping excluded file: $file"
+              continue
+            fi
+            
+            # Add to coverage collection
+            CHANGED_FILES+=("$file")
+          done
+          
+          # Check if any files remain for coverage
+          if [ ${#CHANGED_FILES[@]} -eq 0 ]; then
+            echo "No relevant src files changed (all changes were in excluded directories/files), skipping coverage"
+            echo "run_coverage=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          echo "Changed src files for coverage:"
+          printf '%s\n' "${CHANGED_FILES[@]}"
+          echo "run_coverage=true" >> "$GITHUB_OUTPUT"
+          
+          # Save changed files for coverage collection
+          printf '%s\n' "${CHANGED_FILES[@]}" > changed_files.txt
+
+      - name: Wait for Jest tests to complete
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const maxWaitTime = 20 * 60 * 1000; // 20 minutes
+            const pollInterval = 30 * 1000; // 30 seconds
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              const workflows = await github.rest.actions.listWorkflowRunsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'test.yml',
+                head_sha: context.sha,
+                per_page: 5
+              });
+              
+              const testRun = workflows.data.workflow_runs.find(run => 
+                run.head_sha === context.sha && 
+                run.event === 'pull_request'
+              );
+              
+              if (testRun) {
+                console.log(`Test workflow status: ${testRun.status}, conclusion: ${testRun.conclusion}`);
+                
+                if (testRun.status === 'completed') {
+                  if (testRun.conclusion === 'success') {
+                    console.log('Test workflow completed successfully!');
+                    return;
+                  } else {
+                    core.setFailed(`Test workflow failed with conclusion: ${testRun.conclusion}`);
+                    return;
+                  }
+                }
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, pollInterval));
+            }
+            
+            core.setFailed('Test workflow did not complete within timeout');
+
+      - name: Run coverage for changed files
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        run: |
+          # Read changed files and create arrays instead of string concatenation
+          readarray -t CHANGED_FILES_ARRAY < changed_files.txt
+          
+          # Build coverage patterns array
+          COVERAGE_ARGS=()
+          for file in "${CHANGED_FILES_ARRAY[@]}"; do
+            COVERAGE_ARGS+=("--collectCoverageFrom=$file")
+          done
+          
+          echo "Running coverage with focused patterns..."
+          echo "Coverage patterns: ${COVERAGE_ARGS[*]}"
+          
+          # Run Jest with coverage focused on changed files only
+          NODE_OPTIONS="--max-old-space-size=4096 --experimental-vm-modules" npx jest \
+            --coverage \
+            --coverageDirectory=coverage \
+            "${COVERAGE_ARGS[@]}" \
+            --collectCoverageFrom="!src/**/*.d.ts" \
+            --collectCoverageFrom="!src/**/*.stories.tsx" \
+            --collectCoverageFrom="!src/**/*.test.{ts,tsx,js,jsx}" \
+            --collectCoverageFrom="!src/**/*.spec.{ts,tsx,js,jsx}" \
+            --collectCoverageFrom="!src/**/__tests__/**" \
+            --collectCoverageFrom="!src/**/__mocks__/**" \
+            --coverageReporters=json-summary \
+            --coverageReporters=lcov \
+            --coverageReporters=html \
+            --coverageReporters=text-summary \
+            --maxWorkers=2 \
+            --testTimeout=30000 \
+            --silent
+        env:
+          CI: true
+
+      - name: Upload coverage artifacts
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+      - name: Post coverage to PR
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: ./.github/actions/javascript/postTestCoverageComment
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COVERAGE_ARTIFACT_NAME: coverage-report
