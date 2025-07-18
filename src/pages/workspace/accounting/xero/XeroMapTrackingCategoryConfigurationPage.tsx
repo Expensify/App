@@ -6,13 +6,13 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Xero from '@libs/actions/connections/Xero';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateXeroMappings} from '@libs/actions/connections/Xero';
+import {clearXeroErrorField, enablePolicyReportFields} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -29,13 +29,16 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
     const categoryName = decodeURIComponent(params?.categoryName ?? '');
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
     const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
     const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
+    const reportFieldTrackingCategories = Object.entries(mappings ?? {}).filter(
+        ([key, value]) => key.startsWith(CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX) && value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD,
+    );
 
     const optionsList = useMemo(
         () =>
@@ -69,15 +72,24 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                     Navigation.navigate(`${backToRoute}&categoryId=${categoryId}`);
                     return;
                 }
-                Xero.updateXeroMappings(
+                if (!policyID) {
+                    return;
+                }
+                updateXeroMappings(
                     policyID,
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
                 );
+                if (!reportFieldTrackingCategories.length && option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                    enablePolicyReportFields(policyID, true);
+                }
+                if (reportFieldTrackingCategories.length === 1 && currentTrackingCategoryValue === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                    enablePolicyReportFields(policyID, false);
+                }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, currentTrackingCategoryValue, policy, policyID],
+        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories, policy, policyID],
     );
 
     return (
@@ -95,9 +107,9 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
+            errors={getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearXeroErrorField(policyID, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
+            onClose={() => clearXeroErrorField(policyID, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
             shouldSingleExecuteRowSelect
         />
     );
