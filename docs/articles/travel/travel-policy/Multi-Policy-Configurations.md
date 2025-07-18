@@ -1,5 +1,5 @@
 ---
-title: multi-policy-configurations.md
+title: Multi Policy Configurations
 description: Learn how to set up and manage multiple travel policies in Expensify to support different user types and travel needs.
 keywords: [multi-policy, multiple travel policies, travel policy setup, travel policy management, expensify travel policies]
 ---
