@@ -130,7 +130,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
-        }, 500);
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };

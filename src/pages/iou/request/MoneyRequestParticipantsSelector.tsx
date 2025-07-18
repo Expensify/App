@@ -13,7 +13,7 @@ import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {UserPlus} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
@@ -581,7 +581,7 @@ function MoneyRequestParticipantsSelector(
         return (
             <>
                 {ClickableImportContactTextComponent}
-                <EmptySelectionListContent contentType={iouType} />;
+                <EmptySelectionListContent contentType={iouType} />
             </>
         );
     }, [iouType, ClickableImportContactTextComponent]);

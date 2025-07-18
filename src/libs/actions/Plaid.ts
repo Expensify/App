@@ -47,13 +47,15 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: string) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {
         redirectURI,
         androidPackage,
         country,
+        domain,
+        feed,
     };
 
     const optimisticData = [

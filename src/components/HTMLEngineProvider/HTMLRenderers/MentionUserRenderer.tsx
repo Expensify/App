@@ -37,8 +37,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     let accountID: number;
     let mentionDisplayText: string;
     let navigationRoute: Route;
-
-    const tnodeClone = cloneDeep(tnode);
+    let tnodeClone: typeof tnode | undefined;
 
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
@@ -46,7 +45,8 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
-    } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
+    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
+        tnodeClone = cloneDeep(tnode);
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
@@ -106,7 +106,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             testID="mention-user"
                             href={`/${navigationRoute}`}
                         >
-                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}
+                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>

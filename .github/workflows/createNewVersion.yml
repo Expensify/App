@@ -126,11 +126,11 @@ jobs:
             echo "Race condition! E/App main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
             git fetch origin main
             if ! git rebase origin/main; then
-              echo "::error:: Rebase failed while retrying Mobile-Expensify push"
+              echo "::error:: Rebase failed while retrying E/App push"
               exit 1
             fi
             if ! git push origin main; then
-              echo "::error:: Mobile-Expensify change failed to push after rebase"
+              echo "::error:: E/App change failed to push after rebase"
               exit 1
             fi
           fi

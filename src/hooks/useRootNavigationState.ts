@@ -20,8 +20,9 @@ function useRootNavigationState<T>(selector: Selector<T>): T {
     });
 
     useEffect(() => {
-        const unsubscribe = navigationRef.addListener('state', (e) => {
-            setResult(selectorRef.current(e.data.state as NavigationState));
+        const unsubscribe = navigationRef.addListener('state', () => {
+            // State from the event data may be incomplete. (defined params but no nested state for the route)
+            setResult(selectorRef.current(navigationRef.getRootState()));
         });
 
         return unsubscribe;

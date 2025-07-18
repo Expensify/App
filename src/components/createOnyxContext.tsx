@@ -32,7 +32,7 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
     const useOnyxContext = () => {
         const value = useContext(Context);
         if (value === null) {
-            throw new Error(`useOnyxContext must be used within a OnyxProvider [key: ${onyxKeyName}]`);
+            throw new Error(`useOnyxContext must be used within a OnyxListItemProvider [key: ${onyxKeyName}]`);
         }
         return value as OnyxValue<TOnyxKey>;
     };

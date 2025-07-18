@@ -3,11 +3,11 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import OnyxProvider from '@src/components/OnyxProvider';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +74,7 @@ beforeEach(() => {
 
 function ReportActionComposeWrapper() {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
             <ReportActionCompose
                 onSubmit={() => jest.fn()}
                 reportID="1"

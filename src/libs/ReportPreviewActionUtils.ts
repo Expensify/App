@@ -43,17 +43,17 @@ import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConn
 function canSubmit(
     report: Report,
     violations: OnyxCollection<TransactionViolation[]>,
+    isReportArchived: boolean,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     policy?: Policy,
     transactions?: Transaction[],
-    isReportArchived = false,
 ) {
     if (isReportArchived) {
         return false;
     }
 
     const isExpense = isExpenseReport(report);
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -111,7 +111,7 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
@@ -123,8 +123,8 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
 function canPay(
     report: Report,
     violations: OnyxCollection<TransactionViolation[]>,
+    isReportArchived: boolean,
     policy?: Policy,
-    isReportArchived = false,
     invoiceReceiverPolicy?: Policy,
     shouldConsiderViolations = true,
 ) {
@@ -207,13 +207,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
-function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], isReportArchived = false) {
+function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     const hasAnyViolations =
         hasMissingSmartscanFields(report.reportID, transactions) ||
         hasViolations(report.reportID, violations) ||
         hasNoticeTypeViolations(report.reportID, violations, true) ||
         hasWarningTypeViolations(report.reportID, violations, true);
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
 
@@ -222,7 +222,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
             !canApprove(report, violations, policy, transactions, false) &&
-            !canPay(report, violations, policy, isReportArchived, policy, false))
+            !canPay(report, violations, isReportArchived, policy, policy, false))
     ) {
         return false;
     }
@@ -246,10 +246,10 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
 
 function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
+    isReportArchived: boolean,
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
-    isReportArchived = false,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     invoiceReceiverPolicy?: Policy,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
@@ -259,19 +259,19 @@ function getReportPreviewAction(
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
-    if (canSubmit(report, violations, reportActions, policy, transactions, isReportArchived)) {
+    if (canSubmit(report, violations, isReportArchived, reportActions, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, policy, isReportArchived, invoiceReceiverPolicy)) {
+    if (canPay(report, violations, isReportArchived, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy, reportActions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, policy, transactions, isReportArchived)) {
+    if (canReview(report, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 

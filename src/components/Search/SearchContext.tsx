@@ -4,7 +4,7 @@ import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransac
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchContext, SearchContextData} from './types';
+import type {SearchContext, SearchContextData, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
@@ -137,16 +137,34 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const removeTransaction: SearchContext['removeTransaction'] = useCallback(
         (transactionID) => {
-            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
-            if (!transactionID || !selectedTransactionIDs.length) {
+            if (!transactionID) {
                 return;
             }
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
-            }));
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+
+            if (!isEmptyObject(searchContextData.selectedTransactions)) {
+                const newSelectedTransactions = Object.entries(searchContextData.selectedTransactions).reduce((acc, [key, value]) => {
+                    if (key === transactionID) {
+                        return acc;
+                    }
+                    acc[key] = value;
+                    return acc;
+                }, {} as SelectedTransactions);
+
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactions: newSelectedTransactions,
+                }));
+            }
+
+            if (selectedTransactionIDs.length > 0) {
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+                }));
+            }
         },
-        [searchContextData.selectedTransactionIDs],
+        [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
     const searchContext = useMemo<SearchContext>(

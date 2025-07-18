@@ -116,7 +116,6 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>, options?: FastS
                 if (uniqueId) {
                     const hasId = uniqueMap[dataSetIndex]?.[uniqueId];
                     if (hasId) {
-                        // eslint-disable-next-line no-continue
                         continue;
                     }
                     if (!uniqueMap[dataSetIndex]) {

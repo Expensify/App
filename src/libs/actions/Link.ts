@@ -219,4 +219,33 @@ function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = fa
     );
 }
 
-export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken};
+function getTravelDotLink(policyID: OnyxEntry<string>) {
+    if (policyID === null || policyID === undefined) {
+        return Promise.reject(new Error('Policy ID is required'));
+    }
+
+    const parameters: GenerateSpotnanaTokenParams = {
+        policyID,
+    };
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {}).then((response) => {
+        if (!response?.spotnanaToken) {
+            throw new Error('Failed to generate spotnana token.');
+        }
+        return response;
+    });
+}
+
+export {
+    buildOldDotURL,
+    openOldDotLink,
+    openExternalLink,
+    openLink,
+    getInternalNewExpensifyPath,
+    getInternalExpensifyPath,
+    openTravelDotLink,
+    buildTravelDotURL,
+    openExternalLinkWithToken,
+    getTravelDotLink,
+};

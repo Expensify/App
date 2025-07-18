@@ -62,11 +62,11 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 
 # FAQ
 
-## If I Have Both Delayed Submission and an Approver Enabled, What Happens?
+## If I Have Both Delay Submission and an Approver Enabled, What Happens?
 
 When both **Add Approvals** and **Delay Submission** are enabled, expense reports follow this flow: **Open** → **Processing** → **Approved**
 
-If **Delayed Submission** is turned off:
+If **Delay Submission** is turned off:
 - Reports are submitted immediately and follow this flow: **Processing** → **Approved**
 
 </div>

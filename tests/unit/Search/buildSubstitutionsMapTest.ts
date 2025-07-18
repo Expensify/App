@@ -89,7 +89,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     });
 
     test('when query has multiple substitutions of different types', () => {
-        const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:11223344 in:rep123 taxRate:id_TAX_1 groupBy:cards feed:"oauth.americanexpressfdx.com 1001"';
+        const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:11223344 in:rep123 taxRate:id_TAX_1 groupBy:cards feed:"1234_oauth.americanexpressfdx.com 1001"';
 
         const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {});
 
@@ -99,7 +99,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
             'in:Report 1': 'rep123',
             'cardID:Visa - 1234': '11223344',
             'taxRate:TAX_1': 'id_TAX_1',
-            'feed:American Express': 'oauth.americanexpressfdx.com 1001',
+            'feed:American Express': '1234_oauth.americanexpressfdx.com 1001',
         });
     });
 });

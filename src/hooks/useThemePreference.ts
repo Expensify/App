@@ -1,6 +1,6 @@
 import {useContext, useMemo} from 'react';
 import {useColorScheme} from 'react-native';
-import {PreferredThemeContext} from '@components/OnyxProvider';
+import {PreferredThemeContext} from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 
 function useThemePreference() {

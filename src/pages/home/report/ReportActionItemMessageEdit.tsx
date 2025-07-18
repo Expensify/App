@@ -81,6 +81,11 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 // video source -> video attributes
 const draftMessageVideoAttributeCache = new Map<string, string>();
 
+const DEFAULT_MODAL_VALUE = {
+    willAlertModalBecomeVisible: false,
+    isVisible: false,
+};
+
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
@@ -111,12 +116,7 @@ function ReportActionItemMessageEdit(
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
-    const [
-        modal = {
-            willAlertModalBecomeVisible: false,
-            isVisible: false,
-        },
-    ] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);

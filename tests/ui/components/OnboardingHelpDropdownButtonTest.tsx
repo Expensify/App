@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +52,7 @@ function renderOnboardingHelpDropdownButton(props: {
     hasActiveScheduledCall: boolean;
 }) {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <OnboardingHelpDropdownButton
                 reportID={props.reportID}
                 shouldUseNarrowLayout={props.shouldUseNarrowLayout}

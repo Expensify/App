@@ -29,6 +29,21 @@ function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParam
     return areNamesEqual && areParamsEqual;
 }
 
+function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
+    const params = focusedRouteFromPath?.params ?? {};
+
+    if (!focusedRouteFromPath?.path || !('backTo' in params) || !params.backTo || typeof params.backTo !== 'string') {
+        return false;
+    }
+    let cleanedPath = focusedRouteFromPath.path.replace(/\?.*/, '');
+    let cleanedBackTo = params.backTo.replace(/\?.*/, '');
+    cleanedPath = cleanedPath.endsWith('/') ? cleanedPath.slice(0, -1) : cleanedPath;
+    cleanedBackTo = cleanedBackTo.endsWith('/') ? cleanedBackTo.slice(0, -1) : cleanedBackTo;
+
+    return cleanedPath === cleanedBackTo;
+}
+
 function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
     return action !== undefined && action.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 }
@@ -82,7 +97,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // We don't want to dispatch action to push/replace with exactly the same route that is already focused.
-    if (areNamesAndParamsEqual(currentState, stateFromPath)) {
+    if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
 
