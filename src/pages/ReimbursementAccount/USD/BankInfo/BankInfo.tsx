@@ -46,7 +46,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
 
     let setupType = reimbursementAccount?.achData?.setupType ?? reimbursementAccount?.achData?.subStep ?? '';
 
-    const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     if (shouldReinitializePlaidLink) {
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }

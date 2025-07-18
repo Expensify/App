@@ -93,18 +93,16 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         : `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
-
-    /**
-     The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-     user left off. This view will refer to the achData as the single source of truth to determine which route to
-     display. We can also specify a specific route to navigate to via route params when the component first
-     mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-     next step.
-     */
     const achData = reimbursementAccount?.achData;
     const isPreviousPolicy = policyIDParam === achData?.policyID;
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
 
+    /**
+     currentStep determines the step that is displayed in the USD flow. In the majority of the cases it is based on the
+     achData?.current step with one exception - the beginning of the flow. There is a step where user confirms the currency
+     and the country, and it exists purely from FE perspective. We return early in getInitialCurrentStep and ignore
+     achData?.currentStep value to display very first step.
+     */
     const getInitialCurrentStep = () => {
         if (!hasConfirmedUSDCurrency) {
             return CONST.BANK_ACCOUNT.STEP.COUNTRY;
@@ -112,7 +110,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         return achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
-
     const currentStep = getInitialCurrentStep();
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
@@ -258,7 +255,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = useCallback(() => {
-        const subStep = achData?.subStep !== undefined ? achData.subStep : CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+        const subStep = achData?.subStep !== undefined ? achData.subStep : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
 
         setBankAccountSubStep(subStep).then(() => {
             setShouldShowContinueSetupButton(false);

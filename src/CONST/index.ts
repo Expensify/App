@@ -487,11 +487,6 @@ const CONST = {
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEPS_HEADER_HEIGHT: 40,
-        SUBSTEP: {
-            MANUAL: 'manual',
-            PLAID: 'plaid',
-            EMPTY: '',
-        },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
             THROTTLED: 'verifications.throttled',
@@ -510,6 +505,7 @@ const CONST = {
         SETUP_TYPE: {
             MANUAL: 'manual',
             PLAID: 'plaid',
+            EMPTY: '',
         },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,

@@ -11,7 +11,7 @@ import type * as OnyxCommon from './OnyxCommon';
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 /** Substeps to setup a reimbursement bank account */
-type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
+type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
 
 /** Model of Corpay data */
 type Corpay = {
