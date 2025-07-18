@@ -15,6 +15,8 @@ Set clear, customizable flight rules to control how travelers book airfare in Ex
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
 ---
 
 # Configuring flight settings
@@ -25,7 +27,7 @@ To configure your flight rules:
 3. Select a policy or click **Add new** to create one
 4. Click the **Flight** tab
 
-> **Note:** Any setting with a chain link icon (🔗) that is not crossed out is inherited from a parent policy. To customize it, click the icon and unlock it from the parent.
+**Note:** Any setting with a chain link icon (🔗) that is not crossed out is inherited from a parent policy. To customize it, click the icon and unlock it from the parent.
 
 ---
 
@@ -124,7 +126,7 @@ Create dynamic flight budgets for domestic and international flights.
 
 ## Lowest logical fare
 
-The settings described here offer travel admin the ability to control both how the lowest logical fare value is calculated for any given fare search and how in-policy ranges around the lowest logical fare value are applied. It may take some time for you to find the lowest logical fare settings that work best for your company. 
+The settings described here offer travel admins the ability to control both how the lowest logical fare value is calculated for any given fare search and how in-policy ranges around that fare value are applied. It may take some time for you to find the lowest logical fare settings that work best for your company. 
 
 Some possible suggestions when first using this feature are:
 
