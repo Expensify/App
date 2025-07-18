@@ -1,5 +1,5 @@
 ---
-title: importing-corporate-rates.md
+title: Importing Corporate Rates
 description: Learn how to request corporate hotel rates be imported into Expensify Travel through Concierge or your Account Manager.
 keywords: [corporate hotel rates, import rates, gds, travel admin, expensify concierge, account manager, travel discounts]
 ---
