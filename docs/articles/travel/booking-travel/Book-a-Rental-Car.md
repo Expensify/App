@@ -1,5 +1,5 @@
 ---
-title: book-a-rental-car.md
+title: Book a Rental Car
 description: Learn how to book a rental car through the integrated travel portal in both Classic and New Expensify.
 keywords: [book a car, rental car, car rental, travel booking, expensify travel, classic, new expensify]
 ---
