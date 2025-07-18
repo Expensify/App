@@ -1303,6 +1303,84 @@ function createTypeMenuSections(
     feeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
+    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
+
+    let defaultFeed: string | undefined;
+
+    let shouldShowSubmitSuggestion = false;
+    let shouldShowPaySuggestion = false;
+    let shouldShowApproveSuggestion = false;
+    let shouldShowExportSuggestion = false;
+
+    let shouldShowStatementsSuggestion = false;
+    let showShowUnapprovedCashSuggestion = false;
+    let showShowUnapprovedCompanyCardsSuggestion = false;
+    let shouldShowReconciliationSuggestion = false;
+
+    // The active (default) policy is prioritized to correctly set the default feed
+    [getActivePolicy(), ...Object.values(policies)].some((policy) => {
+        if (!policy) {
+            return false;
+        }
+
+        const isPaidPolicy = isPaidGroupPolicy(policy);
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+        const isReimburser = policy.reimburser === currentUserLogin;
+        const isExporter = policy.exporter === currentUserLogin;
+        const isApprover = policy.approver === currentUserLogin;
+        const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+        const isPaymentEnabled = arePaymentsEnabled(policy);
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
+        });
+
+        const isEligibleForSubmitSuggestion = isPaidPolicy;
+        const isEligibleForPaySuggestion =
+            isPaidPolicy &&
+            // eslint-disable-next-line no-nested-ternary
+            (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
+                ? policy.reimburser
+                    ? isReimburser
+                    : isAdmin
+                : policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL
+                  ? isAdmin
+                  : false);
+        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo);
+        const isEligibleForExportSuggestion = isExporter;
+
+        const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForReconciliationSuggestion = isPaidPolicy && false; // s77rt TODO
+
+        // The default feed must be based on an eligible policy
+        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
+            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
+        }
+
+        shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
+        shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
+        shouldShowApproveSuggestion ||= isEligibleForApproveSuggestion;
+        shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
+
+        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
+        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
+
+        // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
+        return (
+            shouldShowSubmitSuggestion &&
+            shouldShowPaySuggestion &&
+            shouldShowApproveSuggestion &&
+            shouldShowExportSuggestion &&
+            shouldShowStatementsSuggestion &&
+            showShowUnapprovedCashSuggestion &&
+            showShowUnapprovedCompanyCardsSuggestion &&
+            shouldShowReconciliationSuggestion
+        );
+    });
+
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
@@ -1342,239 +1420,145 @@ function createTypeMenuSections(
         },
     ];
 
-    // Begin adding conditional sections, based on the policies the user has access to
-    const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
-
-    const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
-
-        const reimburser = policy.reimburser;
-        const isReimburser = reimburser === currentUserLogin;
-        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-
-        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            return reimburser ? isReimburser : isAdmin;
-        }
-
-        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-            return isAdmin;
-        }
-
-        return false;
-    });
-
-    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !currentUserLogin || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
-
-        if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-            return false;
-        }
-
-        const isPolicyApprover = policy.approver === currentUserLogin;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
-        });
-
-        return isPolicyApprover || isSubmittedTo;
-    });
-
-    const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !currentUserLogin) {
-            return false;
-        }
-
-        return policy.exporter === currentUserLogin;
-    });
-    // We suggest specific filters for users based on their access in specific policies. Show the todo section
-    // only if any of these items are available
-    const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
-
-    if (showTodoSection && currentUserAccountID) {
-        const section: SearchTypeMenuSection = {
-            translationPath: 'common.todo',
-            menuItems: [],
-        };
-
-        if (showSubmitSuggestion) {
-            const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
-                translationPath: 'common.submit',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.Pencil,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptySubmitResults.title',
-                    subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons:
-                        groupPoliciesWithChatEnabled.length > 0
-                            ? [
-                                  {
-                                      success: true,
-                                      buttonText: 'report.newReport.createReport',
-                                      buttonAction: () => {
-                                          interceptAnonymousUser(() => {
-                                              const activePolicy = getActivePolicy();
-                                              const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
-
-                                              let workspaceIDForReportCreation: string | undefined;
-
-                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                                  workspaceIDForReportCreation = activePolicy.id;
-                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                              }
-
-                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                  });
-                                                  return;
-                                              }
-
-                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                          });
-                                      },
-                                  },
-                              ]
-                            : [],
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${currentUserAccountID}`],
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        if (showApproveSuggestion) {
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
-                translationPath: 'search.bulkActions.approve',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.ThumbsUp,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyApproveResults.title',
-                    subtitle: 'search.searchResults.emptyApproveResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${currentUserAccountID}`],
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        if (showPaySuggestion) {
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
-                translationPath: 'search.bulkActions.pay',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyBag,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyPayResults.title',
-                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: currentUserAccountID?.toString(),
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        if (showExportSuggestion) {
-            section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
-                translationPath: 'common.export',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.CheckCircle,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyExportResults.title',
-                    subtitle: 'search.searchResults.emptyExportResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${currentUserAccountID}`],
-                        exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                    });
-                    return queryString;
-                },
-            });
-        }
-
-        typeMenuSections.push(section);
-    }
+    const todoSection: SearchTypeMenuSection = {
+        translationPath: 'common.todo',
+        menuItems: [],
+    };
 
     const accountingSection: SearchTypeMenuSection = {
         translationPath: 'workspace.common.accounting',
         menuItems: [],
     };
 
-    let defaultFeed: string | undefined;
+    if (shouldShowSubmitSuggestion) {
+        const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
+            translationPath: 'common.submit',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Pencil,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptySubmitResults.title',
+                subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                buttons:
+                    groupPoliciesWithChatEnabled.length > 0
+                        ? [
+                              {
+                                  success: true,
+                                  buttonText: 'report.newReport.createReport',
+                                  buttonAction: () => {
+                                      interceptAnonymousUser(() => {
+                                          const activePolicy = getActivePolicy();
+                                          const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
 
-    let shouldShowStatementsSuggestion = false;
-    let showShowUnapprovedCashSuggestion = false;
-    let showShowUnapprovedCompanyCardsSuggestion = false;
-    let shouldShowReconciliationSuggestion = false;
+                                          let workspaceIDForReportCreation: string | undefined;
 
-    const activePolicy = getActivePolicy();
-    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
+                                          // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                          if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                              workspaceIDForReportCreation = activePolicy.id;
+                                          } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                              workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                          }
 
-    // The active (default) policy is prioritized to correctly set the default feed
-    [activePolicy, ...Object.values(policies)].some((policy) => {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
+                                          if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                              const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                              });
+                                              return;
+                                          }
 
-        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-        const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const isPaymentEnabled = arePaymentsEnabled(policy);
+                                          // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                          Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                      });
+                                  },
+                              },
+                          ]
+                        : [],
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    from: [`${currentUserAccountID}`],
+                });
+                return queryString;
+            },
+        });
+    }
 
-        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
-        const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
-        const isEligibleForReconciliationSuggestion = false; // s77rt TODO
+    if (shouldShowApproveSuggestion) {
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
+            translationPath: 'search.bulkActions.approve',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.ThumbsUp,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyApproveResults.title',
+                subtitle: 'search.searchResults.emptyApproveResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                    to: [`${currentUserAccountID}`],
+                });
+                return queryString;
+            },
+        });
+    }
 
-        // The default feed must be based on an eligible policy
-        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
-            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
-        }
+    if (shouldShowPaySuggestion) {
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
+            translationPath: 'search.bulkActions.pay',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyBag,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyPayResults.title',
+                subtitle: 'search.searchResults.emptyPayResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                    reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                    payer: currentUserAccountID?.toString(),
+                });
+                return queryString;
+            },
+        });
+    }
 
-        shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
-        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
-        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
-        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
-
-        // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
-        return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
-    });
+    if (shouldShowExportSuggestion) {
+        todoSection.menuItems.push({
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
+            translationPath: 'common.export',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CheckCircle,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyExportResults.title',
+                subtitle: 'search.searchResults.emptyExportResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
+                    exporter: [`${currentUserAccountID}`],
+                    exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+                });
+                return queryString;
+            },
+        });
+    }
 
     if (shouldShowStatementsSuggestion) {
         accountingSection.menuItems.push({
@@ -1688,6 +1672,10 @@ function createTypeMenuSections(
 
     if (shouldShowReconciliationSuggestion) {
         // s77rt TODO
+    }
+
+    if (todoSection.menuItems.length > 0) {
+        typeMenuSections.push(todoSection);
     }
 
     // s77rt remove DEV lock
