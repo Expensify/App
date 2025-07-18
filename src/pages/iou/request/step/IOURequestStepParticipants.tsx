@@ -229,7 +229,7 @@ function IOURequestStepParticipants({
             setMoneyRequestTag(transaction.transactionID, '');
             setMoneyRequestCategory(transaction.transactionID, '');
             if (participants?.at(0)?.reportID !== newReportID) {
-                setTransactionReport(transaction.transactionID, newReportID, true);
+                setTransactionReport(transaction.transactionID, {reportID: newReportID}, true);
             }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
@@ -261,6 +261,9 @@ function IOURequestStepParticipants({
             iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
             newReportID,
+            undefined,
+            undefined,
+            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
         );
 
         const route = isCategorizing

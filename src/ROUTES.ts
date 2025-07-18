@@ -602,10 +602,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${
-                participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''
-            }` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean, backTo?: string) =>
+            getUrlWithBackToParam(
+                `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}`,
+                backTo,
+            ),
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?/:backToReport?',
@@ -2110,7 +2111,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'workspaces/:policyID/accounting/xero/import/tracking-categories',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES route');
+            }
+            return `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
         route: 'workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
@@ -2150,17 +2156,45 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
+        },
+    },
+    POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo);
+        },
+    },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import',
