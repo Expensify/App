@@ -15,7 +15,7 @@ Add a secondary approver to your travel profile so that bookings can move forwar
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -23,13 +23,13 @@ Add a secondary approver to your travel profile so that bookings can move forwar
 
 If you’re someone who approves travel for others, adding a backup approver ensures travel requests don’t stall when you’re out of office. If you're unavailable during the 24-hour post-booking review period, any assigned secondary approver can step in to approve or deny the request.
 
-**Note:** This setting only applies to members responsible for approving travel. If you don’t approve travel for others, you can skip this step.
+Note: This setting only applies to members responsible for approving travel. If you don’t approve travel for others, you can skip this step.
 
 ---
 
 ## How to add a secondary approver
 
-1. Click your **profile icon** in the top-right corner of the travel portal.
+1. Click your **user icon** in the top-right corner of the travel portal.
 2. Select **My Profile**.
 3. Go to the **Configuration** tab.
 4. Click the **Add approver** button.
@@ -39,7 +39,7 @@ If you’re someone who approves travel for others, adding a backup approver ens
 
 Each person you add will receive approval notifications whenever a booking requires your review.
 
-**Note:** A travel admin can also assign a secondary approver on your behalf. [Link to admin setup article coming soon.]
+Note: A travel admin can also assign a secondary approver on your behalf.
 
 ---
 
