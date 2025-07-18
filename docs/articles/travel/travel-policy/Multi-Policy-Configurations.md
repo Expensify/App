@@ -15,6 +15,8 @@ Set up multiple travel policies to manage different booking rules, traveler type
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
 # Multi-policy configurations
 
 Travel admins can create and manage multiple travel policies at no extra cost, allowing for distinct rules, member groups, and approval flows across departments or traveler types.
@@ -35,9 +37,9 @@ Any inherited settings display with a link icon. To customize them independently
 Admins can add members to each travel policy using flexible grouping options:
 
 - **Individual users** – Add by email.
-- **Departments** – Create departments to group employees and bulk assign them to policies.
+- **Departments** – Apply departments to traveler profiles and use them to group employees and bulk assign them to policies.
 - **Legal entities** – Add all members of an Expensify workspace.
-- **Offices** – Based on each traveler’s assigned location in their profile.
+- **Offices** – Based on each traveler’s assigned location in their traveler profile.
 
 ## Use case examples
 
