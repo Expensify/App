@@ -3025,8 +3025,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
+                flex: 1,
+            }) satisfies ViewStyle,
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+                flex: 1,
+            }) satisfies ViewStyle,
 
         avatarInnerTextChat: {
             color: theme.text,
@@ -4028,7 +4035,7 @@ const styles = (theme: ThemeColors) =>
 
         activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
             const browser = getBrowser();
-            const isSafariOrChromeBrowser = getPlatform() === 'web' && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
+            const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
 
             return {
                 position: 'absolute' as const,
@@ -5317,6 +5324,7 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 20,
             flexGrow: 1,
             flexShrink: 1,
+
             flexBasis: '35%',
         },
 
