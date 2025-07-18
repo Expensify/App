@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
@@ -20,7 +20,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     useEffect(() => {
         if (!isValidAccountRoute(accountID)) {
             return;
@@ -33,7 +33,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
             ({
                 source: getFullSizeAvatar(avatarURL, accountID),
                 isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
-                headerTitle: formatPhoneNumber(displayName),
+                headerTitle: formatPhoneNumberWithCountryCode(displayName, countryCodeByIP),
                 originalFileName: personalDetail?.originalFileName ?? '',
                 shouldShowNotFoundPage: !avatarURL,
                 maybeIcon: true,
