@@ -1,4 +1,4 @@
-type SetFeedStatementPeriodEndDate = {
+type SetFeedStatementEndDay = {
     authToken: string | null | undefined;
     policyID: string;
     bankName: string;
@@ -6,4 +6,4 @@ type SetFeedStatementPeriodEndDate = {
     statementPeriodEndDate: string;
 };
 
-export default SetFeedStatementPeriodEndDate;
+export default SetFeedStatementEndDay;
