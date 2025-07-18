@@ -1,12 +1,10 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Linking} from 'react-native';
-import Navigation from '@navigation/Navigation';
-import {openReportFromDeepLink} from '@userActions/Report';
 import CONFIG from '@src/CONFIG';
-import type {Route} from '@src/ROUTES';
 
 if (CONFIG.IS_HYBRID_APP) {
-    Linking.addEventListener('url', (state) => {
-        const parsedUrl = Navigation.parseHybridAppUrl(state.url as Route);
-        openReportFromDeepLink(parsedUrl);
-    });
+    // On HybridApp we need to shadow official implementation of Linking.getInitialURL on NewDot side with our custom implementation.
+    // Main benefit from this approach is that our deeplink-related code can be implemented the same way for both standalone NewDot and HybridApp.
+    // It's not possible to use the official implementation from the Linking module because the way OldDot handles deeplinks is significantly different from a standard React Native app.
+    Linking.getInitialURL = () => HybridAppModule.getInitialURL();
 }
