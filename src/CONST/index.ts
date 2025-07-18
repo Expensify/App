@@ -5142,6 +5142,8 @@ const CONST = {
     VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
     LOTTIE_VIEW_TEST_ID: 'LottieView',
 
+    DOT_INDICATOR_TEST_ID: 'DotIndicator',
+
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
     HORIZONTAL_SPACER: {
@@ -6508,6 +6510,7 @@ const CONST = {
             mapping: 'report-fields-mapping',
         },
     },
+    DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {
