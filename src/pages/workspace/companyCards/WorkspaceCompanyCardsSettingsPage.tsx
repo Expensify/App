@@ -125,7 +125,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         />
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={statementPeriodEndDay}
+                            title={statementPeriodEndDay?.toString()}
                             description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
