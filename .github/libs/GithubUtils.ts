@@ -607,7 +607,7 @@ class GithubUtils {
 
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST.GITHUB_OWNER,
-                    repo: CONST.APP_REPO,
+                    repo: 'App',
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,

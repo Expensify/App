@@ -12096,7 +12096,7 @@ class GithubUtils {
                 core.info(`📄 Fetching page ${page} of commits...`);
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST_1.default.GITHUB_OWNER,
-                    repo: CONST_1.default.APP_REPO,
+                    repo: 'App',
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,
