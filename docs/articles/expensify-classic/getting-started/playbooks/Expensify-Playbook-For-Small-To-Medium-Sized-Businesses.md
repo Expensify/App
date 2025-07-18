@@ -80,11 +80,11 @@ Set workspace-wide compliance policies under **Settings > Workspace > [Workspace
 
 ---
 
-# Step 7: Enable Delayed Submission
+# Step 7: Enable Delay Submission
 
-Automate expense submissions with **Delayed Submission**:
-1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Delayed submission**.
-2. Enable **Delayed submission*** and set the frequency to **Daily**.
+Automate expense submissions with **Delay Submission**:
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Delay submission**.
+2. Enable **Delay submission*** and set the frequency to **Daily**.
 
 ---
 
