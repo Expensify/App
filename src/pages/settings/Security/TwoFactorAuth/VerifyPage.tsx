@@ -116,8 +116,8 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-                <View style={[styles.mh5, styles.mb4]}>
-                    <TwoFactorAuthForm innerRef={formRef} />
+                <View style={[styles.mh5, styles.mb4, styles.mt2]}>
+                    <TwoFactorAuthForm innerRef={formRef} shouldHandleScrollOnVirtualViewPort={isMobileWebKit()} />
                 </View>
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>

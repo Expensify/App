@@ -217,7 +217,7 @@ function MagicCodeInput(
             setInputAndIndex(lastFocusedIndex.current);
         }
         event.preventDefault();
-        if (!isMobileWebKit() || !shouldHandleScrollOnVirtualViewPort) {
+        if (!shouldHandleScrollOnVirtualViewPort) {
             return;
         }
 
@@ -225,7 +225,9 @@ function MagicCodeInput(
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
         InteractionManager.runAfterInteractions(() => {
-            htmlDivElementRef(containerRef).current?.scrollIntoView?.({behavior: 'instant', block: 'end'});
+            requestAnimationFrame(() => {
+                htmlDivElementRef(containerRef).current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
+            });
         });
     };
 
