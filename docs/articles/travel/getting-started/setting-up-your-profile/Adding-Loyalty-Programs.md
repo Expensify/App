@@ -1,5 +1,5 @@
 ---
-title: adding-loyalty-programs.md
+title: Adding Loyalty Programs
 description: Learn how to add your personal airline, hotel, car rental, and rail loyalty programs to your travel profile so rewards apply automatically at checkout.
 keywords: [loyalty programs, frequent flyer, hotel rewards, car rental loyalty, rail cards, expensify travel, classic, new expensify]
 ---
