@@ -11126,7 +11126,7 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
 }
 
 /**
- * Returns the current status of the report based on its state and status numbers.
+ * Returns the translated, human-readable status of the report based on its state and status values.
  * The status is determined by the stateNum and statusNum of the report.
  * The mapping is as follows:
  * ========================================
