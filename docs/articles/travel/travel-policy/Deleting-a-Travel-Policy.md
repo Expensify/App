@@ -1,5 +1,5 @@
 ---
-title: deleting-a-travel-policy.md
+title: Deleting a Travel Policy
 description: Learn how to permanently delete a travel policy in Expensify Travel.
 keywords: [delete travel policy, remove policy, travel admin, expensify travel settings, spotnana policy]
 ---
