@@ -20,6 +20,7 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
+    shouldUseNarrowLayout?: boolean;
 };
 
 type GetModalStyles = {

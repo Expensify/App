@@ -21,7 +21,7 @@ readonly NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
 # Wrapper to run patch-package.
 function patchPackage() {
-  TEMP_PATCH_DIR=$(mktemp -d ./patches/tmp-patches-XXX)
+  TEMP_PATCH_DIR=$(mktemp --directory ./tmp-patches-XXX)
   trap 'rm -rf "$TEMP_PATCH_DIR"' RETURN
 
   find ./patches -type f -name '*.patch' -exec cp {} "$TEMP_PATCH_DIR" \;

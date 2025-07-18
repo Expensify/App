@@ -1070,8 +1070,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tire fotos de todos os seus recibos de uma vez, depois confirme os detalhes você mesmo ou deixe o SmartScan cuidar disso.',
         receiptScanInProgress: 'Digitalização de recibo em andamento',
         receiptScanInProgressDescription: 'Digitalização do recibo em andamento. Verifique mais tarde ou insira os detalhes agora.',
-        removeFromReport: 'Remover do relatório',
-        moveToPersonalSpace: 'Mover despesas para o espaço pessoal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Despesas duplicadas potenciais identificadas. Revise as duplicatas para permitir o envio.'
@@ -2263,7 +2261,7 @@ const translations = {
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
@@ -2276,7 +2274,7 @@ const translations = {
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Confirme os detalhes.\n' +
@@ -2289,7 +2287,7 @@ const translations = {
                 description:
                     '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Escolha seu espaço *pessoal*.\n' +
@@ -2388,7 +2386,7 @@ const translations = {
                 description:
                     '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira um e-mail ou número de telefone.\n' +
                     '\n' +
@@ -2402,7 +2400,7 @@ const translations = {
                 description:
                     '*Divida despesas* com uma ou mais pessoas.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira e-mails ou números de telefone.\n' +
                     '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
@@ -2424,7 +2422,7 @@ const translations = {
                 description:
                     'Veja como criar um relatório:\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar relatório*.\n' +
                     '3. Clique em *Adicionar despesa*.\n' +
                     '4. Adicione sua primeira despesa.\n' +
@@ -2699,6 +2697,8 @@ const translations = {
             validationAmounts: 'Os valores de validação que você inseriu estão incorretos. Por favor, verifique novamente seu extrato bancário e tente novamente.',
             fullName: 'Por favor, insira um nome completo válido.',
             ownershipPercentage: 'Por favor, insira um número percentual válido',
+            deletePaymentBankAccount:
+                'Este banco conta não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim deseja excluir essa conta, entre em contato com o Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3831,6 +3831,18 @@ const translations = {
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Por favor, adicione a conta no Xero e sincronize a conexão novamente.',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
@@ -5934,11 +5946,16 @@ const translations = {
                 title: 'Nenhuma despesa para exportar',
                 subtitle: 'Hora de relaxar, bom trabalho.',
             },
+            emptyStatementsResults: {
+                title: 'Nenhuma despesa a ser exibida',
+                subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
                 subtitle: 'Zero despesas. Máximo relaxamento. Bem feito!',
             },
         },
+        statements: 'Declarações',
         unapproved: 'Não aprovado',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCompanyCards: 'Cartões corporativos não aprovados',
