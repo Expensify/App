@@ -60,6 +60,9 @@ type WorkspaceViewTagsProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW>;
 
 function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
+    const backTo = route.params.backTo;
+    const policyID = route.params.policyID;
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -69,13 +72,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
-    const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true}) ?? [];
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
     const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
@@ -115,9 +119,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
+            if (policy === undefined) {
+                return;
+            }
+            setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight, policyCategories, allTransactionViolations);
         },
-        [policyID, route.params.orderWeight],
+        [allTransactionViolations, policy, policyCategories, route.params.orderWeight],
     );
 
     const tagList = useMemo<TagListItem[]>(
@@ -213,7 +220,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        if (policy !== undefined && selectedTags.length > 0) {
+            deletePolicyTags(policy, selectedTags, policyCategories, allTransactionViolations);
+        }
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -283,7 +292,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
+                    if (policy === undefined) {
+                        return;
+                    }
+                    // Disable the selected tags
+                    setWorkspaceTagEnabled(policy, tagsToDisable, route.params.orderWeight, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -295,7 +308,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
+                    if (policy === undefined) {
+                        return;
+                    }
+                    // Enable the selected tags
+                    setWorkspaceTagEnabled(policy, tagsToEnable, route.params.orderWeight, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -315,8 +332,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+    if (policy !== undefined && !!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
+        setPolicyTagsRequired(policy, false, route.params.orderWeight, policyTags, policyCategories, allTransactionViolations);
     }
 
     const navigateToEditTag = () => {
@@ -376,7 +393,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                                     return;
                                 }
 
-                                setPolicyTagsRequired(policyID, on, route.params.orderWeight);
+                                if (policy === undefined) {
+                                    return;
+                                }
+                                setPolicyTagsRequired(policy, on, route.params.orderWeight, policyTags, policyCategories, allTransactionViolations);
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
