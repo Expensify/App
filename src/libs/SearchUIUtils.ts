@@ -51,6 +51,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -1308,7 +1309,7 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'string' && typeof b === 'string') {
-        return isAsc ? a.localeCompare(b) : b.localeCompare(a);
+        return isAsc ? localeCompare(a, b) : localeCompare(b, a);
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
@@ -1378,7 +1379,7 @@ function getSortedReportData(data: TransactionReportGroupListItemType[]) {
             return 0;
         }
 
-        return bNewestTransaction.toLowerCase().localeCompare(aNewestTransaction);
+        return localeCompare(bNewestTransaction.toLowerCase(), aNewestTransaction.toLowerCase());
     });
 }
 
@@ -1411,7 +1412,7 @@ function getSortedReportActionData(data: ReportActionListItemType[]) {
             return 0;
         }
 
-        return bValue.toLowerCase().localeCompare(aValue);
+        return localeCompare(bValue.toLowerCase(), aValue.toLowerCase());
     });
 }
 

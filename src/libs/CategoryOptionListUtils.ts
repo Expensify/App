@@ -264,7 +264,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (!isEmptyObject(subcategories)) {
                 const nestedCategories = flatHierarchy(subcategories);
 
-                acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
+                acc.push(...nestedCategories.sort((a, b) => localeCompare(a.name, b.name)));
             }
 
             return acc;
