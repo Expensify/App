@@ -97,7 +97,7 @@ function IOURequestStepScan({
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, countryCodeByIP} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
@@ -394,11 +394,12 @@ function IOURequestStepScan({
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
+                        countryCodeByIP,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, countryCodeByIP],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -462,6 +463,7 @@ function IOURequestStepScan({
                             currency: initialTransaction?.currency ?? 'USD',
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
+                            countryCodeByIP,
                         });
                         return;
                     }
@@ -555,6 +557,7 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             selfDMReportID,
+            countryCodeByIP,
         ],
     );
 

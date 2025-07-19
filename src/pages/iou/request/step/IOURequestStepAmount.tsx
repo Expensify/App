@@ -65,7 +65,7 @@ function IOURequestStepAmount({
     currentUserPersonalDetails,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate} = useLocalize();
+    const {translate, countryCodeByIP} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
@@ -206,6 +206,7 @@ function IOURequestStepAmount({
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
+                        countryCodeByIP,
                     });
                     return;
                 }
