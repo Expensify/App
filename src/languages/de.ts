@@ -2206,9 +2206,9 @@ const translations = {
             none: 'Keine',
         },
         interestedFeatures: {
-            title: '',
-            featuresAlreadyEnabled: '',
-            featureYouMayBeInterestedIn: '',
+            title: 'Für welche Funktionen interessieren Sie sich?',
+            featuresAlreadyEnabled: 'Ihr Arbeitsbereich hat bereits Folgendes aktiviert:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
         },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',

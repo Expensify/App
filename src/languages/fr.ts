@@ -2208,9 +2208,9 @@ const translations = {
             none: 'Aucun',
         },
         interestedFeatures: {
-            title: '',
-            featuresAlreadyEnabled: '',
-            featureYouMayBeInterestedIn: '',
+            title: 'Quelles fonctionnalités vous intéressent ?',
+            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
+            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
         },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',

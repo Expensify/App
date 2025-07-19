@@ -2191,9 +2191,9 @@ const translations = {
             none: 'None',
         },
         interestedFeatures: {
-            title: '',
-            featuresAlreadyEnabled: '',
-            featureYouMayBeInterestedIn: '',
+            title: 'Jakie funkcje Cię interesują?',
+            featuresAlreadyEnabled: 'Twoje miejsce pracy ma już włączone następujące opcje:',
+            featureYouMayBeInterestedIn: 'Włącz dodatkowe funkcje, które mogą Cię zainteresować:',
         },
         error: {
             requiredFirstName: 'Proszę podać swoje imię, aby kontynuować',
