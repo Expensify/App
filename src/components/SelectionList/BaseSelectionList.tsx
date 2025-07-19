@@ -167,7 +167,30 @@ function BaseSelectionList<TItem extends ListItem>(
     const {isKeyboardShown} = useKeyboardState();
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [currentPage, setCurrentPage] = useState(1);
+    const isItemSelected = useCallback(
+        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
+        [isSelected, selectedItems, canSelectMultiple],
+    );
+    /** Calculates on which page is selected item so we can scroll to it on first render  */
+    const calculateInitialCurrentPage = useCallback(() => {
+        if (canSelectMultiple || sections.length === 0) {
+            return 1;
+        }
+
+        let currentIndex = 0;
+        for (const section of sections) {
+            if (section.data) {
+                for (const item of section.data) {
+                    if (isItemSelected(item)) {
+                        return Math.floor(currentIndex / CONST.MAX_SELECTION_LIST_PAGE_LENGTH) + 1;
+                    }
+                    currentIndex++;
+                }
+            }
+        }
+        return 1;
+    }, [canSelectMultiple, isItemSelected, sections]);
+    const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
@@ -186,11 +209,6 @@ function BaseSelectionList<TItem extends ListItem>(
     };
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
-
-    const isItemSelected = useCallback(
-        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
-        [isSelected, selectedItems, canSelectMultiple],
-    );
 
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
@@ -779,7 +797,9 @@ function BaseSelectionList<TItem extends ListItem>(
                 : 0;
 
         // Reset the current page to 1 when the user types something
-        setCurrentPage(1);
+        if (prevTextInputValue !== textInputValue) {
+            setCurrentPage(1);
+        }
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
