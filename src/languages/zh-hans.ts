@@ -2171,6 +2171,11 @@ const translations = {
             title: '您是否使用任何会计软件？',
             none: 'None',
         },
+        interestedFeatures: {
+            title: '您对哪些功能感兴趣？',
+            featuresAlreadyEnabled: '您的工作区已启用以下功能：',
+            featureYouMayBeInterestedIn: '启用您可能感兴趣的其他功能：',
+        },
         error: {
             requiredFirstName: '请输入您的名字以继续',
         },

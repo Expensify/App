@@ -2193,6 +2193,11 @@ const translations = {
             title: 'Você usa algum software de contabilidade?',
             none: 'Nenhum',
         },
+        interestedFeatures: {
+            title: 'Quais recursos você está interessado?',
+            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+        },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
         },
