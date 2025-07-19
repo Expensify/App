@@ -135,7 +135,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(searchResults?.search, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     return (
