@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -137,6 +138,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -678,7 +680,7 @@ function ReportActionCompose({
                                                     dropTitle={translate('dropzone.addAttachments')}
                                                     dropStyles={styles.attachmentDropOverlay(true)}
                                                     dropTextStyles={styles.attachmentDropText}
-                                                    dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(true)}
+                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
                                                 />
                                             </DragAndDropConsumer>
                                         )}
