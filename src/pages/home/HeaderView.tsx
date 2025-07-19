@@ -10,15 +10,14 @@ import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import {BackArrow, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
-import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportAvatar from '@components/ReportAvatar';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
-import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -41,7 +40,6 @@ import {
     canUserPerformWriteAction,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
-    getIcons,
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyDescriptionText,
@@ -215,7 +213,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isArchived = isArchivedReport(reportNameValuePairs);
     const shouldShowSubscript = shouldReportShowSubscript(report, isArchived);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
@@ -239,6 +236,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             shouldShowRegisterForWebinar={shouldShowRegisterForWebinar}
             shouldShowGuideBooking={shouldShowGuideBooking}
             hasActiveScheduledCall={hasActiveScheduledCall}
+        />
+    );
+
+    const multipleAvatars = (
+        <ReportAvatar
+            reportID={report?.reportID}
+            subscriptFallbackIcon={fallbackIcon}
+            size={shouldShowSubscript ? defaultSubscriptSize : undefined}
+            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />
     );
 
@@ -282,17 +288,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     accessibilityLabel={title}
                                     role={CONST.ROLE.BUTTON}
                                 >
-                                    {shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={icons.at(0) ?? fallbackIcon}
-                                            secondaryAvatar={icons.at(1)}
-                                            size={defaultSubscriptSize}
-                                        />
-                                    ) : (
-                                        <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                                            <MultipleAvatars icons={icons} />
-                                        </OfflineWithFeedback>
-                                    )}
+                                    {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
                                         fsClass="fs-unmask"
                                         style={[styles.flex1, styles.flexColumn]}

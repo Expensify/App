@@ -103,7 +103,10 @@ function Avatar({
     }
 
     return (
-        <View style={[containerStyles, styles.pointerEventsNone]}>
+        <View
+            style={[containerStyles, styles.pointerEventsNone]}
+            testID="Avatar"
+        >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
                     <Image

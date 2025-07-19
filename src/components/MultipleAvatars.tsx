@@ -328,3 +328,4 @@ function MultipleAvatars({
 MultipleAvatars.displayName = 'MultipleAvatars';
 
 export default memo(MultipleAvatars);
+export type {MultipleAvatarsProps};

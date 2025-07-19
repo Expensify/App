@@ -2,11 +2,10 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import ReportAvatar from '@components/ReportAvatar';
 import SelectCircle from '@components/SelectCircle';
-import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -111,25 +110,19 @@ function InviteMemberListItem<TItem extends ListItem>({
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {!!item.icons &&
-                            (item.shouldShowSubscript ? (
-                                <SubscriptAvatar
-                                    mainAvatar={item.icons.at(0) ?? fallbackIcon}
-                                    secondaryAvatar={item.icons.at(1)}
-                                    showTooltip={showTooltip}
-                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={item.icons}
-                                    shouldShowTooltip={showTooltip}
-                                    secondAvatarStyle={[
-                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                    ]}
-                                />
-                            ))}
+                        {!!item.icons && (
+                            <ReportAvatar
+                                subscriptFallbackIcon={fallbackIcon}
+                                subscriptBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                shouldShowTooltip={showTooltip}
+                                secondAvatarStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                ]}
+                                reportID={item.reportID}
+                            />
+                        )}
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <TextWithTooltip
