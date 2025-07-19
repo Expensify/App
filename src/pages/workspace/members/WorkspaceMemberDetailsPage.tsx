@@ -33,6 +33,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {hasUserPendingApprovalForPolicy} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -102,7 +103,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const isReimburser = policy?.achAccount?.reimburser === memberLogin;
+    const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+
+    const hasPendingApproval = hasUserPendingApprovalForPolicy(reports, policyID, route.params.accountID);
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -128,14 +134,57 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = isApproverUserAction(policy, accountID);
+        const isTechnicalContact = policy?.technicalContact === details?.login;
+        const exporters = [
+            policy?.connections?.intacct?.config?.export?.exporter,
+            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+        ];
+
+        const isUserExporter = exporters.includes(details.login);
+
+        if (hasPendingApproval) {
+            return translate('workspace.people.removeMemberPromptPendingApproval', {
+                memberName: displayName,
+            });
+        }
+
+        if (isTechnicalContact) {
+            return translate('workspace.people.removeMemberPromptTechContact', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isReimburser) {
+            return translate('workspace.people.removeMemberPromptReimburser', {
+                memberName: displayName,
+            });
+        }
+
+        if (isUserExporter) {
+            return translate('workspace.people.removeMemberPromptExporter', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
+
+        if (isApprover) {
+            return translate('workspace.people.removeMemberPromptApprover', {
+                approver: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         return translate('workspace.people.removeMembersWarningPrompt', {
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
+    }, [policy, accountID, details.login, hasPendingApproval, isReimburser, translate, displayName, policyOwnerDisplayName]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
@@ -172,6 +221,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
+        if (isReimburser || hasPendingApproval) {
+            setIsCannotRemoveUser(true);
+            return;
+        }
         setIsRemoveMemberConfirmModalVisible(true);
     };
 
@@ -346,6 +399,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 prompt={confirmModalPrompt}
                                 confirmText={translate('common.remove')}
                                 cancelText={translate('common.cancel')}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.people.removeMemberTitle')}
+                                isVisible={isCannotRemoveUser}
+                                onConfirm={() => {
+                                    setIsCannotRemoveUser(false);
+                                }}
+                                prompt={confirmModalPrompt}
+                                confirmText={translate('common.buttonConfirm')}
+                                success
+                                shouldShowCancelButton={false}
                             />
                         </View>
                         <View style={styles.w100}>
