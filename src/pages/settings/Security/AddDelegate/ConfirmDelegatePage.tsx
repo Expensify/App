@@ -11,16 +11,13 @@ import Text from '@components/Text';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {useCustomHistoryParam} from '@libs/Navigation/AppNavigator/customHistory';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DelegateMagicCodeModal from './DelegateMagicCodeModal';
@@ -28,20 +25,19 @@ import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
     const [shouldDisableModalAnimation, setShouldDisableModalAnimation] = useState(true);
-    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useCustomHistoryParam();
     const [shouldShowLoading, setShouldShowLoading] = useState(isValidateCodeActionModalVisible ?? false);
 
     const personalDetails = getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
-    const formattedLogin = formatPhoneNumberWithCountryCode(login ?? '', countryCodeByIP);
+    const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));

@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -39,10 +38,9 @@ type AssigneeStepProps = {
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
@@ -131,7 +129,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
-                        name: formatPhoneNumberWithCountryCode(email, countryCodeByIP),
+                        name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
                     },
@@ -142,7 +140,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text');
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, countryCodeByIP]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
