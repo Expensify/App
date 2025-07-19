@@ -3,7 +3,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getSelectedFeed} from '@libs/CardUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {clearErrorField, setFeedStatementEndDay} from '@libs/actions/CompanyCards';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -27,23 +29,34 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
     const submit = useCallback(
-        // s77rt make use of statementCloseDate / statementCustomCloseDate and remove disable lint rule
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => {
+        (newStatementPeriodEndDate: CompanyCardStatementCloseDate) => {
             if (selectedFeed) {
-                // s77rt call API command
+                setFeedStatementEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDate, statementPeriodEndDay ?? null);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed],
+        [policyID, selectedFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {
         Navigation.goBack();
     }, []);
+
+    const clearError = useCallback(() => {
+        if (!selectedFeed) {
+            return;
+        }
+
+        clearErrorField(selectedFeed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
+    }, [selectedFeed, domainOrWorkspaceAccountID]);
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;
@@ -60,6 +73,10 @@ function WorkspaceCompanyCardStatementCloseDatePage({
                 onSubmit={submit}
                 onBackButtonPress={goBack}
                 enabledWhenOffline
+                defaultDate={statementPeriodEndDay}
+                pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}
+                errors={selectedFeedData?.errorFields?.statementPeriodEndDay}
+                onCloseError={clearError}
             />
         </AccessOrNotFoundWrapper>
     );
