@@ -13,6 +13,7 @@ import * as AppActions from '@libs/actions/App';
 import * as TestHelper from '../utils/TestHelper';
 import { createRandomReport } from "../utils/collections/reports";
 import waitForBatchedUpdatesWithAct from "../utils/waitForBatchedUpdatesWithAct";
+import waitForNetworkPromises from "../utils/waitForNetworkPromises";
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
@@ -41,14 +42,20 @@ function getInitialURL() {
 
 describe('Deep linking', () => {
   let lastVisitedPath: string | undefined;
+  let originalSignInWithShortLivedAuthToken: typeof Session.signInWithShortLivedAuthToken;
+  let originalOpenApp: typeof AppActions.openApp;
+
+  beforeAll(() => {
+    originalSignInWithShortLivedAuthToken = Session.signInWithShortLivedAuthToken;
+    originalOpenApp = AppActions.openApp;
+  });
+
   beforeEach(() => {
-    Onyx.clear();
     Onyx.connect({
       key: ONYXKEYS.LAST_VISITED_PATH,
       callback: (val: OnyxEntry<string>) => lastVisitedPath = val
     });
 
-    const originalSignInWithShortLivedAuthToken = Session.signInWithShortLivedAuthToken;
     jest.spyOn(Session, 'signInWithShortLivedAuthToken').mockImplementation(() => {
       Onyx.merge(ONYXKEYS.CREDENTIALS, {
         login: TEST_USER_LOGIN_1,
@@ -73,26 +80,29 @@ describe('Deep linking', () => {
       return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1);
     });
 
-    const originalOpenApp = AppActions.openApp;
-
     jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
       await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
       return originalOpenApp();
     });
-      
   });
-  afterEach(() => {
+
+  afterEach(async () => {
+    await Onyx.clear();
+    await waitForNetworkPromises();
     jest.clearAllMocks();
+    lastVisitedPath = undefined;
   });
 
   it('should not reuse the last deep link and log in when signing out', async () => {
+    expect(hasAuthToken()).toBe(false);
+
     const cleanUpSpy = jest.spyOn(Session, 'cleanupSession');
     const url = getInitialURL();
 
-    expect(hasAuthToken()).toBe(false);
-
     await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
     Linking.setInitialURL(url);
+
+    await waitForBatchedUpdatesWithAct();
 
     render(<App />);
 
@@ -123,5 +133,35 @@ describe('Deep linking', () => {
       // 2. signOutAndRedirectToSignIn call
       expect(cleanUpSpy).toHaveBeenCalledTimes(2);
     });
+
+    cleanUpSpy.mockClear();
+  });
+
+  it('should not remember the report path of the last deep link login after signing out and in again', async () => {
+    expect(hasAuthToken()).toBe(false);
+
+    const url = getInitialURL();
+    Linking.setInitialURL(url);
+
+    render(<App />);
+
+    await waitForBatchedUpdatesWithAct();
+
+    expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+
+    expect(hasAuthToken()).toBe(true);
+
+    signOutAndRedirectToSignIn();
+
+    await waitForBatchedUpdatesWithAct();
+
+    expect(hasAuthToken()).toBe(false);
+
+    await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+
+    await waitForBatchedUpdatesWithAct();
+
+    expect(lastVisitedPath).toBeDefined();
+    expect(lastVisitedPath).not.toBe(`/${ROUTES.REPORT}/${report.reportID}`);
   });
 });
