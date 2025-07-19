@@ -1,4 +1,4 @@
-import {compareUserInList} from '@pages/home/report/ReportActionCompose/SuggestionMention';
+import {compareUserInList} from '@libs/SuggestionUtils';
 
 describe('compareUserInList', () => {
     it('Should compare the weight if the weight is different', () => {
