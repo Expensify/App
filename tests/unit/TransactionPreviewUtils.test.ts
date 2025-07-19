@@ -403,7 +403,7 @@ describe('TransactionPreviewUtils', () => {
 
     describe('getUniqueActionErrors', () => {
         test('returns an empty array if there are no actions', () => {
-            expect(getUniqueActionErrors({})).toEqual([]);
+            expect(getUniqueActionErrors({}, undefined)).toEqual([]);
         });
 
         test('returns unique error messages from report actions', () => {
@@ -416,7 +416,7 @@ describe('TransactionPreviewUtils', () => {
             } as unknown as ReportActions;
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
-            expect(getUniqueActionErrors(actions).sort()).toEqual(expectedErrors.sort());
+            expect(getUniqueActionErrors(actions, undefined).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
@@ -426,7 +426,7 @@ describe('TransactionPreviewUtils', () => {
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
-            expect(getUniqueActionErrors(actions)).toEqual(['Error Z2']);
+            expect(getUniqueActionErrors(actions, undefined)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
@@ -437,7 +437,7 @@ describe('TransactionPreviewUtils', () => {
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
-            expect(getUniqueActionErrors(actions)).toEqual(['Error B', 'Error D']);
+            expect(getUniqueActionErrors(actions, undefined)).toEqual(['Error B', 'Error D']);
         });
     });
 });
