@@ -3390,6 +3390,11 @@ function openReportFromDeepLink(url: string) {
         return;
     }
 
+    // If the route is the transition route, we don't want to navigate and start the onboarding flow
+    if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        return;
+    }
+
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
@@ -3427,6 +3432,11 @@ function openReportFromDeepLink(url: string) {
                             }
 
                             if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            // Navigation for signed users is handled by react-navigation.
+                            if (isAuthenticated) {
                                 return;
                             }
 
@@ -5663,6 +5673,22 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
             [optimisticMovedReportAction.reportActionID]: {
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
+        },
+    });
+
+    // 5. Make sure the expense report is not archived
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        value: {
+            private_isArchived: null,
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        value: {
+            private_isArchived: DateUtils.getDBTime(),
         },
     });
 
