@@ -1385,7 +1385,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
         return {
             ...paddingStyle,
-            marginTop: hasLabel ? 8 : 16,
+            marginTop: hasLabel ? variables.inputIconMarginTopSmall : variables.inputIconMarginTopLarge,
         };
     },
 
