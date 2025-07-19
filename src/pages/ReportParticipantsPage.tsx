@@ -190,7 +190,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             });
         });
 
-        result = result.sort((a, b) =>  localeCompare((a.text ?? '').toLowerCase(), (b.text ?? '').toLowerCase()));
+        result = result.sort((a, b) => localeCompare((a.text ?? '').toLowerCase(), (b.text ?? '').toLowerCase()));
         return result;
     };
 
