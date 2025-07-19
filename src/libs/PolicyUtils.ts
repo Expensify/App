@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -1062,7 +1063,7 @@ function getNetSuiteImportCustomFieldLabel(
 
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet)
-        .sort((a, b) => b.localeCompare(a))
+        .sort((a, b) => localeCompare(b, a))
         .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
@@ -1171,7 +1172,7 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
     if (workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
         return 1;
     }
-    return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
+    return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
 };
 
 /**
