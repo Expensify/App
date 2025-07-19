@@ -26,7 +26,7 @@ function CategoryDefaultTaxRatePage({
     },
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
 
     const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
@@ -48,8 +48,8 @@ function CategoryDefaultTaxRatePage({
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
             }))
-            .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, selectedTaxRate, textForDefault]);
+            .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
+    }, [policy, selectedTaxRate, textForDefault, localeCompare]);
 
     return (
         <AccessOrNotFoundWrapper
