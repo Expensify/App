@@ -82,7 +82,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.flex1]}>
                         <SubscriptAvatar
                             mainAvatar={memberAvatar}
                             subscriptIcon={cardIcon}
@@ -101,9 +101,6 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                         </View>
                     </View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
             </View>
         </View>
     );
