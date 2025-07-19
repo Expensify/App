@@ -44,7 +44,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     const {translate, formatPhoneNumber} = useLocalize();
     const illustrations = useThemeIllustrations();
 
-    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem]);
+    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
 
     const [memberAvatar, cardIcon] = useMemo(() => {
         const avatar: Icon = {

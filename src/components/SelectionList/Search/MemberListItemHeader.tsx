@@ -28,7 +28,10 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
-    const [formattedDisplayName, formattedLogin] = useMemo(() => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')], [memberItem]);
+    const [formattedDisplayName, formattedLogin] = useMemo(
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
+        [memberItem, formatPhoneNumber],
+    );
 
     // s77rt add total cell, action cell and collapse/expand button
 
