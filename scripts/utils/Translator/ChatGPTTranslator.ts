@@ -39,7 +39,6 @@ class ChatGPTTranslator extends Translator {
                     if (attempt > 0) {
                         console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
                     }
-                    console.log(`🧠 Translated "${text}" to ${targetLang}: "${result}"`);
                     return result;
                 }
 
