@@ -48,6 +48,9 @@ type LocaleContextProps = {
 
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale | undefined;
+
+    /** The country code by IP */
+    countryCodeByIP: number;
 };
 
 const LocaleContext = createContext<LocaleContextProps>({
@@ -61,12 +64,14 @@ const LocaleContext = createContext<LocaleContextProps>({
     toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
     preferredLocale: undefined,
+    countryCodeByIP: 1,
 });
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
 
     useEffect(() => {
         if (areTranslationsLoading) {
@@ -131,8 +136,9 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             toLocaleOrdinal,
             fromLocaleDigit,
             preferredLocale: currentLocale,
+            countryCodeByIP,
         }),
-        [translate, numberFormat, getLocalDateFromDatetime, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, currentLocale],
+        [translate, numberFormat, getLocalDateFromDatetime, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, currentLocale, countryCodeByIP],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
