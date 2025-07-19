@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {PlaidData} from '@src/types/onyx';
 import Manual from './subSteps/Manual';
 import Plaid from './subSteps/Plaid';
 
@@ -24,10 +25,14 @@ type BankInfoProps = {
 
     /** Set the step of the USD verified bank account flow */
     setUSDBankAccountStep: (step: string | null) => void;
+
+    /** Plaid data */
+    plaidData?: PlaidData;
 };
 
 type BankInfoSubStepProps = SubStepProps & {
     setUSDBankAccountStep: (step: string | null) => void;
+    plaidData?: PlaidData;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
@@ -35,7 +40,7 @@ const manualSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Manual
 const plaidSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
+function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep, plaidData}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true});
@@ -141,6 +146,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 onNext={nextScreen}
                 onMove={moveTo}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+                plaidData={plaidData}
             />
         </InteractiveStepWrapper>
     );
