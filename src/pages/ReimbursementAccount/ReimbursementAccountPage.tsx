@@ -466,6 +466,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     return (
         <VerifiedBankAccountFlowEntryPoint
+            setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+            setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
             reimbursementAccount={reimbursementAccount}
             onContinuePress={isNonUSDWorkspace ? continueNonUSDVBBASetup : continueUSDVBBASetup}
             policyName={policyName}

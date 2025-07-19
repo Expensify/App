@@ -163,6 +163,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
             headerTitle={translate('signerInfoStep.signerInfo')}
             stepNames={stepNames}
             startStepIndex={4}
+            shouldBlockOffline
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
                 <YesNoStep

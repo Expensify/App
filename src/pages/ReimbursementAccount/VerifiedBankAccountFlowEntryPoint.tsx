@@ -68,6 +68,12 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Set step for USD flow */
     setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+
+    /** Method to set the state of shouldShowContinueSetupButton */
+    setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -84,6 +90,8 @@ function VerifiedBankAccountFlowEntryPoint({
     toggleValidateCodeActionModal,
     setNonUSDBankAccountStep,
     setUSDBankAccountStep,
+    setShouldShowContinueSetupButton,
+    setShouldShowConnectedVerifiedBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -295,6 +303,8 @@ function VerifiedBankAccountFlowEntryPoint({
                     isNonUSDWorkspace={isNonUSDWorkspace}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+                    setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 />
             )}
 

@@ -66,6 +66,7 @@ function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProp
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('countryStep.confirmCurrency')}
             stepNames={stepNames}
+            shouldBlockOffline
             startStepIndex={0}
         >
             <SubStep

@@ -29,8 +29,8 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -77,6 +77,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}
