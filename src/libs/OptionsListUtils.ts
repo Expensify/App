@@ -2569,7 +2569,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 }
 
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
-    return items.sort((a, b) => localeCompare(a[key] ?? '', b[key] ?? ''));
+    return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
 function getEmptyOptions(): Options {
