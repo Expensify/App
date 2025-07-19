@@ -36,7 +36,7 @@ function navigateToEditChatName() {
 function NewChatConfirmPage() {
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
@@ -72,8 +72,8 @@ function NewChatConfirmPage() {
                     };
                     return section;
                 })
-                .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate],
+                .sort((a, b) => localeCompare(a.text?.toLowerCase() ?? '', b.text?.toLowerCase() ?? '')),
+        [selectedOptions, personalData.accountID, translate, localeCompare],
     );
 
     /**

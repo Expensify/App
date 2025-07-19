@@ -7,12 +7,12 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CategoryUtils from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {setPolicyCategoryTax} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -26,15 +26,12 @@ function CategoryDefaultTaxRatePage({
     },
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
 
-    const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
+    const selectedTaxRate = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
 
-    const textForDefault = useCallback(
-        (taxID: string, taxRate: TaxRate) => CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates),
-        [policy?.taxRates, translate],
-    );
+    const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
 
     const taxesList = useMemo<ListItem[]>(() => {
         if (!policy) {
@@ -48,8 +45,8 @@ function CategoryDefaultTaxRatePage({
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
             }))
-            .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, selectedTaxRate, textForDefault]);
+            .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
+    }, [policy, selectedTaxRate, textForDefault, localeCompare]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -80,7 +77,7 @@ function CategoryDefaultTaxRatePage({
                             return;
                         }
 
-                        Category.setPolicyCategoryTax(policyID, categoryName, item.keyForList);
+                        setPolicyCategoryTax(policyID, categoryName, item.keyForList);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     shouldSingleExecuteRowSelect

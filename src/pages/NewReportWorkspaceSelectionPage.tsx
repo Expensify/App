@@ -35,7 +35,7 @@ function NewReportWorkspaceSelectionPage() {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -100,8 +100,8 @@ function NewReportWorkspaceSelectionPage() {
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             }))
-            .sort((a, b) => a.text.localeCompare(b.text.toLowerCase()));
-    }, [policies, isOffline, currentUserPersonalDetails?.login]);
+            .sort((a, b) => localeCompare(a.text, b.text));
+    }, [policies, isOffline, currentUserPersonalDetails?.login, localeCompare]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),

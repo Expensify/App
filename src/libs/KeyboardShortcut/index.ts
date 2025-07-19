@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import * as KeyCommand from 'react-native-key-command';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import localeCompare from '@libs/LocaleCompare';
 import CONST from '@src/CONST';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 
@@ -31,10 +30,6 @@ type Shortcut = {
 
 // Documentation information for keyboard shortcuts that are displayed in the keyboard shortcuts informational modal
 const documentedShortcuts: Record<string, Shortcut> = {};
-
-function getDocumentedShortcuts(): Shortcut[] {
-    return Object.values(documentedShortcuts).sort((a, b) => localeCompare(a.displayName, b.displayName));
-}
 
 const keyInputEnter = KeyCommand?.constants?.keyInputEnter?.toString() ?? 'keyInputEnter';
 const keyInputEscape = KeyCommand?.constants?.keyInputEscape?.toString() ?? 'keyInputEscape';
@@ -192,7 +187,6 @@ function subscribe(
 const KeyboardShortcut = {
     subscribe,
     getDisplayName,
-    getDocumentedShortcuts,
     getPlatformEquivalentForKeys,
 };
 
