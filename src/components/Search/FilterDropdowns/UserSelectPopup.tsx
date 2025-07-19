@@ -1,7 +1,7 @@
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';

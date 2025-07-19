@@ -1,6 +1,7 @@
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -22,7 +23,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -57,7 +58,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+    contentContainerStyle?: ContentStyle;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -81,22 +82,15 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-    hash?: number,
-) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
+function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
             shouldAnimateInHighlight,
-            hash,
         };
     }
 
@@ -104,22 +98,18 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
         return {
             ...item,
             shouldAnimateInHighlight,
-            hash,
         };
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) =>
-                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
-              ),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
               isSelected:
                   item?.transactions?.length > 0 &&
                   item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
-              hash,
           };
 }
 
@@ -157,6 +147,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
+        currentSearchKey,
         setCurrentSearchHash,
         setSelectedTransactions,
         selectedTransactions,
@@ -175,6 +166,20 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
+    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        canEvict: false,
+        canBeMissing: true,
+        selector: (allReportActions) => {
+            return Object.fromEntries(
+                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
+                    return [reportID, filteredReportActions];
+                }),
+            );
+        },
+    });
+
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
         () =>
@@ -211,6 +216,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
             if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
@@ -226,11 +235,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        if (isOffline) {
+        if (!isFocused || isOffline) {
             return;
         }
 
         handleSearch({queryJSON, offset});
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -259,8 +271,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, groupBy);
-    }, [searchResults, isDataLoaded, type, status, groupBy]);
+
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearchKey);
+    }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -271,6 +284,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isRefreshingSelection = useRef(false);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
@@ -330,7 +347,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode]);
+    }, [data, setSelectedTransactions, isExportMode, isFocused]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -356,7 +373,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [selectedTransactions]);
 
     useEffect(() => {
-        if (!data.length || isRefreshingSelection.current || !isFocused) {
+        if (!isFocused) {
+            return;
+        }
+
+        if (!data.length || isRefreshingSelection.current) {
             return;
         }
         const areItemsGrouped = !!groupBy;
@@ -469,6 +490,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onViewableItemsChanged = useCallback(
         ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            if (!isFocused) {
+                return;
+            }
+
             const isFirstItemVisible = viewableItems.at(0)?.index === 1;
             // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
             if (shouldShowLoadingState || !isFirstItemVisible) {
@@ -481,7 +506,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             // Therefore, when the user scrolls to the top, we need to refresh the search results.
             setOffset(0);
         },
-        [shouldShowLoadingState],
+        [shouldShowLoadingState, isFocused],
     );
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
@@ -506,19 +531,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
+                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, hash],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     const fetchMoreResults = useCallback(() => {
-        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
@@ -632,7 +657,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         />
                     )
                 }
-                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onScroll={onSearchListScroll}
