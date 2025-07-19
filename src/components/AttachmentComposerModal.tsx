@@ -2,6 +2,7 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {Direction} from 'react-native-modal';
 import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -57,9 +58,20 @@ type AttachmentComposerModalProps = {
 
     /** Should disable send button */
     shouldDisableSendButton: boolean;
+
+    /** In which direction modal will swipe */
+    swipeDirection?: Direction | undefined;
 };
 
-function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide = () => {}, headerTitle, children, shouldDisableSendButton = false}: AttachmentComposerModalProps) {
+function AttachmentComposerModal({
+    onConfirm,
+    onModalShow = () => {},
+    onModalHide = () => {},
+    headerTitle,
+    children,
+    shouldDisableSendButton = false,
+    swipeDirection,
+}: AttachmentComposerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -236,6 +248,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         <>
             {PDFValidationComponent}
             <Modal
+                swipeDirection={swipeDirection}
                 type={modalType}
                 onClose={closeModal}
                 isVisible={isModalOpen}
