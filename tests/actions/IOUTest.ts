@@ -658,6 +658,7 @@ describe('actions/IOU', () => {
                     merchant,
                     comment,
                 },
+                countryCodeByIP,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -888,6 +889,7 @@ describe('actions/IOU', () => {
                             merchant: '',
                             comment,
                         },
+                        countryCodeByIP,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1107,6 +1109,7 @@ describe('actions/IOU', () => {
                                 merchant: '',
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1260,6 +1263,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                countryCodeByIP,
             });
             return (
                 waitForBatchedUpdates()
@@ -1590,6 +1594,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment: '',
                 },
+                countryCodeByIP,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1610,6 +1615,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment: '',
                 },
+                countryCodeByIP,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -1629,6 +1635,7 @@ describe('actions/IOU', () => {
                     comment: '',
                     validWaypoints: {},
                 },
+                countryCodeByIP,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1646,6 +1653,7 @@ describe('actions/IOU', () => {
                     comment: '',
                     validWaypoints: {},
                 },
+                countryCodeByIP,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -1816,6 +1824,7 @@ describe('actions/IOU', () => {
                             created: '',
                             tag: '',
                             existingSplitChatReportID: '',
+                            countryCodeByIP,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -2142,6 +2151,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: workspaceReportID,
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -2189,6 +2199,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: reportID,
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -2203,6 +2214,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: reportID,
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -2253,6 +2265,7 @@ describe('actions/IOU', () => {
                 existingSplitChatReportID: workspaceReportID,
                 ...draftTransaction,
                 comment: '',
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -2296,6 +2309,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: reportID,
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -2354,7 +2368,7 @@ describe('actions/IOU', () => {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            saveSplitTransactions(draftTransaction, 1);
+            saveSplitTransactions(draftTransaction, 1, countryCodeByIP);
 
             await waitForBatchedUpdates();
 
@@ -2413,7 +2427,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(draftTransaction, hash);
+            saveSplitTransactions(draftTransaction, hash, countryCodeByIP);
 
             await waitForBatchedUpdates();
 
@@ -2455,6 +2469,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                countryCodeByIP,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -2688,6 +2703,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -2816,6 +2832,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3036,6 +3053,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3135,6 +3153,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                countryCodeByIP,
             });
             await waitForBatchedUpdates();
 
@@ -3355,6 +3374,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -3875,6 +3895,7 @@ describe('actions/IOU', () => {
                         merchant: '',
                         comment: comment2,
                     },
+                    countryCodeByIP,
                 });
             }
 
@@ -3933,6 +3954,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                countryCodeByIP,
             });
             await waitForBatchedUpdates();
 
@@ -4077,6 +4099,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4185,6 +4208,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4350,6 +4374,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            countryCodeByIP,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5167,6 +5192,7 @@ describe('actions/IOU', () => {
                     actionableWhisperReportActionID: '1',
                     linkedTrackedExpenseReportID: '1',
                 },
+                countryCodeByIP,
             });
 
             await waitForBatchedUpdates();
@@ -5858,6 +5884,7 @@ describe('actions/IOU', () => {
                         merchant,
                         comment,
                     },
+                    countryCodeByIP,
                 });
             }
             await waitForBatchedUpdates();
@@ -5938,6 +5965,7 @@ describe('actions/IOU', () => {
                         merchant,
                         comment,
                     },
+                    countryCodeByIP,
                 });
             }
             await waitForBatchedUpdates();
@@ -6406,6 +6434,7 @@ describe('actions/IOU', () => {
                         merchant: 'NASDAQ',
                         comment: '*hey* `hey`',
                     },
+                    countryCodeByIP,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -6457,7 +6486,7 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(draftTransaction, -2);
+                saveSplitTransactions(draftTransaction, -2, countryCodeByIP);
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
