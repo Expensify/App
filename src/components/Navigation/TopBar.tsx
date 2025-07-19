@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -61,6 +62,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                <Badge text="X16" />
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
