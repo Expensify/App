@@ -11,7 +11,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -42,7 +41,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const illustrations = useThemeIllustrations();
 
     const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem]);
