@@ -138,7 +138,19 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             preferredLocale: currentLocale,
             countryCodeByIP,
         }),
-        [translate, numberFormat, getLocalDateFromDatetime, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, currentLocale, countryCodeByIP],
+        [
+            translate,
+            numberFormat,
+            getLocalDateFromDatetime,
+            datetimeToRelative,
+            datetimeToCalendarTime,
+            formatPhoneNumber,
+            toLocaleDigit,
+            toLocaleOrdinal,
+            fromLocaleDigit,
+            currentLocale,
+            countryCodeByIP,
+        ],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;

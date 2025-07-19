@@ -51,7 +51,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
-import {formatPhoneNumber, formatPhoneNumberWithCountryCode} from './LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -426,7 +426,7 @@ function getTransactionItemCommonFormattedProperties(
         toName = getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID));
     }
 
-    const formattedTo = formatPhoneNumber(toName);
+    const formattedTo = formatPhoneNumberWithCountryCode(toName, countryCodeByIP);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem, policy as OnyxTypes.Policy);
@@ -696,7 +696,12 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey, countryCodeByIP: number): TransactionListItemType[] {
+function getTransactionsSections(
+    data: OnyxTypes.SearchResults['data'],
+    metadata: OnyxTypes.SearchResults['search'],
+    currentSearch: SearchKey,
+    countryCodeByIP: number,
+): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -988,7 +993,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], countryCodeByIP: number): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1001,8 +1006,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
 
                 const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
                 const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
-                const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
-                const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
+                const formattedAssignee = formatPhoneNumberWithCountryCode(getDisplayNameOrDefault(assignee), countryCodeByIP);
+                const formattedCreatedBy = formatPhoneNumberWithCountryCode(getDisplayNameOrDefault(createdBy), countryCodeByIP);
 
                 const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
                 const parentReport = getReportOrDraftReport(taskItem.parentReportID);
@@ -1241,13 +1246,12 @@ function getSections(
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data);
+        return getTaskSections(data, countryCodeByIP);
     }
 
     if (groupBy) {
