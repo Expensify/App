@@ -23,7 +23,7 @@ type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
 type KYCWallProps = {
     /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute: Route;
+    addBankAccountRoute?: Route;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
@@ -62,7 +62,7 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
+    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View | null>) => void;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};

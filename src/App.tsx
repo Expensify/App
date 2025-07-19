@@ -20,7 +20,7 @@ import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
-import OnyxProvider from './components/OnyxProvider';
+import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
 import SafeArea from './components/SafeArea';
@@ -41,23 +41,10 @@ import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import './libs/HybridApp';
-import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import type {Route} from './ROUTES';
+import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import './setup/backgroundTask';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
-
-/**
- * Properties passed to the top-level React Native component by HybridApp.
- * These will always be `undefined` in "pure" NewDot builds.
- */
-type AppProps = {
-    /** The URL specifying the initial navigation destination when the app opens */
-    url?: Route;
-    /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
-    hybridAppSettings?: string;
-};
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -72,64 +59,57 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, hybridAppSettings}: AppProps) {
+function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider url={url}>
-                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
+                <InitialURLContextProvider>
+                    <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
-                        <SafeAreaProvider
-                            initialMetrics={{
-                                insets: {top: 0, right: 0, bottom: 0, left: 0},
-                                frame: {x: 0, y: 0, width: 0, height: 0},
-                            }}
+                        <ComposeProviders
+                            components={[
+                                OnyxListItemProvider,
+                                ThemeProvider,
+                                ThemeStylesProvider,
+                                ThemeIllustrationsProvider,
+                                SafeAreaProvider,
+                                HTMLEngineProvider,
+                                PortalProvider,
+                                SafeArea,
+                                LocaleContextProvider,
+                                PopoverContextProvider,
+                                CurrentReportIDContextProvider,
+                                ScrollOffsetContextProvider,
+                                AttachmentModalContextProvider,
+                                PickerStateProvider,
+                                EnvironmentProvider,
+                                CustomStatusBarAndBackgroundContextProvider,
+                                ActiveElementRoleProvider,
+                                ActionSheetAwareScrollViewProvider,
+                                PlaybackContextProvider,
+                                FullScreenContextProvider,
+                                VolumeContextProvider,
+                                VideoPopoverMenuContextProvider,
+                                KeyboardProvider,
+                                KeyboardStateProvider,
+                                SearchRouterContextProvider,
+                                ProductTrainingContextProvider,
+                                InputBlurContextProvider,
+                                FullScreenBlockingViewContextProvider,
+                                FullScreenLoaderContextProvider,
+                            ]}
                         >
-                            <ComposeProviders
-                                components={[
-                                    OnyxProvider,
-                                    ThemeProvider,
-                                    ThemeStylesProvider,
-                                    ThemeIllustrationsProvider,
-                                    PortalProvider,
-                                    SafeArea,
-                                    LocaleContextProvider,
-                                    HTMLEngineProvider,
-                                    PopoverContextProvider,
-                                    CurrentReportIDContextProvider,
-                                    ScrollOffsetContextProvider,
-                                    ReportAttachmentsProvider,
-                                    PickerStateProvider,
-                                    EnvironmentProvider,
-                                    CustomStatusBarAndBackgroundContextProvider,
-                                    ActiveElementRoleProvider,
-                                    ActionSheetAwareScrollViewProvider,
-                                    PlaybackContextProvider,
-                                    FullScreenContextProvider,
-                                    VolumeContextProvider,
-                                    VideoPopoverMenuContextProvider,
-                                    KeyboardProvider,
-                                    KeyboardStateProvider,
-                                    SearchRouterContextProvider,
-                                    ProductTrainingContextProvider,
-                                    InputBlurContextProvider,
-                                    FullScreenBlockingViewContextProvider,
-                                    FullScreenLoaderContextProvider,
-                                ]}
-                            >
-                                <CustomStatusBarAndBackground />
-                                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
-                                    <ColorSchemeWrapper>
-                                        <Expensify />
-                                    </ColorSchemeWrapper>
-                                </ErrorBoundary>
-                                <NavigationBar />
-                            </ComposeProviders>
-                        </SafeAreaProvider>
+                            <CustomStatusBarAndBackground />
+                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                <ColorSchemeWrapper>
+                                    <Expensify />
+                                </ColorSchemeWrapper>
+                            </ErrorBoundary>
+                            <NavigationBar />
+                        </ComposeProviders>
                     </GestureHandlerRootView>
                 </InitialURLContextProvider>
             </SplashScreenStateContextProvider>
@@ -140,5 +120,3 @@ function App({url, hybridAppSettings}: AppProps) {
 App.displayName = 'App';
 
 export default App;
-
-export type {AppProps};

@@ -4,11 +4,15 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
+import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
@@ -156,6 +160,43 @@ function getTagViolationsForMultiLevelTags(
     }
 
     return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, updatedTransaction);
+}
+
+/**
+ * Extracts unique error messages from errors and actions
+ */
+function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleContextProps['translate']): string[] {
+    const uniqueMessages = new Set<string>();
+
+    // Combine transaction and action errors
+    let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...errors};
+    errorActions.forEach((action) => {
+        if (!action.errors) {
+            return;
+        }
+        allErrors = {...allErrors, ...action.errors};
+    });
+
+    // Extract error messages
+    Object.values(allErrors).forEach((errorValue) => {
+        if (!errorValue) {
+            return;
+        }
+        if (typeof errorValue === 'string') {
+            uniqueMessages.add(errorValue);
+        } else if (isReceiptError(errorValue)) {
+            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+        } else {
+            Object.values(errorValue).forEach((nestedErrorValue) => {
+                if (!nestedErrorValue) {
+                    return;
+                }
+                uniqueMessages.add(nestedErrorValue);
+            });
+        }
+    });
+
+    return Array.from(uniqueMessages);
 }
 
 const ViolationsUtils = {
@@ -471,6 +512,33 @@ const ViolationsUtils = {
     // We have to use regex, because Violation limit is given in a inconvenient form: "$2,000.00"
     getViolationAmountLimit(violation: TransactionViolation): number {
         return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
+    },
+
+    getRBRMessages(
+        transaction: Transaction,
+        transactionViolations: TransactionViolation[],
+        translate: LocaleContextProps['translate'],
+        missingFieldError?: string,
+        transactionThreadActions?: ReportAction[],
+    ): string {
+        const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
+
+        return [
+            ...errorMessages,
+            ...(missingFieldError ? [`${missingFieldError}.`] : []),
+            // Some violations end with a period already so lets make sure the connected messages have only single period between them
+            // and end with a single dot.
+            ...transactionViolations.map((violation) => {
+                const message = ViolationsUtils.getViolationTranslation(violation, translate);
+                if (!message) {
+                    return;
+                }
+                const textMessage = Parser.htmlToText(message);
+                return textMessage.endsWith('.') ? message : `${message}.`;
+            }),
+        ]
+            .filter(Boolean)
+            .join(' ');
     },
 };
 

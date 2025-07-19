@@ -1,15 +1,15 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowOneTransactionThreadID, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -25,9 +25,10 @@ describe('ReportActionsUtils', () => {
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        TranslationStore.load(CONST.LOCALES.DEFAULT);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return waitForBatchedUpdates();
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
@@ -855,7 +856,7 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getSendMoneyFlowOneTransactionThreadID', () => {
+    describe('getSendMoneyFlowAction', () => {
         const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
         const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
         const childReportID = `${ONYXKEYS.COLLECTION.REPORT}childReport123` as const;
@@ -890,27 +891,27 @@ describe('ReportActionsUtils', () => {
         };
 
         it('should return undefined for a single non-IOU action', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([nonIOUAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([nonIOUAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for multiple IOU actions regardless of type', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction, payAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction, payAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for a single IOU action that is not `Pay`', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([createAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return the appropriate childReportID for a valid single `Pay` IOU action in DM chat', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockedReports[mockDMChatReportID])).toEqual(childReportID);
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockDMChatReportID])?.childReportID).toEqual(childReportID);
         });
 
         it('should return undefined for a valid single `Pay` IOU action in a chat that is not DM', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockedReports[mockChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction, createAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction, createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
     });
 

@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -8,23 +7,27 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
-import {openPlaidCompanyCardLogin} from '@userActions/Plaid';
+import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
+function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID?: string}) {
+    const {isDevelopment} = useEnvironment();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -39,6 +42,10 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
     const {isOffline} = useNetwork();
+    const domain = getDomainNameForPolicy(policyID);
+
+    // s77rt remove DEV lock
+    const shouldSelectStatementCloseDate = isDevelopment;
 
     const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
 
@@ -76,7 +83,7 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
             return unsubscribeToNavigationShortcuts;
         }
         if (addNewCard?.data?.selectedCountry) {
-            openPlaidCompanyCardLogin(addNewCard.data.selectedCountry);
+            openPlaidCompanyCardLogin(addNewCard.data.selectedCountry, domain, feed);
             return unsubscribeToNavigationShortcuts;
         }
 
@@ -88,10 +95,10 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid() && addNewCard?.data?.selectedCountry) {
-            openPlaidCompanyCardLogin(addNewCard.data.selectedCountry);
+            openPlaidCompanyCardLogin(addNewCard.data.selectedCountry, domain, feed);
         }
         previousNetworkState.current = isOffline;
-    }, [addNewCard?.data?.selectedCountry, isAuthenticatedWithPlaid, isOffline]);
+    }, [addNewCard?.data?.selectedCountry, domain, feed, isAuthenticatedWithPlaid, isOffline]);
 
     const handleBackButtonPress = () => {
         if (feed) {
@@ -119,6 +126,28 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
                         if (feed) {
+                            if (plaidConnectedFeed && addNewCard?.data?.selectedCountry && plaidConnectedFeedName) {
+                                importPlaidAccounts(
+                                    publicToken,
+                                    plaidConnectedFeed,
+                                    plaidConnectedFeedName,
+                                    addNewCard.data.selectedCountry,
+                                    getDomainNameForPolicy(policyID),
+                                    JSON.stringify(metadata?.accounts),
+                                );
+                                InteractionManager.runAfterInteractions(() => {
+                                    setAssignCardStepAndData({
+                                        data: {
+                                            plaidAccessToken: publicToken,
+                                            institutionId: plaidConnectedFeed,
+                                            plaidConnectedFeedName,
+                                            plaidAccounts: metadata?.accounts,
+                                        },
+                                        currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+                                    });
+                                });
+                                return;
+                            }
                             setAssignCardStepAndData({
                                 data: {
                                     plaidAccessToken: publicToken,
@@ -130,8 +159,9 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
                             });
                             return;
                         }
+
                         setAddNewCompanyCardStepAndData({
-                            step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
+                            step: shouldSelectStatementCloseDate ? CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE : CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
                                 plaidConnectedFeed,

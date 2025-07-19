@@ -5,7 +5,7 @@ import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
@@ -63,7 +63,7 @@ function getPluralRule(locale: string): Intl.PluralRules {
 }
 
 function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
-    const translatedPhrase = TranslationStore.get(phraseKey, language);
+    const translatedPhrase = IntlStore.get(phraseKey, language);
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
@@ -151,7 +151,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
  * Uses the locale in this file updated by the Onyx subscriber.
  */
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
-    const currentLocale = TranslationStore.getCurrentLocale();
+    const currentLocale = IntlStore.getCurrentLocale();
     return translate(currentLocale, phrase, ...parameters);
 }
 
@@ -160,7 +160,7 @@ function getPreferredListFormat(): Intl.ListFormat {
         init();
     }
 
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[TranslationStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
+    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
 }
 
 /**

@@ -1,28 +1,10 @@
-import {findFocusedRoute} from '@react-navigation/native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Linking} from 'react-native';
-import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONFIG from '@src/CONFIG';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 if (CONFIG.IS_HYBRID_APP) {
-    Linking.addEventListener('url', (state) => {
-        handleHybridUrlNavigation(state.url as Route);
-    });
-}
-
-function handleHybridUrlNavigation(url: Route) {
-    const parsedUrl = Navigation.parseHybridAppUrl(url);
-
-    Navigation.isNavigationReady().then(() => {
-        if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
-            const focusRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
-                Navigation.goBack(ROUTES.SHARE_ROOT);
-                return;
-            }
-        }
-        Navigation.navigate(parsedUrl);
-    });
+    // On HybridApp we need to shadow official implementation of Linking.getInitialURL on NewDot side with our custom implementation.
+    // Main benefit from this approach is that our deeplink-related code can be implemented the same way for both standalone NewDot and HybridApp.
+    // It's not possible to use the official implementation from the Linking module because the way OldDot handles deeplinks is significantly different from a standard React Native app.
+    Linking.getInitialURL = () => HybridAppModule.getInitialURL();
 }
