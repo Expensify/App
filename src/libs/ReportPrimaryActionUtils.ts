@@ -137,16 +137,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
-    const isOneExpenseReport = isExpenseReport && reportTransactions.length === 1;
-    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
-    const isProcessingReport = isProcessingReportUtils(report);
-    const isOneExpenseReportOnHold = isOneExpenseReport && isReportOnHold;
-
-    if (isProcessingReport || isOneExpenseReportOnHold) {
-        return true;
-    }
-
-    return false;
+    return isProcessingReportUtils(report);
 }
 
 function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
