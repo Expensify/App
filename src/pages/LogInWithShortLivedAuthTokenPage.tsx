@@ -18,7 +18,7 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastShortLivedToken] = useOnyx(ONYXKEYS.NVP_SHORT_LIVED_TOKEN, {canBeMissing: true});
 
     useEffect(() => {

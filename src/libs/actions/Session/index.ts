@@ -53,6 +53,7 @@ import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -62,7 +63,6 @@ import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import NAVIGATORS from "@src/NAVIGATORS";
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -170,8 +170,8 @@ function getShortLivedLoginParams(authToken: string, isSupportAuthTokenUsed = fa
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_SHORT_LIVED_TOKEN,
-            value: authToken
-        }
+            value: authToken,
+        },
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
@@ -874,13 +874,17 @@ function clearSignInData() {
  */
 function resetNavigation() {
     Navigation.isNavigationReady().then(() => {
-        navigationRef.navigate(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
-            initial: true,
-            screen: SCREENS.HOME,
-            path: ROUTES.HOME,
-        }, {
-            pop: true,
-        });
+        navigationRef.navigate(
+            NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+            {
+                initial: true,
+                screen: SCREENS.HOME,
+                path: ROUTES.HOME,
+            },
+            {
+                pop: true,
+            },
+        );
     });
 }
 
@@ -1485,5 +1489,5 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    getShortLivedLoginParams
+    getShortLivedLoginParams,
 };
