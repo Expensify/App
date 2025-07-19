@@ -110,6 +110,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -194,6 +195,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2082,12 +2084,10 @@ const translations = {
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
-        phrase1: 'By logging in, you agree to the',
-        phrase2: 'Terms of Service',
-        phrase3: 'and',
-        phrase4: 'Privacy',
-        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
-        phrase6: 'licenses',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<comment><micro-text issmall>By logging in, you agree to the <a href="${termsURL}" style="color: #5ab0ff;">Terms of Service</a> and <a href="${privacyURL}" style="color: #5ab0ff;">Privacy</a>.</micro-text></comment>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<comment><micro-text issmall>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${licensesURL}" style="color: #5ab0ff;">licenses</a>.</micro-text></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
