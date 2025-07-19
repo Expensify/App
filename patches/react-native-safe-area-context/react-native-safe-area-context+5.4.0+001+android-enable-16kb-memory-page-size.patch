@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native-safe-area-context/android/build.gradle b/node_modules/react-native-safe-area-context/android/build.gradle
+index f324b9a..4aca83e 100644
+--- a/node_modules/react-native-safe-area-context/android/build.gradle
++++ b/node_modules/react-native-safe-area-context/android/build.gradle
+@@ -68,6 +68,12 @@ android {
+         ndk {
+             abiFilters (*reactNativeArchitectures())
+         }
++
++        externalNativeBuild {
++            cmake {
++                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
++            }
++        }
+     }
+ 
+     lintOptions{

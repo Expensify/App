@@ -1,0 +1,17 @@
+diff --git a/node_modules/@onfido/react-native-sdk/android/build.gradle b/node_modules/@onfido/react-native-sdk/android/build.gradle
+index 895bfd7..257605f 100644
+--- a/node_modules/@onfido/react-native-sdk/android/build.gradle
++++ b/node_modules/@onfido/react-native-sdk/android/build.gradle
+@@ -93,6 +93,12 @@ android {
+         versionName "1.0"
+         multiDexEnabled true
+         consumerProguardFiles 'proguard-rules.pro'
++
++        externalNativeBuild {
++            cmake {
++                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
++            }
++        }
+     }
+     lintOptions {
+         abortOnError false
