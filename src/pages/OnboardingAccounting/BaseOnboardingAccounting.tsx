@@ -1,9 +1,7 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,6 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import closeReactNativeApp from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
@@ -102,7 +101,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -124,6 +122,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
 
+    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
@@ -139,14 +139,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-            setRootStatusBarEnabled(false);
+            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
             return;
         }
         waitForIdle().then(() => {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
-    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
+    }, [isLoading, prevIsLoading]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const createAccountingOption = (integration: Integration): OnboardingListItem => ({
@@ -317,7 +316,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!isVsb}
                 progressBarPercentage={80}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
             />

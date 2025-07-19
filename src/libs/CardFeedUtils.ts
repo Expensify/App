@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx/dist/types';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -6,11 +6,21 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {
+    getBankName,
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
+    isCard,
+    isCardClosed,
+    isCardHiddenFromSearch,
+} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
-type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string};
+type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string};
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
@@ -20,10 +30,12 @@ type GetCardFeedData = {
     translate: LocaleContextProps['translate'];
 };
 type CardFeedForDisplay = {
+    id: string;
     feed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    fundID: string;
     name: string;
 };
-type CardFeedsForDisplay = Record<CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, CardFeedForDisplay>;
+type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -72,6 +84,7 @@ function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsLi
     const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
+    const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
 
     return {
         lastFourPAN: card.lastFourPAN,
@@ -80,6 +93,7 @@ function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsLi
         cardName,
         cardOwnerPersonalDetails: personalDetails ?? undefined,
         text,
+        plaidUrl,
         keyForList: card.cardID.toString(),
         isSelected,
         bankIcon: {
@@ -99,7 +113,7 @@ function buildCardsData(
     isClosedCards = false,
 ): ItemsGroupedBySelection {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
-    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card));
+    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
         .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
@@ -168,21 +182,24 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
     if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
         return;
     }
-    const {domainName, bank} = representativeCard;
+    const {domainName, bank, cardName} = representativeCard;
     const isBankRepeating = repeatingBanks.includes(bank);
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const correspondingPolicy = getPolicy(policyID?.toUpperCase());
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
-    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
-    const cardName =
+    const isPlaid = !!getPlaidInstitutionId(bank);
+    const companyCardBank = isPlaid && cardName ? cardName : getBankName(bank as CompanyCardFeed);
+
+    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : companyCardBank;
+    const fullCardName =
         cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
             ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
             : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
 
     return {
-        cardName,
+        cardName: fullCardName,
         bank,
         label: cardFeedLabel,
         type: 'workspace',
@@ -274,6 +291,7 @@ function createCardFeedItem({
     illustrations: IllustrationsType;
 }): CardFilterItem {
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
+    const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
     const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations);
     return {
@@ -284,6 +302,7 @@ function createCardFeedItem({
         bankIcon: {
             icon,
         },
+        plaidUrl,
         cardFeedKey,
         isCardFeed: true,
         correspondingCards: correspondingCardIDs,
@@ -393,40 +412,90 @@ const generateSelectedCards = (
 /**
  * Given a collection of card feeds, return formatted card feeds.
  *
- * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feed.
+ * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
  */
 function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
-    const hasExpensifyCard = Object.values(allCards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
 
-    Object.values(allCardFeeds ?? {}).forEach((cardFeeds) => {
+    Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
+        // sharedNVP_private_domain_member_123456 -> 123456
+        const fundID = domainKey.split('_').at(-1);
+        if (!fundID) {
+            return;
+        }
+
         Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((key) => {
             const feed = key as CompanyCardFeed;
+            const id = `${fundID}_${feed}`;
 
-            if (cardFeedsForDisplay[feed]) {
+            if (cardFeedsForDisplay[id]) {
                 return;
             }
 
-            cardFeedsForDisplay[feed] = {
+            cardFeedsForDisplay[id] = {
+                id,
                 feed,
+                fundID,
                 name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
             };
         });
     });
 
-    if (hasExpensifyCard) {
-        // s77rt check if the value that we should send to the backend is "Expensify Card" (same as displayed text)
-        // And if so update buildSubstitutionsMap to handle highlighting
-        cardFeedsForDisplay[CONST.EXPENSIFY_CARD.BANK] = {
+    Object.values(allCards).forEach((card) => {
+        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
+            return;
+        }
+
+        const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
+
+        if (cardFeedsForDisplay[id]) {
+            return;
+        }
+
+        cardFeedsForDisplay[id] = {
+            id,
             feed: CONST.EXPENSIFY_CARD.BANK,
+            fundID: card.fundID,
             name: CONST.EXPENSIFY_CARD.BANK,
         };
-    }
+    });
 
     return cardFeedsForDisplay;
 }
 
-export type {CardFilterItem, CardFeedNamesWithType};
+/**
+ * Given a collection of card feeds, return formatted card feeds grouped per policy.
+ *
+ * Note: "Expensify Card" feeds are not included.
+ */
+function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>): Record<string, CardFeedForDisplay[]> {
+    const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
+
+    Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
+        // sharedNVP_private_domain_member_123456 -> 123456
+        const fundID = domainKey.split('_').at(-1);
+        if (!fundID) {
+            return;
+        }
+
+        Object.entries(getCompanyFeeds(cardFeeds, true, true)).forEach(([key, feedData]) => {
+            const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
+            const feed = key as CompanyCardFeed;
+            const id = `${fundID}_${feed}`;
+
+            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
+                id,
+                feed,
+                fundID,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+            });
+        });
+    });
+
+    return cardFeedsForDisplayPerPolicy;
+}
+
+export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
 export {
     buildCardsData,
     getCardFeedNamesWithType,
@@ -439,4 +508,5 @@ export {
     generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,
+    getCardFeedsForDisplayPerPolicy,
 };
