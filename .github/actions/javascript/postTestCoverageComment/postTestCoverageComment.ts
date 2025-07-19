@@ -156,12 +156,12 @@ function getCoverageStatus(current: number, base?: number): {emoji: string; stat
  */
 function generateCoverageSection(coverageData: CoverageData, artifactUrl: string, workflowRunId: string): string {
     const {overall, changedFiles, baseCoverage} = coverageData;
-    
+
     // Get coverage status for overall lines coverage
     const coverageStatus = getCoverageStatus(overall.lines, baseCoverage?.lines);
-    
+
     let coverageSection = '';
-    
+
     // Enhanced header with status - using both diff-style and emoji format
     if (baseCoverage) {
         // Diff-style format at the top
@@ -171,7 +171,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
             coverageSection += `${diffPrefix} 📊 Overall Coverage: ${overall.lines.toFixed(2)}% ${coverageStatus.diff > 0 ? '↑' : '↓'} (baseline: ${baseCoverage.lines.toFixed(2)}%)\n`;
             coverageSection += '```\n\n';
         }
-        
+
         // Emoji-style format below
         coverageSection += `${coverageStatus.emoji} **${coverageStatus.status}**\n`;
         if (coverageStatus.diff !== 0) {
@@ -185,7 +185,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
     } else {
         coverageSection += `📊 **Overall Coverage**: ${overall.lines.toFixed(1)}%\n`;
     }
-    
+
     // Changed files summary
     if (changedFiles.length > 0) {
         const avgChangedCoverage = changedFiles.reduce((sum, file) => sum + file.coverage, 0) / changedFiles.length;
@@ -211,7 +211,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
 
     // Overall coverage summary with comparisons
     coverageSection += '### Overall Coverage Summary\n';
-    
+
     const formatMetric = (name: string, current: number, base?: number): string => {
         if (!base) {
             return `- **${name}**: ${current.toFixed(2)}%`;
@@ -224,7 +224,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
         const emoji = diff > 0 ? '📈' : '📉';
         return `- **${name}**: ${current.toFixed(2)}% (${emoji} ${sign}${diff.toFixed(2)}%)`;
     };
-    
+
     coverageSection += `${formatMetric('Lines', overall.lines, baseCoverage?.lines)}\n`;
     coverageSection += `${formatMetric('Statements', overall.statements, baseCoverage?.statements)}\n`;
     coverageSection += `${formatMetric('Functions', overall.functions, baseCoverage?.functions)}\n`;
@@ -251,9 +251,7 @@ async function postCoverageComment(prNumber: number, coverageSection: string): P
             issue_number: prNumber,
         });
 
-        const botComment = comments.data.find(
-            (comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes('<!-- END_COVERAGE_SECTION -->')
-        );
+        const botComment = comments.data.find((comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes('<!-- END_COVERAGE_SECTION -->'));
 
         if (botComment) {
             // Update existing comment

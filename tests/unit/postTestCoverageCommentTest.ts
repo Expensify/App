@@ -200,8 +200,8 @@ describe('Post test coverage comment action tests', () => {
             // Check for diff-style format
             expect(createCall.body).toContain('```diff');
             expect(createCall.body).toContain('↓ (baseline:');
-            // Check for emoji-style format  
-            expect(createCall.body).toContain('🔴 Coverage dropped!');
+            // Check for emoji-style format
+            expect(createCall.body).toContain('🔴 **Coverage dropped!**');
             expect(createCall.body).toContain('⚠️');
             expect(createCall.body).toContain('drop from baseline');
         } finally {
@@ -225,7 +225,7 @@ describe('Post test coverage comment action tests', () => {
             data: [
                 {
                     id: 456789,
-                    user: { login: 'github-actions[bot]' },
+                    user: {login: 'github-actions[bot]'},
                     body: 'Old coverage information here\n<!-- END_COVERAGE_SECTION -->',
                 },
             ],
