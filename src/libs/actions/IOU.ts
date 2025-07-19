@@ -53,7 +53,7 @@ import {
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber, formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -3118,6 +3118,7 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     currentUserAccountID: number,
+    countryCodeByIP: number,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receipt?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -3198,7 +3199,7 @@ function getSendInvoiceInformation(
         const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
-            displayName: formatPhoneNumber(receiverLogin),
+            displayName: formatPhoneNumberWithCountryCode(receiverLogin, countryCodeByIP),
             login: receiverLogin,
             isOptimisticPersonalDetail: true,
         };
@@ -5700,6 +5701,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 function sendInvoice(
     currentUserAccountID: number,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
+    countryCodeByIP: number,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receiptFile?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -5726,7 +5728,7 @@ function sendInvoice(
         createdReportActionIDForThread,
         reportActionID,
         onyxData,
-    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
+    } = getSendInvoiceInformation(transaction, currentUserAccountID, countryCodeByIP, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
 
     const parameters: SendInvoiceParams = {
         createdIOUReportActionID,

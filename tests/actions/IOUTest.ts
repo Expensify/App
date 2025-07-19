@@ -143,6 +143,7 @@ const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTI
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
 const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
+const countryCodeByIP = 1;
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
@@ -4662,7 +4663,7 @@ describe('actions/IOU', () => {
             const companyWebsite = 'https://www.53019.com';
 
             // When the user sends a new invoice to an individual
-            sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+            sendInvoice(currentUserAccountID, transaction, countryCodeByIP, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
             expect(writeSpy).toHaveBeenCalledWith(
@@ -4678,7 +4679,7 @@ describe('actions/IOU', () => {
         it('should not clear transaction pending action when send invoice fails', async () => {
             // Given a send invoice request
             mockFetch?.pause?.();
-            sendInvoice(1, createRandomTransaction(1));
+            sendInvoice(1, createRandomTransaction(1), countryCodeByIP);
 
             // When the request fails
             mockFetch?.fail?.();
