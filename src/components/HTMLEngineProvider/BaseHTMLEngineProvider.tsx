@@ -58,6 +58,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            'phone-error': HTMLElementModel.fromCustomModel({
+                tagName: 'phone-error',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.formError, ...styles.mb0, textDecorationLine: 'none'};
+                    }
+                    return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-link': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-link',
                 mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
