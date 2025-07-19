@@ -11,15 +11,19 @@ import GithubUtils from '@github/libs/GithubUtils';
 import asMutable from '@src/types/utils/asMutable';
 
 const mockGetInput = jest.fn();
-const mockUpdatePR = jest.fn() as jest.MockedFunction<typeof core.getInput>;
 const mockListFiles = jest.fn();
-const mockGetPR = jest.fn();
+const mockListComments = jest.fn();
+const mockCreateComment = jest.fn();
+const mockUpdateComment = jest.fn();
 
 jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
     pulls: {
         listFiles: mockListFiles as unknown as typeof GithubUtils.octokit.pulls.listFiles,
-        update: mockUpdatePR as unknown as typeof GithubUtils.octokit.pulls.update,
-        get: mockGetPR as unknown as typeof GithubUtils.octokit.pulls.get,
+    },
+    issues: {
+        listComments: mockListComments as unknown as typeof GithubUtils.octokit.issues.listComments,
+        createComment: mockCreateComment as unknown as typeof GithubUtils.octokit.issues.createComment,
+        updateComment: mockUpdateComment as unknown as typeof GithubUtils.octokit.issues.updateComment,
     },
 } as RestEndpointMethods);
 
@@ -100,13 +104,11 @@ describe('Post test coverage comment action tests', () => {
         mockListFiles.mockResolvedValue({
             data: mockChangedFiles,
         });
-        mockGetPR.mockResolvedValue({
-            data: {
-                number: 123,
-                body: 'Original PR description',
-            },
+        mockListComments.mockResolvedValue({
+            data: [], // No existing coverage comments by default
         });
-        mockUpdatePR.mockResolvedValue({} as never);
+        mockCreateComment.mockResolvedValue({} as never);
+        mockUpdateComment.mockResolvedValue({} as never);
     });
 
     test('Test coverage comment generation with changed files', async () => {
@@ -123,25 +125,27 @@ describe('Post test coverage comment action tests', () => {
             per_page: 100,
         });
 
-        expect(mockGetPR).toHaveBeenCalledWith({
+        expect(mockListComments).toHaveBeenCalledWith({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            pull_number: 123,
+            issue_number: 123,
         });
 
-        expect(mockUpdatePR).toHaveBeenCalledWith({
+        expect(mockCreateComment).toHaveBeenCalledWith({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            pull_number: 123,
-            body: expect.stringContaining('## Test Coverage') as string,
+            issue_number: 123,
+            body: expect.stringContaining('📊 **Overall Coverage**: 3.7%') as string,
         });
 
-        // Check that the coverage section is properly formatted
-        const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
-        expect(updateCall.body).toContain('📊 **Overall Coverage**: 3.73%');
-        expect(updateCall.body).toContain('📈 **Changed Files**: 3.7% average coverage');
-        expect(updateCall.body).toContain('src/libs/TransactionUtils/index.ts');
-        expect(updateCall.body).toContain('3.7% | 20/535 | 5/709');
+        // Check that the coverage comment is properly formatted
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const createCall = mockCreateComment.mock.calls.at(0)?.at(0) as {body: string};
+        expect(createCall.body).toContain('📊 **Overall Coverage**: 3.7%');
+        expect(createCall.body).toContain('📈 **Changed Files**: 3.7% average coverage');
+        expect(createCall.body).toContain('src/libs/TransactionUtils/index.ts');
+        expect(createCall.body).toContain('3.7% | 20/535 | 5/709');
+        expect(createCall.body).toContain('<!-- END_COVERAGE_SECTION -->');
     });
 
     test('Test coverage comment with no changed files', async () => {
@@ -156,10 +160,10 @@ describe('Post test coverage comment action tests', () => {
 
         await ghAction();
 
-        expect(mockUpdatePR).toHaveBeenCalledWith({
+        expect(mockCreateComment).toHaveBeenCalledWith({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            pull_number: 123,
+            issue_number: 123,
             body: expect.stringContaining('*No changed files with coverage data found.*') as string,
         });
     });
@@ -191,8 +195,15 @@ describe('Post test coverage comment action tests', () => {
         try {
             await ghAction();
 
-            const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
-            expect(updateCall.body).toContain('📉 -1.88%'); // 3.73 - 5.61 = -1.88
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            const createCall = mockCreateComment.mock.calls.at(0)?.at(0) as {body: string};
+            // Check for diff-style format
+            expect(createCall.body).toContain('```diff');
+            expect(createCall.body).toContain('↓ (baseline:');
+            // Check for emoji-style format  
+            expect(createCall.body).toContain('🔴 Coverage dropped!');
+            expect(createCall.body).toContain('⚠️');
+            expect(createCall.body).toContain('drop from baseline');
         } finally {
             // Clean up baseline directory
             if (fs.existsSync(baselineFile)) {
@@ -204,32 +215,36 @@ describe('Post test coverage comment action tests', () => {
         }
     });
 
-    test('Test coverage comment replaces existing coverage section', async () => {
+    test('Test coverage comment updates existing coverage comment', async () => {
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
         when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('');
 
-        // Mock PR with existing coverage section
-        mockGetPR.mockResolvedValue({
-            data: {
-                number: 123,
-                body: `Original PR description
-
-                ## Test Coverage
-                Old coverage information here
-                <!-- END_COVERAGE_SECTION -->
-
-                More content after coverage.`,
-            },
+        // Mock existing coverage comment
+        mockListComments.mockResolvedValue({
+            data: [
+                {
+                    id: 456789,
+                    user: { login: 'github-actions[bot]' },
+                    body: 'Old coverage information here\n<!-- END_COVERAGE_SECTION -->',
+                },
+            ],
         });
 
         await ghAction();
 
-        const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
-        expect(updateCall.body).toContain('Original PR description');
-        expect(updateCall.body).toContain('More content after coverage.');
+        expect(mockUpdateComment).toHaveBeenCalledWith({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            comment_id: 456789,
+            body: expect.stringContaining('📊 **Overall Coverage**: 3.7%') as string,
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const updateCall = mockUpdateComment.mock.calls.at(0)?.at(0) as {body: string};
         expect(updateCall.body).not.toContain('Old coverage information here');
-        expect(updateCall.body).toContain('📊 **Overall Coverage**: 3.73%');
+        expect(updateCall.body).toContain('📊 **Overall Coverage**: 3.7%');
+        expect(updateCall.body).toContain('<!-- END_COVERAGE_SECTION -->');
     });
 
     test('Test coverage comment handles missing coverage data', async () => {
@@ -247,8 +262,9 @@ describe('Post test coverage comment action tests', () => {
 
         try {
             await ghAction();
-            // Should not update PR when no coverage data
-            expect(mockUpdatePR).not.toHaveBeenCalled();
+            // Should not create comment when no coverage data
+            expect(mockCreateComment).not.toHaveBeenCalled();
+            expect(mockUpdateComment).not.toHaveBeenCalled();
         } finally {
             // Restore the coverage file
             if (fs.existsSync(backupFile)) {
@@ -275,11 +291,12 @@ describe('Post test coverage comment action tests', () => {
         await ghAction();
 
         expect(mockListFiles).toHaveBeenCalled();
-        expect(mockUpdatePR).toHaveBeenCalled();
+        expect(mockCreateComment).toHaveBeenCalled();
 
         // Should only process .ts, .tsx, .js, .jsx files that have coverage data
-        const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
-        expect(updateCall.body).toContain('src/libs/TransactionUtils/index.ts');
-        expect(updateCall.body).not.toContain('README.md');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const createCall = mockCreateComment.mock.calls.at(0)?.at(0) as {body: string};
+        expect(createCall.body).toContain('src/libs/TransactionUtils/index.ts');
+        expect(createCall.body).not.toContain('README.md');
     });
 });

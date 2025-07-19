@@ -215,6 +215,17 @@ jobs:
           path: coverage/
           retention-days: 7
 
+      - name: Deploy coverage to GitHub Pages
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./coverage
+          destination_dir: coverage-reports/${{ github.run_id }}
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+
       - name: Post coverage to PR
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         uses: ./.github/actions/javascript/postTestCoverageComment

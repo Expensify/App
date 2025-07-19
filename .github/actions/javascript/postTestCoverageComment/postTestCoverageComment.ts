@@ -42,7 +42,6 @@ type CoverageData = {
     };
 };
 
-const COVERAGE_SECTION_START = '## Test Coverage';
 const COVERAGE_SECTION_END = '<!-- END_COVERAGE_SECTION -->';
 
 /**
@@ -136,34 +135,67 @@ function generateCoverageData(coverage: CoverageSummary, changedFiles: string[],
 }
 
 /**
- * Generate coverage section markdown
+ * Generate coverage status emoji and text based on comparison with baseline
+ */
+function getCoverageStatus(current: number, base?: number): {emoji: string; status: string; diff: number} {
+    if (!base) {
+        return {emoji: '📊', status: 'Overall Coverage', diff: 0};
+    }
+    const diff = current - base;
+    if (Math.abs(diff) < 0.01) {
+        return {emoji: '📊', status: 'Overall Coverage', diff: 0};
+    }
+    if (diff > 0) {
+        return {emoji: '🟢', status: 'Coverage up!', diff};
+    }
+    return {emoji: '🔴', status: 'Coverage dropped!', diff};
+}
+
+/**
+ * Generate enhanced coverage section markdown with better formatting
  */
 function generateCoverageSection(coverageData: CoverageData, artifactUrl: string, workflowRunId: string): string {
     const {overall, changedFiles, baseCoverage} = coverageData;
-    // Generate comparison text
-    const getComparisonText = (current: number, base?: number): string => {
-        if (!base) {
-            return `${current.toFixed(2)}%`;
+    
+    // Get coverage status for overall lines coverage
+    const coverageStatus = getCoverageStatus(overall.lines, baseCoverage?.lines);
+    
+    let coverageSection = '';
+    
+    // Enhanced header with status - using both diff-style and emoji format
+    if (baseCoverage) {
+        // Diff-style format at the top
+        if (coverageStatus.diff !== 0) {
+            const diffPrefix = coverageStatus.diff > 0 ? '+' : '-';
+            coverageSection += '```diff\n';
+            coverageSection += `${diffPrefix} 📊 Overall Coverage: ${overall.lines.toFixed(2)}% ${coverageStatus.diff > 0 ? '↑' : '↓'} (baseline: ${baseCoverage.lines.toFixed(2)}%)\n`;
+            coverageSection += '```\n\n';
         }
-        const diff = current - base;
-        if (Math.abs(diff) < 0.01) {
-            return `${current.toFixed(2)}%`;
+        
+        // Emoji-style format below
+        coverageSection += `${coverageStatus.emoji} **${coverageStatus.status}**\n`;
+        if (coverageStatus.diff !== 0) {
+            const arrow = coverageStatus.diff > 0 ? '↑' : '↓';
+            const gain = coverageStatus.diff > 0 ? 'gain' : 'drop';
+            coverageSection += `📈 Overall Coverage: ${overall.lines.toFixed(1)}% ${arrow}\n`;
+            coverageSection += `${coverageStatus.diff > 0 ? '🚀' : '⚠️'} ${Math.abs(coverageStatus.diff).toFixed(1)}% ${gain} from baseline\n`;
+        } else {
+            coverageSection += `📊 Overall Coverage: ${overall.lines.toFixed(1)}% (unchanged)\n`;
         }
-        const sign = diff > 0 ? '+' : '';
-        const emoji = diff > 0 ? '📈' : '📉';
-        return `${current.toFixed(2)}% (${emoji} ${sign}${diff.toFixed(2)}%)`;
-    };
-
-    let coverageSection = `${COVERAGE_SECTION_START}\n`;
-    coverageSection += `📊 **Overall Coverage**: ${getComparisonText(overall.lines, baseCoverage?.lines)}\n`;
-
+    } else {
+        coverageSection += `📊 **Overall Coverage**: ${overall.lines.toFixed(1)}%\n`;
+    }
+    
+    // Changed files summary
     if (changedFiles.length > 0) {
         const avgChangedCoverage = changedFiles.reduce((sum, file) => sum + file.coverage, 0) / changedFiles.length;
         coverageSection += `📈 **Changed Files**: ${avgChangedCoverage.toFixed(1)}% average coverage\n`;
     }
 
+    // Details section
     coverageSection += '\n<details>\n<summary>📋 Coverage Details</summary>\n\n';
 
+    // Changed files table
     if (changedFiles.length > 0) {
         coverageSection += '| File | Coverage | Lines | Branches |\n';
         coverageSection += '|------|----------|-------|----------|\n';
@@ -172,65 +204,90 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
             const displayFile = file.file.length > 50 ? `...${file.file.slice(-47)}` : file.file;
             coverageSection += `| \`${displayFile}\` | ${file.coverage.toFixed(1)}% | ${file.lines} | ${file.branches} |\n`;
         });
+        coverageSection += '\n';
     } else {
-        coverageSection += '*No changed files with coverage data found.*\n';
+        coverageSection += '*No changed files with coverage data found.*\n\n';
     }
 
-    coverageSection += '\n### Overall Coverage Summary\n';
-    coverageSection += `- **Lines**: ${getComparisonText(overall.lines, baseCoverage?.lines)}\n`;
-    coverageSection += `- **Statements**: ${getComparisonText(overall.statements, baseCoverage?.statements)}\n`;
-    coverageSection += `- **Functions**: ${getComparisonText(overall.functions, baseCoverage?.functions)}\n`;
-    coverageSection += `- **Branches**: ${getComparisonText(overall.branches, baseCoverage?.branches)}\n`;
+    // Overall coverage summary with comparisons
+    coverageSection += '### Overall Coverage Summary\n';
+    
+    const formatMetric = (name: string, current: number, base?: number): string => {
+        if (!base) {
+            return `- **${name}**: ${current.toFixed(2)}%`;
+        }
+        const diff = current - base;
+        if (Math.abs(diff) < 0.01) {
+            return `- **${name}**: ${current.toFixed(2)}%`;
+        }
+        const sign = diff > 0 ? '+' : '';
+        const emoji = diff > 0 ? '📈' : '📉';
+        return `- **${name}**: ${current.toFixed(2)}% (${emoji} ${sign}${diff.toFixed(2)}%)`;
+    };
+    
+    coverageSection += `${formatMetric('Lines', overall.lines, baseCoverage?.lines)}\n`;
+    coverageSection += `${formatMetric('Statements', overall.statements, baseCoverage?.statements)}\n`;
+    coverageSection += `${formatMetric('Functions', overall.functions, baseCoverage?.functions)}\n`;
+    coverageSection += `${formatMetric('Branches', overall.branches, baseCoverage?.branches)}\n`;
 
-    coverageSection += `\n📄 [View Full Coverage Report](${artifactUrl})\n`;
+    // Links section
+    coverageSection += '\n</details>\n\n';
+    coverageSection += `📄 [View Full Coverage Report](${artifactUrl})\n`;
     coverageSection += `🔗 [View Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${workflowRunId})\n`;
-    coverageSection += '\n</details>\n';
-    coverageSection += `${COVERAGE_SECTION_END}\n`;
+    coverageSection += `\n${COVERAGE_SECTION_END}`;
 
     return coverageSection;
 }
 
 /**
- * Update PR description with coverage section
+ * Post or update coverage comment on PR
  */
-async function updatePRDescription(prNumber: number, coverageSection: string): Promise<void> {
+async function postCoverageComment(prNumber: number, coverageSection: string): Promise<void> {
     try {
-        // Get current PR details
-        const {data: pr} = await GithubUtils.octokit.pulls.get({
+        // Find existing coverage comment
+        const comments = await GithubUtils.octokit.issues.listComments({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            pull_number: prNumber,
+            issue_number: prNumber,
         });
 
-        let body = pr.body ?? '';
-        // Remove existing coverage section if present
-        const startIndex = body.indexOf(COVERAGE_SECTION_START);
-        const endIndex = body.indexOf(COVERAGE_SECTION_END);
+        const botComment = comments.data.find(
+            (comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes('<!-- END_COVERAGE_SECTION -->')
+        );
 
-        if (startIndex !== -1 && endIndex !== -1) {
-            body = body.substring(0, startIndex) + body.substring(endIndex + COVERAGE_SECTION_END.length);
+        if (botComment) {
+            // Update existing comment
+            await GithubUtils.octokit.issues.updateComment({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                comment_id: botComment.id,
+                body: coverageSection,
+            });
+            console.log(`Successfully updated coverage comment #${botComment.id} on PR #${prNumber}`);
+        } else {
+            // Create new comment
+            await GithubUtils.octokit.issues.createComment({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                issue_number: prNumber,
+                body: coverageSection,
+            });
+            console.log(`Successfully posted new coverage comment on PR #${prNumber}`);
         }
-
-        // Update PR description
-        await GithubUtils.octokit.pulls.update({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            pull_number: prNumber,
-            body: `${body.trim()}\n\n${coverageSection}`,
-        });
-
-        console.log(`Successfully updated PR #${prNumber} description with coverage information`);
     } catch (error) {
-        console.error('Error updating PR description:', error);
+        console.error('Error posting coverage comment:', error);
         throw error;
     }
 }
 
 /**
- * Get artifact download URL
+ * Get direct URL to the hosted HTML coverage report via GitHub Pages
  */
 function getArtifactUrl(artifactName: string, workflowRunId: string): string {
-    return `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${workflowRunId}/artifacts`;
+    // Direct link to GitHub Pages hosted HTML coverage report
+    // The coverage report is deployed to: https://owner.github.io/repo/coverage-reports/runId/index.html
+    const repoName = context.repo.repo.toLowerCase();
+    return `https://${context.repo.owner.toLowerCase()}.github.io/${repoName}/coverage-reports/${workflowRunId}/index.html`;
 }
 
 /**
@@ -273,8 +330,8 @@ async function run(): Promise<void> {
         // Generate coverage section
         const coverageSection = generateCoverageSection(coverageData, artifactUrl, workflowRunId);
 
-        // Update PR description
-        await updatePRDescription(prNumber, coverageSection);
+        // Post or update coverage comment
+        await postCoverageComment(prNumber, coverageSection);
 
         // Set outputs
         core.setOutput('coverage-summary', JSON.stringify(coverageData.overall));
