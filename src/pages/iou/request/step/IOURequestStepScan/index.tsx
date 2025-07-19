@@ -974,7 +974,8 @@ function IOURequestStepScan({
     const [containerHeight, setContainerHeight] = useState(0);
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
-    const shouldHideDownloadAppBanner = isMobile || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    /*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */
+    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
@@ -1073,7 +1074,6 @@ function IOURequestStepScan({
                             receiptImageTopPosition={receiptImageTopPosition}
                         />
                     )}
-                    {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
                     {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
