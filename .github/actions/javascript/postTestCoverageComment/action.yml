@@ -1,0 +1,20 @@
+name: 'Post Test Coverage Comment'
+description: 'Updates PR description with test coverage information and links to coverage artifacts'
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub token for API access'
+    required: true
+  PR_NUMBER:
+    description: 'Pull request number'
+    required: true
+  COVERAGE_ARTIFACT_NAME:
+    description: 'Name of the coverage artifact'
+    required: false
+    default: 'coverage-report'
+  BASE_COVERAGE_PATH:
+    description: 'Path to base coverage summary for comparison'
+    required: false
+    default: ''
+runs:
+  using: 'node20'
+  main: './index.js'
