@@ -53,7 +53,7 @@ import {
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber, formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -414,6 +414,7 @@ type PerDiemExpenseInformation = {
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     transactionParams: PerDiemExpenseTransactionParams;
+    countryCodeByIP: number;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -422,6 +423,7 @@ type PerDiemExpenseInformationParams = {
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
+    countryCodeByIP: number;
 };
 
 type RequestMoneyInformation = {
@@ -440,6 +442,7 @@ type RequestMoneyInformation = {
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
+    countryCodeByIP: number;
 };
 
 type MoneyRequestInformationParams = {
@@ -457,6 +460,7 @@ type MoneyRequestInformationParams = {
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
+    countryCodeByIP: number;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -513,6 +517,7 @@ type CreateDistanceRequestInformation = {
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
     backToReport?: string;
+    countryCodeByIP: number;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -527,6 +532,7 @@ type CreateSplitsAndOnyxDataParams = {
     currentUserAccountID: number;
     existingSplitChatReportID?: string;
     transactionParams: CreateSplitsTransactionParams;
+    countryCodeByIP: number;
 };
 
 type TrackExpenseTransactionParams = {
@@ -650,6 +656,7 @@ type StartSplitBilActionParams = {
     taxCode: string;
     taxAmount: number;
     shouldPlaySound?: boolean;
+    countryCodeByIP: number;
 };
 
 type ReplaceReceipt = {
@@ -3284,6 +3291,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
+        countryCodeByIP,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3451,7 +3459,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumberWithCountryCode(participant.displayName || payerEmail, countryCodeByIP),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
@@ -3556,7 +3564,7 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
  * it creates optimistic versions of them and uses those instead
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
-    const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = '', countryCodeByIP} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees} = transactionParams;
@@ -3690,7 +3698,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumberWithCountryCode(participant.displayName || payerEmail, countryCodeByIP),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
@@ -5077,7 +5085,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string) {
+function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string, countryCodeByIP: number) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
@@ -5192,6 +5200,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
             moneyRequestReportID: targetReportID,
             existingTransactionID: transactionID,
             existingTransaction: transaction,
+            countryCodeByIP,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -5402,6 +5411,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
+        countryCodeByIP,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -5484,6 +5494,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
+        countryCodeByIP,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -5613,7 +5624,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
  * Submit per diem expense to another user
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams} = submitPerDiemExpenseInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, countryCodeByIP} = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
@@ -5651,6 +5662,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyParams,
         transactionParams,
         moneyRequestReportID,
+        countryCodeByIP,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
@@ -6121,6 +6133,7 @@ function createSplitsAndOnyxData({
         taxAmount = 0,
         attendees,
     },
+    countryCodeByIP,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -6447,7 +6460,7 @@ function createSplitsAndOnyxData({
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: formatPhoneNumber(participant.displayName || email),
+                      displayName: formatPhoneNumberWithCountryCode(participant.displayName || email, countryCodeByIP),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
@@ -6575,6 +6588,7 @@ type SplitBillActionsParams = {
     taxCode?: string;
     taxAmount?: number;
     isRetry?: boolean;
+    countryCodeByIP: number;
 };
 
 /**
@@ -6599,6 +6613,7 @@ function splitBill({
     splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
+    countryCodeByIP,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -6620,6 +6635,7 @@ function splitBill({
             taxCode,
             taxAmount,
         },
+        countryCodeByIP,
     });
 
     const parameters: SplitBillParams = {
@@ -6674,6 +6690,7 @@ function splitBillAndOpenReport({
     taxCode = '',
     taxAmount = 0,
     existingSplitChatReportID,
+    countryCodeByIP,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -6695,6 +6712,7 @@ function splitBillAndOpenReport({
             taxCode,
             taxAmount,
         },
+        countryCodeByIP,
     });
 
     const parameters: SplitBillParams = {
@@ -6746,6 +6764,7 @@ function startSplitBill({
     taxCode = '',
     taxAmount = 0,
     shouldPlaySound = true,
+    countryCodeByIP,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -6910,6 +6929,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        countryCodeByIP,
     };
 
     if (existingSplitChatReport) {
@@ -6978,7 +6998,7 @@ function startSplitBill({
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: formatPhoneNumber(participant.displayName || email),
+                        displayName: formatPhoneNumberWithCountryCode(participant.displayName || email, countryCodeByIP),
                         // Disabling this line since participant.login can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
@@ -7368,6 +7388,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionParams,
         policyParams = {},
         backToReport,
+        countryCodeByIP,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7412,6 +7433,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxAmount,
                 attendees,
             },
+            countryCodeByIP,
         });
         onyxData = splitOnyxData;
 
@@ -7478,6 +7500,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 billable,
                 attendees,
             },
+            countryCodeByIP,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -11828,7 +11851,7 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
     });
 }
 
-function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
+function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number, countryCodeByIP: number) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
@@ -11910,6 +11933,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             existingTransaction: originalTransaction,
             existingTransactionID,
             isSplitExpense: true,
+            countryCodeByIP,
         });
 
         const split = splits.at(index);
