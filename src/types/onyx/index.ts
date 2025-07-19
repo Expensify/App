@@ -27,6 +27,7 @@ import type {ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerive
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type DraftReportComments from './DraftReportComments';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -266,4 +267,5 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     HybridApp,
+    DraftReportComments,
 };
