@@ -18,6 +18,7 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import usePriorityChange from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -104,7 +105,9 @@ function Expensify() {
 
     useDebugShortcut();
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    usePriorityChange();
+
+    const [initialUrl, setInitialUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
