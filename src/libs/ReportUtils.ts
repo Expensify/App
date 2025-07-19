@@ -8545,7 +8545,8 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     if (isMoneyRequestReport(report)) {
-        return canAddTransaction(report);
+        const canAddTransactions = canAddTransaction(report);
+        return isExpenseReport(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
     // In the case of policy expense chat, users can only submit expenses from their own policy expense chat
