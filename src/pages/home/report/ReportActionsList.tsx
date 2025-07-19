@@ -482,7 +482,9 @@ function ReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            if (isReportTopmostSplitNavigator()) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            }
             openReport(report.reportID);
             reportScrollManager.scrollToBottom();
             return;
@@ -692,6 +694,7 @@ function ReportActionsList({
     return (
         <>
             <FloatingMessageCounter
+                hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />

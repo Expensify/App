@@ -867,6 +867,7 @@ const translations = {
         hereAlternateText: 'Breng iedereen in dit gesprek op de hoogte',
     },
     newMessages: 'Nieuwe berichten',
+    latestMessages: 'Laatste berichten',
     youHaveBeenBanned: 'Opmerking: Je bent verbannen van het chatten in dit kanaal.',
     reportTypingIndicator: {
         isTyping: 'is aan het typen...',

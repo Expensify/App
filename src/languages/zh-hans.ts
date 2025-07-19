@@ -866,6 +866,7 @@ const translations = {
         hereAlternateText: '通知此对话中的所有人',
     },
     newMessages: '新消息',
+    latestMessages: '最新消息',
     youHaveBeenBanned: '注意：您已被禁止在此频道聊天。',
     reportTypingIndicator: {
         isTyping: '正在输入...',
