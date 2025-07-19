@@ -5604,7 +5604,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     if (activeReportID && !isMoneyRequestReport) {
-        notifyNewAction(activeReportID, payeeAccountID);
+        Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(activeReportID, payeeAccountID, reportPreviewAction));
     }
 }
 
