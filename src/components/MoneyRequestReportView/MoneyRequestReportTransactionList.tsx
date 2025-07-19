@@ -325,10 +325,13 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
                             {[
-                                {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
-                                {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
-                            ].map(({text, value}) => (
-                                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                                {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount, key: 'outOfPocket'},
+                                {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount, key: 'companySpend'},
+                            ].map(({text, value, key}) => (
+                                <View
+                                    key={key}
+                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                                >
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mr3]}
                                         numberOfLines={1}
