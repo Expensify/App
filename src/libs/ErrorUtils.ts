@@ -1,8 +1,8 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {TranslationKeyError, TranslationKeyErrors, TranslationPaths} from '@src/languages/types';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {TranslationPaths} from '@src/languages/types';
+import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';

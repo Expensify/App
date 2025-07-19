@@ -76,11 +76,6 @@ type DefaultTranslation = typeof en;
  */
 type TranslationPaths = FlattenObject<DefaultTranslation>;
 
-type TranslationKeyError = {
-    translationKey: TranslationPaths;
-};
-
-type TranslationKeyErrors = Record<string, TranslationKeyError>;
 /**
  * Flattened default translation object with its values
  */
@@ -99,4 +94,4 @@ type TranslationParameters<TKey extends TranslationPaths> = FlatTranslationsObje
         : Args
     : never[];
 
-export type {TranslationDeepObject, TranslationPaths, PluralForm, FlatTranslationsObject, TranslationParameters, TranslationKeyError, TranslationKeyErrors};
+export type {TranslationDeepObject, TranslationPaths, PluralForm, FlatTranslationsObject, TranslationParameters};

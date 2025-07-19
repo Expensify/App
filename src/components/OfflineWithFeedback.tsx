@@ -8,7 +8,6 @@ import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import type {AllStyles} from '@styles/utils/types';
 import CONST from '@src/CONST';
-import type {TranslationKeyErrors} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -31,7 +30,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | ReceiptErrors | TranslationKeyErrors | null;
+    errors?: OnyxCommon.Errors | OnyxCommon.TranslationKeyErrors | ReceiptErrors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
