@@ -87,6 +87,11 @@ type UsePlusButtonParams = {
     additionalText: string;
 };
 
+type ReadTheTermsAndPrivacyRouteParams = {
+    termsURL: string;
+    privacyURL: string;
+};
+
 type ReportArchiveReasonsClosedParams = {
     displayName: string;
 };
@@ -923,6 +928,7 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
