@@ -888,7 +888,7 @@ function setFeedStatementEndDay(
         policyID,
         bankName,
         domainAccountID,
-        statementPeriodEndDate: newStatementPeriodEndDate,
+        statementEndDay: newStatementPeriodEndDate,
     };
 
     API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters, {optimisticData, successData, failureData});
