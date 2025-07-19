@@ -10,6 +10,7 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -30,6 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,6 +46,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -290,18 +293,17 @@ function MoneyRequestReportPreviewContent({
      * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const {supportText} = useMemo(() => {
-        if (numberOfRequests === 1) {
-            return {
-                supportText: '',
-            };
-        }
-        return {
-            supportText: translate('iou.expenseCount', {
+    const expenseCount = useMemo(
+        () =>
+            translate('iou.expenseCount', {
                 count: numberOfRequests,
             }),
-        };
-    }, [translate, numberOfRequests]);
+        [translate, numberOfRequests],
+    );
+
+    const reportStatus = useMemo(() => getReportStatusTranslation(iouReport), [iouReport]);
+
+    const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsBaseline];
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
@@ -418,9 +420,9 @@ function MoneyRequestReportPreviewContent({
         <ImageSVG
             src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
             fill={isApproved ? theme.icon : theme.iconSuccessFill}
-            width={variables.iconSizeNormal}
-            height={variables.iconSizeNormal}
-            style={{transform: 'translateY(4px)'}}
+            width={variables.iconSizeExtraSmall}
+            height={variables.iconSizeExtraSmall}
+            style={{transform: 'translateY(1px)'}}
             contentFit="cover"
         />
     );
@@ -643,8 +645,8 @@ function MoneyRequestReportPreviewContent({
                         >
                             <View style={[reportPreviewStyles.wrapperStyle]}>
                                 <View style={[reportPreviewStyles.contentContainerStyle]}>
-                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3, StyleUtils.getMinimumHeight(variables.h28)]}>
+                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden, styles.mbn1]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                             <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                 <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
@@ -659,18 +661,11 @@ function MoneyRequestReportPreviewContent({
                                                         >
                                                             {getMoneyReportPreviewName(action, iouReport, isInvoice)}
                                                         </Text>
-                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
-                                                    {doesReportNameOverflow && (
-                                                        <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
-                                                            {approvedOrSettledIcon}
-                                                        </View>
-                                                    )}
                                                 </Animated.View>
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
@@ -711,6 +706,24 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
+                                    {shouldShowEmptyPlaceholder ? <MoneyReportHeaderStatusBarSkeleton/> : (
+                                        <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                                <Text
+                                                    style={[styles.textLabelSupporting, styles.lh16]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {approvedOrSettledIcon}
+                                                </Text>
+                                                <Text
+                                                    style={[styles.textLabelSupporting, styles.lh16]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    )}
                                     {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
@@ -754,21 +767,23 @@ function MoneyRequestReportPreviewContent({
                                             {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={reportPreviewActions[reportPreviewAction]} />}
                                         </View>
                                     )}
-                                    {shouldUseNarrowLayout && transactions.length > 1 && (
-                                        <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
-                                            {carouselTransactions.map((item, index) => (
-                                                <PressableWithFeedback
-                                                    accessibilityRole="button"
-                                                    accessible
-                                                    accessibilityLabel="button"
-                                                    style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
-                                                    onPress={() => handleChange(index)}
-                                                />
-                                            ))}
+                                    <View style={[styles.expenseAndReportPreviewTextContainer]}>
+                                        <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
+                                            {/* height is needed to avoid flickering on animation */}
+                                            <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
+                                            {transactions.length > 1 && (
+                                                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsBaseline]}>
+                                                    <Text
+                                                        style={[styles.textLabelSupporting]}
+                                                        numberOfLines={1}
+                                                    >
+                                                        Total
+                                                    </Text>
+                                                    <Text style={[styles.headerText]}>{convertToDisplayString(totalDisplaySpend, iouReport?.currency)}</Text>
+                                                </View>
+                                            )}
                                         </View>
-                                    )}
-                                    {/* height is needed to avoid flickering on animation */}
-                                    {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
+                                    </View>
                                 </View>
                             </View>
                         </View>
