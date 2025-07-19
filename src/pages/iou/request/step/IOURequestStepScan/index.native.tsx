@@ -158,7 +158,7 @@ function IOURequestStepScan({
         return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
-    const {translate} = useLocalize();
+    const {translate, countryCodeByIP} = useLocalize();
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -338,11 +338,12 @@ function IOURequestStepScan({
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
+                        countryCodeByIP,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, countryCodeByIP],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -406,6 +407,7 @@ function IOURequestStepScan({
                             currency: initialTransaction?.currency ?? 'USD',
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
+                            countryCodeByIP,
                         });
                         return;
                     }
@@ -500,6 +502,7 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             selfDMReportID,
+            countryCodeByIP,
         ],
     );
 

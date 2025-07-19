@@ -34,7 +34,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, countryCodeByIP} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -80,8 +80,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
+        saveSplitTransactions(draftTransaction, currentSearchHash, countryCodeByIP);
+    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate, countryCodeByIP]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {

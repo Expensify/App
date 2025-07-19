@@ -45,7 +45,6 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -111,7 +110,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber} = useLocalize();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
             if (!employee?.email) {
@@ -165,14 +163,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: formatPhoneNumberUtil(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
             memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
             ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
         });
-    }, [selectedEmployees, translate, policy, currentUserAccountID]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID, formatPhoneNumber]);
     /**
      * Get filtered personalDetails list with current employeeList
      */

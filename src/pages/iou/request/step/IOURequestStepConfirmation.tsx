@@ -141,7 +141,7 @@ function IOURequestStepConfirmation({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, countryCodeByIP} = useLocalize();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -492,6 +492,7 @@ function IOURequestStepConfirmation({
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,
+                    countryCodeByIP,
                 });
             });
         },
@@ -511,6 +512,7 @@ function IOURequestStepConfirmation({
             backToReport,
             viewTourReport,
             viewTourReportID,
+            countryCodeByIP,
         ],
     );
 
@@ -546,9 +548,10 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     attendees: transaction.comment?.attendees,
                 },
+                countryCodeByIP,
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, countryCodeByIP],
     );
 
     const trackExpense = useCallback(
@@ -653,6 +656,7 @@ function IOURequestStepConfirmation({
                     attendees: transaction.comment?.attendees,
                 },
                 backToReport,
+                countryCodeByIP,
             });
         },
         [
@@ -668,6 +672,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
+            countryCodeByIP,
         ],
     );
 
@@ -719,6 +724,7 @@ function IOURequestStepConfirmation({
                         currency: transaction.currency,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        countryCodeByIP,
                     });
                 }
                 return;
@@ -746,6 +752,7 @@ function IOURequestStepConfirmation({
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        countryCodeByIP,
                     });
                 }
                 return;
@@ -771,13 +778,14 @@ function IOURequestStepConfirmation({
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        countryCodeByIP,
                     });
                 }
                 return;
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                sendInvoice(currentUserPersonalDetails.accountID, transaction, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
+                sendInvoice(currentUserPersonalDetails.accountID, transaction, countryCodeByIP, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
@@ -892,6 +900,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             submitPerDiemExpense,
             userLocation,
+            countryCodeByIP,
         ],
     );
 
