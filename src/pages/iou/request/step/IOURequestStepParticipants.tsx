@@ -261,6 +261,9 @@ function IOURequestStepParticipants({
             iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
             newReportID,
+            undefined,
+            undefined,
+            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
         );
 
         const route = isCategorizing

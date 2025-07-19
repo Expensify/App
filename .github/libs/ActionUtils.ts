@@ -27,4 +27,21 @@ function getStringInput(name: string, options: core.InputOptions, defaultValue?:
     return input;
 }
 
-export {getJSONInput, getStringInput};
+/**
+ * Converts a value to a number, returning 0 for non-numeric values.
+ */
+function convertToNumber(value: unknown): number {
+    switch (typeof value) {
+        case 'number':
+            return value;
+        case 'string':
+            if (!Number.isNaN(Number(value))) {
+                return Number(value);
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
+
+export {getJSONInput, getStringInput, convertToNumber};
