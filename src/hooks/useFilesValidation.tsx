@@ -45,6 +45,14 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const filesToValidate = useRef<FileObject[]>([]);
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<ErrorObject[]>([]);
+    const originalFileOrder = useRef<Map<string, number>>(new Map());
+
+    const updateFileOrderMapping = useCallback((oldFile: FileObject | undefined, newFile: FileObject) => {
+        const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
+        if (originalIndex !== undefined) {
+            originalFileOrder.current.set(newFile.uri ?? '', originalIndex);
+        }
+    }, []);
 
     const deduplicateErrors = useCallback((errors: ErrorObject[]) => {
         const uniqueErrors = new Set<string>();
@@ -73,6 +81,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         filesToValidate.current = [];
         dataTransferItemList.current = [];
         collectedErrors.current = [];
+        originalFileOrder.current.clear();
     }, [setIsLoaderVisible]);
 
     const hideModalAndReset = useCallback(() => {
@@ -155,7 +164,8 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 setIsErrorModalVisible(true);
             }
         } else if (validFiles.current.length > 0) {
-            proceedWithFilesAction(validFiles.current);
+            const sortedFiles = validFiles.current.sort((a, b) => (originalFileOrder.current.get(a.uri ?? '') ?? 0) - (originalFileOrder.current.get(b.uri ?? '') ?? 0));
+            proceedWithFilesAction(sortedFiles);
             resetValidationState();
         }
     }, [deduplicateErrors, pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
@@ -169,6 +179,11 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // Reset collected errors for new validation
         collectedErrors.current = [];
 
+        // Store original file order using URI as key
+        files.forEach((file, index) => {
+            originalFileOrder.current.set(file.uri ?? '', index);
+        });
+
         Promise.all(files.map((file, index) => isValidFile(file, items.at(index), files.length > 1).then((isValid) => (isValid ? file : null))))
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
@@ -180,9 +195,18 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                     setIsLoaderVisible(true);
 
                     return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
+                        // Update originalFileOrder map with converted files
+                        convertedImages.forEach((convertedFile, index) => {
+                            updateFileOrderMapping(otherFiles.at(index), convertedFile);
+                        });
+
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                             return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
+                                // Update originalFileOrder map with resized files
+                                processedFiles.forEach((resizedFile, index) => {
+                                    updateFileOrderMapping(convertedImages.at(index), resizedFile);
+                                });
                                 setIsLoaderVisible(false);
                                 return Promise.resolve({processedFiles, pdfsToLoad});
                             });
@@ -198,6 +222,10 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 if (otherFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                     setIsLoaderVisible(true);
                     return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
+                        // Update originalFileOrder map with resized files
+                        processedFiles.forEach((resizedFile, index) => {
+                            updateFileOrderMapping(otherFiles.at(index), resizedFile);
+                        });
                         setIsLoaderVisible(false);
                         return Promise.resolve({processedFiles, pdfsToLoad});
                     });
@@ -228,7 +256,8 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                             setIsErrorModalVisible(true);
                         }
                     } else if (processedFiles.length > 0) {
-                        proceedWithFilesAction(processedFiles);
+                        const sortedFiles = processedFiles.sort((a, b) => (originalFileOrder.current.get(a.uri ?? '') ?? 0) - (originalFileOrder.current.get(b.uri ?? '') ?? 0));
+                        proceedWithFilesAction(sortedFiles);
                         resetValidationState();
                     }
                 }
@@ -242,7 +271,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
             filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             if (items) {
-                dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT)
+                dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             }
             setErrorAndOpenModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
         } else {
@@ -271,16 +300,17 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         }
 
+        const sortedFiles = validFilesToUpload.sort((a, b) => (originalFileOrder.current.get(a.uri ?? '') ?? 0) - (originalFileOrder.current.get(b.uri ?? '') ?? 0));
         // If we're validating attachments we need to use InteractionManager to ensure
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
             InteractionManager.runAfterInteractions(() => {
-                proceedWithFilesAction(validFilesToUpload);
+                proceedWithFilesAction(sortedFiles);
                 resetValidationState();
             });
         } else {
-            proceedWithFilesAction(validFilesToUpload);
+            proceedWithFilesAction(sortedFiles);
             hideModalAndReset();
         }
     };
