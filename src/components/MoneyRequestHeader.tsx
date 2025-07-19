@@ -80,7 +80,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         {canBeMissing: true},
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: false});
@@ -334,9 +334,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, true);
+                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, allTransactionViolations, true);
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, allTransactionViolations, true);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();

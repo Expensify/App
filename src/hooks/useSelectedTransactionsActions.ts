@@ -45,6 +45,7 @@ function useSelectedTransactionsActions({
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
@@ -62,6 +63,7 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
+
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
     if (isTrackExpenseThread) {
@@ -87,7 +89,7 @@ function useSelectedTransactionsActions({
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, undefined, deletedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, allTransactionViolations, false, deletedTransactionIDs);
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
@@ -95,7 +97,7 @@ function useSelectedTransactionsActions({
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [allTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);

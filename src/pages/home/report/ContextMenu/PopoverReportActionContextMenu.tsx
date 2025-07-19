@@ -6,6 +6,7 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -15,6 +16,7 @@ import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -54,6 +56,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         vertical: 0,
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const instanceIDRef = useRef('');
 
@@ -285,9 +288,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction);
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
             }
         } else if (reportAction) {
             deleteReportComment(reportIDRef.current, reportAction);
@@ -295,7 +298,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, []);
+    }, [allTransactionViolations]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
