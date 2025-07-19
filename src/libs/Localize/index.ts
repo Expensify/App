@@ -47,6 +47,21 @@ function init() {
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
+// Cache for Intl.PluralRules instances
+const pluralRulesCache: Record<string, Intl.PluralRules> = {};
+
+/**
+ * Get cached or create new Intl.PluralRules instance for a locale
+ * @param locale - The locale identifier (e.g., 'en', 'fr')
+ * @returns The cached or newly created Intl.PluralRules instance
+ */
+function getPluralRule(locale: string): Intl.PluralRules {
+    if (!pluralRulesCache[locale]) {
+        pluralRulesCache[locale] = new Intl.PluralRules(locale);
+    }
+    return pluralRulesCache[locale];
+}
+
 function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
     const translatedPhrase = TranslationStore.get(phraseKey, language);
 
@@ -70,7 +85,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, ph
                 throw new Error(`Invalid plural form for '${phraseKey}'`);
             }
 
-            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+            const pluralRule = getPluralRule(language).select(phraseObject.count);
 
             const pluralResult = translateResult[pluralRule];
             if (pluralResult) {
