@@ -594,7 +594,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                     <OfflineWithFeedback
                         pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
-                        errorRowStyles={[styles.mh4]}
+                        errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}
                         onClose={() => {
                             if (!transaction?.transactionID && !linkedTransactionID) {
                                 return;
@@ -611,7 +611,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                             }
                         }}
                         dismissError={dismissReceiptError}
-                        style={styles.mv3}
+                        style={shouldShowReceiptEmptyState ? styles.mb3 : styles.mv3}
                     >
                         {hasReceipt && (
                             <View style={[styles.moneyRequestViewImage, receiptStyle]}>
