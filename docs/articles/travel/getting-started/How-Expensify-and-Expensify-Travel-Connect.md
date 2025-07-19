@@ -1,5 +1,5 @@
 ---
-title: how-expensify-and-expensify-travel-connect.md
+title: How Expensify and Expensify Travel Connect
 description: Learn how Expensify Travel integrates with your Expensify account to automate business travel booking and expense reporting.
 keywords: [Expensify Travel, travel booking, automatic expense creation, flight expense, hotel booking, car rental, SmartScan, travel integration, trip automation, book business travel]
 

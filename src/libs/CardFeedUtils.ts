@@ -495,7 +495,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
-export type {CardFilterItem, CardFeedNamesWithType};
+export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
 export {
     buildCardsData,
     getCardFeedNamesWithType,
