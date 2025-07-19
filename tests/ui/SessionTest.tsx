@@ -98,6 +98,11 @@ describe('Deep linking', () => {
     });
 
     it('should not reuse the last deep link and log in when signing out', async () => {
+        // This is the only way to fix flaky tests found so far
+        if (hasAuthToken()) {
+            await Onyx.clear();
+        }
+
         expect(hasAuthToken()).toBe(false);
 
         const cleanUpSpy = jest.spyOn(Session, 'cleanupSession');
@@ -142,6 +147,11 @@ describe('Deep linking', () => {
     });
 
     it('should not remember the report path of the last deep link login after signing out and in again', async () => {
+        // This is the only way to fix flaky tests found so far
+        if (hasAuthToken()) {
+            await Onyx.clear();
+        }
+
         expect(hasAuthToken()).toBe(false);
 
         const url = getInitialURL();
