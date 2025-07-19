@@ -19,10 +19,12 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
+// cspell:disable-next-line
 const TEST_AUTH_TOKEN_1 = 'asdfghjkl';
 
 const TEST_USER_ACCOUNT_ID_2 = 456;
 const TEST_USER_LOGIN_2 = 'test2@test.com';
+// cspell:disable-next-line
 const TEST_AUTH_TOKEN_2 = 'zxcvbnm';
 
 jest.setTimeout(60000);
