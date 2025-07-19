@@ -1,21 +1,18 @@
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchParticipantsOptions from '@hooks/useSearchParticipantsOptions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
@@ -36,7 +33,6 @@ type UserSelectPopupProps = {
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -61,79 +57,10 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     });
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
-
-    const defaultOptions = useMemo(() => {
-        return getValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                selectedOptions,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            },
-        );
-    }, [options.personalDetails, options.reports, selectedOptions]);
-
-    const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
-            selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: false,
-        });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
-
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
-
-        const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions as OptionData[],
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-        );
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
-
-        if (chatOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-            });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
-            } else {
-                chatOptions.currentUserOption.text = formattedName;
-                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
-            }
-        }
-
-        newSections.push(formattedResults.section);
-
-        newSections.push({
-            title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
-        });
-
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
-        });
-
-        const noResultsFound =
-            Object.values(formattedResults.section.data).length === 0 && chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
-    }, [cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
+    const {sections, headerMessage, areOptionsInitialized} = useSearchParticipantsOptions({
+        selectedOptions: selectedOptions as OptionData[],
+        cleanSearchTerm,
+    });
 
     const selectUser = useCallback(
         (option: Option) => {
@@ -186,6 +113,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 onSelectRow={selectUser}
                 onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
+                showLoadingPlaceholder={!areOptionsInitialized}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
