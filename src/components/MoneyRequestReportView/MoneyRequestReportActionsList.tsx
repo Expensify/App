@@ -41,6 +41,7 @@ import {
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
+    isReportActionUnread,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -256,7 +257,9 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
+        const hasAnyUnreadActions = reportActions.some((action) => isReportActionUnread(action, report?.lastReadTime ?? ''));
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)) || hasAnyUnreadActions) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -329,7 +332,7 @@ function MoneyRequestReportActionsList({
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = startIndex; index >= endIndex; index--) {
             const reportAction = visibleReportActions.at(index);
-            const nextAction = visibleReportActions.at(index - 1);
+            const nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =
