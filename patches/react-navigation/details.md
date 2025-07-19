@@ -23,6 +23,14 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
 
+### [@react-navigation+core+7.10.0+002+fix-crash-when-parsing-emoji.patch](@react-navigation+core+7.10.0+002+fix-crash-when-parsing-emoji.patch)
+
+- Reason: App crashes when the path contains emoji
+- Upstream PR/issue: https://www.github.com/react-navigation/react-navigation/pull/12679
+- E/App issue: [#65709](https://github.com/Expensify/App/issues/65709)
+- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/65836)
+- PR Updating Patch: N/A
+
 ### [@react-navigation+native-stack+7.3.14+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.3.14+001+added-interaction-manager-integration.patch)
 
 - Reason: Adds `InteractionManager` implementation to `@react-navigation/native-stack`
