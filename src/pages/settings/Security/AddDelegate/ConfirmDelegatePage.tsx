@@ -12,7 +12,6 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {useCustomHistoryParam} from '@libs/Navigation/AppNavigator/customHistory';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,14 +25,13 @@ import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
     const [shouldDisableModalAnimation, setShouldDisableModalAnimation] = useState(true);
-
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useCustomHistoryParam();
     const [shouldShowLoading, setShouldShowLoading] = useState(isValidateCodeActionModalVisible ?? false);
 
