@@ -372,6 +372,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to add the current user postfix to the display name */
+    shouldAddCurrentUserPostfix?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -392,6 +395,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+    /** Whether to add the current user postfix to the display name */
+    shouldAddCurrentUserPostfix?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -823,6 +828,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to add the current user postfix to the display name */
+    shouldAddCurrentUserPostfix?: boolean;
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;

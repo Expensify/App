@@ -209,6 +209,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldAddCurrentUserPostfix={false}
         />
     );
 }
