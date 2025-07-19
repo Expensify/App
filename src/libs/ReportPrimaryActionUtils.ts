@@ -65,9 +65,10 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const canAddTransaction = canAddTransactionUtil(report);
 
-    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
+    return isExpenseReport && canAddTransaction && isReportSubmitter && reportTransactions.length === 0;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
@@ -76,7 +77,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
@@ -131,7 +132,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
@@ -265,7 +266,7 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
     }
 
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
 
@@ -293,7 +294,7 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
         return true;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -367,7 +368,7 @@ function isMarkAsCashActionForTransaction(parentReport: Report, violations: Tran
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(parentReport);
+    const isReportSubmitter = isCurrentUserSubmitter(parentReport.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 

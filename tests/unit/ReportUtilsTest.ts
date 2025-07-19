@@ -1141,7 +1141,7 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         parentReportID: '102',
                         type: CONST.REPORT.TYPE.EXPENSE,
-                        ownerAccountID: currentUserAccountID,
+                        managerID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -1163,7 +1163,7 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         parentReportID: '103',
-                        ownerAccountID: currentUserAccountID,
+                        managerID: currentUserAccountID,
                     };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
@@ -1294,7 +1294,6 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         parentReportID: '101',
                         policyID: paidPolicy.id,
-                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -3755,7 +3754,6 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(10000),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -3768,27 +3766,11 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('should return false for an expense report the current user is not the submitter', async () => {
-            // Given an expense report the current user is not the submitter
-            const report: Report = {
-                ...createRandomReport(10000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserAccountID + 1,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            const result = canAddTransaction(report, false);
-
-            // Then the result is false
-            expect(result).toBe(false);
-        });
-
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
                 ...createRandomReport(10001),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
