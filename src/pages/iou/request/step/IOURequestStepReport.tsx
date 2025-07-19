@@ -25,6 +25,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute} = route.params;
     const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -85,7 +86,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         );
 
         if (isEditing) {
-            changeTransactionsReport([transaction.transactionID], item.value);
+            changeTransactionsReport([transaction.transactionID], item.value, undefined, reportNextStep);
         }
 
         handleGoBackWithReportID(item.value);
