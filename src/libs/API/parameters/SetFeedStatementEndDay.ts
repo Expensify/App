@@ -5,7 +5,7 @@ type SetFeedStatementEndDay = {
     policyID: string;
     bankName: string;
     domainAccountID: number;
-    statementPeriodEndDate: CompanyCardStatementCloseDate;
+    statementEndDay: CompanyCardStatementCloseDate;
 };
 
 export default SetFeedStatementEndDay;
