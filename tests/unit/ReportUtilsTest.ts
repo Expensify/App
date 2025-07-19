@@ -22,6 +22,7 @@ import {
     canAddTransaction,
     canDeleteReportAction,
     canDeleteTransaction,
+    canEditFieldOfMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
@@ -294,6 +295,88 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('canEditFieldOfMoneyRequest', () => {
+        const reportActionID = 2;
+        const IOUReportID = '1234';
+        const IOUTransactionID = '123';
+        const randomReportAction = createRandomReportAction(reportActionID);
+        const policyID = '2424';
+        const reportAction = {
+            ...randomReportAction,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            childStateNum: 0,
+            childStatusNum: 0,
+            originalMessage: {
+                ...randomReportAction.originalMessage,
+                IOUReportID,
+                IOUTransactionID,
+                type: 'create',
+            },
+        };
+
+        /* CREATE money request transaction
+         transaction = allTransaction[reportAction.originalMessage.IOUTransactionID]
+         moneyRequestReport.reportID = moneyRequestReport.reportID = originalMessage.IOUReportID
+         moneyRequestTransaction.transactionID = originalMessage.IOUTransactionID
+
+         */
+
+        const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID};
+
+        /* CREATE money request report (invoice report)
+        invoiceReport = allReports[reportAction.originalMessage.IOUReportID]
+        invoiceReport.reportID = originalMessage.IOUReportID
+        invoiceReport.ownerAccountID = currentUserAccountID
+        invoioiceReport.policyID = policy.id
+        */
+
+        const invoiceReport = {
+            ...createInvoiceReport(Number(IOUReportID)),
+            policyID,
+            ownerAccountID: currentUserAccountID,
+            state: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            stateNum: 1,
+            statusNum: 1,
+            managerID: 8723,
+        };
+
+        /* CREATE policy
+        moneyRequestReport?.policyID = policy.id 
+        */
+        const policyC = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: 'admin'};
+
+        /* CREATE an outstanding EXPENSE REPORT
+         type = expense 
+         TODO: stateNum and statusNum can be less than or equal to CONST.REPORT.STATE_NUM.SUBMITTED
+         
+        */
+
+        const outstandingExpenseReport = {...createExpenseReport(483), policyID, stateNum: 0, statusNum: 0, ownerAccountID: currentUserAccountID};
+
+        /* might not need to add this
+        add the report action with 
+        hasForwardedAction
+        */
+
+        /* no need for this
+        Add reportNameValuePairs in onyx for the oustandingExpenseReport 
+        */
+
+        beforeAll(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, invoiceReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${483}`, outstandingExpenseReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyC);
+            return waitForBatchedUpdates();
+        });
+
+        it('test', () => {
+            const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            expect(canEditReportField).toBe(true);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
