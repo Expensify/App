@@ -380,7 +380,6 @@ type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: s
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
-
 type AccountOwnerParams = {accountOwnerEmail: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};

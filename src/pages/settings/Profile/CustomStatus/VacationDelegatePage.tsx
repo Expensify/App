@@ -167,6 +167,9 @@ function VacationDelegatePage() {
 
     const onSelectRow = useCallback(
         (option: Participant) => {
+            // Clear search to prevent "No results found" after selection
+            setSearchValue('');
+
             if (option?.login === vacationDelegate?.delegate) {
                 deleteVacationDelegate(vacationDelegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
@@ -188,7 +191,7 @@ function VacationDelegatePage() {
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
-        [currentUserLogin, vacationDelegate],
+        [currentUserLogin, vacationDelegate, setSearchValue],
     );
 
     useEffect(() => {
