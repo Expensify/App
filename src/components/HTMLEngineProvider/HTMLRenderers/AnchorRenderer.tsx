@@ -73,7 +73,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
         if (HTMLEngineUtils.isChildOfNoStyleLink(tnode)) {
             // If the link is a child of a no-style-link, we don't apply any styles
-            linkStyle = {...style as TextStyle};
+            linkStyle = {...(style as TextStyle)};
             delete linkStyle.color;
             delete linkStyle.textDecorationLine;
             delete linkStyle.textDecorationColor;
