@@ -760,6 +760,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             cardStyle: {
                                 ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                             },
+                            animation: InternalPlatformAnimations.FADE,
                         },
                     }}
                     component={TestToolsModalNavigator}

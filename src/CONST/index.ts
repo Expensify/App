@@ -130,6 +130,7 @@ const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+    WORKSPACE: 'workspace',
 } as const;
 
 const onboardingCompanySize = {
@@ -226,6 +227,7 @@ const CONST = {
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    TOOLTIP_ANIMATION_DURATION: 500,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -259,6 +261,9 @@ const CONST = {
 
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
+
+    // Allowed extensions for multilevel tag spreadsheets
+    MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS: ['csv', 'tsv'],
 
     // Allowed extensions for text files that are used as spreadsheets
     TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
@@ -426,6 +431,11 @@ const CONST = {
     SMS: {
         DOMAIN: '@expensify.sms',
     },
+    DOCUSIGN_POWERFORM_LINK: {
+        US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
@@ -538,6 +548,7 @@ const CONST = {
             BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
             FINISH: 'FinishStep',
         },
         BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
@@ -587,6 +598,7 @@ const CONST = {
             },
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        DOCUSIGN_REQUIRED_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
             SUBSTEP: {
@@ -635,14 +647,10 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
-        NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        MULTI_LEVEL_TAGS: 'multiLevelTags',
-        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
-        NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
@@ -910,6 +918,7 @@ const CONST = {
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
+    WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
@@ -948,6 +957,7 @@ const CONST = {
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
+    BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
@@ -956,18 +966,15 @@ const CONST = {
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    NAVATTIC: {
-        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
-        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
-        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
-        COMPLETED: 'completed',
-    },
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
-        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
+
+        // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_MOBILE: 'https://expensify.navattic.com/35609gb',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1370,8 +1377,9 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         TRANSACTION_PREVIEW: {
             CAROUSEL: {
-                WIDE_WIDTH: 303,
+                MIN_WIDE_WIDTH: 303,
                 WIDE_HEIGHT: 269,
+                MIN_NARROW_WIDTH: 256,
             },
             DUPLICATE: {
                 WIDE_HEIGHT: 347,
@@ -1723,6 +1731,10 @@ const CONST = {
     // Amount of emojis to render ahead at the end of the update cycle
     EMOJI_DRAW_AMOUNT: 100,
 
+    CUSTOM_EMOJIS: {
+        GLOBAL_CREATE: '\uE100',
+    },
+
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     UNICODE: {
@@ -2055,6 +2067,7 @@ const CONST = {
             TAG: 'TAG',
             REPORT_FIELD: 'REPORT_FIELD',
         },
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
@@ -2939,6 +2952,7 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -3342,63 +3356,75 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
+            INVOICING: 'invoicing2018',
         },
     },
+
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3000,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1400,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 800,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 3200,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.EUR]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                    [this.SUBSCRIPTION.TYPE.INVOICING]: 0,
                 },
             },
         };
@@ -3428,9 +3454,13 @@ const CONST = {
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
+
+        PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
+
+        ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
@@ -3485,12 +3515,7 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
-        SHORT_MENTION: new RegExp(
-            // We are ensuring that the short mention is not inside a code block. So we check that the short mention
-            // is either not preceded by an open code block or not followed by a backtick on the same line.
-            `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
-            'gim',
-        ),
+        SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
@@ -5081,15 +5106,15 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
-            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
+            PRELOAD: 'PRELOAD',
+            POP_TO: 'POP_TO',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
-            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {
@@ -5122,6 +5147,8 @@ const CONST = {
     IMAGE_SVG_TEST_ID: 'ImageSVG',
     VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
     LOTTIE_VIEW_TEST_ID: 'LottieView',
+
+    DOT_INDICATOR_TEST_ID: 'DotIndicator',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -6195,6 +6222,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
@@ -6231,7 +6259,7 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: 'all',
+                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6240,17 +6268,17 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: 'all',
+                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {
-                ALL: 'all',
+                ALL: '',
                 UNREAD: 'unread',
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
@@ -6258,7 +6286,7 @@ const CONST = {
                 PINNED: 'pinned',
             },
             TASK: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6374,13 +6402,22 @@ const CONST = {
             ACTION: 'action',
         },
         DATE_MODIFIERS: {
-            BEFORE: 'Before',
-            AFTER: 'After',
             ON: 'On',
+            AFTER: 'After',
+            BEFORE: 'Before',
         },
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            LAST_STATEMENT: 'last-statement',
+        },
+        get FILTER_DATE_PRESETS() {
+            return {
+                // s77rt remove DEV lock
+                [this.SYNTAX_FILTER_KEYS.POSTED]:
+                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
+                [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
+            };
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
@@ -6391,131 +6428,32 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-    },
-
-    /**
-     * SEARCH_TYPE_FILTERS_KEYS is an object keyed by the different search types.
-     * Each value is then an array of arrays where each inner array is a separate section in the UI.
-     */
-    get SEARCH_TYPE_FILTERS_KEYS() {
-        return {
-            [this.SEARCH.DATA_TYPES.EXPENSE]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.INVOICE]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.TRIP]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.CHAT]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.TASK]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                ],
-            ],
-        } as const;
+        SEARCH_LIST: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            STATEMENTS: 'statements',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CASH_ONLY: 'unapprovedCashOnly',
+            UNAPPROVED_COMPANY_CARDS_ONLY: 'unapprovedCompanyCardsOnly',
+        },
+        SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            STATEMENTS: 'statements',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+        },
     },
 
     EXPENSE: {
@@ -6591,6 +6529,7 @@ const CONST = {
             mapping: 'report-fields-mapping',
         },
     },
+    DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {
@@ -6767,7 +6706,8 @@ const CONST = {
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
         MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
-        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags',
+        MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.

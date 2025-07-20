@@ -46,7 +46,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false, canBeMissing: true});
+    const [isSidebarLoaded = false] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
