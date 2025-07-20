@@ -1,17 +1,11 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {View} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import {getButtonRole} from '@components/Button/utils';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
+import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -39,10 +33,20 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
 
-    const pressableStyle = [
-        styles.transactionListItemStyle,
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv0,
         !isLargeScreenWidth && styles.pt3,
+        styles.ph0,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
+        styles.mh0,
+    ];
+
+    const listItemWrapperStyle = [
+        styles.flex1,
+        styles.userSelectNone,
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
@@ -87,67 +91,52 @@ function TransactionListItem<TItem extends ListItem>({
         onCheckboxPress?.(item);
     }, [item, onCheckboxPress]);
 
-    const onPress = useCallback(() => {
-        onSelectRow(item);
-    }, [item, onSelectRow]);
-
-    const onLongPress = useCallback(() => {
-        onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
-
-    const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
-    const pressableRef = useRef<View>(null);
-
-    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-
     return (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
-            <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
-                ref={pressableRef}
-                onLongPress={onLongPress}
-                onPress={onPress}
-                disabled={isDisabled && !item.isSelected}
-                accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
-                isNested
-                onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                id={item.keyForList ?? ''}
-                style={[
-                    pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                ]}
-                onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
-            >
-                {!isLargeScreenWidth && (
-                    <UserInfoAndActionButtonRow
-                        item={transactionItem}
-                        handleActionButtonPress={handleActionButtonPress}
-                        shouldShowUserInfo={!!transactionItem?.from}
+        <BaseListItem
+            item={item}
+            pressableStyle={listItemPressableStyle}
+            wrapperStyle={listItemWrapperStyle}
+            containerStyle={[styles.mb2]}
+            isFocused={isFocused}
+            isDisabled={isDisabled}
+            showTooltip={showTooltip}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            pendingAction={item.pendingAction}
+            keyForList={item.keyForList}
+            onFocus={onFocus}
+            onLongPressRow={onLongPressRow}
+            shouldSyncFocus={shouldSyncFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+        >
+            {(hovered) => (
+                <>
+                    {!isLargeScreenWidth && (
+                        <UserInfoAndActionButtonRow
+                            item={transactionItem}
+                            handleActionButtonPress={handleActionButtonPress}
+                            shouldShowUserInfo={!!transactionItem?.from}
+                        />
+                    )}
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={showTooltip}
+                        onButtonPress={handleActionButtonPress}
+                        onCheckboxPress={handleCheckboxPress}
+                        shouldUseNarrowLayout={!isLargeScreenWidth}
+                        columns={columns}
+                        isParentHovered={hovered}
+                        isActionLoading={isLoading ?? transactionItem.isActionLoading}
+                        isSelected={!!transactionItem.isSelected}
+                        dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        shouldShowCheckbox={!!canSelectMultiple}
                     />
-                )}
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    shouldShowTooltip={showTooltip}
-                    onButtonPress={handleActionButtonPress}
-                    onCheckboxPress={handleCheckboxPress}
-                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns}
-                    isParentHovered={hovered}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading}
-                    isSelected={!!transactionItem.isSelected}
-                    dateColumnSize={dateColumnSize}
-                    amountColumnSize={amountColumnSize}
-                    taxAmountColumnSize={taxAmountColumnSize}
-                    shouldShowCheckbox={!!canSelectMultiple}
-                />
-            </PressableWithFeedback>
-        </OfflineWithFeedback>
+                </>
+            )}
+        </BaseListItem>
     );
 }
 

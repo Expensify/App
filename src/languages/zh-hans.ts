@@ -2669,6 +2669,7 @@ const translations = {
             validationAmounts: '您输入的验证金额不正确。请仔细检查您的银行对账单，然后重试。',
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入一个有效的百分比数字',
+            deletePaymentBankAccount: '由于该银行账户用于Expensify卡支付，因此无法删除。如果您仍希望删除此账户，请联系Concierge。',
         },
     },
     addPersonalBankAccount: {

@@ -643,7 +643,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID));
                 } else if (isCardIssuedAction(reportAction)) {
-                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
+                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
                     setClipboardMessage(getAddedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {

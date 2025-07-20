@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -10,12 +10,11 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridAppRoute, Route} from '@src/ROUTES';
-import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
@@ -115,23 +114,6 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
  * Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
  */
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
-
-/**
- * Function that generates dynamic urls from paths passed from OldDot.
- */
-function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
-    switch (url) {
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        default:
-            return url;
-    }
-}
 
 /**
  * Returns the current active route.
@@ -652,6 +634,11 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function clearPreloadedRoutes() {
+    const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
+    navigationRef.reset(rootStateWithoutPreloadedRoutes);
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -671,7 +658,6 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
-    parseHybridAppUrl,
     resetToHome,
     goBackToHome,
     closeRHPFlow,
@@ -685,6 +671,7 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    clearPreloadedRoutes,
 };
 
 export {navigationRef};

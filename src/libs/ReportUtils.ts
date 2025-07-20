@@ -1489,12 +1489,8 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
 /**
  * Whether the current user is the submitter of the report
  */
-function isCurrentUserSubmitter(reportID: string | undefined): boolean {
-    if (!allReports || !reportID) {
-        return false;
-    }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return !!(report && report.ownerAccountID === currentUserAccountID);
+function isCurrentUserSubmitter(report: OnyxEntry<Report>): boolean {
+    return !!report && report.ownerAccountID === currentUserAccountID;
 }
 
 /**
@@ -2134,10 +2130,6 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
-    if (isAuditor(report)) {
-        return true;
-    }
-
     if (!canWriteInReport(report)) {
         return false;
     }
@@ -2467,9 +2459,11 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
  * Return true if:
  * - report is a non-settled IOU
  * - report is a draft
+ * Returns false if:
+ * - if current user is not the submitter of an expense report
  */
 function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport)) {
+    if (!isMoneyRequestReport(moneyRequestReport) || (isExpenseReport(moneyRequestReport) && !isCurrentUserSubmitter(moneyRequestReport))) {
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -3975,7 +3969,7 @@ function getTransactionDetails(
     const report = getReportOrDraftReport(transaction?.reportID);
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
@@ -4088,7 +4082,7 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return true;
     }
 
-    if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport.reportID)) {
+    if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded = getSubmitToAccountID(policy, moneyRequestReport) !== moneyRequestReport.managerID;
         return !isForwarded;
     }
@@ -4235,8 +4229,8 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreported = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        return isUnreported
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 0
@@ -4487,7 +4481,7 @@ function getTransactionReportName({
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, reports);
-    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
 
@@ -4542,7 +4536,7 @@ function getReportPreviewMessage(
                 return translateLocal('iou.receiptMissingDetails');
             }
 
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
         }
@@ -4564,7 +4558,7 @@ function getReportPreviewMessage(
                 return translateLocal('iou.receiptMissingDetails');
             }
 
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
         }
@@ -7912,7 +7906,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     }
 
     // We only show the RBR to the submitter
-    if (!isCurrentUserSubmitter(report.reportID)) {
+    if (!isCurrentUserSubmitter(report)) {
         return false;
     }
     if (!report.policyID || !reportsByPolicyID) {
@@ -8554,11 +8548,8 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return false;
     }
 
-    // User can submit expenses in any IOU report, unless paid, but the user can only submit expenses in an expense report
-    // which is tied to their expense chat.
     if (isMoneyRequestReport(report)) {
-        const canAddTransactions = canAddTransaction(report);
-        return isReportInGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
+        return canAddTransaction(report);
     }
 
     // In the case of policy expense chat, users can only submit expenses from their own policy expense chat
@@ -9183,7 +9174,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         return translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
-    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
+    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved({report: iouReport});
@@ -9649,7 +9640,7 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
  * What missing payment method does this report action indicate, if any?
  */
 function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string | undefined, reportAction: ReportAction): MissingPaymentMethod | undefined {
-    const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
+    const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, allReports)) && !isSettled(reportId);
     if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
         return undefined;
     }
@@ -9923,7 +9914,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
         return;
     }
 
