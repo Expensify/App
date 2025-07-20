@@ -325,7 +325,7 @@ const WRITE_COMMANDS = {
     MARK_AS_CASH: 'MarkAsCash',
     MERGE_DUPLICATES: 'MergeDuplicates',
     RESOLVE_DUPLICATES: 'ResolveDuplicates',
-    MERGE_TRANSACTION: 'MergeTransaction',
+    MERGE_TRANSACTION: 'Transaction_Merge',
     UPDATE_SUBSCRIPTION_TYPE: 'UpdateSubscriptionType',
     SIGN_UP_USER: 'SignUpUser',
     UPDATE_SUBSCRIPTION_AUTO_RENEW: 'UpdateSubscriptionAutoRenew',

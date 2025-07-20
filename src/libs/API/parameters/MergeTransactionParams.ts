@@ -3,7 +3,7 @@ type MergeTransactionParams = {
     transactionID: string;
 
     /** ID of the transaction we're merging into that will be deleted */
-    transactionIDs: string[];
+    transactionIDList: string[];
 
     /** Created date */
     created: string;

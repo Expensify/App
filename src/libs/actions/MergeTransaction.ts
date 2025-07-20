@@ -79,14 +79,19 @@ function getTransactionsForMergingLocally(
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
 function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: MergeTransaction, targetTransaction: Transaction, sourceTransaction: Transaction) {
+    const isUnreportedExpense = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    // If the target transaction we're keeping is unreported, the amount needs to be positive. Otherwise for expense reports it needs to be the opposite sign.
+    const finalAmount = isUnreportedExpense ? Math.abs(mergeTransaction.amount) : -mergeTransaction.amount;
+
     // Call the merge transaction action
     const params = {
         transactionID: mergeTransaction.targetTransactionID,
-        transactionIDs: [mergeTransaction.sourceTransactionID],
+        transactionIDList: [mergeTransaction.sourceTransactionID],
         created: targetTransaction.created,
         merchant: mergeTransaction.merchant,
-        amount: mergeTransaction.amount,
-        currency: targetTransaction.currency,
+        amount: finalAmount,
+        currency: mergeTransaction.currency,
         category: mergeTransaction.category,
         comment: mergeTransaction.description,
         billable: mergeTransaction.billable,
