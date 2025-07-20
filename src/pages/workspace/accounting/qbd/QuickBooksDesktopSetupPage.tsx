@@ -9,19 +9,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setConnectionError} from '@libs/actions/connections';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {setConnectionError} from '@userActions/connections';
+import * as QuickbooksDesktop from '@userActions/connections/QuickbooksDesktop';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -78,7 +78,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         },
     });
 
-    const shouldShowError = hasError;
+    const shouldShowError = true;
 
     return (
         <ScreenWrapper
@@ -100,15 +100,8 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                             height={168}
                         />
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.qbd.setupPage.setupErrorTitle')}</Text>
-                        <Text style={[styles.textSupporting, styles.ph5, styles.mv3, styles.textAlignCenter]}>
-                            {translate('workspace.qbd.setupPage.setupErrorBody1')}{' '}
-                            <TextLink
-                                href={`${environmentURL}/${ROUTES.CONCIERGE}`}
-                                style={styles.link}
-                            >
-                                {translate('workspace.qbd.setupPage.setupErrorBodyContactConcierge')}
-                            </TextLink>{' '}
-                            {translate('workspace.qbd.setupPage.setupErrorBody2')}
+                        <Text style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textAlignCenter]}>
+                            <RenderHTML html={translate('workspace.qbd.setupPage.setupErrorBody', {conciergeLink: `${environmentURL}/${ROUTES.CONCIERGE}`})} />
                         </Text>
                     </View>
                 )}
