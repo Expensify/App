@@ -12,11 +12,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMergeableDataAndConflictFields, getMergeFieldTranslationKey, getMergeFieldValue, getSourceTransaction} from '@libs/MergeTransactionUtils';
-import type {MergeFieldKey, MergeValueType} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {getCurrency} from '@libs/TransactionUtils';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,14 +55,17 @@ function DetailsReview({route}: DetailsReviewProps) {
     }, [targetTransaction, sourceTransaction, transactionID]);
 
     // Handle selection
-    const handleSelect = (field: MergeFieldKey, value: MergeValueType) => {
+    const handleSelect = (field: MergeFieldKey, value: MergeValue) => {
         // Clear error if it has
         setHasErrors((prev) => {
             const newErrors = {...prev};
             delete newErrors[field];
             return newErrors;
         });
-        setMergeTransactionKey(transactionID, {[field]: value});
+        setMergeTransactionKey(transactionID, {
+            [field]: value.value,
+            ...(field === 'amount' && {currency: value.currency}),
+        });
     };
 
     // Handle continue
@@ -112,16 +117,49 @@ function DetailsReview({route}: DetailsReviewProps) {
                         const targetValue = getMergeFieldValue(targetTransaction, field);
                         const sourceValue = getMergeFieldValue(sourceTransaction, field);
 
-                        const selectedValue = mergeTransaction?.[field] as MergeValueType | undefined;
                         const fieldTranslated = translate(getMergeFieldTranslationKey(field) as TranslationPaths);
+
+                        const formatValue = (mergeValue: MergeValue) => {
+                            const {value, currency} = mergeValue;
+
+                            if (!value) {
+                                return '';
+                            }
+
+                            if (typeof value === 'boolean') {
+                                return value ? translate('common.yes') : translate('common.no');
+                            }
+
+                            if (field === 'amount') {
+                                return convertToDisplayString(Number(value), currency);
+                            }
+
+                            return String(value);
+                        };
+
+                        const selectedValue = {
+                            value: mergeTransaction?.[field] ?? '',
+                            currency: mergeTransaction?.currency ?? '',
+                        };
+
+                        const targetMergeValue: MergeValue = {
+                            value: targetValue,
+                            currency: field === 'amount' ? getCurrency(targetTransaction) : '',
+                        };
+
+                        const sourceMergeValue: MergeValue = {
+                            value: sourceValue,
+                            currency: field === 'amount' ? getCurrency(sourceTransaction) : '',
+                        };
 
                         return (
                             <MergeFieldReview
                                 key={field}
                                 field={fieldTranslated}
-                                values={[targetValue, sourceValue]}
-                                selectedValue={selectedValue ?? ''}
+                                values={[targetMergeValue, sourceMergeValue]}
+                                selectedValue={selectedValue ?? {}}
                                 onValueSelected={(value) => handleSelect(field, value)}
+                                formatValue={formatValue}
                                 errorText={hasErrors[field] ? translate('transactionMerge.detailsPage.pleaseSelectError', {field: fieldTranslated}) : undefined}
                             />
                         );

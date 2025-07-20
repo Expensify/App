@@ -1,17 +1,26 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import CONST from '@src/CONST';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
-import {getAmount, getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
+import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
+const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeValueType = string | number | boolean;
+type MergeValue = {
+    value: MergeValueType;
+    currency?: string;
+};
 
 const MERGE_FIELDS_UTILS = {
     amount: {
         translationKey: 'iou.amount',
-        getDataFn: getAmount,
+        getDataFn: (transaction: Transaction, isFromExpenseReport: boolean) => getAmount(transaction, isFromExpenseReport),
+    },
+    currency: {
+        translationKey: 'iou.currency',
+        getDataFn: getCurrency,
     },
     merchant: {
         translationKey: 'common.merchant',
@@ -71,6 +80,13 @@ function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFie
     if (!transaction) {
         return '';
     }
+
+    // Handle amount field separately as it requires the second parameter
+    if (field === 'amount') {
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        return MERGE_FIELDS_UTILS[field].getDataFn(transaction, !isUnreportedExpense);
+    }
+
     return MERGE_FIELDS_UTILS[field].getDataFn(transaction);
 }
 
@@ -94,6 +110,11 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     const mergeableData: Record<string, unknown> = {};
 
     MERGE_FIELDS.forEach((field) => {
+        // Currency field is handled by the amount field
+        if (field === 'currency') {
+            return;
+        }
+
         const targetValue = getMergeFieldValue(targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransaction, field);
 
@@ -104,6 +125,9 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
+            if (field === 'amount' && getMergeFieldValue(targetTransaction, 'currency') !== getMergeFieldValue(sourceTransaction, 'currency')) {
+                conflictFields.push('amount');
+            }
         } else {
             conflictFields.push(field);
         }
@@ -127,6 +151,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         ...targetTransaction,
         amount: mergeTransaction.amount,
         modifiedAmount: mergeTransaction.amount,
+        modifiedCurrency: mergeTransaction.currency,
         merchant: mergeTransaction.merchant,
         modifiedMerchant: mergeTransaction.merchant,
         category: mergeTransaction.category,
@@ -172,4 +197,4 @@ export {
     selectTargetAndSourceTransactionIDsForMerge,
 };
 
-export type {MergeFieldKey, MergeValueType};
+export type {MergeFieldKey, MergeValueType, MergeValue};

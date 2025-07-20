@@ -15,6 +15,9 @@ type MergeTransaction = {
     /** Amount which user want to keep */
     amount: number;
 
+    /** The currency the user wants to */
+    currency: string;
+
     /** Merchant which user want to keep */
     merchant: string;
 

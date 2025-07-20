@@ -4,49 +4,43 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MergeValueType} from '@libs/MergeTransactionUtils';
+import type {MergeValue} from '@libs/MergeTransactionUtils';
 
 type MergeFieldReviewProps = {
     field: string;
-    values: MergeValueType[];
-    selectedValue: MergeValueType;
-    onValueSelected: (selected: MergeValueType) => void;
+    values: MergeValue[];
+    selectedValue: MergeValue;
+    onValueSelected: (selected: MergeValue) => void;
     errorText: string | undefined;
+    formatValue: (mergeValue: MergeValue) => string;
 };
 
-function MergeFieldReview({field, values, selectedValue, onValueSelected, errorText}: MergeFieldReviewProps) {
+function MergeFieldReview({field, values, selectedValue, onValueSelected, errorText, formatValue}: MergeFieldReviewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     return (
         <View style={[styles.mb3, styles.pv5, styles.borderRadiusComponentLarge, styles.highlightBG]}>
             <Text style={[styles.textSupporting, styles.pb3, styles.ph5]}>{field}</Text>
-            {values.map((value: MergeValueType) => {
-                const isSelected = value === selectedValue;
-                // Convert boolean to translated "Yes"/"No", otherwise keep as is
-                let valueInString: string;
-                if (typeof value === 'boolean') {
-                    valueInString = value ? translate('common.yes') : translate('common.no');
-                } else {
-                    valueInString = String(value);
-                }
+            {values.map((mergeValue: MergeValue) => {
+                const {value, currency} = mergeValue;
+                const displayValue = formatValue(mergeValue);
+                const isSelected = selectedValue.value === value && (!currency || selectedValue.currency === currency);
 
                 return (
                     <PressableWithoutFeedback
-                        key={valueInString}
-                        onPress={() => onValueSelected(value)}
-                        accessibilityLabel={valueInString}
+                        key={`${value}${currency}`}
+                        onPress={() => onValueSelected(mergeValue)}
+                        accessibilityLabel={formatValue(mergeValue)}
                         accessible={false}
                         hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5, isSelected && styles.activeComponentBG]}
                     >
-                        <Text style={[styles.mr1, styles.textBold]}>{valueInString}</Text>
+                        <Text style={[styles.mr1, styles.textBold]}>{displayValue}</Text>
                         <RadioButton
                             isChecked={isSelected}
-                            onPress={() => onValueSelected(value)}
-                            accessibilityLabel={valueInString}
+                            onPress={() => onValueSelected(mergeValue)}
+                            accessibilityLabel={displayValue}
                             newRadioButtonStyle
                         />
                     </PressableWithoutFeedback>
