@@ -380,7 +380,6 @@ type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: s
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
-type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
 type AccountOwnerParams = {accountOwnerEmail: string};
 
@@ -979,7 +978,6 @@ export type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
-    DelegateSubmitParams,
     AccountOwnerParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
