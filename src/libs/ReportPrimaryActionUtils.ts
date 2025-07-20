@@ -307,7 +307,7 @@ function isMarkAsResolvedAction(report?: Report, transaction?: Transaction) {
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     if (!isReportSubmitter) {
         return false;
     }
