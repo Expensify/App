@@ -173,7 +173,7 @@ function VacationDelegatePage() {
                 return;
             }
 
-            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '').then((response) => {
+            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
                 if (!response?.jsonCode) {
                     Navigation.goBack(ROUTES.SETTINGS_STATUS);
                     return;
@@ -226,11 +226,11 @@ function VacationDelegatePage() {
                 prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate})}
                 onConfirm={() => {
                     setIsWarningModalVisible(false);
-                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
                 }}
                 onCancel={() => {
                     setIsWarningModalVisible(false);
-                    clearVacationDelegateError();
+                    clearVacationDelegateError(vacationDelegate?.previousDelegate);
                 }}
                 confirmText={translate('common.confirm')}
                 cancelText={translate('common.cancel')}
