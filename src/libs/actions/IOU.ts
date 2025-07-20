@@ -8,7 +8,6 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
-import {generateReportID} from '@libs/ReportUtils';
 import type {
     ApproveMoneyRequestParams,
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
@@ -106,6 +105,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
@@ -11696,12 +11696,14 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const existingOpenReport = Object.values(allReports ?? {}).find((r) =>
-            r?.reportID !== reportID &&
-            r?.chatReportID === report.chatReportID && 
-            r?.type === CONST.REPORT.TYPE.EXPENSE &&
-            isOpenReport(r) &&
-            r?.ownerAccountID === report.ownerAccountID);
+        const existingOpenReport = Object.values(allReports ?? {}).find(
+            (r) =>
+                r?.reportID !== reportID &&
+                r?.chatReportID === report.chatReportID &&
+                r?.type === CONST.REPORT.TYPE.EXPENSE &&
+                isOpenReport(r) &&
+                r?.ownerAccountID === report.ownerAccountID,
+        );
 
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
@@ -11837,7 +11839,7 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
     const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-    const updatedComment =  {...currentTransaction?.comment};
+    const updatedComment = {...currentTransaction?.comment};
     delete updatedComment[CONST.VIOLATIONS.REJECTED_EXPENSE];
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
