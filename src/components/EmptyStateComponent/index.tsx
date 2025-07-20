@@ -3,7 +3,6 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import Text from '@components/Text';
@@ -104,30 +103,19 @@ function EmptyStateComponent({
                         {subtitleText ?? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.justifyContentCenter]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
-                                    dropDownOptions ? (
-                                        <ButtonWithDropdownMenu
-                                            onPress={() => {}}
-                                            shouldAlwaysShowDropdownMenu
-                                            customText={buttonText}
-                                            options={dropDownOptions}
-                                            isSplitButton={false}
-                                            style={[styles.flex1, style]}
-                                        />
-                                    ) : (
-                                        <Button
-                                            key={buttonText}
-                                            success={success}
-                                            onPress={buttonAction}
-                                            text={buttonText}
-                                            icon={icon}
-                                            large
-                                            isDisabled={isDisabled}
-                                            style={[styles.flex1, style]}
-                                        />
-                                    ),
-                                )}
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn]}>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style}) => (
+                                    <Button
+                                        key={buttonText}
+                                        success={success}
+                                        onPress={buttonAction}
+                                        text={buttonText}
+                                        icon={icon}
+                                        large
+                                        isDisabled={isDisabled}
+                                        style={[styles.flex1, style]}
+                                    />
+                                ))}
                             </View>
                         )}
                     </View>

@@ -49,14 +49,21 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ASYNC_BUILDS[i]=$!
 done
 
+EXIT_CODE=0
 for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION=${GITHUB_ACTIONS[$i]}
   ACTION_DIR=$(dirname "$ACTION")
+  ACTION_NAME=$(basename "$ACTION" .ts)
 
   # Wait for the background build to finish
-  wait "${ASYNC_BUILDS[$i]}"
-
-  # Prepend the warning note to the top of the compiled file
-  OUTPUT_FILE="$ACTION_DIR/index.js"
-  echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
+  if wait "${ASYNC_BUILDS[$i]}"; then
+    # Prepend the warning note to the top of the compiled file
+    OUTPUT_FILE="$ACTION_DIR/index.js"
+    echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
+  else
+    echo "❌ $ACTION_NAME failed to build: $ACTION_DIR/index.js" >&2
+    EXIT_CODE=1
+  fi
 done
+
+exit $EXIT_CODE

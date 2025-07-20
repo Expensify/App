@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearErrors} from '@userActions/FormActions';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Confirmation from './subSteps/Confirmation';
 
@@ -18,6 +17,9 @@ type CountryProps = {
 
     /** ID of current policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 type CountryStepProps = {
@@ -27,7 +29,7 @@ type CountryStepProps = {
 
 const bodyContent: Array<ComponentType<CountryStepProps>> = [Confirmation];
 
-function Country({onBackButtonPress, onSubmit, policyID}: CountryProps) {
+function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProps) {
     const {translate} = useLocalize();
 
     const submit = () => {
@@ -63,7 +65,7 @@ function Country({onBackButtonPress, onSubmit, policyID}: CountryProps) {
             wrapperID={Country.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('countryStep.confirmCurrency')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={0}
         >
             <SubStep
