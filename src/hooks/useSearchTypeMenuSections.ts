@@ -1,32 +1,25 @@
 import {useMemo} from 'react';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useOnyx from './useOnyx';
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
-const useSearchTypeMenuSections = (hash = 0) => {
-    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+const useSearchTypeMenuSections = () => {
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
 
     const typeMenuSections = useMemo(
-        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, allFeeds, allPolicies),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, allPolicies, allFeeds],
+        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies),
+        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies],
     );
 
-    const currentSearch = useMemo(() => {
-        const flatMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flatMenuItems.find((menuItem) => {
-            const menuHash = buildSearchQueryJSON(menuItem.getSearchQuery())?.hash;
-            return menuHash === hash;
-        });
-    }, [hash, typeMenuSections]);
-
-    return {typeMenuSections, currentSearch};
+    return {typeMenuSections};
 };
 
 export default useSearchTypeMenuSections;
