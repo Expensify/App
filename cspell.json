@@ -691,8 +691,11 @@
         "zxcv",
         "zxldvw",
         "مثال",
+        "pkill",
         "pnrs",
-        "POLICYCHANGELOG_ADD_EMPLOYEE"
+        "POLICYCHANGELOG_ADD_EMPLOYEE",
+        "xcshareddata",
+        "xcuserdata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

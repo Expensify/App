@@ -2,7 +2,7 @@ import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
