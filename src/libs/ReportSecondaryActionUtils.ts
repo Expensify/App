@@ -99,9 +99,10 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const currentUserEmail = getCurrentUserEmail();
 
-    return (isSubmitter || isAdmin || isManager) && isPolicyMember(currentUserEmail, report.policyID);
+    return (isSubmitter || isAdmin || isManager) && isPolicyMember(currentUserEmail, report.policyID) && isPolicyExpenseChat;
 }
 
 function isSubmitAction(
