@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -97,7 +97,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
-    const hasUseDeclineDismissedRef = useRef(false);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -229,13 +228,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const dismissModalAndUpdateUseDecline = () => {
         setIsDeclineEducationalModalVisible(false);
-        if (!hasUseDeclineDismissedRef.current) {
+        
             dismissDeclineUseExplanation();
-            hasUseDeclineDismissedRef.current = true;
+        
             if (parentReportAction) {
                 declineMoneyRequestReason(parentReportAction);
             }
-        }
     };
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
