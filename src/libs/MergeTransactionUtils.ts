@@ -124,9 +124,10 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const isSourceValueEmpty = sourceValue === null || sourceValue === undefined || sourceValue === '';
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             if (field === 'amount' && getMergeFieldValue(targetTransaction, 'currency') !== getMergeFieldValue(sourceTransaction, 'currency')) {
                 conflictFields.push('amount');
+            } else {
+                mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             }
         } else {
             conflictFields.push(field);

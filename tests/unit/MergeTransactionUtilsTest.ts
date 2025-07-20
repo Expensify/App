@@ -1,4 +1,5 @@
 import {buildMergedTransactionData, getMergeableDataAndConflictFields, selectTargetAndSourceTransactionIDsForMerge} from '@libs/MergeTransactionUtils';
+import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
 
@@ -9,9 +10,10 @@ describe('MergeTransactionUtils', () => {
             const targetTransaction = {
                 ...createRandomTransaction(0),
                 amount: 1000,
+                currency: CONST.CURRENCY.USD,
                 merchant: 'Same Merchant',
                 modifiedMerchant: 'Same Merchant',
-                category: 'Travel',
+                category: 'Food',
                 tag: '', // Empty
                 comment: {comment: 'Different description 1'},
                 reimbursable: true,
@@ -19,10 +21,11 @@ describe('MergeTransactionUtils', () => {
             };
             const sourceTransaction = {
                 ...createRandomTransaction(1),
-                amount: 1000, // Same
+                amount: 1000, // Same amount but different currency
+                currency: CONST.CURRENCY.AUD,
                 merchant: '', // Empty
                 modifiedMerchant: '',
-                category: 'Food', // Different
+                category: 'Food', // Same
                 tag: 'Same Tag', // Have value
                 comment: {comment: 'Different description 2'}, // Different
                 reimbursable: false, // Different
@@ -32,14 +35,34 @@ describe('MergeTransactionUtils', () => {
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
             // Only the different values are in the conflict fields
-            expect(result.conflictFields).toEqual(['category', 'description', 'reimbursable']);
+            expect(result.conflictFields).toEqual(['amount', 'description', 'reimbursable']);
 
             // The same values or either target or source has value are in the mergeable data
             expect(result.mergeableData).toEqual({
-                amount: 1000,
                 merchant: 'Same Merchant',
+                category: 'Food',
                 tag: 'Same Tag',
                 billable: false,
+            });
+        });
+
+        it('should merge amount field correctly when they are same', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: -1000,
             });
         });
     });
@@ -82,6 +105,7 @@ describe('MergeTransactionUtils', () => {
                 modifiedAmount: 2000,
                 merchant: 'Merged Merchant',
                 modifiedMerchant: 'Merged Merchant',
+                modifiedCurrency: 'USD',
                 category: 'Merged Category',
                 tag: 'Merged Tag',
                 comment: {
