@@ -70,6 +70,12 @@ function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction
     return transactions.every((transaction) => transaction?.receipt?.receiptID);
 }
 
+// Check if either value is truly "empty" (null, undefined, or empty string)
+// For boolean fields, false is a valid value, not an empty value
+function isEmptyMergeValue(value: unknown) {
+    return value === null || value === undefined || value === '';
+}
+
 /**
  * Get the value of a specific merge field from a transaction
  * @param transaction - The transaction to extract the field value from
@@ -118,10 +124,8 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const targetValue = getMergeFieldValue(targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransaction, field);
 
-        // Check if either value is truly "empty" (null, undefined, or empty string)
-        // For boolean fields, false is a valid value, not an empty value
-        const isTargetValueEmpty = targetValue === null || targetValue === undefined || targetValue === '';
-        const isSourceValueEmpty = sourceValue === null || sourceValue === undefined || sourceValue === '';
+        const isTargetValueEmpty = isEmptyMergeValue(targetValue);
+        const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             if (field === 'amount' && getMergeFieldValue(targetTransaction, 'currency') !== getMergeFieldValue(sourceTransaction, 'currency')) {
@@ -196,6 +200,7 @@ export {
     getMergeFieldTranslationKey,
     buildMergedTransactionData,
     selectTargetAndSourceTransactionIDsForMerge,
+    isEmptyMergeValue,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};

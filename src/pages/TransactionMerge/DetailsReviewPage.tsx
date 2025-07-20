@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getMergeableDataAndConflictFields, getMergeFieldTranslationKey, getMergeFieldValue, getSourceTransaction} from '@libs/MergeTransactionUtils';
+import {getMergeableDataAndConflictFields, getMergeFieldTranslationKey, getMergeFieldValue, getSourceTransaction, isEmptyMergeValue} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -76,7 +76,7 @@ function DetailsReview({route}: DetailsReviewProps) {
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
         diffFields.forEach((field) => {
-            if (mergeTransaction[field] !== undefined && mergeTransaction[field] !== null) {
+            if (!isEmptyMergeValue(mergeTransaction[field])) {
                 return;
             }
 
@@ -122,7 +122,7 @@ function DetailsReview({route}: DetailsReviewProps) {
                         const formatValue = (mergeValue: MergeValue) => {
                             const {value, currency} = mergeValue;
 
-                            if (!value) {
+                            if (isEmptyMergeValue(value)) {
                                 return '';
                             }
 
@@ -173,6 +173,7 @@ function DetailsReview({route}: DetailsReviewProps) {
                         />
                     )}
                     <Button
+                        large
                         success
                         text={translate('common.continue')}
                         onPress={handleContinue}
