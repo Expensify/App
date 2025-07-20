@@ -2493,7 +2493,7 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  * - expense is unreported (draft expense)
  */
 function isMergeableMoneyRequestReport(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
+    return isSelfDM(moneyRequestReport) || canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
