@@ -71,6 +71,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ];
         }
 
+        if (HTMLEngineUtils.isChildOfNoStyleLink(tnode)) {
+            // If the link is a child of a no-style-link, we don't apply any styles
+            linkStyle = {};
+        }
+
         return (
             <Text
                 style={linkStyle}
