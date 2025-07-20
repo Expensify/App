@@ -279,13 +279,16 @@ async function postCoverageComment(prNumber: number, coverageSection: string): P
 }
 
 /**
- * Get direct URL to the hosted HTML coverage report via GitHub Pages
+ * Get coverage report URL - either from direct input or fallback to workflow artifacts
  */
-function getArtifactUrl(artifactName: string, workflowRunId: string): string {
-    // Direct link to GitHub Pages hosted HTML coverage report
-    // The coverage report is deployed to: https://owner.github.io/repo/coverage-reports/runId/index.html
-    const repoName = context.repo.repo.toLowerCase();
-    return `https://${context.repo.owner.toLowerCase()}.github.io/${repoName}/coverage-reports/${workflowRunId}/index.html`;
+function getCoverageUrl(coverageUrl: string, artifactName: string, workflowRunId: string): string {
+    // If we have a direct URL (e.g., from Surge.sh), use it
+    if (coverageUrl) {
+        return coverageUrl;
+    }
+
+    // Fallback to workflow run artifacts page
+    return `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${workflowRunId}`;
 }
 
 /**
@@ -296,6 +299,7 @@ async function run(): Promise<void> {
         const prNumber = parseInt(core.getInput('PR_NUMBER', {required: true}), 10);
         const coverageArtifactName = core.getInput('COVERAGE_ARTIFACT_NAME', {required: false}) || 'coverage-report';
         const baseCoveragePath = core.getInput('BASE_COVERAGE_PATH', {required: false});
+        const coverageUrl = core.getInput('COVERAGE_URL', {required: false});
 
         console.log(`Processing test coverage for PR #${prNumber}`);
 
@@ -321,12 +325,12 @@ async function run(): Promise<void> {
         // Generate coverage data
         const coverageData = generateCoverageData(coverage, changedFiles, baseCoverage);
 
-        // Generate artifact URL
+        // Get coverage URL
         const workflowRunId = context.runId.toString();
-        const artifactUrl = getArtifactUrl(coverageArtifactName, workflowRunId);
+        const reportUrl = getCoverageUrl(coverageUrl, coverageArtifactName, workflowRunId);
 
         // Generate coverage section
-        const coverageSection = generateCoverageSection(coverageData, artifactUrl, workflowRunId);
+        const coverageSection = generateCoverageSection(coverageData, reportUrl, workflowRunId);
 
         // Post or update coverage comment
         await postCoverageComment(prNumber, coverageSection);

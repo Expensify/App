@@ -15,6 +15,10 @@ inputs:
     description: 'Path to base coverage summary for comparison'
     required: false
     default: ''
+  COVERAGE_URL:
+    description: 'Direct URL to hosted coverage HTML report'
+    required: false
+    default: ''
 runs:
   using: 'node20'
   main: './index.js'

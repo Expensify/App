@@ -215,16 +215,21 @@ jobs:
           path: coverage/
           retention-days: 7
 
-      - name: Deploy coverage to GitHub Pages
+      - name: Deploy coverage static to Surge.sh
         if: steps.check-src-changes.outputs.run_coverage == 'true'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./coverage
-          destination_dir: coverage-reports/${{ github.run_id }}
-          keep_files: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+        run: |
+          # Install surge globally
+          npm install -g surge
+          
+          # Create a unique subdomain for this PR and run
+          DOMAIN="expensify-coverage-pr${{ github.event.pull_request.number }}-run${{ github.run_id }}.surge.sh"
+          
+          # Deploy to surge anonymously (no login required)
+          surge ./coverage "$DOMAIN"
+          
+          # Save the coverage URL for the next step
+          echo "COVERAGE_URL=https://$DOMAIN" >> "$GITHUB_ENV"
+          echo "Coverage deployed to: https://$DOMAIN"
 
       - name: Post coverage to PR
         if: steps.check-src-changes.outputs.run_coverage == 'true'
@@ -233,3 +238,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           COVERAGE_ARTIFACT_NAME: coverage-report
+          COVERAGE_URL: ${{ env.COVERAGE_URL }}
