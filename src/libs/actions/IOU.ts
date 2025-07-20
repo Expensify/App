@@ -150,6 +150,7 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasReportBeenReopened,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -1345,6 +1346,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
         transactionID: testDriveIOUParams.transaction.transactionID,
+        reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
 
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
@@ -1605,6 +1607,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
+            reportActionID: iou.action.reportActionID,
         });
 
         optimisticData.push(
@@ -3387,6 +3390,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             billable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         },
+        isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
 
     const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
@@ -9397,7 +9401,7 @@ function canSubmitReport(
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
-    isReportArchived = false,
+    isReportArchived: boolean,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
@@ -9407,16 +9411,21 @@ function canSubmitReport(
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
-    return (
-        transactions.length > 0 &&
+    const baseCanSubmit =
         isOpenExpenseReport &&
-        isManualSubmitEnabled &&
-        !isReportArchived &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
-        (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
-    );
+        !isReportArchived &&
+        transactions.length > 0;
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
+    const hasBeenReopened = hasReportBeenReopened(reportActions);
+    if (baseCanSubmit && hasBeenReopened) {
+        return true;
+    }
+
+    return baseCanSubmit && isManualSubmitEnabled;
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
@@ -11914,8 +11923,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         failureData.push(...(onyxData.failureData ?? []));
     });
 
+    // The new expenses are added to Onyx using the SET method. We use SET here as well to ensure the original transaction update isn't delayed.
     optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: {
             ...originalTransaction,

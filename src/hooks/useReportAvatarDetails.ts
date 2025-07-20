@@ -1,6 +1,7 @@
+import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -22,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import useOnyx from './useOnyx';
+import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type ReportAvatarDetails = {
     reportPreviewSenderID: number | undefined;
@@ -220,10 +222,8 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
         selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
     });
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
-        selector: (allTransactions) => selectAllTransactionsForReport(allTransactions, action?.childReportID, iouActions ?? []),
-    });
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(action?.childReportID);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, iouActions ?? []), [reportTransactions, iouActions]);
 
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canBeMissing: true,

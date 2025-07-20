@@ -1038,6 +1038,9 @@ const translations = {
         createExpense: 'Uitgave aanmaken',
         trackDistance: 'Afstand bijhouden',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Maak ${expensesNumber} uitgaven aan`,
+        removeExpense: 'Uitgave verwijderen',
+        removeThisExpense: 'Deze uitgave verwijderen',
+        removeExpenseConfirmation: 'Weet je zeker dat je dit bonnetje wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
         addExpense: 'Uitgave toevoegen',
         chooseRecipient: 'Kies ontvanger',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Maak ${amount} uitgave aan`,
@@ -1067,8 +1070,6 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
-        removeFromReport: 'Verwijder uit rapport',
-        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
@@ -1236,7 +1237,6 @@ const translations = {
         unheldExpense: 'deblokkeer deze uitgave',
         moveUnreportedExpense: 'Verplaats niet-gerapporteerde uitgave',
         addUnreportedExpense: 'Niet-gerapporteerde uitgave toevoegen',
-        createNewExpense: 'Nieuwe uitgave aanmaken',
         selectUnreportedExpense: 'Selecteer ten minste één uitgave om aan het rapport toe te voegen.',
         emptyStateUnreportedExpenseTitle: 'Geen niet-gerapporteerde uitgaven',
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
@@ -2263,7 +2263,7 @@ const translations = {
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
@@ -2276,7 +2276,7 @@ const translations = {
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Bevestig de details.\n' +
@@ -2289,7 +2289,7 @@ const translations = {
                 description:
                     '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Kies uw *persoonlijke* ruimte.\n' +
@@ -2388,7 +2388,7 @@ const translations = {
                 description:
                     '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer een e-mailadres of telefoonnummer in.\n' +
                     '\n' +
@@ -2402,7 +2402,7 @@ const translations = {
                 description:
                     '*Splits uitgaven* met één of meer personen.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer e-mailadressen of telefoonnummers in.\n' +
                     '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
@@ -2424,7 +2424,7 @@ const translations = {
                 description:
                     'Zo maakt u een rapport:\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Rapport aanmaken*.\n' +
                     '3. Klik op *Uitgave toevoegen*.\n' +
                     '4. Voeg uw eerste uitgave toe.\n' +
@@ -2699,6 +2699,8 @@ const translations = {
             validationAmounts: 'De ingevoerde validatiebedragen zijn onjuist. Controleer uw bankafschrift en probeer het opnieuw.',
             fullName: 'Voer een geldige volledige naam in alstublieft',
             ownershipPercentage: 'Voer een geldig percentage in.',
+            deletePaymentBankAccount:
+                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3832,6 +3834,18 @@ const translations = {
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg alstublieft het account toe in Xero en synchroniseer de verbinding opnieuw.',
+            accountingMethods: {
+                label: 'Wanneer exporteren',
+                description: 'Kies wanneer u de uitgaven wilt exporteren:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze definitief zijn goedgekeurd.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze zijn betaald.',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Voorkeurs-exporteur',
@@ -5934,11 +5948,16 @@ const translations = {
                 title: 'Geen uitgaven om te exporteren',
                 subtitle: 'Tijd om het rustig aan te doen, goed werk.',
             },
+            emptyStatementsResults: {
+                title: 'Geen uitgaven om weer te geven',
+                subtitle: 'Geen resultaten. Probeer uw filters aan te passen.',
+            },
             emptyUnapprovedResults: {
                 title: 'Geen uitgaven om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale ontspanning. Goed gedaan!',
             },
         },
+        statements: 'Verklaringen',
         unapproved: 'Niet goedgekeurd',
         unapprovedCash: 'Niet goedgekeurd contant geld',
         unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',

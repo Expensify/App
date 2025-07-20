@@ -688,7 +688,8 @@
         "zxcv",
         "zxldvw",
         "مثال",
-        "pnrs"
+        "pnrs",
+        "POLICYCHANGELOG_ADD_EMPLOYEE"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

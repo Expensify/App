@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
@@ -382,23 +382,23 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
     if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
         const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
-        const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+        const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const dateOn = filters[keyOn];
-        const dateBefore = filters[keyBefore];
         const dateAfter = filters[keyAfter];
+        const dateBefore = filters[keyBefore];
         const dateValue = [];
 
         if (dateOn) {
             dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', {date: dateOn}));
         }
 
-        if (dateBefore) {
-            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
-        }
-
         if (dateAfter) {
             dateValue.push(translate('search.filters.date.after', {date: dateAfter}));
+        }
+
+        if (dateBefore) {
+            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
         }
 
         return dateValue.join(', ');

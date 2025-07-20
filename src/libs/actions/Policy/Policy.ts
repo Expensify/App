@@ -74,7 +74,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -3575,6 +3575,13 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
         ],
     };
 
+    if (enabled && isControlPolicy(policy) && policy?.outputCurrency === CONST.CURRENCY.USD) {
+        const eReceiptsOnyxData = getWorkspaceEReceiptsEnabledOnyxData(policyID, enabled);
+        onyxData.optimisticData?.push(...(eReceiptsOnyxData.optimisticData ?? []));
+        onyxData.successData?.push(...(eReceiptsOnyxData.successData ?? []));
+        onyxData.failureData?.push(...(eReceiptsOnyxData.failureData ?? []));
+    }
+
     const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
 
@@ -4456,14 +4463,13 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
+function getWorkspaceEReceiptsEnabledOnyxData(policyID: string, enabled: boolean): OnyxData {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
-
-    const onyxData: OnyxData = {
+    return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4500,6 +4506,10 @@ function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
             },
         ],
     };
+}
+
+function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = getWorkspaceEReceiptsEnabledOnyxData(policyID, enabled);
 
     const parameters = {
         policyID,
@@ -5419,6 +5429,19 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
+function clearPolicyTitleFieldError(policyID: string) {
+    if (!policyID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            fieldList: {
+                [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
+            },
+        },
+    });
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5527,4 +5550,5 @@ export {
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
+    clearPolicyTitleFieldError,
 };

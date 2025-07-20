@@ -1031,6 +1031,9 @@ const translations = {
         createExpense: '创建报销单',
         trackDistance: '跟踪距离',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `创建${expensesNumber}笔费用`,
+        removeExpense: '删除费用',
+        removeThisExpense: '删除此费用',
+        removeExpenseConfirmation: '您确定要删除这张收据吗？此操作不可撤销。',
         addExpense: '添加费用',
         chooseRecipient: '选择收件人',
         createExpenseWithAmount: ({amount}: {amount: string}) => `创建 ${amount} 报销单`,
@@ -1060,8 +1063,6 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
-        removeFromReport: '不在此报告中',
-        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -1222,7 +1223,6 @@ const translations = {
         unheldExpense: '取消搁置此费用',
         moveUnreportedExpense: '移动未报告的费用',
         addUnreportedExpense: '添加未报告的费用',
-        createNewExpense: '创建新费用',
         selectUnreportedExpense: '请选择至少一个费用添加到报告中。',
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
@@ -2669,6 +2669,7 @@ const translations = {
             validationAmounts: '您输入的验证金额不正确。请仔细检查您的银行对账单，然后重试。',
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入一个有效的百分比数字',
+            deletePaymentBankAccount: '由于该银行账户用于Expensify卡支付，因此无法删除。如果您仍希望删除此账户，请联系Concierge。',
         },
     },
     addPersonalBankAccount: {
@@ -3771,6 +3772,18 @@ const translations = {
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在Xero中添加账户并再次同步连接',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: '首选导出工具',
@@ -5827,11 +5840,16 @@ const translations = {
                 title: '没有费用可导出',
                 subtitle: '是时候放松一下了，干得好。',
             },
+            emptyStatementsResults: {
+                title: '无费用显示',
+                subtitle: '无结果。请尝试调整过滤器。',
+            },
             emptyUnapprovedResults: {
                 title: '没有费用需要批准',
                 subtitle: '零报销。最大限度地放松。干得好！',
             },
         },
+        statements: '发言',
         unapproved: '未经批准',
         unapprovedCash: '未经批准的现金',
         unapprovedCompanyCards: '未经批准的公司卡',

@@ -74,6 +74,7 @@ import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
@@ -87,6 +88,7 @@ import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
+import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
@@ -111,7 +113,6 @@ import {
     buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    completeShortMention,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -958,7 +959,6 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param temporaryShouldUseTableReportView For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
  */
 function openReport(
     reportID: string | undefined,
@@ -969,7 +969,6 @@ function openReport(
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
-    temporaryShouldUseTableReportView = false,
     transactionID?: string,
 ) {
     if (!reportID) {
@@ -1083,11 +1082,6 @@ function openReport(
                 parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
             }
         }
-    }
-
-    // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
-    if (temporaryShouldUseTableReportView) {
-        parameters.useTableReportView = true;
     }
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
@@ -2017,12 +2011,19 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
         return newCommentText;
     }
 
-    const textWithMention = completeShortMention(newCommentText);
+    const userEmailDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+    const allPersonalDetailLogins = Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
-    const htmlForNewComment = Parser.replace(textWithMention, {
-        extras: {videoAttributeCache},
+    const htmlForNewComment = getParsedMessageWithShortMentions({
+        text: newCommentText,
+        userEmailDomain,
+        availableMentionLogins: allPersonalDetailLogins,
+        parserOptions: {
+            extras: {videoAttributeCache},
+        },
     });
-    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, textWithMention);
+
+    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
@@ -3426,6 +3427,11 @@ function openReportFromDeepLink(url: string) {
                             }
 
                             if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            // Navigation for signed users is handled by react-navigation.
+                            if (isAuthenticated) {
                                 return;
                             }
 
@@ -5473,42 +5479,44 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
     updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
     // We reopen and reassign the report if the report is open/submitted and the manager is not a member of the new policy. This is to prevent the old manager from seeing a report that they can't action on.
+    let newStatusNum = report?.statusNum;
     const isOpenOrSubmitted = isOpenExpenseReport(report) || isProcessingReport(report);
     const managerLogin = PersonalDetailsUtils.getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID);
     if (isOpenOrSubmitted && managerLogin && !isPolicyMember(managerLogin, policyID)) {
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    managerID: getNextApproverAccountID(report, true),
-                },
+        newStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: getNextApproverAccountID(report, true),
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-                value: buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN),
-            },
-        );
+        });
 
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    stateNum: report.stateNum,
-                    statusNum: report.statusNum,
-                    managerID: report.managerID,
-                },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: report.stateNum,
+                statusNum: report.statusNum,
+                managerID: report.managerID,
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-                value: reportNextStep,
-            },
-        );
+        });
+    }
+
+    if (newStatusNum) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: buildNextStep({...report, policyID}, newStatusNum),
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: reportNextStep,
+        });
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
@@ -5773,6 +5781,7 @@ export {
     addPolicyReport,
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
+    buildOptimisticChangePolicyData,
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,

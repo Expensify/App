@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -103,7 +104,7 @@ function Expensify() {
 
     useDebugShortcut();
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
@@ -119,7 +120,6 @@ function Expensify() {
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
     const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
-
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
@@ -203,23 +203,17 @@ function Expensify() {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            // We use custom deeplink handler in setup/hybridApp
-            if (CONFIG.IS_HYBRID_APP) {
-                Report.doneCheckingPublicRoom();
-                return;
-            }
-            setInitialUrl(url);
+            setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            // We use custom deeplink handler in setup/hybridApp
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
             Report.openReportFromDeepLink(state.url);
         });
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.onURLListenerAdded();
+        }
 
         return () => {
             if (!appStateChangeListener.current) {
