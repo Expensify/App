@@ -272,7 +272,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
             setInternalOptions(optionsList);
-            setAreInternalOptionsInitialized(true);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
         /**
@@ -285,8 +285,8 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
             return;
         }
         setInternalOptions(optionsList);
-        setAreInternalOptionsInitialized(true);
-    }, [optionsList]);
+        setAreInternalOptionsInitialized(areOptionsInitialized);
+    }, [optionsList, areOptionsInitialized]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
