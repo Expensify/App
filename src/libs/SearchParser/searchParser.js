@@ -2595,7 +2595,7 @@ function peg$parse(input, options) {
 
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
   };

@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-
-/* eslint-disable no-continue */
 import {Str} from 'expensify-common';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
@@ -62,12 +60,14 @@ import {
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getLastVisibleMessage,
     getLeaveRoomMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReceiptScanFailedMessage,
+    getRenamedAction,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -78,6 +78,7 @@ import {
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionOfType,
+    isAddCommentAction,
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedAction,
@@ -90,6 +91,7 @@ import {
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
+    isRenamedAction,
     isReportPreviewAction,
     isTaskAction,
     isThreadParentMessage,
@@ -103,6 +105,7 @@ import {
     getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
+    getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
@@ -718,6 +721,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
@@ -844,6 +848,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
+    } else if (isRenamedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
+        lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -873,6 +881,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         if (transactionThreadReportID) {
             lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
         }
+    }
+
+    // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
+    if (reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)) {
+        lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');

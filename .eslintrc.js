@@ -219,6 +219,7 @@ module.exports = {
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
         'arrow-body-style': 'off',
+        'no-continue': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -230,6 +231,7 @@ module.exports = {
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',
+        'rulesdir/no-beta-handler': 'error',
 
         // React and React Native specific rules
         'react-native-a11y/has-accessibility-hint': ['off'],
@@ -275,6 +277,14 @@ module.exports = {
                 object: 'HybridAppModule',
                 property: 'isHybridApp',
                 message: 'Use CONFIG.IS_HYBRID_APP instead.',
+            },
+            // Prevent direct use of HybridAppModule.closeReactNativeApp().
+            // Instead, use the `closeReactNativeApp` action from `@userActions/HybridApp`,
+            // which correctly updates `hybridApp.closingReactNativeApp` when closing NewDot
+            {
+                object: 'HybridAppModule',
+                property: 'closeReactNativeApp',
+                message: 'Use `closeReactNativeApp` from `@userActions/HybridApp` instead.',
             },
         ],
         'no-restricted-imports': [

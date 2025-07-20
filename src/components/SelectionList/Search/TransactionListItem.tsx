@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
@@ -8,7 +8,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@libs/actions/Search';
+import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -31,7 +31,7 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -83,6 +83,14 @@ function TransactionListItem<TItem extends ListItem>({
         [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax],
     );
 
+    const handleActionButtonPress = useCallback(() => {
+        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
+    }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
+
+    const handleCheckboxPress = useCallback(() => {
+        onCheckboxPress?.(item);
+    }, [item, onCheckboxPress]);
+
     return (
         <BaseListItem
             item={item}
@@ -107,19 +115,15 @@ function TransactionListItem<TItem extends ListItem>({
                     {!isLargeScreenWidth && (
                         <UserInfoAndActionButtonRow
                             item={transactionItem}
-                            handleActionButtonPress={() => {
-                                handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
-                            }}
+                            handleActionButtonPress={handleActionButtonPress}
                             shouldShowUserInfo={!!transactionItem?.from}
                         />
                     )}
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         shouldShowTooltip={showTooltip}
-                        onButtonPress={() => {
-                            handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
-                        }}
-                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        onButtonPress={handleActionButtonPress}
+                        onCheckboxPress={handleCheckboxPress}
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         columns={columns}
                         isParentHovered={hovered}

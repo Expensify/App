@@ -5,7 +5,7 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
@@ -276,7 +276,7 @@ function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor
 
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/*
              * Only required to make unit tests work, since we
              * explicitly pass the currentReportID in LHNTestUtils
@@ -335,7 +335,7 @@ function internalRender(component: ReactElement) {
 
 function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction}: MockedReportActionItemSingleProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
