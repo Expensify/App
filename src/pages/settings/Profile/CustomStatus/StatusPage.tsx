@@ -255,7 +255,7 @@ function StatusPage() {
                                 pendingAction={vacationDelegate?.pendingAction}
                                 errors={vacationDelegate?.errors}
                                 errorRowStyles={styles.mh5}
-                                onClose={clearVacationDelegateError}
+                                onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
                             >
                                 <MenuItem
                                     title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
