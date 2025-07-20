@@ -21,8 +21,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setConnectionError} from '@userActions/connections';
-import * as QuickbooksDesktop from '@userActions/connections/QuickbooksDesktop';
-import * as PolicyAction from '@userActions/Policy/Policy';
+import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
+import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -46,7 +46,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const fetchSetupLink = useCallback(() => {
         setHasError(false);
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        QuickbooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
+        getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
             if (!response?.jsonCode) {
                 return;
             }
@@ -62,7 +62,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     useEffect(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
-        PolicyAction.enablePolicyTaxes(policyID, false);
+        enablePolicyTaxes(policyID, false);
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
