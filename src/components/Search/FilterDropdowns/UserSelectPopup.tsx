@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -9,13 +8,11 @@ import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {shallowCompare} from '@libs/ObjectUtils';
-import type {Option, Options, Section} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -45,13 +42,10 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-    const [userSelectOptions] = useOnyx(ONYXKEYS.USER_SELECT_OPTIONS);
-
-    // console.log('userSelectOptions FROM ONYX', userSelectOptions);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
+    const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
             if (!participant) {
@@ -65,57 +59,30 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
             return acc;
         }, []);
-    });
+    }, [value, personalDetails]);
 
-    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedOptions);
 
-    const prevPersonalDetails = usePrevious(personalDetails);
-    const selectedAccountIDs = useMemo(() => new Set(selectedOptions.map((option) => option.accountID).filter(Boolean)), [selectedOptions]);
+    const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optionsList = useMemo(() => {
-        if (!shallowCompare(prevPersonalDetails, personalDetails) || userSelectOptions === undefined) {
-            console.log('GETTING NEW OPTIONS');
-            const validOptions: Options = getValidOptions(
-                {
-                    reports: options.reports,
-                    personalDetails: options.personalDetails,
-                },
-                {
-                    selectedOptions,
-                    excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                    includeSelectedOptions: true,
-                    includeCurrentUser: true,
-                },
-            );
-            //TODO move to onyx action
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            Onyx.set(ONYXKEYS.USER_SELECT_OPTIONS, JSON.stringify(validOptions));
-            return validOptions;
-        }
+    // Create a Set for O(1) lookup performance instead of O(n) array.some()
+    const selectedAccountIDs = useMemo(() => {
+        return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
+    }, [selectedOptions]);
 
-        console.log('GETTING OLD OPTIONS');
-
-        return JSON.parse(userSelectOptions);
-    }, [options.personalDetails, options.reports, personalDetails, prevPersonalDetails, selectedOptions, userSelectOptions]);
-
-    // Memoize selected account IDs for O(1) lookup performance
-    // Get a list of all options/personal details and filter them by the current search term
     const listData = useMemo(() => {
-        // const optionsList = getValidOptions(
-        //     {
-        //         reports: options.reports,
-        //         personalDetails: options.personalDetails,
-        //     },
-        //     {
-        //         selectedOptions,
-        //         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        //         includeSelectedOptions: true,
-        //         includeCurrentUser: true,
-        //     },
-        // );
-
-        console.log('optionsList', optionsList);
+        const optionsList = getValidOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeSelectedOptions: true,
+                includeCurrentUser: true,
+            },
+        );
 
         const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -127,7 +94,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             .map((participant) => ({
                 ...participant,
                 isSelected: selectedAccountIDs.has(participant.accountID),
-                // isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
             }))
             .sort((a, b) => {
                 // Put the current user at the top of the list
@@ -141,7 +107,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             });
 
         return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, accountID, selectedAccountIDs, optionsList]);
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, selectedAccountIDs, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -161,23 +127,18 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         };
     }, [listData, translate]);
 
+    const optionsMatch = (opt1: Option, opt2: Option) => {
+        // Below is just a boolean expression.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
+    };
+
+    // In the component
     const selectUser = useCallback(
         (option: Option) => {
-            const optionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                const matchesAccountID = selectedOption.accountID && selectedOption.accountID === option?.accountID;
-                const matchesReportID = selectedOption.reportID && selectedOption.reportID === option?.reportID;
+            const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
-                // Below is just a boolean expression.
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                return matchesAccountID || matchesReportID;
-            });
-
-            if (optionIndex === -1) {
-                setSelectedOptions([...selectedOptions, getSelectedOptionData(option)]);
-            } else {
-                const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
-                setSelectedOptions(newSelectedOptions);
-            }
+            setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
         },
         [selectedOptions],
     );
