@@ -22,6 +22,12 @@ function getSelectedOptionData(option: Option) {
     return {...option, reportID: `${option.reportID}`, selected: true};
 }
 
+const optionsMatch = (opt1: Option, opt2: Option) => {
+    // Below is just a boolean expression.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
+};
+
 type UserSelectPopupProps = {
     /** The currently selected users */
     value: string[];
@@ -126,12 +132,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             headerMessage: message,
         };
     }, [listData, translate]);
-
-    const optionsMatch = (opt1: Option, opt2: Option) => {
-        // Below is just a boolean expression.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
-    };
 
     // In the component
     const selectUser = useCallback(
