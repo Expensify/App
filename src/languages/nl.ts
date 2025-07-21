@@ -3257,10 +3257,8 @@ const translations = {
         termsAndConditions: {
             header: 'Voordat we verder gaan...',
             title: 'Algemene voorwaarden',
-            subtitle: 'Ga akkoord met de Expensify Travel',
-            termsAndConditions: 'voorwaarden en condities',
-            travelTermsAndConditions: 'voorwaarden en condities',
-            agree: 'Ik ga akkoord met de',
+            label: 'Ik ga akkoord met de algemene voorwaarden',
+            subtitle: `Ga akkoord met de <a href="${CONST.TRAVEL_TERMS_URL}">algemene voorwaarden</a> van Expensify Travel.`,
             error: 'U moet akkoord gaan met de Expensify Travel voorwaarden om door te gaan.',
             defaultWorkspaceError:
                 'U moet een standaard werkruimte instellen om Expensify Travel in te schakelen. Ga naar Instellingen > Werkruimtes > klik op de drie verticale stippen naast een werkruimte > Stel in als standaard werkruimte, en probeer het opnieuw!',

@@ -3251,10 +3251,8 @@ const translations = {
         termsAndConditions: {
             header: 'Zanim przejdziemy dalej...',
             title: 'Warunki i zasady',
-            subtitle: 'Proszę zaakceptować Expensify Travel',
-            termsAndConditions: 'warunki i zasady',
-            travelTermsAndConditions: 'warunki i zasady',
-            agree: 'Zgadzam się na',
+            label: 'Zgadzam się z regulaminem',
+            subtitle: `Prosimy o zaakceptowanie <a href="${CONST.TRAVEL_TERMS_URL}">regulaminu</a> Expensify Travel.`,
             error: 'Musisz zaakceptować warunki i zasady Expensify Travel, aby kontynuować.',
             defaultWorkspaceError:
                 'Musisz ustawić domyślne miejsce pracy, aby włączyć Expensify Travel. Przejdź do Ustawienia > Miejsca pracy > kliknij trzy pionowe kropki obok miejsca pracy > Ustaw jako domyślne miejsce pracy, a następnie spróbuj ponownie!',
