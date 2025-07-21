@@ -129,6 +129,10 @@ let prevReportID: string | null = null;
  * random enough to avoid collisions
  */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
+    if (item.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return CONST.REPORT.ACTIONS.TYPE.CREATED;
+    }
+
     return item.reportActionID;
 }
 
