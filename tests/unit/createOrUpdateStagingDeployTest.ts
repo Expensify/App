@@ -1,3 +1,13 @@
+import * as core from '@actions/core';
+import * as fns from 'date-fns';
+import {vol} from 'memfs';
+import path from 'path';
+import run from '@github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy';
+import CONST from '@github/libs/CONST';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
+import GitUtils from '@github/libs/GitUtils';
+
 /**
  * @jest-environment node
  */
@@ -16,17 +26,6 @@ jest.mock('@actions/core', () => ({
     setFailed: jest.fn(),
 }));
 
-import * as fns from 'date-fns';
-import {vol} from 'memfs';
-import path from 'path';
-import run from '@github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy';
-import CONST from '@github/libs/CONST';
-import type {InternalOctokit} from '@github/libs/GithubUtils';
-import GithubUtils from '@github/libs/GithubUtils';
-import GitUtils from '@github/libs/GitUtils';
-
-import * as core from '@actions/core';
-
 const mockGetInput = core.getInput as jest.MockedFunction<typeof core.getInput>;
 
 type Arguments = {
@@ -40,7 +39,6 @@ const mockListIssues = jest.fn();
 const mockGetPullRequestsDeployedBetween = jest.fn();
 
 beforeAll(() => {
-
     // Mock octokit module
     const mockOctokit = {
         rest: {
@@ -132,7 +130,7 @@ const basePRList = [
 ];
 
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
-// eslint-disable-next-line max-len
+// eslint-disable-next-line max-len, cspell:disable-next-line
 const baseExpectedOutput = (version = '1.0.2-1') =>
     `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n> 💡 **Deployer FYI:** This checklist was generated using a new process. PR listfrom original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled \`staging\`, in the \`createChecklist\` action. Please tag @Julesssss with any issues.\r\n\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 const openCheckbox = '- [ ] ';
@@ -407,8 +405,8 @@ describe('createOrUpdateStagingDeployCash', () => {
             vol.fromJSON({
                 [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
             });
-            
-            mockGetInput.mockImplementation((arg) => arg === 'GITHUB_TOKEN' ? 'fake_token' : '');
+
+            mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
                     return [6, 8, 10, 11];
@@ -440,11 +438,13 @@ describe('createOrUpdateStagingDeployCash', () => {
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return Promise.resolve({
-                        data: [{
-                            number: 29,
-                            state: 'closed',
-                            labels: [LABELS.STAGING_DEPLOY_CASH],
-                        }]
+                        data: [
+                            {
+                                number: 29,
+                                state: 'closed',
+                                labels: [LABELS.STAGING_DEPLOY_CASH],
+                            },
+                        ],
                     });
                 }
                 return Promise.resolve({data: []});
