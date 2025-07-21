@@ -7,7 +7,7 @@ import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import {usePersonalDetails} from './OnyxProvider';
+import {usePersonalDetails} from './OnyxListItemProvider';
 
 type OptionsListContextProps = {
     /** List of options for reports and personal details */
