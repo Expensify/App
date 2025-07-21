@@ -11137,30 +11137,34 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
  * 2	  |  3	     |  Approved          |
  * 2	  |  4	     |  Paid              |
  * 3	  |  4	     |  Paid              |
- * 6      |  4	     |  Paid              | <- this case is problematic as stateNum = 6 does not exist on NewDot at the moment of writing
+ * 6      |  4	     |  Paid              |
  * ========================================
  */
 function getReportStatusTranslation(report?: Report) {
     if (!report) {
         return '';
     }
-
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+    
+    if (report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         return translateLocal('common.draft');
     }
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+    if (report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return translateLocal('common.outstanding');
     }
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return translateLocal('common.done');
     }
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
         return translateLocal('iou.approved');
     }
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
+    if (
+        (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
+        (report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
+        (report.stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED)
+    ) {
         return translateLocal('iou.settledExpensify');
     }
-
+    
     return '';
 }
 
