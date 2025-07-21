@@ -269,6 +269,12 @@ type TransactionListItemType = ListItem &
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
+
+        /** The CC for this transaction */
+        cardID?: number;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     };
 
 type ReportActionListItemType = ListItem &

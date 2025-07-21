@@ -10,6 +10,7 @@ import type {ImageOnLoadEvent} from '@components/Image/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isDistanceRequest} from '@libs/TransactionUtils';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 
@@ -93,11 +94,22 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     />
                 </View>
             ) : (
-                <View
-                    onLayout={onLayout}
-                    style={[styles.w100, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
-                >
-                    {shouldShowDistanceEReceipt ? <DistanceEReceipt transaction={transactionItem} /> : <EReceipt transactionID={transactionItem.transactionID} />}
+                <View style={[styles.w100, styles.h100]}>
+                    {shouldShowDistanceEReceipt ? (
+                        <View style={[styles.mhv5, styles.w100, styles.justifyContentCenter, styles.alignItemsCenter, {backgroundColor: colors.green800}]}>
+                            <DistanceEReceipt transaction={transactionItem} />
+                        </View>
+                    ) : (
+                        <View
+                            onLayout={onLayout}
+                            style={[styles.w100, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
+                        >
+                            <EReceipt
+                                transactionID={transactionItem.transactionID}
+                                transactionItem={transactionItem}
+                            />
+                        </View>
+                    )}
                 </View>
             )}
         </Animated.View>,
