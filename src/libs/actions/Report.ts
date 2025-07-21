@@ -74,6 +74,7 @@ import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
@@ -87,6 +88,7 @@ import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
+import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
@@ -111,7 +113,6 @@ import {
     buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    completeShortMention,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -2010,12 +2011,19 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
         return newCommentText;
     }
 
-    const textWithMention = completeShortMention(newCommentText);
+    const userEmailDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+    const allPersonalDetailLogins = Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
-    const htmlForNewComment = Parser.replace(textWithMention, {
-        extras: {videoAttributeCache},
+    const htmlForNewComment = getParsedMessageWithShortMentions({
+        text: newCommentText,
+        userEmailDomain,
+        availableMentionLogins: allPersonalDetailLogins,
+        parserOptions: {
+            extras: {videoAttributeCache},
+        },
     });
-    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, textWithMention);
+
+    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
@@ -3382,6 +3390,11 @@ function openReportFromDeepLink(url: string) {
         return;
     }
 
+    // If the route is the transition route, we don't want to navigate and start the onboarding flow
+    if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        return;
+    }
+
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
@@ -3419,6 +3432,11 @@ function openReportFromDeepLink(url: string) {
                             }
 
                             if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            // Navigation for signed users is handled by react-navigation.
+                            if (isAuthenticated) {
                                 return;
                             }
 
@@ -5655,6 +5673,22 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
             [optimisticMovedReportAction.reportActionID]: {
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
+        },
+    });
+
+    // 5. Make sure the expense report is not archived
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        value: {
+            private_isArchived: null,
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        value: {
+            private_isArchived: DateUtils.getDBTime(),
         },
     });
 
