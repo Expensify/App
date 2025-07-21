@@ -352,7 +352,7 @@ describe('ReportUtils', () => {
             return waitForBatchedUpdates();
         });
 
-        // Then the user should be able to move the invoice to the outstadning expense report
+        // Then the user should be able to move the invoice to the oustanding expense report
         it('should return true for invoice report action given that there is a minimum of one oustanding report', () => {
             const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
             expect(canEditReportField).toBe(true);
