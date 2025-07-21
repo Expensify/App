@@ -46,6 +46,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
+    getReportStatusTranslation,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
@@ -4717,6 +4718,71 @@ describe('ReportUtils', () => {
             it('should return false for a non-archived chat report', () => {
                 expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
             });
+        });
+    });
+
+    describe('getReportStatusTranslation', () => {
+        it('should return "Draft" for state 0, status 0', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('common.draft'));
+        });
+
+        it('should return "Outstanding" for state 1, status 1', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('common.outstanding'));
+        });
+
+        it('should return "Done" for state 2, status 2', () => {
+            const report: Report = {
+                ...createRandomReport(2),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('common.done'));
+        });
+
+        it('should return "Approved" for state 2, status 3', () => {
+            const report: Report = {
+                ...createRandomReport(3),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.approved'));
+        });
+
+        it('should return "Paid" for state 2, status 4', () => {
+            const report: Report = {
+                ...createRandomReport(4),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
+        });
+
+        it('should return "Paid" for state 3, status 4', () => {
+            const report: Report = {
+                ...createRandomReport(5),
+                stateNum: CONST.REPORT.STATE_NUM.BILLING,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
+        });
+
+        it('should return "Paid" for state 6, status 4', () => {
+            const report: Report = {
+                ...createRandomReport(6),
+                stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED
+            };
+            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
         });
     });
 });
