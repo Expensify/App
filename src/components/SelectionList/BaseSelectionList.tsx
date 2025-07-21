@@ -149,6 +149,8 @@ function BaseSelectionList<TItem extends ListItem>(
         selectedItems = [],
         isSelected,
         canShowProductTrainingTooltip,
+        onCurrentPageChange,
+        onFocusReset,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -762,6 +764,15 @@ function BaseSelectionList<TItem extends ListItem>(
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
+        if (prevTextInputValue === textInputValue) {
+            return;
+        }
+        // Reset the current page to 1 when the user types something
+        setCurrentPage(1);
+        onCurrentPageChange?.();
+    }, [textInputValue, prevTextInputValue, onCurrentPageChange]);
+
+    useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
             (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
@@ -778,9 +789,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 ? -1
                 : 0;
 
-        // Reset the current page to 1 when the user types something
-        setCurrentPage(1);
-
+        onFocusReset?.();
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
         canSelectMultiple,
@@ -792,6 +801,7 @@ function BaseSelectionList<TItem extends ListItem>(
         prevSelectedOptionsLength,
         prevAllOptionsLength,
         shouldUpdateFocusedIndex,
+        onFocusReset,
     ]);
 
     useEffect(
