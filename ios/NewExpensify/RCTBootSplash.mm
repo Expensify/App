@@ -106,6 +106,12 @@ RCT_EXPORT_MODULE();
     _loadingView.center = (CGPoint){CGRectGetMidX(_rootView.bounds), CGRectGetMidY(_rootView.bounds)};
     _loadingView.hidden = NO;
 
+    // Fix a color profile mismatch between the system handled splash screen (P3) and the app handled one (sRGB)
+    _loadingView.backgroundColor = [UIColor colorWithRed:0.011764705882352941f
+                                                   green:0.81960784313725488f
+                                                    blue:0.51764705882352935f
+                                                   alpha:1.0f];
+
     [_rootView addSubview:_loadingView];
 
     if ([_rootView respondsToSelector:@selector(disableActivityIndicatorAutoHide:)]) {
