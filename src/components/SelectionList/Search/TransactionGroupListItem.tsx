@@ -1,10 +1,8 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import {getButtonRole} from '@components/Button/utils';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchGroupBy} from '@components/Search/types';
+import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -17,11 +15,8 @@ import type {
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
@@ -76,7 +71,16 @@ function TransactionGroupListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv2,
+        styles.ph0,
+        styles.overflowHidden,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
+        item.isSelected && styles.activeComponentBG,
+        styles.mh0,
+    ];
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
@@ -108,7 +112,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.ACTION,
     ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
-    const getHeader = useMemo(() => {
+    const getHeader = (isHovered: boolean) => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
@@ -117,6 +121,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
+                    isHovered={isHovered}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                 />
@@ -134,6 +139,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     card={groupItem as TransactionCardGroupListItemType}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
+                    isHovered={isHovered}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                 />
@@ -145,46 +151,31 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
-
-    const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
-    const pressableRef = useRef<View>(null);
-
-    const onPress = useCallback(() => {
-        onSelectRow(item);
-    }, [item, onSelectRow]);
-
-    const onLongPress = useCallback(() => {
-        onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
-
-    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+    };
 
     return (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
-            <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
-                ref={pressableRef}
-                onLongPress={onLongPress}
-                onPress={onPress}
-                disabled={isDisabled && !item.isSelected}
-                accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
-                isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                id={item.keyForList ?? ''}
-                style={[
-                    pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                ]}
-                onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
-            >
-                <View style={styles.flex1}>
-                    {getHeader}
+        <BaseListItem
+            item={item}
+            pressableStyle={listItemPressableStyle}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
+            containerStyle={[styles.mb2]}
+            isFocused={isFocused}
+            isDisabled={isDisabled}
+            showTooltip={showTooltip}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            onLongPressRow={onLongPressRow}
+            pendingAction={item.pendingAction}
+            keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldShowBlueBorderOnFocus
+            shouldSyncFocus={shouldSyncFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+        >
+            {(hovered) => (
+                <View style={[styles.flex1]}>
+                    {getHeader(hovered)}
                     {isEmpty ? (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                             <Text
@@ -196,31 +187,32 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <TransactionItemRow
-                                key={transaction.transactionID}
-                                transactionItem={transaction}
-                                isSelected={!!transaction.isSelected}
-                                dateColumnSize={dateColumnSize}
-                                amountColumnSize={amountColumnSize}
-                                taxAmountColumnSize={taxAmountColumnSize}
-                                shouldShowTooltip={showTooltip}
-                                shouldUseNarrowLayout={!isLargeScreenWidth}
-                                shouldShowCheckbox={!!canSelectMultiple}
-                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns}
-                                onButtonPress={() => {
-                                    openReportInRHP(transaction);
-                                }}
-                                isParentHovered={hovered}
-                                columnWrapperStyles={[styles.ph3, styles.pv1Half]}
-                                isReportItemChild
-                                isInSingleTransactionReport={groupItem.transactions.length === 1}
-                            />
+                            <View key={transaction.transactionID}>
+                                <TransactionItemRow
+                                    transactionItem={transaction}
+                                    isSelected={!!transaction.isSelected}
+                                    dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
+                                    shouldShowTooltip={showTooltip}
+                                    shouldUseNarrowLayout={!isLargeScreenWidth}
+                                    shouldShowCheckbox={!!canSelectMultiple}
+                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                    columns={columns}
+                                    onButtonPress={() => {
+                                        openReportInRHP(transaction);
+                                    }}
+                                    isParentHovered={hovered}
+                                    columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                    isReportItemChild
+                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                />
+                            </View>
                         ))
                     )}
                 </View>
-            </PressableWithFeedback>
-        </OfflineWithFeedback>
+            )}
+        </BaseListItem>
     );
 }
 
