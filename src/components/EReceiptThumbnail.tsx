@@ -39,7 +39,9 @@ type EReceiptThumbnailProps = {
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
+        canBeMissing: true,
+    });
 
     const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);

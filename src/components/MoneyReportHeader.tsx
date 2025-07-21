@@ -367,14 +367,13 @@ function MoneyReportHeader({
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
         const reportID = transactionThreadReport?.reportID;
 
         if (!iouTransactionID || !reportID) {
             return;
         }
         markAsCashAction(iouTransactionID, reportID);
-    }, [requestParentReportAction, transactionThreadReport?.reportID]);
+    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon

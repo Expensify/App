@@ -47,7 +47,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
-    const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
+    const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
