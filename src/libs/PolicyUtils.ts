@@ -284,6 +284,25 @@ function isPolicyMember(currentUserLogin: string | undefined, policyID: string |
     return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
 }
 
+function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isReimburser = policy.reimburser === currentUserLogin;
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return policy.reimburser ? isReimburser : isAdmin;
+    }
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        return isAdmin;
+    }
+
+    return false;
+}
+
 function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
@@ -1514,6 +1533,7 @@ export {
     isPolicyFeatureEnabled,
     isPolicyOwner,
     isPolicyMember,
+    isPolicyPayer,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,

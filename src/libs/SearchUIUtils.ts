@@ -56,7 +56,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
@@ -422,8 +422,8 @@ function getSuggestedSearchesVisibility(
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
+        const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-        const isReimburser = policy.reimburser === currentUserEmail;
         const isExporter = policy.exporter === currentUserEmail;
         const isApprover = policy.approver === currentUserEmail;
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -433,16 +433,7 @@ function getSuggestedSearchesVisibility(
         });
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
-        const isEligibleForPaySuggestion =
-            isPaidPolicy &&
-            // eslint-disable-next-line no-nested-ternary
-            (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
-                ? policy.reimburser
-                    ? isReimburser
-                    : isAdmin
-                : policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL
-                  ? isAdmin
-                  : false);
+        const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
         const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
