@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -141,14 +141,14 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
                             {!!isUsingContinuousReconciliation && (
-                                <Text style={[styles.mh5, styles.mb6]}>
-                                    <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
-                                    <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>
-                                        {translate('workspace.expensifyCard.reconciliationAccount')}
-                                    </TextLink>{' '}
-                                    <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
-                                    <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt2')}</Text>
-                                </Text>
+                                <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
+                                    <RenderHTML
+                                        html={translate('workspace.expensifyCard.settlementAccountInfo', {
+                                            reconciliationAccountSettingsLink: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam),
+                                            accountNumber: `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
+                                        })}
+                                    />
+                                </View>
                             )}
                         </>
                     }

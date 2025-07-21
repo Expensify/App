@@ -183,6 +183,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -4400,9 +4401,8 @@ const translations = {
             addNewBankAccount: 'Een nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
             settlementAccountDescription: 'Kies een account om uw saldo van de Expensify Card te betalen.',
-            settlementAccountInfoPt1: 'Zorg ervoor dat dit account overeenkomt met dat van jou',
-            settlementAccountInfoPt2: 'zodat Continuous Reconciliation correct werkt.',
-            reconciliationAccount: 'Rekening voor afstemming',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Zorg ervoor dat deze account overeenkomt met je <a href="${reconciliationAccountSettingsLink}">Afstemmingsaccount</a> (${accountNumber}) zodat Doorlopende Afstemming goed werkt.`,
             settlementFrequency: 'Afwikkelingsfrequentie',
             settlementFrequencyDescription: 'Kies hoe vaak je je Expensify Card-saldo wilt betalen.',
             settlementFrequencyInfo:
