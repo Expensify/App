@@ -6,11 +6,10 @@ import type UseHandleNativeVideoControl from './types';
  * This hook hides the download button on the native video player in full-screen mode
  * when playing a local or offline video.
  */
-const useHandleNativeVideoControls: UseHandleNativeVideoControl = ({videoPlayerRef, isLocalFile, isOffline}) => {
+const useHandleNativeVideoControls: UseHandleNativeVideoControl = ({videoViewRef, isLocalFile, isOffline}) => {
     useEffect(() => {
-        // @ts-expect-error Property '_video' does not exist on type VideoWithOnFullScreenUpdate
-        // eslint-disable-next-line no-underscore-dangle
-        const videoElement = videoPlayerRef?.current?._nativeRef?.current?._video as HTMLVideoElement;
+        // @ts-expect-error Property 'videoRef' does not exist on type VideoWithOnFullScreenUpdate
+        const videoElement = videoViewRef?.current?.videoRef as HTMLVideoElement;
         if (!videoElement) {
             return;
         }

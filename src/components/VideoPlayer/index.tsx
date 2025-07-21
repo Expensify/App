@@ -1,7 +1,7 @@
 import React from 'react';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
+import NewBaseVideoPlayer from './BaseVideoPlayer';
 import type {VideoPlayerProps} from './types';
-import NewBaseVideoPlayer from './NewBaseVideoPlayer';
 
 function VideoPlayer(props: VideoPlayerProps) {
     const {fakeReportID} = uniqueIDForVideoWithoutReport();

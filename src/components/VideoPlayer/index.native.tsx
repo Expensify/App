@@ -1,7 +1,7 @@
 import React from 'react';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
 import CONST from '@src/CONST';
-import NewBaseVideoPlayer from './NewBaseVideoPlayer';
+import NewBaseVideoPlayer from './BaseVideoPlayer';
 import type {VideoPlayerProps} from './types';
 
 function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, ...props}: VideoPlayerProps) {

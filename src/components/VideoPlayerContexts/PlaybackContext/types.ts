@@ -1,4 +1,4 @@
-import type {VideoPlayer} from 'expo-video';
+import type {VideoPlayer, VideoView} from 'expo-video';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 
@@ -19,7 +19,8 @@ type PlaybackContextValues = {
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
     shareVideoPlayerElements: (
-        ref: VideoPlayer | null,
+        playerRef: VideoPlayer | null,
+        viewRef: VideoView | null,
         parent: View | HTMLDivElement | null,
         child: View | HTMLDivElement | null,
         isUploading: boolean,
@@ -34,8 +35,9 @@ type PlaybackContextVideoRefs = {
     pause: () => void;
     isPlaying: (statusCallback: StatusCallback) => void;
     resumeTryNumberRef: MutableRefObject<number>;
-    ref: MutableRefObject<VideoPlayer | null>;
-    updateRef: (ref: VideoPlayer | null) => void;
+    playerRef: MutableRefObject<VideoPlayer | null>;
+    viewRef: MutableRefObject<VideoView | null>;
+    updateRefs: (playerRef: VideoPlayer | null, viewRef: VideoView | null) => void;
 };
 
 type PlaybackContext = PlaybackContextValues & {
@@ -44,7 +46,8 @@ type PlaybackContext = PlaybackContextValues & {
     pauseVideo: PlaybackContextVideoRefs['pause'];
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
     videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'];
-    currentVideoPlayerRef: PlaybackContextVideoRefs['ref'];
+    currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
+    currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
 };
 
 export type {PlaybackContextVideoRefs, StopVideo, PlaybackContextValues, PlaybackContext, OriginalParent};

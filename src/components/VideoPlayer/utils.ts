@@ -1,12 +1,13 @@
 import * as Browser from '@libs/Browser';
 
+
 /**
- * Converts milliseconds to '[hours:]minutes:seconds' format
+ * Converts seconds to '[hours:]minutes:seconds' format
  */
-function convertMillisecondsToTime(milliseconds: number) {
-    const hours = Math.floor(milliseconds / 3600000);
-    const minutes = Math.floor((milliseconds / 60000) % 60);
-    const seconds = Math.floor((milliseconds / 1000) % 60)
+function convertSecondsToTime(secondsTotal: number) {
+    const hours = Math.floor(secondsTotal / 3600);
+    const minutes = Math.floor((secondsTotal / 60) % 60);
+    const seconds = Math.floor(secondsTotal % 60)
         .toFixed(0)
         .padStart(2, '0');
     return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${seconds}` : `${minutes}:${seconds}`;
@@ -24,4 +25,4 @@ function addSkipTimeTagToURL(url: string, seconds: number) {
     return `${url}#t=${seconds}`;
 }
 
-export {convertMillisecondsToTime, addSkipTimeTagToURL};
+export {convertSecondsToTime, addSkipTimeTagToURL};
