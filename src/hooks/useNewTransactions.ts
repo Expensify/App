@@ -34,13 +34,9 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
             return;
         }
         // This is needed to ensure that set we skipFirstTransactionsChange to false only after the Onyx merge is done.
-        new Promise<void>((resolve) => {
-            resolve();
-        }).then(() => {
-            requestAnimationFrame(() => {
-                skipFirstTransactionsChange.current = false;
-            });
-        });
+        setTimeout(() => {
+            skipFirstTransactionsChange.current = false;
+        }, 1000);
     }, [hasOnceLoadedReportActions]);
 
     return newTransactions;

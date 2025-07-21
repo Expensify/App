@@ -8,12 +8,17 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -34,6 +39,7 @@ const defaultReportMetadata = {
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
     isOptimisticReport: false,
+    hasOnceLoadedReportActions: false,
 };
 
 function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
@@ -58,6 +64,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useEffect(() => {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
     }, [reportIDFromRoute]);
+    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -101,6 +113,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     report={report}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
+                                    reportActions={reportActions}
+                                    transactions={transactions}
+                                    newTransactions={newTransactions}
+                                    hasNewerActions={hasNewerActions}
+                                    hasOlderActions={hasOlderActions}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     backToRoute={route.params.backTo}
                                 />
@@ -136,6 +153,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}
+                                        reportActions={reportActions}
+                                        transactions={transactions}
+                                        newTransactions={newTransactions}
+                                        hasNewerActions={hasNewerActions}
+                                        hasOlderActions={hasOlderActions}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         backToRoute={route.params.backTo}
                                     />
