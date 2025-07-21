@@ -245,65 +245,59 @@ function AvatarWithDisplayName({
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
-    const getAvatar = useCallback(
-        (accountID: number) => {
-            if (shouldShowSubscriptAvatar) {
-                return (
-                    <SubscriptAvatar
-                        backgroundColor={avatarBorderColor}
-                        mainAvatar={icons.at(0) ?? fallbackIcon}
-                        secondaryAvatar={icons.at(1)}
-                        size={size}
-                    />
-                );
-            }
-
-            if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
-                return (
-                    <MultipleAvatars
-                        icons={icons}
-                        size={size}
-                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                    />
-                );
-            }
-
+    const getAvatar = useCallback(() => {
+        if (shouldShowSubscriptAvatar) {
             return (
-                <SingleReportAvatar
-                    reportPreviewDetails={singleAvatarDetails}
-                    personalDetails={personalDetails}
-                    containerStyles={[styles.actionAvatar, styles.mr3]}
-                    actorAccountID={accountID}
+                <SubscriptAvatar
+                    backgroundColor={avatarBorderColor}
+                    mainAvatar={icons.at(0) ?? fallbackIcon}
+                    secondaryAvatar={icons.at(1)}
+                    size={size}
                 />
             );
-        },
-        [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles],
-    );
+        }
 
-    const getWrappedAvatar = useCallback(
-        (accountID: number) => {
-            const avatar = getAvatar(accountID);
-
-            if (!shouldEnableAvatarNavigation) {
-                return <View accessibilityLabel={title}>{avatar}</View>;
-            }
-
+        if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
             return (
-                <View accessibilityLabel={title}>
-                    <PressableWithoutFeedback
-                        onPress={showActorDetails}
-                        accessibilityLabel={title}
-                        role={getButtonRole(true)}
-                    >
-                        {avatar}
-                    </PressableWithoutFeedback>
-                </View>
+                <MultipleAvatars
+                    icons={icons}
+                    size={size}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                />
             );
-        },
-        [getAvatar, shouldEnableAvatarNavigation, showActorDetails, title],
-    );
+        }
 
-    const WrappedAvatar = getWrappedAvatar(actorAccountID?.current ?? CONST.DEFAULT_NUMBER_ID);
+        return (
+            <SingleReportAvatar
+                reportPreviewDetails={singleAvatarDetails}
+                personalDetails={personalDetails}
+                containerStyles={[styles.actionAvatar, styles.mr3]}
+                actorAccountID={singleAvatarDetails.reportPreviewSenderID}
+            />
+        );
+    }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
+
+    const getWrappedAvatar = useCallback(() => {
+        const avatar = getAvatar();
+
+        if (!shouldEnableAvatarNavigation) {
+            return <View accessibilityLabel={title}>{avatar}</View>;
+        }
+
+        return (
+            <View accessibilityLabel={title}>
+                <PressableWithoutFeedback
+                    onPress={showActorDetails}
+                    accessibilityLabel={title}
+                    role={getButtonRole(true)}
+                >
+                    {avatar}
+                </PressableWithoutFeedback>
+            </View>
+        );
+    }, [getAvatar, shouldEnableAvatarNavigation, showActorDetails, title]);
+
+    const WrappedAvatar = getWrappedAvatar();
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
