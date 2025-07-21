@@ -175,7 +175,7 @@ function IOURequestStartPage({
             allPolicies={allPolicies}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
+                shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
