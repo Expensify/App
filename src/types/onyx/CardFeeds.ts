@@ -142,6 +142,9 @@ type AddNewCardFeedData = {
     /** Name of the card */
     cardTitle: string;
 
+    /** The day when the statement period for this feed ends */
+    statementPeriodEndDay?: CompanyCardStatementCloseDate;
+
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 

@@ -134,6 +134,7 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
                                     JSON.stringify(metadata?.accounts),
+                                    addNewCard.data.statementPeriodEndDay,
                                 );
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
