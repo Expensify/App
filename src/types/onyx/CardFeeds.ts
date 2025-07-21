@@ -137,7 +137,7 @@ type AddNewCardFeedData = {
     cardTitle: string;
 
     /** Selected bank */
-    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
     /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
