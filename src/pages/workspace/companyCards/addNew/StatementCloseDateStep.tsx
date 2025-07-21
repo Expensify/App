@@ -26,9 +26,9 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!addNewCard?.data?.publicToken;
 
     const submit = useCallback(
-        // s77rt make use of statementCloseDate and remove disable lint rule
+        // s77rt make use of statementPeriodEndDay and remove disable lint rule
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (statementCloseDate: CompanyCardStatementCloseDate) => {
+        (statementPeriodEndDay: CompanyCardStatementCloseDate) => {
             if (isPlaid) {
                 setAddNewCompanyCardStepAndData({
                     step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
