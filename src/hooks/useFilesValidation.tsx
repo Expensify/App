@@ -27,6 +27,10 @@ type ErrorObject = {
     fileExtension?: string;
 };
 
+const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, number>) => {
+    return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
+};
+
 function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = true) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -164,7 +168,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 setIsErrorModalVisible(true);
             }
         } else if (validFiles.current.length > 0) {
-            const sortedFiles = validFiles.current.sort((a, b) => (originalFileOrder.current.get(a.uri ?? '') ?? 0) - (originalFileOrder.current.get(b.uri ?? '') ?? 0));
+            const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
             proceedWithFilesAction(sortedFiles);
             resetValidationState();
         }
@@ -256,7 +260,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                             setIsErrorModalVisible(true);
                         }
                     } else if (processedFiles.length > 0) {
-                        const sortedFiles = processedFiles.sort((a, b) => (originalFileOrder.current.get(a.uri ?? '') ?? 0) - (originalFileOrder.current.get(b.uri ?? '') ?? 0));
+                        const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
                         proceedWithFilesAction(sortedFiles);
                         resetValidationState();
                     }
@@ -300,7 +304,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         }
 
-        const sortedFiles = validFilesToUpload.sort((a, b) => (originalFileOrder.current.get(a.uri ?? '') ?? 0) - (originalFileOrder.current.get(b.uri ?? '') ?? 0));
+        const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
         // If we're validating attachments we need to use InteractionManager to ensure
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {

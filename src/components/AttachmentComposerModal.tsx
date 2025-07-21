@@ -1,14 +1,12 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {InteractionManager} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
@@ -17,7 +15,6 @@ import useCarouselArrows from './Attachments/AttachmentCarousel/useCarouselArrow
 import useAttachmentErrors from './Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from './Attachments/types';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Modal from './Modal';
