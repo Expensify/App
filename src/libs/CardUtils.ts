@@ -715,6 +715,7 @@ function isVirtualCardReplaced(card?: Card) {
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
+        !card.nameValuePairs?.isVirtual &&
         (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || isMissingPrivatePersonalDetails(privatePersonalDetails))
     );
 }
