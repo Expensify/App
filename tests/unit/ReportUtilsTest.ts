@@ -302,17 +302,20 @@ describe('ReportUtils', () => {
         const IOUTransactionID = '123';
         const randomReportAction = createRandomReportAction(reportActionID);
         const policyID = '2424';
+        const amount = 39;
         const reportAction = {
             ...randomReportAction,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
-            childStateNum: 0,
-            childStatusNum: 0,
+            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
                 ...randomReportAction.originalMessage,
                 IOUReportID,
                 IOUTransactionID,
-                type: 'create',
+                type: CONST.IOU.ACTION.CREATE,
+                amount,
+                currency: CONST.CURRENCY.USD,
             },
         };
 
@@ -323,7 +326,7 @@ describe('ReportUtils', () => {
 
          */
 
-        const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID};
+        const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount};
 
         /* CREATE money request report (invoice report)
         invoiceReport = allReports[reportAction.originalMessage.IOUReportID]
@@ -337,15 +340,15 @@ describe('ReportUtils', () => {
             policyID,
             ownerAccountID: currentUserAccountID,
             state: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-            stateNum: 1,
-            statusNum: 1,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             managerID: 8723,
         };
 
         /* CREATE policy
         moneyRequestReport?.policyID = policy.id 
         */
-        const policyC = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: 'admin'};
+        const policyC = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
 
         /* CREATE an outstanding EXPENSE REPORT
          type = expense 
@@ -353,7 +356,13 @@ describe('ReportUtils', () => {
          
         */
 
-        const outstandingExpenseReport = {...createExpenseReport(483), policyID, stateNum: 0, statusNum: 0, ownerAccountID: currentUserAccountID};
+        const outstandingExpenseReport = {
+            ...createExpenseReport(483),
+            policyID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            ownerAccountID: currentUserAccountID,
+        };
 
         /* might not need to add this
         add the report action with 
