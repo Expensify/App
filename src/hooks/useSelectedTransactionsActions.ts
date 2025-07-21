@@ -2,10 +2,12 @@ import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -20,7 +22,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
@@ -29,6 +31,7 @@ import useReportIsArchived from './useReportIsArchived';
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
+const MERGE = 'MERGE';
 
 function useSelectedTransactionsActions({
     report,
@@ -36,12 +39,14 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    policy,
 }: {
     report?: Report;
     reportActions: ReportAction[];
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
+    policy?: Policy;
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
@@ -202,6 +207,26 @@ function useSelectedTransactionsActions({
             });
         }
 
+        // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
+        const canMergeTransaction = selectedTransactions.length === 1 && report && isMergeAction(report, selectedTransactions, policy);
+        if (canMergeTransaction) {
+            options.push({
+                text: translate('common.merge'),
+                icon: Expensicons.ArrowCollapse,
+                value: MERGE,
+                onSelected: () => {
+                    const targetTransaction = selectedTransactions.at(0);
+
+                    if (!report || !targetTransaction) {
+                        return;
+                    }
+
+                    setupMergeTransactionData(targetTransaction.transactionID);
+                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getReportRHPActiveRoute()));
+                },
+            });
+        }
+
         const canAllSelectedTransactionsBeRemoved = Object.values(selectedTransactions).every((transaction) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
@@ -234,6 +259,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         isReportArchived,
+        policy,
     ]);
 
     return {

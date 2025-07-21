@@ -618,10 +618,6 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    if (isMergeAction(report, reportTransactions, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
-    }
-
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
@@ -663,4 +659,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, isMergeAction};
