@@ -388,6 +388,21 @@ function deleteWorkspace(policyID: string, policyName: string) {
         },
     ];
 
+    if (policyID === activePolicyID) {
+        const personalPolicyID = PolicyUtils.getPersonalPolicy()?.id;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: personalPolicyID,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: activePolicyID,
+        });
+    }
+
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report) => ReportUtils.isPolicyRelatedReport(report, policyID) && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
     );
