@@ -19,7 +19,7 @@ import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScre
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as ExpensifyRoute, HybridAppRoute, Route as Routes} from '@src/ROUTES';
+import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -1411,7 +1411,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         pageIndex?: string;
-        backTo?: string;
+        backTo?: Routes;
         participantsAutoAssigned?: string;
         backToReport?: string;
     };
@@ -1781,14 +1781,14 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ROOT]?: {
+    [SCREENS.SETTINGS.PROFILE.ROOT]: {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]?: {backTo?: Routes};
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
 };
 
 type WorkspaceSplitNavigatorParamList = {
@@ -1983,7 +1983,7 @@ type SharedScreensParamList = {
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-        exitTo?: Routes | HybridAppRoute;
+        exitTo?: Routes;
         shouldForceLogin: string;
         domain?: Routes;
         delegatorEmail?: string;
@@ -1992,7 +1992,7 @@ type SharedScreensParamList = {
         accountID: string;
         validateCode: string;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-        exitTo?: Routes | HybridAppRoute;
+        exitTo?: Routes;
     };
 };
 
