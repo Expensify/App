@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -36,7 +36,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {typeMenuSections} = useSearchTypeMenuSections(hash);
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -132,10 +132,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
+        return flattenedMenuItems.findIndex((item) => item.hash === hash);
     }, [hash, isSavedSearchActive, typeMenuSections]);
 
     const popoverMenuItems = useMemo(() => {
@@ -167,7 +164,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         shouldCallAfterModalHide: true,
                         onSelected: singleExecution(() => {
                             clearAllFilters();
-                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                         }),
                     });
                 });
