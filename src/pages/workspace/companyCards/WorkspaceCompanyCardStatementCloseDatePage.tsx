@@ -36,9 +36,9 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
     const submit = useCallback(
-        (newStatementPeriodEndDate: CompanyCardStatementCloseDate) => {
+        (newStatementPeriodEndDay: CompanyCardStatementCloseDate) => {
             if (selectedFeed) {
-                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDate, statementPeriodEndDay ?? null);
+                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDay, statementPeriodEndDay ?? null);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
