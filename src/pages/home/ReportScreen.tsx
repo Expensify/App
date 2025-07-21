@@ -157,21 +157,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {canBeMissing: true});
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-
-    // We don't need report metadata's lastVisitTime. Removing it saves on re-renders count.
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        canBeMissing: true,
-        allowStaleData: true,
-        selector: (metadata) => ({
-            isOptimisticReport: metadata?.isOptimisticReport,
-            hasLoadingNewerReportActionsError: metadata?.hasLoadingNewerReportActionsError,
-            hasLoadingOlderReportActionsError: metadata?.hasLoadingOlderReportActionsError,
-            hasOnceLoadedReportActions: metadata?.hasOnceLoadedReportActions,
-            isLoadingInitialReportActions: metadata?.isLoadingInitialReportActions,
-            isLoadingNewerReportActions: metadata?.isLoadingNewerReportActions,
-            isLoadingOlderReportActions: metadata?.isLoadingOlderReportActions,
-        }),
-    });
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID ?? parentReportIDFromRoute)}`, {
         canEvict: false,
