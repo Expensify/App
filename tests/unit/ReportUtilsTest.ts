@@ -304,15 +304,6 @@ describe('ReportUtils', () => {
         const policyID = '2424';
         const amount = 39;
 
-        /* CREATE an outstanding EXPENSE REPORT
-         type = expense 
-         TODO: stateNum and statusNum can be less than or equal to CONST.REPORT.STATE_NUM.SUBMITTED
-         
-        */
-
-        /* CREATE policy
-        moneyRequestReport?.policyID = policy.id 
-        */
         const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
 
         // Given that there is atleast one outstanding expense report in a policy
@@ -341,21 +332,7 @@ describe('ReportUtils', () => {
             },
         };
 
-        /* CREATE money request transaction
-         transaction = allTransaction[reportAction.originalMessage.IOUTransactionID]
-         moneyRequestReport.reportID = moneyRequestReport.reportID = originalMessage.IOUReportID
-         moneyRequestTransaction.transactionID = originalMessage.IOUTransactionID
-
-         */
-
         const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount};
-
-        /* CREATE money request report (invoice report)
-        invoiceReport = allReports[reportAction.originalMessage.IOUReportID]
-        invoiceReport.reportID = originalMessage.IOUReportID
-        invoiceReport.ownerAccountID = currentUserAccountID
-        invoioiceReport.policyID = policy.id
-        */
 
         const invoiceReport = {
             ...createInvoiceReport(Number(IOUReportID)),
@@ -366,15 +343,6 @@ describe('ReportUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             managerID: 8723,
         };
-
-        /* might not need to add this
-        add the report action with 
-        hasForwardedAction
-        */
-
-        /* no need for this
-        Add reportNameValuePairs in onyx for the oustandingExpenseReport 
-        */
 
         beforeAll(() => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
