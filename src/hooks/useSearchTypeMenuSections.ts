@@ -1,36 +1,25 @@
 import {useMemo} from 'react';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useOnyx from './useOnyx';
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
-const useSearchTypeMenuSections = (hash = 0) => {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+const useSearchTypeMenuSections = () => {
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
 
-    const hasCardFeed = useMemo(() => {
-        return Object.keys(mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)).length > 0;
-    }, [userCardList, workspaceCardFeeds]);
+    const typeMenuSections = useMemo(
+        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies),
+        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies],
+    );
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(session, hasCardFeed, allPolicies), [allPolicies, hasCardFeed, session]);
-
-    const currentSearch = useMemo(() => {
-        const flatMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flatMenuItems.find((menuItem) => {
-            const menuHash = buildSearchQueryJSON(menuItem.getSearchQuery())?.hash;
-            return menuHash === hash;
-        });
-    }, [hash, typeMenuSections]);
-
-    return {typeMenuSections, currentSearch};
+    return {typeMenuSections};
 };
 
 export default useSearchTypeMenuSections;

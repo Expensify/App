@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {translateLocal} from '@libs/Localize';
@@ -73,7 +73,7 @@ describe('PureReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction) {
         return render(
-            <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <OptionsListContextProvider>
                     <ScreenWrapper testID="test">
                         <PortalProvider>

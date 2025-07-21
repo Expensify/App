@@ -7,7 +7,7 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -66,14 +66,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const [allCards] = useMemo(() => {
-        const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
-        return [mergedCards, Object.keys(mergedCards).length > 0];
-    }, [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
-    const {typeMenuSections} = useSearchTypeMenuSections(hash);
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const initialSearchKeys = useRef<string[]>([]);
 
     // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
@@ -213,11 +210,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
+        return flattenedMenuItems.findIndex((item) => item.hash === hash);
     }, [hash, isSavedSearchActive, typeMenuSections]);
 
     return (
@@ -243,10 +236,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 }
                                 clearAllFilters();
                                 clearSelectedTransactions();
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             });
 
-                            const isInitialItem = initialSearchKeys.current.includes(item.key);
+                            const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
 
                             return (
                                 <Animated.View

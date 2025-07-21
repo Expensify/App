@@ -16,7 +16,7 @@ import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+import type {SearchResults} from '@src/types/onyx';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
@@ -43,24 +43,21 @@ function SearchSidebar({state}: SearchSidebarProps) {
     }, [params?.q]);
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true, selector: (snapshot) => snapshot?.search});
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResultsInfo | undefined>(undefined);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useEffect(() => {
-        if (!currentSearchResults?.type) {
+        if (!currentSearchResults?.search?.type) {
             return;
         }
 
-        setLastSearchType(currentSearchResults.type);
-        if (currentSearchResults.hasResults ?? currentSearchResults.hasMoreResults) {
+        setLastSearchType(currentSearchResults.search.type);
+        if (currentSearchResults.data) {
             setLastNonEmptySearchResults(currentSearchResults);
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const searchResultsToUse = (currentSearchResults?.hasResults ?? currentSearchResults?.hasMoreResults) ? currentSearchResults : lastNonEmptySearchResults;
-
-    const isDataLoaded = isSearchDataLoaded(searchResultsToUse, queryJSON);
-
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
 
     if (shouldUseNarrowLayout) {
