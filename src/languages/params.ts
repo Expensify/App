@@ -793,6 +793,14 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type EmptyCategoriesSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
+type EmptyTagsSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1070,4 +1078,6 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
 };

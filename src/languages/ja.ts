@@ -93,6 +93,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -4441,11 +4443,8 @@ const translations = {
             emptyCategories: {
                 title: 'カテゴリが作成されていません',
                 subtitle: '支出を整理するためにカテゴリーを追加してください。',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: 'あなたのカテゴリは現在、会計接続からインポートされています。こちらに移動してください',
-                subtitle2: '会計',
-                subtitle3: '変更を加えるために。',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>あなたのカテゴリーは現在、会計接続からインポートされています。<a href="${accountingPageURL}">会計</a>に移動して変更してください。</centered-text></muted-text>`,
             },
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
@@ -4708,14 +4707,9 @@ const translations = {
                 title: 'タグが作成されていません',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'プロジェクト、場所、部門などを追跡するためのタグを追加します。',
-                subtitle1: 'スプレッドシートをインポートして、プロジェクト、場所、部門などの追跡用タグを追加します。',
-                subtitle2: '詳細を確認',
-                subtitle3: 'フォーマットタグファイルについて。',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: 'あなたのタグは現在、会計接続からインポートされています。こちらに移動して',
-                subtitle2: '会計',
-                subtitle3: '変更を加えるために。',
+                subtitleHTML: `<muted-text><centered-text>スプレッドシートをインポートして、プロジェクト、場所、部署などを追跡するためのタグを追加できます。タグファイルのフォーマットについては<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">こちらをご覧</a>ください。</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>タグは現在、会計接続からインポートされています。<a href="${accountingPageURL}">アカウンティング</a>に移動して変更してください。</centered-text></muted-text>`,
             },
             deleteTag: 'タグを削除',
             deleteTags: 'タグを削除',
