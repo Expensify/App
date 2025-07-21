@@ -33,7 +33,6 @@ import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -503,13 +502,13 @@ function MoneyRequestReportPreviewContent({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
             <Button
                 success={isWaitingForSubmissionFromCurrentUser}
-                text={translate('iou.submitAmount', {amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
+                text={translate('common.submit')}
                 onPress={() => submitReport(iouReport)}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
             <Button
-                text={translate('iou.approve', {formattedAmount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
+                text={translate('iou.approve')}
                 success
                 onPress={() => confirmApproval()}
             />
@@ -521,8 +520,6 @@ function MoneyRequestReportPreviewContent({
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                 onAnimationFinish={stopAnimation}
-                formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)}
-                currency={iouReport?.currency}
                 chatReportID={chatReportID}
                 policyID={policy?.id}
                 iouReport={iouReport}
@@ -563,9 +560,7 @@ function MoneyRequestReportPreviewContent({
                 icon={Expensicons.DotIndicator}
                 iconFill={theme.danger}
                 iconHoverFill={theme.danger}
-                text={translate('common.review', {
-                    amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction),
-                })}
+                text={translate('common.review')}
                 onPress={() => openReportFromPreview()}
             />
         ),
