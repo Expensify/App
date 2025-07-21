@@ -429,7 +429,7 @@ function ReportActionsList({
                 }
                 const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
 
-                if (!!action?.reportActionID) {
+                if (action?.reportActionID) {
                     setActionIdHighlightedTemporary(action?.reportActionID);
                 }
 
