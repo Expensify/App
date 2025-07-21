@@ -1,9 +1,9 @@
 import {useEffect} from 'react';
-import usePrevious from '@hooks/usePrevious';
 import {openApp} from '@libs/actions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
+import usePrevious from './usePrevious';
 
 function usePriorityChange() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
