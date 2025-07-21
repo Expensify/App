@@ -1,12 +1,10 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import Animated, {Easing, Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
-import {getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 function Container({
     style,

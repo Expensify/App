@@ -2692,6 +2692,8 @@ const translations = {
             validationAmounts: "Gli importi di convalida inseriti non sono corretti. Si prega di ricontrollare l'estratto conto bancario e riprovare.",
             fullName: 'Per favore, inserisci un nome completo valido',
             ownershipPercentage: 'Per favore, inserisci un numero percentuale valido',
+            deletePaymentBankAccount:
+                'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con la carta Expensify. Se desideri comunque eliminare questo conto, contatta il Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3829,6 +3831,18 @@ const translations = {
             },
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: "Per favore, aggiungi l'account in Xero e sincronizza nuovamente la connessione.",
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Esportatore preferito',
@@ -5942,11 +5956,16 @@ const translations = {
                 title: 'Nessuna spesa da esportare',
                 subtitle: 'È ora di rilassarsi, bel lavoro.',
             },
+            emptyStatementsResults: {
+                title: 'Nessuna spesa da visualizzare',
+                subtitle: 'Nessun risultato. Provare a regolare i filtri.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
         },
+        statements: 'Dichiarazioni',
         unapproved: 'Non approvato',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCompanyCards: 'Carte aziendali non approvate',
