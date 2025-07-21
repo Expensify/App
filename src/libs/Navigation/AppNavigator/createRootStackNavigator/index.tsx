@@ -1,20 +1,12 @@
-import {createNavigatorFactory} from '@react-navigation/native';
 import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+import {createNavigatorFactory} from '@react-navigation/native';
 import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtraContent';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
-import type {CustomStateHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import RootStackRouter from './RootStackRouter';
-
-// This is an optimization to keep mounted only last few screens in the stack.
-function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
-    const lastSplitIndex = state.routes.findLastIndex((route) => isFullScreenName(route.name));
-    const routesToRender = state.routes.slice(Math.max(0, lastSplitIndex - 1), state.routes.length);
-
-    return {...state, routes: routesToRender, index: routesToRender.length - 1};
-}
+import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
 
 const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
     createRouter: RootStackRouter,
