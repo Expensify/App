@@ -55,7 +55,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
                 onClose={onClose}
                 onModalHide={onClose}
                 onBackdropPress={() => {
-                    onClose?.();
+                    onClose();
                     Navigation.dismissModal();
                 }}
                 enableEdgeToEdgeBottomSafeAreaPadding
