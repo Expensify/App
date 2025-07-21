@@ -3,8 +3,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SilentCommentUpdaterProps from './types';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type SilentCommentUpdaterProps from './types';
 
 /**
  * This component doesn't render anything. It runs a side effect to update the comment of a report under certain conditions.
