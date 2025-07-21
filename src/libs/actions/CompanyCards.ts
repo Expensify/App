@@ -59,7 +59,14 @@ function clearAddNewCardFlow() {
     });
 }
 
-function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyCardFeed, feedDetails: CardFeedDetails, cardFeeds: OnyxEntry<CardFeeds>, lastSelectedFeed?: CompanyCardFeed) {
+function addNewCompanyCardsFeed(
+    policyID: string | undefined,
+    cardFeed: CompanyCardFeed,
+    feedDetails: CardFeedDetails,
+    cardFeeds: OnyxEntry<CardFeeds>,
+    statementPeriodEndDay: CompanyCardStatementCloseDate,
+    lastSelectedFeed?: CompanyCardFeed,
+) {
     const authToken = NetworkStore.getAuthToken();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
@@ -135,6 +142,7 @@ function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyC
         feedDetails: Object.entries(feedDetails)
             .map(([key, value]) => `${key}: ${value}`)
             .join(', '),
+        statementPeriodEndDay,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters, {optimisticData, failureData, successData, finallyData});

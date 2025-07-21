@@ -36,7 +36,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
             }
 
             if (addNewCard?.data.feedDetails) {
-                addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, addNewCard.data.feedDetails, cardFeeds, lastSelectedFeed);
+                addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, addNewCard.data.feedDetails, cardFeeds, statementPeriodEndDay, lastSelectedFeed);
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             }
         },
