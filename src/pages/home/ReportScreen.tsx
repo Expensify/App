@@ -165,6 +165,7 @@ function useKeyboardAnimation() {
 
             progress.set(e.progress);
             height.set(e.height);
+            offset.set(scrollY.get() + e.height);
         },
         onMove: (e) => {
             'worklet';
@@ -206,7 +207,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
@@ -223,6 +223,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
