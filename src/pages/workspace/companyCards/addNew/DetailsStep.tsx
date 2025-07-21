@@ -22,12 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-type DetailsStepProps = {
-    /** ID of the current policy */
-    policyID: string | undefined;
-};
-
-function DetailsStep({policyID}: DetailsStepProps) {
+function DetailsStep() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
