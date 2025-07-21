@@ -92,10 +92,13 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }
+    const rootState = navigationRef.getRootState();
+    const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
     navigationRef.resetRoot({
-        ...navigationRef.getRootState(),
+        ...rootState,
         ...adaptedState,
         stale: true,
+        routes: [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])],
     } as PartialState<NavigationState>);
 }
 
