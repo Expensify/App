@@ -134,6 +134,7 @@ function filterOutRangesWithCorrectValue(
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
+    const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -169,6 +170,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            return datePresetList.includes(range.value);
         default:
             return false;
     }

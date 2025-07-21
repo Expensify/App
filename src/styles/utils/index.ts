@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {isMobile, isMobileChrome} from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -1234,7 +1234,6 @@ const staticStyleUtils = {
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
-    getCombinedSpacing,
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,
@@ -1833,25 +1832,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             styleObj[key] = null;
             return styleObj;
         }, {} as Nullable<K>) as K,
-    getScrollableFeatureTrainingModalStyles: (
-        insets: EdgeInsets,
-    ): {
-        style?: ViewStyle;
-        containerStyle?: ViewStyle;
-    } => {
-        const {paddingBottom: safeAreaPaddingBottom} = getPlatformSafeAreaPadding(insets);
-
-        const paddingBottom = getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, true);
-        // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
-        return {
-            style: isMobileChrome()
-                ? {
-                      maxHeight: '100dvh',
-                  }
-                : {},
-            containerStyle: {paddingBottom},
-        };
-    },
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

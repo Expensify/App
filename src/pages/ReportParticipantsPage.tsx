@@ -75,7 +75,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
@@ -83,7 +83,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isGroupChat = useMemo(() => isGroupChatUtils(report), [report]);
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
-    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
     const {chatParticipants, personalDetailsParticipants} = useMemo(
@@ -383,7 +383,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         return translate('common.details');
     }, [report, translate, isGroupChat]);
 
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const memberNotFoundMessage = isGroupChat
@@ -401,7 +401,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
                             turnOffMobileSelectionMode();
                             return;

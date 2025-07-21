@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -77,6 +78,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
+    currentSearchKey: SuggestedSearchKey | undefined;
     setCurrentSearchHash: (hash: number) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
@@ -142,7 +144,7 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     filters: ASTNode;
-    policyID?: string;
+    policyID?: string[];
 };
 
 type SearchQueryJSON = {
