@@ -115,6 +115,7 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
+import getPlatform from "@libs/getPlatform";
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -330,13 +331,17 @@ function MoneyReportHeader({
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
-                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                if (getPlatform() === CONST.PLATFORM.IOS) {
+                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                } else {
+                    setIsHoldMenuVisible(true);
+                }
             } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
             }
         },
         [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
@@ -545,6 +550,7 @@ function MoneyReportHeader({
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
+                formattedAmount={totalAmount}
                 canIOUBePaid
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={moneyRequestReport?.currency}
@@ -944,11 +950,12 @@ function MoneyReportHeader({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
+                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= 5}
                     customText={translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
-                    shouldUseModalPaddingStyle={false}
+                    shouldUseModalPaddingStyle={applicableSecondaryActions.length <= 5}
                 />
             )}
         </KYCWall>
