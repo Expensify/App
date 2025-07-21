@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -25,7 +25,6 @@ import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
-    isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
@@ -106,7 +105,7 @@ function SettlementButton({
     });
 
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, iouReport?.type as keyof LastPaymentMethodType);
-    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserAccountID = getCurrentUserAccountID().toString();
 
@@ -118,14 +117,14 @@ function SettlementButton({
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const lastPaymentPolicy = usePolicy(lastPaymentMethod);
 
-    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const bankAccount = bankAccountList[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const bankAccount = bankAccountList?.[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const isExpenseReport = isExpenseReportUtil(iouReport);
     // whether the user has single policy and the expense is p2p
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
-    const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
+    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
 
     useEffect(() => {
@@ -164,18 +163,6 @@ function SettlementButton({
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
-
-    const getLastPaymentMethodType = () => {
-        if (isInvoiceReport) {
-            return CONST.LAST_PAYMENT_METHOD.INVOICE;
-        }
-
-        if (policy) {
-            return CONST.LAST_PAYMENT_METHOD.EXPENSE;
-        }
-
-        return CONST.LAST_PAYMENT_METHOD.IOU;
-    };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
     const latestBankItem = getLatestBankAccountItem();
@@ -278,7 +265,6 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
