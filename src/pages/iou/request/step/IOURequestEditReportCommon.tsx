@@ -40,10 +40,11 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
+    policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
@@ -56,7 +57,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
     const expenseReports = useMemo(
         () =>
             Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
+                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                     return [];
                 }
                 const reports = getOutstandingReportsForUser(
@@ -67,7 +68,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps],
     );
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
@@ -85,6 +86,9 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
                     ...matchingOption,
+                    // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
+                    // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
+                    brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,

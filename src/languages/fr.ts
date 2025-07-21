@@ -2682,6 +2682,8 @@ const translations = {
             validationAmounts: 'Les montants de validation que vous avez saisis sont incorrects. Veuillez vérifier votre relevé bancaire et réessayer.',
             fullName: 'Veuillez entrer un nom complet valide',
             ownershipPercentage: 'Veuillez entrer un nombre en pourcentage valide',
+            deletePaymentBankAccount:
+                'Ce compte bancaire ne peut pas être supprimé car il est utilisé pour les paiements par carte Expensify. Si vous souhaitez toujours supprimer ce compte, veuillez contacter le Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3823,6 +3825,18 @@ const translations = {
             },
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans Xero et synchroniser à nouveau la connexion.',
+            accountingMethods: {
+                label: 'Quand exporter',
+                description: 'Choisissez quand exporter les dépenses :',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors de la poche seront exportées une fois approuvées définitivement.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: "Les dépenses personnelles seront exportées lorsqu'elles seront payées.",
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Exportateur préféré',
@@ -5939,11 +5953,16 @@ const translations = {
                 title: 'Aucune dépense à exporter',
                 subtitle: 'Il est temps de se détendre, beau travail.',
             },
+            emptyStatementsResults: {
+                title: 'Aucun relevé à afficher',
+                subtitle: "Aucun résultat. Veuillez essayer d'ajuster vos filtres.",
+            },
             emptyUnapprovedResults: {
                 title: 'Aucune dépense à approuver',
                 subtitle: 'Zéro dépenses. Détente maximale. Bien joué !',
             },
         },
+        statements: 'Relevés',
         unapproved: 'Non approuvé',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCompanyCards: "Cartes d'entreprise non approuvées",

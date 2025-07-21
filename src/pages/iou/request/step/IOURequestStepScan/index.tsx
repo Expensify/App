@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {ActivityIndicator, InteractionManager, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -28,7 +28,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -47,7 +46,6 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode, hasReceipt} from '@libs/TransactionUtils';
-import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -94,11 +92,8 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
-    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -140,8 +135,7 @@ function IOURequestStepScan({
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
-    const canUseMultiDragAndDrop = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
-    const shouldAcceptMultipleFiles = canUseMultiDragAndDrop && !isEditing && !backTo;
+    const shouldAcceptMultipleFiles = !isEditing && !backTo;
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
@@ -971,16 +965,24 @@ function IOURequestStepScan({
         </>
     );
 
-    const desktopUploadView = () => (
-        <>
-            {PDFValidationComponent}
-            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
-                <ReceiptUpload
-                    width={CONST.RECEIPT.ICON_SIZE}
-                    height={CONST.RECEIPT.ICON_SIZE}
-                />
-            </View>
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
+    const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
+    /*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */
+    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
 
+    const desktopUploadView = () => (
+        <View
+            style={[styles.alignItemsCenter, styles.justifyContentCenter]}
+            onLayout={(e) => {
+                setDesktopUploadViewHeight(e.nativeEvent.layout.height);
+            }}
+        >
+            {PDFValidationComponent}
+            <ReceiptUpload
+                width={CONST.RECEIPT.ICON_SIZE}
+                height={CONST.RECEIPT.ICON_SIZE}
+            />
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -1014,7 +1016,7 @@ function IOURequestStepScan({
                     />
                 )}
             </AttachmentPicker>
-        </>
+        </View>
     );
 
     return (
@@ -1026,7 +1028,8 @@ function IOURequestStepScan({
         >
             {(isDraggingOverWrapper) => (
                 <View
-                    onLayout={() => {
+                    onLayout={(event) => {
+                        setContainerHeight(event.nativeEvent.layout.height);
                         if (!onLayout) {
                             return;
                         }
@@ -1037,33 +1040,16 @@ function IOURequestStepScan({
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                     </View>
-                    {/* TODO: remove beta check after the feature is enabled */}
-                    {canUseMultiDragAndDrop ? (
-                        <DragAndDropConsumer onDrop={handleDropReceipt}>
-                            <DropZoneUI
-                                icon={isReplacingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                                dropStyles={styles.receiptDropOverlay(true)}
-                                dropTitle={
-                                    isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')
-                                }
-                                dropTextStyles={styles.receiptDropText}
-                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
-                            />
-                        </DragAndDropConsumer>
-                    ) : (
-                        <ReceiptDropUI
-                            onDrop={(e) => {
-                                const file = e?.dataTransfer?.files[0];
-                                if (file) {
-                                    file.uri = URL.createObjectURL(file);
-                                    validateFiles([file]);
-                                }
-                            }}
-                            receiptImageTopPosition={receiptImageTopPosition}
+                    <DragAndDropConsumer onDrop={handleDropReceipt}>
+                        <DropZoneUI
+                            icon={isReplacingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTitle={isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                         />
-                    )}
-                    {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
-                    {!isMobile() && <DownloadAppBanner />}
+                    </DragAndDropConsumer>
+                    {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal
