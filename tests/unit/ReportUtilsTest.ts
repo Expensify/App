@@ -306,7 +306,7 @@ describe('ReportUtils', () => {
 
         const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
 
-        // Given that there is atleast one outstanding expense report in a policy
+        // Given that there is at least one outstanding expense report in a policy
         const outstandingExpenseReport = {
             ...createExpenseReport(483),
             policyID,
@@ -322,6 +322,7 @@ describe('ReportUtils', () => {
             actorAccountID: currentUserAccountID,
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            // eslint-disable-next-line deprecation/deprecation
             originalMessage: {
                 ...randomReportAction.originalMessage,
                 IOUReportID,
@@ -352,8 +353,8 @@ describe('ReportUtils', () => {
             return waitForBatchedUpdates();
         });
 
-        // Then the user should be able to move the invoice to the oustanding expense report
-        it('should return true for invoice report action given that there is a minimum of one oustanding report', () => {
+        // Then the user should be able to move the invoice to the outstanding expense report
+        it('should return true for invoice report action given that there is a minimum of one outstanding report', () => {
             const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
             expect(canEditReportField).toBe(true);
         });
