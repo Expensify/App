@@ -1,70 +1,108 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
-import useOnyx from '@hooks/useOnyx';
-import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
+import Text from '@components/Text';
+import UseOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+import {saveLastSearchParams, setActiveReportIDs} from '@userActions/ReportNavigation';
+import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
-    currentReportID: string;
+    reportID: string;
+    lastSearchQuery?: OnyxTypes.LastSearchParams;
+    rawReports?: string[];
+    shouldDisplayNarrowVersion: boolean;
 };
 
-function MoneyRequestReportNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
-        canBeMissing: true,
-    });
+function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
+    //
+    const allReports = rawReports ?? [];
+    const currentIndex = allReports.indexOf(reportID ?? '');
+    //
+    const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
-    const {prevReportID, nextReportID} = useMemo(() => {
-        if (!reportIDsList || reportIDsList.length < 2) {
-            return {prevReportID: undefined, nextReportID: undefined};
+    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
+    const hidePrevButton = currentIndex === 0;
+    //
+    const styles = useThemeStyles();
+    //
+    const goToReportId = (reportId?: string) => {
+        if (!reportId) {
+            return;
+        }
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+
+        Navigation.navigate(
+            ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                reportID: reportId,
+                backTo: focusedRoute?.params?.backTo,
+            }),
+            {forceReplace: true},
+        );
+    };
+    //
+    const goToNextReport = () => {
+        if (currentIndex === -1 || allReports.length === 0) {
+            return '';
         }
 
-        const currentReportIndex = reportIDsList.findIndex((id) => id === currentReportID);
+        if (currentIndex > allReportsCount * 0.75 && lastSearchQuery?.hasMoreResults) {
+            search({
+                queryJSON: {...lastSearchQuery.queryJSON, filters: null},
+                offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+            }).then((results) => {
+                const data = results?.onyxData?.[0]?.value?.data;
+                if (data) {
+                    const reportNumbers = Object.keys(data)
+                        .filter((key) => key.startsWith('report_'))
+                        .map((key) => key.replace('report_', ''));
+                    setActiveReportIDs([...allReports, ...reportNumbers]);
+                }
+                saveLastSearchParams({
+                    queryJSON: {...lastSearchQuery.queryJSON, filters: null},
+                    offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                    hasMoreResults: !!results?.onyxData?.[0]?.value?.search?.hasMoreResults,
+                    previousLengthOfResults: allReportsCount < allReports.length && currentIndex === allReports.length ? allReports.length : allReportsCount,
+                });
+                console.log(lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
+            });
+        }
+        if (currentIndex === allReportsCount - 1) {
+            debugger;
+            saveLastSearchParams({
+                ...lastSearchQuery,
+                previousLengthOfResults: allReports.length,
+            });
+        }
+        const nextIndex = (currentIndex + 1) % allReports.length;
+        goToReportId(allReports.at(nextIndex));
+    };
+    //
 
-        const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
-        const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
-
-        return {prevReportID: prevID, nextReportID: nextID};
-    }, [currentReportID, reportIDsList]);
-
-    /**
-     * We clear the sibling transactionThreadIDs when unmounting this component
-     * only when the mount actually goes to a different SCREEN (and not a different version of the same SCREEN)
-     */
-    useEffect(() => {
-        return () => {
-            const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
-                return;
-            }
-            clearActiveTransactionThreadIDs();
-        };
-    }, []);
-
-    if (reportIDsList.length < 2) {
-        return;
-    }
+    const goToPrevReport = () => {
+        if (currentIndex === -1 || allReports.length === 0) {
+            return '';
+        }
+        const nextIndex = (currentIndex - 1) % allReports.length;
+        goToReportId(allReports.at(nextIndex));
+    };
 
     return (
-        <PrevNextButtons
-            isPrevButtonDisabled={!prevReportID}
-            isNextButtonDisabled={!nextReportID}
-            onNext={(e) => {
-                const backTo = Navigation.getActiveRoute();
-                e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
-            }}
-            onPrevious={(e) => {
-                const backTo = Navigation.getActiveRoute();
-                e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
-            }}
-        />
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+            {!shouldDisplayNarrowVersion && <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+            <PrevNextButtons
+                isPrevButtonDisabled={hidePrevButton}
+                isNextButtonDisabled={hideNextButton}
+                onNext={goToNextReport}
+                onPrevious={goToPrevReport}
+            />
+        </View>
     );
 }
 

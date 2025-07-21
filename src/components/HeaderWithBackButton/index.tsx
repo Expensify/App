@@ -1,4 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -9,26 +8,19 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import PrevNextButtons from '@components/PrevNextButtons';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
-import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import UseOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@navigation/navigationRef';
 import variables from '@styles/variables';
-import {saveLastSearchParams, setActiveReportIDs} from '@userActions/ReportNavigation';
-import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
 
@@ -79,85 +71,19 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = true,
     shouldDisplaySearchRouter = false,
-    shouldDisplayNavigationArrows = false,
+    navigationComponent,
     progressBarPercentage,
     style,
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    debugger;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const rawReports = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
-    const [lastSearchQuery] = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const allReports = rawReports?.[0] ?? [];
-    const currentIndex = allReports.indexOf(report?.reportID ?? '');
-    const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
-    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
-    const hidePrevButton = currentIndex === 0;
-    const goToReportId = (reportId?: string) => {
-        if (!reportId) {
-            return;
-        }
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportId, backTo: focusedRoute?.params?.backTo}), {forceReplace: true});
-    };
-
-    const goToNextReport = () => {
-        if (currentIndex === -1 || allReports.length === 0) {
-            return '';
-        }
-
-        debugger;
-        if (currentIndex > allReportsCount * 0.75 && lastSearchQuery?.hasMoreResults) {
-            search({
-                queryJSON: {...lastSearchQuery.queryJSON, filters: null},
-                offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
-            }).then((results) => {
-                debugger;
-                console.log(results);
-                const data = results?.onyxData?.[0]?.value?.data;
-                if (data) {
-                    const reportNumbers = Object.keys(data)
-                        .filter((key) => key.startsWith('report_'))
-                        .map((key) => key.replace('report_', ''));
-                    console.log(reportNumbers);
-                    setActiveReportIDs([...allReports, ...reportNumbers]);
-                }
-                saveLastSearchParams({
-                    queryJSON: {...lastSearchQuery.queryJSON, filters: null},
-                    offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
-                    hasMoreResults: !!results?.onyxData?.[0]?.value?.search?.hasMoreResults,
-                    previousLengthOfResults: allReportsCount < allReports.length && currentIndex === allReports.length ? allReports.length : allReportsCount,
-                });
-                console.log(lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-            });
-        }
-        if (currentIndex === allReportsCount - 1) {
-            debugger;
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                previousLengthOfResults: allReports.length,
-            });
-        }
-        const nextIndex = (currentIndex + 1) % allReports.length;
-        goToReportId(allReports.at(nextIndex));
-    };
-
-    const goToPrevReport = () => {
-        const currentIndex = allReports.indexOf(report?.reportID ?? '');
-
-        if (currentIndex === -1 || allReports.length === 0) {
-            return '';
-        }
-
-        const nextIndex = (currentIndex - 1) % allReports.length;
-        goToReportId(allReports.at(nextIndex));
-    };
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -383,17 +309,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplayNavigationArrows && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>
-                        <PrevNextButtons
-                            isPrevButtonDisabled={hidePrevButton}
-                            isNextButtonDisabled={hideNextButton}
-                            onNext={goToNextReport}
-                            onPrevious={goToPrevReport}
-                        />
-                    </View>
-                )}
+                {!!navigationComponent && navigationComponent}
                 {shouldDisplayHelpButton && <HelpButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
             </View>

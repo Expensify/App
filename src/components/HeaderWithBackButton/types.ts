@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -146,7 +146,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 
-    shouldDisplayNavigationArrows?: boolean;
+    navigationComponent?: ReactElement;
 
     /** 0 - 100 number indicating current progress of the progress bar */
     progressBarPercentage?: number;

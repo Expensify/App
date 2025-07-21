@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -47,6 +47,7 @@ import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {useSearchContext} from './Search/SearchContext';
 
@@ -244,7 +245,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
-
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
             <HeaderWithBackButton

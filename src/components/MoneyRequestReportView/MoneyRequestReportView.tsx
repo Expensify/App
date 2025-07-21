@@ -199,10 +199,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         }
                         Navigation.goBack(backToRoute);
                     }}
-                    arrowButtons={{
-                        goToNext: goToNextReport,
-                        goToPrev: goToPrevReport,
-                    }}
                 />
             ),
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
