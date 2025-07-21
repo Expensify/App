@@ -20,7 +20,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
     const keysToPreserve: OnyxKey[] = [];
-    keysToPreserve.push(ONYXKEYS.NVP_SHORT_LIVED_TOKEN);
+    keysToPreserve.push(ONYXKEYS.LAST_SHORT_LIVED_TOKEN);
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     keysToPreserve.push(ONYXKEYS.ARE_TRANSLATIONS_LOADING);
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);

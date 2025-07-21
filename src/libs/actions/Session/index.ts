@@ -169,7 +169,7 @@ function getShortLivedLoginParams(authToken: string, isSupportAuthTokenUsed = fa
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_SHORT_LIVED_TOKEN,
+            key: ONYXKEYS.LAST_SHORT_LIVED_TOKEN,
             value: authToken,
         },
     ];
