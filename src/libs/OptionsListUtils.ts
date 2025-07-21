@@ -1304,16 +1304,25 @@ function orderReportOptions(options: OptionData[]) {
     return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
 }
 
+/**
+ * Sort personal details by displayName or login in alphabetical order
+ */
 const personalDetailsComparator = (personalDetail: OptionData) => {
-    // Sort by displayName or login for alphabetical ordering
     const name = personalDetail.displayName ?? personalDetail.login ?? '';
     return name.toLowerCase();
 };
 
+/**
+ * Sort reports by archived status and last visible action
+ */
 const recentReportComparator = (option: OptionData) => {
     return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
+/**
+ * Sort options by a given comparator and return first sorted options.
+ * Function uses a min heap to efficiently get the first sorted options.
+ */
 function optionsOrderBy<T = OptionData>(options: T[], limit: number, comparator: (option: T) => number | string, filter?: (option: T) => boolean | undefined): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = new MinHeap<T>(comparator);
