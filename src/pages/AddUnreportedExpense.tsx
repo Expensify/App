@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -184,7 +184,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     }
                     Navigation.dismissModal();
 
-                    if (report && isMoneyRequestReport(report)) {
+                    if (report && isIOUReport(report)) {
                         convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
                     } else {
                         changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);

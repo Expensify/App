@@ -200,9 +200,7 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}),
-                );
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
             });
         },
         [reportActions, sortedTransactions],
