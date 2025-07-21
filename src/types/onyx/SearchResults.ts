@@ -515,5 +515,4 @@ export type {
     SearchReportAction,
     SearchPolicy,
     SearchCard,
-    SearchResultsInfo,
 };

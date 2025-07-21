@@ -16,14 +16,17 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShortMentionsList from '@hooks/useShortMentionsList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import Log from '@libs/Log';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
+import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
-    addDomainToShortMention,
     canUserPerformWriteAction,
     canWriteInReport as canWriteInReportUtil,
     isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
@@ -124,6 +127,8 @@ function ReportFooter({
     const isUserPolicyAdmin = isPolicyAdmin(policy);
 
     const allPersonalDetails = usePersonalDetails();
+    const {availableLoginsList} = useShortMentionsList();
+    const currentUserEmail = getCurrentUserEmail();
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -137,7 +142,8 @@ function ReportFooter({
             }
 
             const mention = match[1] ? match[1].trim() : '';
-            const mentionWithDomain = addDomainToShortMention(mention) ?? mention;
+            const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+            const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
             const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
@@ -160,7 +166,7 @@ function ReportFooter({
             createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
             return true;
         },
-        [allPersonalDetails, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
