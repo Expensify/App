@@ -5034,6 +5034,19 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
         },
 
+        onboardingInterestedFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
+        },
+
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         checkboxWithLabelCheckboxStyle: {

@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
@@ -101,6 +102,10 @@ function setOnboardingPurposeSelected(value: OnboardingPurpose) {
 
 function setOnboardingCompanySize(value: OnboardingCompanySize) {
     Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, value);
+}
+
+function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
 function setOnboardingErrorMessage(value: string) {
@@ -250,4 +255,5 @@ export {
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
+    setOnboardingUserReportedIntegration,
 };
