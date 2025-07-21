@@ -25,7 +25,6 @@
 		383643682B6D4AE2005BB9AE /* DeviceCheck.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 383643672B6D4AE2005BB9AE /* DeviceCheck.framework */; };
 		47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47347EFE2DA5664A00633001 /* AppDelegate.swift */; };
 		524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */; };
-		59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */; };
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		7F9DD8DA2B2A445B005E3AFA /* ExpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DD8D92B2A445B005E3AFA /* ExpError.swift */; };
@@ -49,6 +48,7 @@
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
 		FF941A8D48F849269AB85C9A /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */; };
+		59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,7 +138,6 @@
 		9196A72C11B91A52A43D6E8A /* libPods-NotificationServiceExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NotificationServiceExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyMono-BoldItalic.otf"; sourceTree = "<group>"; };
 		AC131FBA2CF634F20010CE80 /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
-		B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = CustomEmojiNativeFont.ttf; path = ../assets/fonts/native/CustomEmojiNativeFont.ttf; sourceTree = "<group>"; };
 		BBE493797E97F2995E627244 /* Pods-NotificationServiceExtension.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debugadhoc.xcconfig"; sourceTree = "<group>"; };
 		BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
 		D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
@@ -160,6 +159,7 @@
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
 		F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
 		F8839E9820F4C312BD1C9339 /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
+		B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */ = {isa = PBXFileReference; name = "CustomEmojiNativeFont.ttf"; path = "../assets/fonts/native/CustomEmojiNativeFont.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
