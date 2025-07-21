@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -38,7 +39,7 @@ function TransactionDuplicateReview() {
     const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
 
     const [transactions] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
+        getNonEmptyStringOnyxID(ONYXKEYS.COLLECTION.TRANSACTION, transactionID),
         {
             selector: (allTransactions) =>
                 transactionIDs
