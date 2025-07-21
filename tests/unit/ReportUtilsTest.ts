@@ -29,6 +29,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
     getApprovalChain,
@@ -3976,6 +3977,27 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isDeprecatedGroupDM(report)).toBeTruthy();
+        });
+    });
+
+    describe('canUserPerformWriteAction', () => {
+        it('should return false for announce room when the role of the employee is auditor ', async () => {
+            // Given a policy announce room of a policy that the user has an auditor role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.AUDITOR};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
     });
 

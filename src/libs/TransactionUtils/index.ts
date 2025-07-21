@@ -998,7 +998,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
  * Check if the user should see the violation
  */
 function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
-    const isSubmitter = isCurrentUserSubmitter(iouReport?.reportID);
+    const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
     const isReportOpen = isOpenExpenseReport(iouReport);
 
