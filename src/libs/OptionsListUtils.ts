@@ -1323,23 +1323,23 @@ const recentReportComparator = (option: OptionData) => {
  * Sort options by a given comparator and return first sorted options.
  * Function uses a min heap to efficiently get the first sorted options.
  */
-function optionsOrderBy<T = OptionData>(options: T[], limit: number, comparator: (option: T) => number | string, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
+function optionsOrderBy<T = OptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = new MinHeap<T>(comparator, reversed);
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
         }
-        if (heap.size() < limit) {
-            heap.push(option);
-            return;
-        }
-        const peekedValue = heap.peek();
-        if (!peekedValue) {
-            throw new Error('Heap is empty, cannot peek value');
-        }
-        if (comparator(option) > comparator(peekedValue)) {
-            heap.pop();
+        if (limit && heap.size() >= limit) {
+            const peekedValue = heap.peek();
+            if (!peekedValue) {
+                throw new Error('Heap is empty, cannot peek value');
+            }
+            if (comparator(option) > comparator(peekedValue)) {
+                heap.pop();
+                heap.push(option);
+            }
+        } else {
             heap.push(option);
         }
     });
@@ -1623,12 +1623,10 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
+function isValidReport(reportOption: SearchOption<Report>, config: GetValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
-        showChatPreviewLine = false,
-        forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
         includeTasks = false,
@@ -1638,18 +1636,132 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         includeSelfDM = false,
         includeInvoiceRooms = false,
         action,
-        selectedOptions = [],
         includeP2P = true,
         includeDomainEmail = false,
-        shouldBoldTitleByDefault = true,
         loginsToExclude = {},
+        excludeNonAdminWorkspaces,
+    } = config;
+    const topmostReportId = Navigation.getTopmostReportId();
+
+    // eslint-disable-next-line rulesdir/prefer-at
+    const option = reportOption;
+    const report = reportOption.item;
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.chatReportID}`];
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+
+    const shouldBeInOptionList = shouldReportBeInOptionList({
+        report,
+        chatReport,
+        currentReportId: topmostReportId,
+        betas,
+        doesReportHaveViolations,
+        isInFocusMode: false,
+        excludeEmptyChats: false,
+        includeSelfDM,
+        login: option.login,
+        includeDomainEmail,
+        isReportArchived: !!option.private_isArchived,
+    });
+
+    if (!shouldBeInOptionList) {
+        return false;
+    }
+
+    const isThread = option.isThread;
+    const isTaskReport = option.isTaskReport;
+    const isPolicyExpenseChat = option.isPolicyExpenseChat;
+    const isMoneyRequestReport = option.isMoneyRequestReport;
+    const isSelfDM = option.isSelfDM;
+    const isChatRoom = option.isChatRoom;
+    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+
+    if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat && report?.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        return false;
+    }
+    // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
+    if (!includeP2P && !isPolicyExpenseChat) {
+        return false;
+    }
+
+    if (isSelfDM && !includeSelfDM) {
+        return false;
+    }
+
+    if (isThread && !includeThreads) {
+        return false;
+    }
+
+    if (isTaskReport && !includeTasks) {
+        return false;
+    }
+
+    if (isMoneyRequestReport && !includeMoneyRequests) {
+        return false;
+    }
+
+    if (!canUserPerformWriteAction(report) && !includeReadOnly) {
+        return false;
+    }
+
+    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
+    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(report)) {
+        return false;
+    }
+
+    if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+        return false;
+    }
+
+    if (option.login === CONST.EMAIL.NOTIFICATIONS) {
+        return false;
+    }
+    const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+        option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
+
+    const shouldShowInvoiceRoom =
+        includeInvoiceRooms && isInvoiceRoom(report) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(report.policyID);
+
+    /*
+    Exclude the report option if it doesn't meet any of the following conditions:
+    - It is not an owned policy expense chat that could be shown
+    - Multiple participant reports are not included
+    - It doesn't have a login
+    - It is not an invoice room that should be shown
+    */
+    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
+        return false;
+    }
+
+    // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
+    if (!includeThreads && ((!!option.login && loginsToExclude[option.login]) || loginsToExclude[option.reportID])) {
+        return false;
+    }
+
+    if (action === CONST.IOU.ACTION.CATEGORIZE) {
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
+        if (!reportPolicy?.areCategoriesEnabled) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
+    const {
+        showChatPreviewLine = false,
+        forcePolicyNamePreview = false,
+        action,
+        selectedOptions = [],
+        shouldBoldTitleByDefault = true,
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
-        excludeNonAdminWorkspaces,
         isPerDiemRequest = false,
         showRBR = true,
     } = config;
-    const topmostReportId = Navigation.getTopmostReportId();
 
     const validReportOptions: OptionData[] = [];
     const workspaceChats: OptionData[] = [];
@@ -1660,109 +1772,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         // eslint-disable-next-line rulesdir/prefer-at
         const option = reports[i];
         const report = option.item;
-        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-        const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-
-        const shouldBeInOptionList = shouldReportBeInOptionList({
-            report,
-            chatReport,
-            currentReportId: topmostReportId,
-            betas,
-            doesReportHaveViolations,
-            isInFocusMode: false,
-            excludeEmptyChats: false,
-            includeSelfDM,
-            login: option.login,
-            includeDomainEmail,
-            isReportArchived: !!option.private_isArchived,
-        });
-
-        if (!shouldBeInOptionList) {
-            continue;
-        }
-
-        const isThread = option.isThread;
-        const isTaskReport = option.isTaskReport;
-        const isPolicyExpenseChat = option.isPolicyExpenseChat;
-        const isMoneyRequestReport = option.isMoneyRequestReport;
-        const isSelfDM = option.isSelfDM;
-        const isChatRoom = option.isChatRoom;
-        const accountIDs = getParticipantsAccountIDsForDisplay(report);
-
-        if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
-            continue;
-        }
-
-        if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
-            continue;
-        }
-
-        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
-        if (!includeP2P && !isPolicyExpenseChat) {
-            continue;
-        }
-
-        if (isSelfDM && !includeSelfDM) {
-            continue;
-        }
-
-        if (isThread && !includeThreads) {
-            continue;
-        }
-
-        if (isTaskReport && !includeTasks) {
-            continue;
-        }
-
-        if (isMoneyRequestReport && !includeMoneyRequests) {
-            continue;
-        }
-
-        if (!canUserPerformWriteAction(report) && !includeReadOnly) {
-            continue;
-        }
-
-        // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-        if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(report)) {
-            continue;
-        }
-
-        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-            continue;
-        }
-
-        if (option.login === CONST.EMAIL.NOTIFICATIONS) {
-            continue;
-        }
-
-        const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
-            option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
-
-        const shouldShowInvoiceRoom =
-            includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
-
-        /*
-        Exclude the report option if it doesn't meet any of the following conditions:
-        - It is not an owned policy expense chat that could be shown
-        - Multiple participant reports are not included
-        - It doesn't have a login
-        - It is not an invoice room that should be shown
-        */
-        if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
-            continue;
-        }
-
-        // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-        if (!includeThreads && ((!!option.login && loginsToExclude[option.login]) || loginsToExclude[option.reportID])) {
-            continue;
-        }
-
-        if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
-            if (!reportPolicy?.areCategoriesEnabled) {
-                continue;
-            }
-        }
 
         /**
          * By default, generated options does not have the chat preview line enabled.
@@ -1909,28 +1918,41 @@ function getValidOptions(
 
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        if (maxElements) {
-            const searchTerms = (searchString ?? '')
-                .toLowerCase()
-                .split(' ')
-                .filter((term) => term.length > 0);
+        const searchTerms = (searchString ?? '')
+            .toLowerCase()
+            .split(' ')
+            .filter((term) => term.length > 0);
 
-            const filteringFunction = (report: OptionData) => {
-                let searchText = `${report.text ?? ''}${report.login ?? ''}`;
+        const filteringFunction = (report: SearchOption<Report>) => {
+            let searchText = `${report.text ?? ''}${report.login ?? ''}`;
 
-                if (report.isThread) {
-                    searchText += report.alternateText ?? '';
-                } else if (report.isChatRoom) {
-                    searchText += report.subtitle ?? '';
-                } else if (report.isPolicyExpenseChat) {
-                    searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
-                }
-                searchText = searchText.toLocaleLowerCase();
-                return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
-            };
+            if (report.isThread) {
+                searchText += report.alternateText ?? '';
+            } else if (report.isChatRoom) {
+                searchText += report.subtitle ?? '';
+            } else if (report.isPolicyExpenseChat) {
+                searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
+            }
+            searchText = searchText.toLocaleLowerCase();
+            const searchTermsFound = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
 
-            filteredReports = optionsOrderBy(options.reports, maxElements, recentReportComparator, filteringFunction);
-        }
+            if (!searchTermsFound) {
+                return false;
+            }
+
+            return isValidReport(report, {
+                ...getValidReportsConfig,
+                includeP2P,
+                includeDomainEmail,
+                selectedOptions,
+                loginsToExclude,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+            });
+        };
+
+        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxElements, filteringFunction);
 
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
@@ -1974,44 +1996,40 @@ function getValidOptions(
             };
         }
 
-        // if maxElements is passed, filter the personal details by searchString and return only maxElements personal details sorted alphabetically (@see personalDetailsComparator)
-        if (maxElements) {
-            const searchTerms = (searchString ?? '')
-                .toLowerCase()
-                .split(' ')
-                .filter((term) => term.length > 0);
-            const filteringFunction = (personalDetail: OptionData) => {
-                if (
-                    !personalDetail?.login ||
-                    !personalDetail.accountID ||
-                    !!personalDetail?.isOptimisticPersonalDetail ||
-                    (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-                    // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-                    personalDetail?.login === CONST.SETUP_SPECIALIST_LOGIN
-                ) {
-                    return false;
-                }
-                if (personalDetailLoginsToExclude[personalDetail.login]) {
-                    return false;
-                }
-
-                const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
-
-                return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
-            };
-
-            personalDetailsOptions = optionsOrderBy(options.personalDetails, maxElements, personalDetailsComparator, filteringFunction, true);
-
-            for (let i = 0; i < personalDetailsOptions.length; i++) {
-                const personalDetail = personalDetailsOptions.at(i);
-                if (!personalDetail) {
-                    continue;
-                }
-                if (!!currentUserLogin && personalDetail?.login === currentUserLogin) {
-                    currentUserRef.current = personalDetail;
-                }
-                personalDetail.isBold = shouldBoldTitleByDefault;
+        const searchTerms = (searchString ?? '')
+            .toLowerCase()
+            .split(' ')
+            .filter((term) => term.length > 0);
+        const filteringFunction = (personalDetail: OptionData) => {
+            if (
+                !personalDetail?.login ||
+                !personalDetail.accountID ||
+                !!personalDetail?.isOptimisticPersonalDetail ||
+                (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
+                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+                personalDetail?.login === CONST.SETUP_SPECIALIST_LOGIN
+            ) {
+                return false;
             }
+            if (personalDetailLoginsToExclude[personalDetail.login]) {
+                return false;
+            }
+            const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
+
+            return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+        };
+
+        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
+
+        for (let i = 0; i < personalDetailsOptions.length; i++) {
+            const personalDetail = personalDetailsOptions.at(i);
+            if (!personalDetail) {
+                continue;
+            }
+            if (!!currentUserLogin && personalDetail?.login === currentUserLogin) {
+                currentUserRef.current = personalDetail;
+            }
+            personalDetail.isBold = shouldBoldTitleByDefault;
         }
     }
 
