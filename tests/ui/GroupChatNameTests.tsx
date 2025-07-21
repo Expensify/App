@@ -34,6 +34,8 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
+
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */
