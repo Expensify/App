@@ -2190,6 +2190,11 @@ const translations = {
             title: 'Czy używasz jakiegoś oprogramowania księgowego?',
             none: 'None',
         },
+        interestedFeatures: {
+            title: 'Jakie funkcje Cię interesują?',
+            featuresAlreadyEnabled: 'Twoje miejsce pracy ma już włączone następujące opcje:',
+            featureYouMayBeInterestedIn: 'Włącz dodatkowe funkcje, które mogą Cię zainteresować:',
+        },
         error: {
             requiredFirstName: 'Proszę podać swoje imię, aby kontynuować',
         },
@@ -2693,6 +2698,8 @@ const translations = {
             validationAmounts: 'Kwoty weryfikacyjne, które wprowadziłeś, są nieprawidłowe. Proszę dokładnie sprawdzić wyciąg bankowy i spróbować ponownie.',
             fullName: 'Proszę wprowadzić prawidłowe pełne imię i nazwisko',
             ownershipPercentage: 'Proszę wprowadzić prawidłową liczbę procentową',
+            deletePaymentBankAccount:
+                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
         },
     },
     addPersonalBankAccount: {

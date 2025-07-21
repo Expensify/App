@@ -19,6 +19,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -80,7 +81,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport, backTo},
     },
     transaction: initialTransaction,
     isLoadingTransaction,
@@ -141,6 +142,7 @@ function IOURequestStepConfirmation({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
@@ -296,6 +298,10 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -357,6 +363,7 @@ function IOURequestStepConfirmation({
         reportID,
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
+        backTo,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
@@ -1050,7 +1057,7 @@ function IOURequestStepConfirmation({
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}

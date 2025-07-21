@@ -960,7 +960,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
         return false;
     }
 
-    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) {
         return true;
     }
 
@@ -1000,7 +1000,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
  * Check if the user should see the violation
  */
 function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
-    const isSubmitter = isCurrentUserSubmitter(iouReport?.reportID);
+    const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
     const isReportOpen = isOpenExpenseReport(iouReport);
 
@@ -1042,9 +1042,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
     if (hasRTERPendingViolation) {
         return true;
     }
-    return (
-        shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
-    );
+    return shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report);
 }
 
 /**

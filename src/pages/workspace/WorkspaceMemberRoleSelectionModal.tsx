@@ -45,6 +45,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
             hideModalContentWhileAnimating
             useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}

@@ -2379,25 +2379,6 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-        transactionParams.transaction,
-        [],
-        policyParams.policy,
-        policyParams.policyTagList ?? {},
-        policyParams.policyCategories ?? {},
-        hasDependentTags(policyParams.policy, policyParams.policyTagList ?? {}),
-        true,
-    );
-
-    if (violationsOnyxData) {
-        optimisticData.push(violationsOnyxData);
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionParams.transaction.transactionID}`,
-            value: [],
-        });
-    }
-
     return [optimisticData, successData, failureData];
 }
 
@@ -4332,9 +4313,11 @@ function getUpdateMoneyRequestParams(
     const hasModifiedComment = 'comment' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
 
+    const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
+        !isInvoice &&
         updatedTransaction &&
         (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedDate || hasModifiedCurrency || hasModifiedAmount || hasModifiedCreated)
     ) {
@@ -4351,7 +4334,7 @@ function getUpdateMoneyRequestParams(
             policyTagList ?? {},
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
-            isInvoiceReportReportUtils(iouReport),
+            isInvoice,
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
