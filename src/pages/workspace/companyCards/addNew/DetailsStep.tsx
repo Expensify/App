@@ -30,6 +30,7 @@ type DetailsStepProps = {
     /** ID of the current policy */
     policyID: string | undefined;
 };
+
 function DetailsStep({policyID}: DetailsStepProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -41,6 +42,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
 
     const [cardFeeds] = useCardFeeds(policyID);
+
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
