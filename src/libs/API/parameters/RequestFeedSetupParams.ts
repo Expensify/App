@@ -5,7 +5,7 @@ type RequestFeedSetupParams = {
     policyID: string;
     feedDetails: string;
     feedType: string;
-    statementPeriodEndDay: CompanyCardStatementCloseDate;
+    statementPeriodEndDay?: CompanyCardStatementCloseDate;
 };
 
 export default RequestFeedSetupParams;

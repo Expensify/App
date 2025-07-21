@@ -64,7 +64,7 @@ function addNewCompanyCardsFeed(
     cardFeed: CompanyCardFeed,
     feedDetails: CardFeedDetails,
     cardFeeds: OnyxEntry<CardFeeds>,
-    statementPeriodEndDay: CompanyCardStatementCloseDate,
+    statementPeriodEndDay: CompanyCardStatementCloseDate | undefined,
     lastSelectedFeed?: CompanyCardFeed,
 ) {
     const authToken = NetworkStore.getAuthToken();
