@@ -174,7 +174,7 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, 30, true);
+        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, true);
     }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -480,11 +480,6 @@ function SearchAutocompleteList(
         };
     });
 
-    /**
-     * Builds a suffix tree and returns a function to search in it.
-     */
-    const isFastSearchInitialized = true;
-
     const recentReportsOptions = useMemo(() => {
         const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const startTime = Date.now();
@@ -495,14 +490,13 @@ function SearchAutocompleteList(
             actionId,
             queryLength: autocompleteQueryValue.length,
             queryTrimmed: autocompleteQueryValue.trim(),
-            isFastSearchInitialized,
             recentReportsCount: searchOptions.recentReports.length,
             timestamp: startTime,
         });
 
         try {
-            if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
-                const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
+            if (autocompleteQueryValue.trim() === '') {
+                const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, recentReportComparator);
 
                 const endTime = Date.now();
                 Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
@@ -555,7 +549,7 @@ function SearchAutocompleteList(
             });
             throw error;
         }
-    }, [autocompleteQueryValue, searchOptions, isFastSearchInitialized]);
+    }, [autocompleteQueryValue, searchOptions]);
 
     const debounceHandleSearch = useDebounce(
         useCallback(() => {
