@@ -101,7 +101,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const currentUserEmail = getCurrentUserEmail();
-
+const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
     return (isSubmitter || isAdmin || isManager) && isPolicyMember(currentUserEmail, report.policyID) && isPolicyExpenseChat;
 }
 
