@@ -4726,7 +4726,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(0),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('common.draft'));
         });
@@ -4735,7 +4735,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(1),
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('common.outstanding'));
         });
@@ -4744,7 +4744,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(2),
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('common.done'));
         });
@@ -4753,7 +4753,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(3),
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.approved'));
         });
@@ -4762,7 +4762,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(4),
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
         });
@@ -4771,7 +4771,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(5),
                 stateNum: CONST.REPORT.STATE_NUM.BILLING,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
         });
@@ -4780,7 +4780,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(6),
                 stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
             expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
         });
