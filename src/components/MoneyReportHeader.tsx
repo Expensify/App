@@ -276,6 +276,8 @@ function MoneyReportHeader({
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const {
