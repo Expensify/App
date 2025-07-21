@@ -316,13 +316,13 @@ describe('ReportUtils', () => {
         };
 
         // When a user creates an invoice in the same policy
+        // eslint-disable-next-line deprecation/deprecation
         const reportAction = {
             ...randomReportAction,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            // eslint-disable-next-line deprecation/deprecation
             originalMessage: {
                 ...randomReportAction.originalMessage,
                 IOUReportID,
