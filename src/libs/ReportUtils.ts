@@ -2487,16 +2487,6 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 }
 
 /**
- * Checks whether the supplied report supports merging transactions from it.
- * Return true if:
- * - report is editable
- * - expense is unreported (draft expense)
- */
-function isMergeableMoneyRequestReport(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return isSelfDM(moneyRequestReport) || canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
-}
-
-/**
  * Determines whether a money request report is eligible for merging transactions based on the user's role and permissions.
  * Rules:
  * - **Admins**: reports that are in "Open" or "Processing" status
@@ -11513,7 +11503,6 @@ export {
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,
-    isMergeableMoneyRequestReport,
     isMoneyRequestReportEligibleForMerge,
 };
 

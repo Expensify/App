@@ -654,9 +654,8 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
-            isReportArchived: isArchivedReport,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived, isArchivedReport]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
