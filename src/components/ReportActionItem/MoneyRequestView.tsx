@@ -79,6 +79,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
@@ -590,7 +591,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                         />
                     </OfflineWithFeedback>
                 )}
-                {(hasReceipt || !!errors) && (
+                {(hasReceipt || !isEmptyObject(errors)) && (
                     <OfflineWithFeedback
                         pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
