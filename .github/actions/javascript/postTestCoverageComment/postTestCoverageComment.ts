@@ -264,12 +264,7 @@ async function postCoverageComment(prNumber: number, coverageSection: string): P
             console.log(`Successfully updated coverage comment #${botComment.id} on PR #${prNumber}`);
         } else {
             // Create new comment
-            await GithubUtils.octokit.issues.createComment({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                issue_number: prNumber,
-                body: coverageSection,
-            });
+            await GithubUtils.createComment(CONST.APP_REPO, prNumber, coverageSection);
             console.log(`Successfully posted new coverage comment on PR #${prNumber}`);
         }
     } catch (error) {

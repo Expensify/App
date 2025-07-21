@@ -224,12 +224,12 @@ jobs:
           # Create a unique subdomain for this PR and run
           DOMAIN="expensify-coverage-pr${{ github.event.pull_request.number }}-run${{ github.run_id }}.surge.sh"
           
-          # Deploy to surge anonymously (no login required)
-          surge ./coverage "$DOMAIN"
+          # Deploy to surge with token
+          surge ./coverage "$DOMAIN" --token 11512099a3961174ba9461a37d74e1db
           
           # Save the coverage URL for the next step
           echo "COVERAGE_URL=https://$DOMAIN" >> "$GITHUB_ENV"
-          echo "Coverage deployed to: https://$DOMAIN"
+          echo "Coverage report deployed to: https://$DOMAIN"
 
       - name: Post coverage to PR
         if: steps.check-src-changes.outputs.run_coverage == 'true'
