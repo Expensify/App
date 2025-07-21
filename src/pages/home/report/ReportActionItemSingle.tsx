@@ -81,7 +81,7 @@ function ReportActionItemSingle({
     showHeader = true,
     hasBeenFlagged = false,
     report,
-    iouReport,
+    iouReport: potentialIOUReport,
     isHovered = false,
     isActive = false,
 }: ReportActionItemSingleProps) {
@@ -89,7 +89,15 @@ function ReportActionItemSingle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const reportID = report?.reportID;
+
+    const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT;
+
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+
+    const chatReport = isReportAChatReport ? report : reportChatReport;
+    const iouReport = potentialIOUReport ?? (!isReportAChatReport ? report : undefined);
+
+    const reportID = chatReport?.reportID;
     const iouReportID = iouReport?.reportID;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -101,13 +109,13 @@ function ReportActionItemSingle({
     const reportPreviewSenderID = useReportPreviewSenderID({
         iouReport,
         action,
-        chatReport: report,
+        chatReport,
     });
 
     const isReportArchived = useReportIsArchived(iouReportID);
 
     const [primaryAvatar, secondaryAvatar] = getPrimaryAndSecondaryAvatar({
-        chatReport: report,
+        chatReport,
         iouReport,
         action,
         personalDetails,
@@ -116,22 +124,22 @@ function ReportActionItemSingle({
     });
 
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
     const accountID = reportPreviewSenderID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const isTripRoom = isTripRoomReportUtils(report);
-    const shouldDisplayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && !reportPreviewSenderID;
+    const isTripRoom = isTripRoomReportUtils(chatReport);
+    const shouldDisplayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(chatReport) && !reportPreviewSenderID;
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
-    const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || shouldDisplayAllActors));
-    const policyID = report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? iouReport?.policyID : report?.policyID;
+    const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(chatReport) && (!actorAccountID || shouldDisplayAllActors));
+    const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? iouReport?.policyID : chatReport?.policyID;
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(chatReport, isReportArchived);
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const {login, pendingFields, status} = personalDetails?.[accountID] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const actorHint = isWorkspaceActor ? getPolicyName({report, policy}) : (login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const actorHint = isWorkspaceActor ? getPolicyName({report: chatReport, policy}) : (login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
 
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 
@@ -165,9 +173,9 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (actorAccountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action, isWorkspaceActor, actorAccountID],
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID ?? CONST.DEFAULT_NUMBER_ID) ||
+            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (accountID ?? CONST.DEFAULT_NUMBER_ID))),
+        [action, isWorkspaceActor, accountID],
     );
 
     const getBackgroundColor = () => {
@@ -225,7 +233,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID))}
+                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? accountID : (primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID))}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine

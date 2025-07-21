@@ -102,7 +102,7 @@ function getPrimaryAndSecondaryAvatar({
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
     const accountID = reportPreviewSenderID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const usePersonalDetailsAvatars = !iouReport && chatReport && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+    const usePersonalDetailsAvatars = !iouReport && chatReport && (!action || action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
 
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
