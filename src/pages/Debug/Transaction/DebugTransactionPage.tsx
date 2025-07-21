@@ -37,8 +37,12 @@ function DebugTransactionPage({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {
+        canBeMissing: true,
+    });
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {
+        canBeMissing: true,
+    });
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const styles = useThemeStyles();
