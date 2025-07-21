@@ -1,6 +1,6 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumber as formatPhoneNumberLocalePhoneNumber} from '@libs/LocalePhoneNumber';

@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
@@ -10,6 +9,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,7 +36,8 @@ import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
     /** Current policy id */
@@ -63,7 +64,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);

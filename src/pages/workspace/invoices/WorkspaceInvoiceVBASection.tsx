@@ -2,7 +2,6 @@ import type {RefObject} from 'react';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -167,7 +167,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const addPaymentMethodTypePressed = (paymentType: string) => {
         hideAddPaymentMenu();
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView(undefined, policyID, 'invoice', isUserValidated);
+            openPersonalBankAccountSetupView({policyID, source: 'invoice', isUserValidated});
             return;
         }
 

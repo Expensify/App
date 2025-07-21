@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -29,6 +28,7 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -79,7 +79,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`, {canBeMissing: true});
@@ -93,7 +93,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
 
     const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
@@ -203,7 +203,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleCategory(category);
             return;
         }
@@ -400,14 +400,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
 
     useEffect(() => {
-        if (selectionMode?.isEnabled) {
+        if (isMobileSelectionModeEnabled) {
             return;
         }
 
         setSelectedCategories([]);
-    }, [setSelectedCategories, selectionMode?.isEnabled]);
+    }, [setSelectedCategories, isMobileSelectionModeEnabled]);
 
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -475,7 +475,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedCategories([]);
                             turnOffMobileSelectionMode();
                             return;

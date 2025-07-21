@@ -15,7 +15,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getDistanceRateCustomUnit, goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -180,9 +179,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData, {
-        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, persistedRequests, parameters),
-    });
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -569,7 +566,12 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
         },
     ];
 
-    const transactions = Object.values(allTransactions ?? {}).filter((transaction) => transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID);
+    const transactions = Object.values(allTransactions ?? {}).filter(
+        (transaction) =>
+            transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
+            transaction?.comment?.customUnit?.customUnitRateID &&
+            rateIDsToDelete.includes(transaction?.comment?.customUnit?.customUnitRateID),
+    );
     const optimisticTransactionsViolations: OnyxUpdate[] = [];
 
     transactions.forEach((transaction) => {

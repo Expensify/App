@@ -1,11 +1,11 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -57,8 +57,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
     if (shouldUseNarrowLayout) {
         return null;

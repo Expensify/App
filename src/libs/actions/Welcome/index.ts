@@ -129,8 +129,8 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     });
 }
 
-function setOnboardingMergeAccountStepValue(value: boolean) {
-    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value});
+function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {

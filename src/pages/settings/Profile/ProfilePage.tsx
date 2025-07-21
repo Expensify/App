@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -17,6 +16,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';

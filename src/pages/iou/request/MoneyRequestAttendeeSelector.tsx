@@ -2,11 +2,10 @@ import {deepEqual} from 'fast-equals';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -14,6 +13,7 @@ import type {SectionListDataType} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -302,6 +302,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             onSelectRow={addAttendeeToSelection}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}
+            autoCorrect={false}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
             showLoadingPlaceholder={showLoadingPlaceholder}
