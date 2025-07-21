@@ -2206,6 +2206,11 @@ const translations = {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
             none: 'Aucun',
         },
+        interestedFeatures: {
+            title: 'Quelles fonctionnalités vous intéressent ?',
+            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
+            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
+        },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',
         },

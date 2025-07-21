@@ -12,22 +12,8 @@ const supportedIntegrationsInNewDot = ['quickbooksOnline', 'quickbooksDesktop', 
  * @returns boolean - True if user should be redirected to old dot
  */
 function shouldOnboardingRedirectToOldDot(companySize: OnboardingCompanySize | undefined, userReportedIntegration: OnboardingAccounting | undefined): boolean {
-    // Desktop users should never be redirected to old dot
-    if (getPlatform() === CONST.PLATFORM.DESKTOP) {
-        return false;
-    }
-
-    // Check if the integration is supported in NewDot
     const isSupportedIntegration = (!!userReportedIntegration && supportedIntegrationsInNewDot.includes(userReportedIntegration)) || userReportedIntegration === null;
-
-    // Don't redirect if integration is supported and company size is MICRO or SMALL
-    const isMicroOrSmallCompany = companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || companySize === CONST.ONBOARDING_COMPANY_SIZE.SMALL;
-    if (isSupportedIntegration && isMicroOrSmallCompany) {
-        return false;
-    }
-
-    // Redirect to old dot in all other cases (unsupported integration or larger company size)
-    return true;
+    return getPlatform() !== CONST.PLATFORM.DESKTOP && (!isSupportedIntegration || companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO);
 }
 
 // eslint-disable-next-line import/prefer-default-export
