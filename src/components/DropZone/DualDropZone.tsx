@@ -28,7 +28,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
-    const scanReceiptsText = shouldAcceptSingleReceipt ? 'quickAction.scanReceipt' : 'dropzone.scanReceipts';
+    const scanReceiptsText = shouldAcceptSingleReceipt ? 'dropzone.addReceipt' : 'dropzone.scanReceipts';
 
     return (
         <DragAndDropConsumer>

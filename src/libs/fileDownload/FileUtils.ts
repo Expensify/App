@@ -453,6 +453,7 @@ type TranslationAdditionalData = {
 const getFileValidationErrorText = (
     validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
     additionalData: TranslationAdditionalData = {},
+    isValidatingReceipt = false,
 ): {
     title: string;
     reason: string;
@@ -477,7 +478,11 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translateLocal('attachmentPicker.attachmentTooLarge'),
-                reason: translateLocal('attachmentPicker.sizeExceeded'),
+                reason: isValidatingReceipt
+                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
+                      })
+                    : translateLocal('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
