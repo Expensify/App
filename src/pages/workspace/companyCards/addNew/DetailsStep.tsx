@@ -11,18 +11,15 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 type DetailsStepProps = {
@@ -37,9 +34,6 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-
-    const [cardFeeds] = useCardFeeds(policyID);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
