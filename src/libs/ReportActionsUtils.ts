@@ -2810,7 +2810,7 @@ function isCardIssuedAction(
     );
 }
 
-function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
+function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePersonalDetail?: PrivatePersonalDetails) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetail);
     return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails;
 }
@@ -2865,7 +2865,7 @@ function getCardIssuedMessage({
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
             : translateLocal('workspace.companyCards.companyCard');
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, expensifyCard, privatePersonalDetails);
+    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, privatePersonalDetails);
     const shouldShowReplaceCardMessage = !isAssigneeCurrentUser || shouldShowReplacedCard(reportAction?.actionName, expensifyCard);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
