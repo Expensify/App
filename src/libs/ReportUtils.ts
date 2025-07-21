@@ -11144,7 +11144,7 @@ function getReportStatusTranslation(report?: Report) {
     if (!report) {
         return '';
     }
-    
+
     if (report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         return translateLocal('common.draft');
     }
@@ -11164,7 +11164,7 @@ function getReportStatusTranslation(report?: Report) {
     ) {
         return translateLocal('iou.settledExpensify');
     }
-    
+
     return '';
 }
 
