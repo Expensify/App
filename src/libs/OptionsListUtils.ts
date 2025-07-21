@@ -1901,7 +1901,6 @@ function getValidOptions(
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
 
     let filteredReports = options.reports;
-    let filteredPersonalDetails = options.personalDetails;
 
     // Get valid recent reports:
     let recentReportOptions: OptionData[] = [];
