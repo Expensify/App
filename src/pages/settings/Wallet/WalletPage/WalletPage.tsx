@@ -300,7 +300,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, lastUsedPaymentMethods, paymentMethod.methodID, bankAccountList]);
+    }, [
+        paymentMethod.selectedPaymentMethod.bankAccountID,
+        paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.selectedPaymentMethodType,
+        lastUsedPaymentMethods,
+        paymentMethod.methodID,
+        bankAccountList,
+    ]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it

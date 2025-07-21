@@ -15,7 +15,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
+import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -23,8 +23,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {LastPaymentMethod, LastPaymentMethodType, Policy, SearchResults} from '@src/types/onyx';
+import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
@@ -88,7 +88,6 @@ function handleActionButtonPress(
     }
 }
 
-
 function getLastPolicyBankAccountID(policyID: string | undefined, reportType: keyof LastPaymentMethodType = 'lastUsed'): number | undefined {
     if (!policyID) {
         return undefined;
@@ -116,15 +115,15 @@ function getLastPolicyPaymentMethod(
 }
 
 function getReportType(reportID?: string) {
-    if(isIOUReport(reportID)) {
+    if (isIOUReportUtil(reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if(isInvoiceReport(reportID)) {
+    if (isInvoiceReport(reportID)) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
-    if(isExpenseReport(reportID)) {
+    if (isExpenseReport(reportID)) {
         return CONST.REPORT.TYPE.EXPENSE;
     }
 

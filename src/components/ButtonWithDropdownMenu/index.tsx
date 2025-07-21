@@ -57,10 +57,10 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
         secondLineText = '',
         icon,
         shouldPopoverUseScrollView = false,
-    containerStyles,
-    shouldUseModalPaddingStyle = true,
+        containerStyles,
+        shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
-    shouldUseOptionIcon = false,
+        shouldUseOptionIcon = false,
     } = props;
 
     const theme = useTheme();

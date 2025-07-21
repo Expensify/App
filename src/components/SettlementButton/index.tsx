@@ -511,7 +511,7 @@ function SettlementButton({
         return false;
     });
 
-    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || isExpenseReportUtil(iouReport) && hasIntentToPay;
+    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || (isExpenseReportUtil(iouReport) && hasIntentToPay);
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
     return (

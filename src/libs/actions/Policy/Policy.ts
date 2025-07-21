@@ -502,7 +502,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
-        if(typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
+        if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
             return;
         }
 
