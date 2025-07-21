@@ -927,7 +927,7 @@ const ROUTES = {
             }` as const,
     },
     DISTANCE_REQUEST_CREATE: {
-        route: ':action/:iouType/start/:transactionID/:reportID/distance/:backToReport?',
+        route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
     },
