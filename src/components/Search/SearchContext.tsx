@@ -1,9 +1,19 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useOnyx from '@hooks/useOnyx';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {
+    getSuggestedSearches,
+    isTransactionCardGroupListItemType,
+    isTransactionListItemType,
+    isTransactionMemberGroupListItemType,
+    isTransactionReportGroupListItemType,
+} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {SearchContext, SearchContextData} from './types';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchContext, SearchContextData, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
@@ -16,6 +26,7 @@ const defaultSearchContextData: SearchContextData = {
 
 const defaultSearchContext: SearchContext = {
     ...defaultSearchContextData,
+    currentSearchKey: undefined,
     lastSearchType: undefined,
     isExportMode: false,
     shouldShowExportModeOption: false,
@@ -39,12 +50,27 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
+    const {defaultCardFeed} = useCardFeedsForDisplay();
+
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
+
+    const currentSearchKey = useMemo(() => {
+        const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchContextData.currentSearchHash);
+        return currentSearch?.key;
+    }, [suggestedSearches, searchContextData.currentSearchHash]);
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            currentSearchHash: searchHash,
-        }));
+        setSearchContextData((prevState) => {
+            if (searchHash === prevState.currentSearchHash) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                currentSearchHash: searchHash,
+            };
+        });
     }, []);
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
@@ -107,6 +133,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
                 return;
             }
+
+            if (searchContextData.selectedReports.length === 0 && isEmptyObject(searchContextData.selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
+                return;
+            }
             setSearchContextData((prevState) => ({
                 ...prevState,
                 shouldTurnOffSelectionMode,
@@ -116,26 +146,51 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption(false);
             setExportMode(false);
         },
-        [searchContextData.currentSearchHash, setSelectedTransactions],
+        [
+            searchContextData.currentSearchHash,
+            searchContextData.selectedReports.length,
+            searchContextData.selectedTransactions,
+            searchContextData.shouldTurnOffSelectionMode,
+            setSelectedTransactions,
+        ],
     );
 
     const removeTransaction: SearchContext['removeTransaction'] = useCallback(
         (transactionID) => {
-            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
-            if (!transactionID || !selectedTransactionIDs.length) {
+            if (!transactionID) {
                 return;
             }
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
-            }));
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+
+            if (!isEmptyObject(searchContextData.selectedTransactions)) {
+                const newSelectedTransactions = Object.entries(searchContextData.selectedTransactions).reduce((acc, [key, value]) => {
+                    if (key === transactionID) {
+                        return acc;
+                    }
+                    acc[key] = value;
+                    return acc;
+                }, {} as SelectedTransactions);
+
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactions: newSelectedTransactions,
+                }));
+            }
+
+            if (selectedTransactionIDs.length > 0) {
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+                }));
+            }
         },
-        [searchContextData.selectedTransactionIDs],
+        [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
+            currentSearchKey,
             removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
@@ -151,16 +206,15 @@ function SearchContextProvider({children}: ChildrenProps) {
         }),
         [
             searchContextData,
+            currentSearchKey,
+            removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowExportModeOption,
-            setShouldShowExportModeOption,
             isExportMode,
-            setExportMode,
-            removeTransaction,
         ],
     );
 
