@@ -148,6 +148,7 @@ function SearchPage({route}: SearchPageProps) {
                         );
                         clearSelectedTransactions(undefined, true);
                     },
+                    shouldCloseModalOnSelect: true,
                 },
             ],
         };

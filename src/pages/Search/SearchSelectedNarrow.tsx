@@ -74,7 +74,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 shouldUseModalPaddingStyle
                 menuItems={options.map((item, index) => ({
                     ...item,
-                    onSelected: item.onSelected
+                    onSelected: item?.onSelected
                         ? () => {
                               item.onSelected?.();
                           }
