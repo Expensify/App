@@ -303,6 +303,28 @@ describe('ReportUtils', () => {
         const randomReportAction = createRandomReportAction(reportActionID);
         const policyID = '2424';
         const amount = 39;
+
+        /* CREATE an outstanding EXPENSE REPORT
+         type = expense 
+         TODO: stateNum and statusNum can be less than or equal to CONST.REPORT.STATE_NUM.SUBMITTED
+         
+        */
+
+        /* CREATE policy
+        moneyRequestReport?.policyID = policy.id 
+        */
+        const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
+
+        // Given that there is atleast one outstanding expense report in a policy
+        const outstandingExpenseReport = {
+            ...createExpenseReport(483),
+            policyID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            ownerAccountID: currentUserAccountID,
+        };
+
+        // When a user creates an invoice in the same policy
         const reportAction = {
             ...randomReportAction,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -345,25 +367,6 @@ describe('ReportUtils', () => {
             managerID: 8723,
         };
 
-        /* CREATE policy
-        moneyRequestReport?.policyID = policy.id 
-        */
-        const policyC = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
-
-        /* CREATE an outstanding EXPENSE REPORT
-         type = expense 
-         TODO: stateNum and statusNum can be less than or equal to CONST.REPORT.STATE_NUM.SUBMITTED
-         
-        */
-
-        const outstandingExpenseReport = {
-            ...createExpenseReport(483),
-            policyID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            ownerAccountID: currentUserAccountID,
-        };
-
         /* might not need to add this
         add the report action with 
         hasForwardedAction
@@ -377,11 +380,12 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, invoiceReport);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${483}`, outstandingExpenseReport);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyC);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1);
             return waitForBatchedUpdates();
         });
 
-        it('test', () => {
+        // Then the user should be able to move the invoice to the outstadning expense report
+        it('should return true for invoice report action given that there is a minimum of one oustanding report', () => {
             const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
             expect(canEditReportField).toBe(true);
         });
