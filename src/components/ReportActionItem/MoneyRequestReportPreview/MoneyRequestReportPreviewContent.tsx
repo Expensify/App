@@ -419,7 +419,11 @@ function MoneyRequestReportPreviewContent({
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
 
-    const approvedOrSettledIcon = (iouSettled || isApproved) && (
+    const isIconNeeded = useMemo(() => {
+        return iouSettled || isApproved;
+    }, [iouSettled, isApproved]);
+
+    const approvedOrSettledIcon = isIconNeeded && (
         <ImageSVG
             src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
             fill={isApproved ? theme.icon : theme.iconSuccessFill}
@@ -709,7 +713,7 @@ function MoneyRequestReportPreviewContent({
                                     </View>
                                     {shouldShowEmptyPlaceholder ? <MoneyReportHeaderStatusBarSkeleton/> : (
                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, isIconNeeded && styles.gap1]}>
                                                 <Text
                                                     style={[styles.textLabelSupporting, styles.lh16]}
                                                     numberOfLines={1}
