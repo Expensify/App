@@ -16,7 +16,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import ChatListItem from '@components/SelectionList/ChatListItem';
+import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type RadioListItem from '@components/SelectionList/RadioListItem';
 import type SearchQueryListItem from '@components/SelectionList/Search/SearchQueryListItem';
@@ -469,7 +469,8 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     allReports?: OnyxCollection<Report>;
 };
 
-type ValidListItem =
+// eslint-disable-next-line rulesdir/no-inline-named-export
+export type ValidListItem =
     | typeof RadioListItem
     | typeof UserListItem
     | typeof TableListItem
