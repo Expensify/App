@@ -162,14 +162,42 @@ function TransactionPreviewContent({
     const shouldShowIOUHeader = !!from && !!to;
 
     // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
-    const splitShare = useMemo(
-        () =>
-            shouldShowSplitShare
-                ? (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, amount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID))
-                : 0,
-        [shouldShowSplitShare, isReportAPolicyExpenseChat, action?.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, amount, requestCurrency, sessionAccountID],
-    );
+    const actorAccountID = action?.actorAccountID;
+    const splitShare = useMemo(() => {
+        if (!shouldShowSplitShare) {
+            return 0;
+        }
+
+        const splitAmount = transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount;
+        if (splitAmount !== undefined) {
+            return splitAmount;
+        }
+
+        let originalParticipantCount = participantAccountIDs.length;
+
+        if (isBillSplit) {
+            // Try to get the participant count from transaction splits data
+            const transactionSplitsCount = transaction?.comment?.splits?.length;
+            if (transactionSplitsCount && transactionSplitsCount > 0) {
+                originalParticipantCount = transactionSplitsCount;
+            } else if (isMoneyRequestAction(action)) {
+                originalParticipantCount = getOriginalMessage(action)?.participantAccountIDs?.length ?? participantAccountIDs.length;
+            }
+        }
+
+        return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+    }, [
+        shouldShowSplitShare,
+        isReportAPolicyExpenseChat,
+        participantAccountIDs.length,
+        transaction?.comment?.splits,
+        amount,
+        requestCurrency,
+        sessionAccountID,
+        isBillSplit,
+        action,
+        actorAccountID,
+    ]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;

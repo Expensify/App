@@ -87,6 +87,7 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionListStyle,
         disableKeyboardShortcuts = false,
         children,
+        autoCorrect,
         shouldStopPropagation = false,
         shouldPreventDefault = true,
         shouldShowTooltips = true,
@@ -679,6 +680,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     role={CONST.ROLE.PRESENTATION}
                     value={textInputValue}
                     placeholder={textInputPlaceholder}
+                    autoCorrect={autoCorrect}
                     maxLength={textInputMaxLength}
                     onChangeText={onChangeText}
                     inputMode={inputMode}
@@ -777,9 +779,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 : 0;
 
         // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
+        setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
