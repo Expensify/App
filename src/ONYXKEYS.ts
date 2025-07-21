@@ -16,8 +16,6 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const ONYXKEYS = {
     /** Holds information about the users account that is logging in */
 
-    USER_SELECT_OPTIONS: 'userSelectOptions',
-
     ACCOUNT: 'account',
 
     /** Holds the reportID for the report between the user and their account manager */
@@ -1019,7 +1017,6 @@ type OnyxCollectionValuesMapping = {
 };
 
 type OnyxValuesMapping = {
-    [ONYXKEYS.USER_SELECT_OPTIONS]: any;
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
 
