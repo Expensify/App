@@ -75,7 +75,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, ph
                 throw new Error(`Invalid plural form for '${phraseKey}'`);
             }
 
-            const pluralRule = getPluralRules(language).select(phraseObject.count);
+            const pluralRule = memoizedCreatePluralRules(language).select(phraseObject.count);
 
             const pluralResult = translateResult[pluralRule];
             if (pluralResult) {
@@ -151,10 +151,6 @@ function getPreferredListFormat(): Intl.ListFormat {
     }
 
     return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
-}
-
-function getPluralRules(language: Locale): Intl.PluralRules {
-    return memoizedCreatePluralRules(language);
 }
 
 /**
