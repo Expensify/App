@@ -329,7 +329,7 @@ class GithubUtils {
 
                     // Warn deployers about potential bugs with the new process
                     issueBody +=
-                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR listfrom original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
+                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
 
                     // PR list
                     if (sortedPRList.length > 0) {
@@ -626,7 +626,7 @@ class GithubUtils {
 
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST.GITHUB_OWNER,
-                    repo: 'App',
+                    repo: CONST.APP_REPO,
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,
