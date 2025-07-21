@@ -90,6 +90,7 @@ function addNewCompanyCardsFeed(
                 settings: {
                     companyCards: {
                         [feedType]: {
+                            statementPeriodEndDay,
                             errors: null,
                         },
                     },
