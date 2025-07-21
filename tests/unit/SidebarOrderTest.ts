@@ -58,8 +58,9 @@ describe('Sidebar', () => {
             // When it is rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Then it should render with an empty state since personal details are loaded by beforeEach
-            expect(screen.toJSON()).not.toBe(null);
+            // Then it should render with the empty state message and not show the reports list
+            expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
+            expect(screen.queryByTestId('lhn-options-list')).not.toBeOnTheScreen();
         });
 
         it('is rendered with an empty list when personal details exist', () =>
