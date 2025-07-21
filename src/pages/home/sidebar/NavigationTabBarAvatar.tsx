@@ -66,7 +66,6 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             wrapperStyle={styles.flex1}
             style={style}
-            testID="navigationTabBarAvatar"
         >
             {children}
             <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
