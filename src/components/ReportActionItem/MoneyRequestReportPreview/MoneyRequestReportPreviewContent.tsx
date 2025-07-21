@@ -429,7 +429,6 @@ function MoneyRequestReportPreviewContent({
             fill={isApproved ? theme.icon : theme.iconSuccessFill}
             width={variables.iconSizeExtraSmall}
             height={variables.iconSizeExtraSmall}
-            style={{transform: 'translateY(1px)'}}
             contentFit="cover"
         />
     );
@@ -649,25 +648,44 @@ function MoneyRequestReportPreviewContent({
                             ]}
                         >
                             <View style={[reportPreviewStyles.wrapperStyle]}>
-                                <View style={[reportPreviewStyles.contentContainerStyle]}>
-                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden, styles.mbn1]}>
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
-                                                <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
-                                                    <Text
-                                                        onLayout={onTextLayoutChange}
-                                                        style={[styles.lh20]}
-                                                        numberOfLines={3}
-                                                    >
-                                                        {FixIconPadding}
+                                <View style={[reportPreviewStyles.contentContainerStyle, styles.gap4]}>
+                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
+                                            <View style={[styles.flexColumn, styles.gap1]}>
+                                                <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
+                                                    <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                         <Text
-                                                            style={[styles.headerText]}
-                                                            testID="MoneyRequestReportPreview-reportName"
+                                                            onLayout={onTextLayoutChange}
+                                                            style={[styles.lh20]}
+                                                            numberOfLines={3}
                                                         >
-                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
+                                                            {FixIconPadding}
+                                                            <Text
+                                                                style={[styles.headerText]}
+                                                                testID="MoneyRequestReportPreview-reportName"
+                                                            >
+                                                                {getMoneyReportPreviewName(action, iouReport, isInvoice)}
+                                                            </Text>
                                                         </Text>
-                                                    </Text>
-                                                </Animated.View>
+                                                    </Animated.View>
+                                                </View>
+                                                {shouldShowEmptyPlaceholder ? <MoneyReportHeaderStatusBarSkeleton/> : (
+                                                    <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
+                                                        <View style={[styles.flexRow, styles.alignItemsCenter, isIconNeeded && styles.gap1]}>
+                                                            <Text
+                                                                style={[styles.flex1, styles.alignItemsCenter, styles.lh16]}
+                                                            >
+                                                                {approvedOrSettledIcon}
+                                                            </Text>
+                                                            <Text
+                                                                style={[styles.textLabelSupporting, styles.lh16]}
+                                                                numberOfLines={1}
+                                                            >
+                                                                {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                )}
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -711,24 +729,6 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {shouldShowEmptyPlaceholder ? <MoneyReportHeaderStatusBarSkeleton/> : (
-                                        <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter, styles.mtn2, styles.mb1]}>
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, isIconNeeded && styles.gap1]}>
-                                                <Text
-                                                    style={[styles.textLabelSupporting, styles.lh16]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {approvedOrSettledIcon}
-                                                </Text>
-                                                <Text
-                                                    style={[styles.textLabelSupporting, styles.lh16]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    )}
                                     {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
@@ -748,7 +748,7 @@ function MoneyRequestReportPreviewContent({
                                             />
                                         </View>
                                     ) : (
-                                        <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
+                                        <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                             <FlatList
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
