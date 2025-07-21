@@ -1500,6 +1500,7 @@ const CONST = {
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
+        NOTIFY_NEW_ACTION_DELAY: 700,
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',

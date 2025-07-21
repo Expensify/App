@@ -428,15 +428,15 @@ function ReportActionsList({
                     return;
                 }
                 const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
-
-                if (action?.reportActionID) {
-                    setActionIdHighlightedTemporary(action?.reportActionID);
-                }
-
-                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && index > 0) {
-                    setTimeout(() => {
-                        reportScrollManager.scrollToIndex(index);
-                    }, 100);
+                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    if (!!action?.reportActionID) {
+                        setActionIdHighlightedTemporary(action?.reportActionID);
+                    }
+                    if (index > 0) {
+                        setTimeout(() => {
+                            reportScrollManager.scrollToIndex(index);
+                        }, 100);
+                    }
                 } else {
                     reportScrollManager.scrollToBottom();
                 }
@@ -453,9 +453,16 @@ function ReportActionsList({
             return;
         }
         // Time highlight is the same as SearchPage
+        const duration =
+            CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
+            CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
+            CONST.ANIMATED_HIGHLIGHT_START_DELAY +
+            CONST.ANIMATED_HIGHLIGHT_START_DURATION +
+            CONST.ANIMATED_HIGHLIGHT_END_DELAY +
+            CONST.ANIMATED_HIGHLIGHT_END_DURATION;
         const timer = setTimeout(() => {
             setActionIdHighlightedTemporary('');
-        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+        }, duration);
         return () => clearTimeout(timer);
     }, [actionIdHighlightedTemporary]);
 
