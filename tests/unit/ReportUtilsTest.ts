@@ -744,6 +744,67 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('Fallback scenarios', () => {
+        test('should fallback to report.reportName when primary name generation returns empty string', () => {
+            const reportWithFallbackName: Report = {
+                reportID: '3',
+                reportName: 'Custom Report Name',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithFallbackName);
+            expect(result).toBe('Custom Report Name');
+        });
+
+        test('should return empty string when both primary name generation and reportName are empty', () => {
+            const reportWithoutName: Report = {
+                reportID: '4',
+                reportName: '',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithoutName);
+            expect(result).toBe('');
+        });
+
+        test('should return empty string when reportName is undefined', () => {
+            const reportWithUndefinedName: Report = {
+                reportID: '5',
+                reportName: undefined,
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithUndefinedName);
+            expect(result).toBe('');
+        });
+
+        test('should return Concierge display name for concierge chat report', async () => {
+            const conciergeReportID = 'concierge-123';
+            await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
+
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                reportName: '',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(conciergeReport);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+    });
+
     describe('Automatically approved report message via automatic (not by a human) action is', () => {
         test('shown when the report is forwarded (Control feature)', () => {
             const expenseReport = {
