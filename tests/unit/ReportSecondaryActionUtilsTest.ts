@@ -1410,7 +1410,8 @@ describe('getSecondaryTransactionThreadActions', () => {
         const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
-    it('does not includes the SPLIT option if the policy is not expense chat enabled', async () => {
+
+    it('does not include the SPLIT option if the policy is not expense chat enabled', async () => {
         const report = {
             reportID: REPORT_ID,
             policyID: POLICY_ID,
