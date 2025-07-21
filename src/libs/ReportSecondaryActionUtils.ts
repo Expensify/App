@@ -102,7 +102,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const currentUserEmail = getCurrentUserEmail();
 const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
-    return (isSubmitter || isAdmin || isManager) && isPolicyMember(currentUserEmail, report.policyID) && isPolicyExpenseChat;
+    return (isSubmitter || isAdmin || isManager) && userIsPolicyMember && isPolicyExpenseChat;
 }
 
 function isSubmitAction(
