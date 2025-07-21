@@ -2854,15 +2854,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({
-                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
-                flex: 1,
-            }) satisfies ViewStyle,
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({
-                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth,
-                flex: 1,
-            }) satisfies ViewStyle,
+            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
         avatarInnerTextChat: {
             color: theme.text,
@@ -3789,6 +3782,7 @@ const styles = (theme: ThemeColors) =>
                 width: '100%',
                 height: '100%',
                 opacity: isActive ? 1 : 0,
+                transition: 'opacity 0.2s ease-in',
                 ...(isSafariOrChromeBrowser && {
                     backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
                     backgroundSize: '100% 100%',
