@@ -1338,7 +1338,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
 
-    it('includes the SPLIT option if the current user is belong to the workspace', async () => {
+    it('includes the SPLIT option if the current user belongs to the workspace', async () => {
         const report = {
             reportID: REPORT_ID,
             policyID: POLICY_ID,
