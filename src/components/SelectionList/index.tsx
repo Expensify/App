@@ -58,12 +58,8 @@ function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnSc
 
     // In SearchPageBottomTab we use useAnimatedScrollHandler from reanimated(for performance reasons) and it returns object instead of function. In that case we cannot change it to a function call, that's why we have to choose between onScroll and defaultOnScroll.
     const defaultOnScroll = () => {
-        // Only dismiss the keyboard whenever the user scrolls the screen
-        if (!isScreenTouched) {
-            return;
-        }
-
-        if (!shouldHideKeyboardOnScroll) {
+        // Only dismiss the keyboard whenever the user scrolls the screen or `shouldHideKeyboardOnScroll` is true
+        if (!isScreenTouched || !shouldHideKeyboardOnScroll) {
             return;
         }
         Keyboard.dismiss();
