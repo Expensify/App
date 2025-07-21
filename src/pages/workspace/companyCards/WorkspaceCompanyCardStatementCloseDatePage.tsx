@@ -4,7 +4,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {clearErrorField, setFeedStatementEndDay} from '@libs/actions/CompanyCards';
+import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
 import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,7 +38,7 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const submit = useCallback(
         (newStatementPeriodEndDate: CompanyCardStatementCloseDate) => {
             if (selectedFeed) {
-                setFeedStatementEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDate, statementPeriodEndDay ?? null);
+                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDate, statementPeriodEndDay ?? null);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));

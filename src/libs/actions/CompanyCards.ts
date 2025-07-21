@@ -8,7 +8,7 @@ import type {
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
-    SetFeedStatementEndDay,
+    SetFeedStatementPeriodEndDay,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -812,12 +812,12 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
     API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
-function setFeedStatementEndDay(
+function setFeedStatementPeriodEndDay(
     policyID: string,
     bankName: string,
     domainAccountID: number,
-    newStatementPeriodEndDate: CompanyCardStatementCloseDate,
-    oldStatementPeriodEndDate: CompanyCardStatementCloseDate | null,
+    newStatementPeriodEndDay: CompanyCardStatementCloseDate,
+    oldStatementPeriodEndDay: CompanyCardStatementCloseDate | null,
 ) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -829,7 +829,7 @@ function setFeedStatementEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
-                            statementPeriodEndDay: newStatementPeriodEndDate,
+                            statementPeriodEndDay: newStatementPeriodEndDay,
                             pendingFields: {
                                 statementPeriodEndDay: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -869,7 +869,7 @@ function setFeedStatementEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
-                            statementPeriodEndDay: oldStatementPeriodEndDate,
+                            statementPeriodEndDay: oldStatementPeriodEndDay,
                             pendingFields: {
                                 statementPeriodEndDay: null,
                             },
@@ -883,15 +883,15 @@ function setFeedStatementEndDay(
         },
     ];
 
-    const parameters: SetFeedStatementEndDay = {
+    const parameters: SetFeedStatementPeriodEndDay = {
         authToken,
         policyID,
         bankName,
         domainAccountID,
-        statementEndDay: newStatementPeriodEndDate,
+        statementPeriodEndDay: newStatementPeriodEndDay,
     };
 
-    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_END_DAY, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
 function clearErrorField(bankName: string, domainAccountID: number, fieldName: keyof CardFeedData) {
@@ -928,6 +928,6 @@ export {
     openAssignFeedCardPage,
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
-    setFeedStatementEndDay,
+    setFeedStatementPeriodEndDay,
     clearErrorField,
 };
