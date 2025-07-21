@@ -429,13 +429,15 @@ function ReportActionsList({
                 }
                 const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (action?.reportActionID) {
-                        setActionIdHighlightedTemporary(action?.reportActionID);
-                    }
                     if (index > 0) {
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
+                    } else {
+                        reportScrollManager.scrollToBottom();
+                    }
+                    if (action?.reportActionID) {
+                        setActionIdHighlightedTemporary(action.reportActionID);
                     }
                 } else {
                     reportScrollManager.scrollToBottom();
