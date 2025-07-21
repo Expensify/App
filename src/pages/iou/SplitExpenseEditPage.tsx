@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -59,6 +60,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
+    const isCategoryRequired = !!policy?.requiresCategory;
+
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
         () =>
@@ -70,6 +73,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             }),
         [shouldShowTags, policy, policyTags, splitExpenseDraftTransaction],
     );
+
+    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -111,6 +116,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 description={translate('common.category')}
                                 title={splitExpenseDraftTransactionDetails?.category}
                                 numberOfLinesTitle={2}
+                                rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
@@ -130,6 +136,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             policyTagLists.map(({name}, index) => {
                                 const tagVisibilityItem = tagVisibility.at(index);
                                 const shouldShow = tagVisibilityItem?.shouldShow ?? false;
+                                const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
+                                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
 
                                 if (!shouldShow) {
                                     return null;
@@ -139,11 +147,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     <MenuItemWithTopDescription
                                         shouldShowRightIcon
                                         key={name}
+                                        highlighted={!getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
                                         title={getTagForDisplay(splitExpenseDraftTransaction, index)}
                                         description={name}
                                         shouldShowBasicTitle
                                         shouldShowDescriptionOnTop
                                         numberOfLinesTitle={2}
+                                        rightLabel={isTagRequired ? translate('common.required') : ''}
                                         onPress={() => {
                                             Navigation.navigate(
                                                 ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
