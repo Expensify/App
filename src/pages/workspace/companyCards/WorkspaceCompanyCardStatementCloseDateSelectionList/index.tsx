@@ -137,10 +137,9 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                         <Text style={[styles.ph5]}>{translate('workspace.moreFeatures.companyCards.statementCloseDateDescription')}</Text>
                         <OfflineWithFeedback
                             errors={errors}
-                            errorRowStyles={[styles.mb2, styles.pl5, styles.pr3]}
+                            errorRowStyles={[styles.mt2, styles.pl5, styles.pr3]}
                             onClose={onCloseError}
                             pendingAction={pendingAction}
-                            shouldDisplayErrorAbove
                         >
                             <View>
                                 {options}
