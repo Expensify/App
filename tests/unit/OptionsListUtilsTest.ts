@@ -1603,7 +1603,6 @@ describe('OptionsListUtils', () => {
 
             // Given a set of options with self dm and all betas
             const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
-            console.log(OPTIONS_WITH_SELF_DM.reports);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm);
 
