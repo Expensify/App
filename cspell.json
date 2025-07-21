@@ -736,7 +736,10 @@
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
-        "src/libs/SearchParser/*"
+        "src/libs/SearchParser/*",
+        "passplus",
+        "uatp",
+        "UATP"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
