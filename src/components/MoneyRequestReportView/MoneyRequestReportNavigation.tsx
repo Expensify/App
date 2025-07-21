@@ -1,80 +1,59 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
-import UseOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import navigationRef from '@navigation/navigationRef';
-import {saveLastSearchParams, setActiveReportIDs} from '@userActions/ReportNavigation';
+import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestReportRHPNavigationButtonsProps = {
+type MoneyRequestReportNavigationProps = {
     reportID: string;
     lastSearchQuery?: OnyxTypes.LastSearchParams;
     rawReports?: string[];
     shouldDisplayNarrowVersion: boolean;
+    backTo?: string;
 };
 
-function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
-    //
+function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
     const allReports = rawReports ?? [];
     const currentIndex = allReports.indexOf(reportID ?? '');
-    //
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
-    //
     const styles = useThemeStyles();
-    //
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
             return;
         }
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
 
         Navigation.navigate(
             ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
                 reportID: reportId,
-                backTo: focusedRoute?.params?.backTo,
+                backTo: backTo ?? '',
             }),
             {forceReplace: true},
         );
     };
-    //
+
     const goToNextReport = () => {
         if (currentIndex === -1 || allReports.length === 0) {
             return '';
         }
 
         if (currentIndex > allReportsCount * 0.75 && lastSearchQuery?.hasMoreResults) {
+            const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             search({
                 queryJSON: {...lastSearchQuery.queryJSON, filters: null},
-                offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
-            }).then((results) => {
-                const data = results?.onyxData?.[0]?.value?.data;
-                if (data) {
-                    const reportNumbers = Object.keys(data)
-                        .filter((key) => key.startsWith('report_'))
-                        .map((key) => key.replace('report_', ''));
-                    setActiveReportIDs([...allReports, ...reportNumbers]);
-                }
-                saveLastSearchParams({
-                    queryJSON: {...lastSearchQuery.queryJSON, filters: null},
-                    offset: lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
-                    hasMoreResults: !!results?.onyxData?.[0]?.value?.search?.hasMoreResults,
-                    previousLengthOfResults: allReportsCount < allReports.length && currentIndex === allReports.length ? allReports.length : allReportsCount,
-                });
-                console.log(lastSearchQuery.offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
+                offset: newOffset,
+                prevReports: allReports,
             });
         }
         if (currentIndex === allReportsCount - 1) {
-            debugger;
             saveLastSearchParams({
                 ...lastSearchQuery,
                 previousLengthOfResults: allReports.length,
@@ -83,7 +62,6 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
         const nextIndex = (currentIndex + 1) % allReports.length;
         goToReportId(allReports.at(nextIndex));
     };
-    //
 
     const goToPrevReport = () => {
         if (currentIndex === -1 || allReports.length === 0) {

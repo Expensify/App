@@ -78,7 +78,6 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
-    debugger;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

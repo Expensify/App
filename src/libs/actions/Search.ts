@@ -24,6 +24,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {saveLastSearchParams, setActiveReportIDs} from './ReportNavigation';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -253,17 +254,46 @@ function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
-function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
+function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; offset?: number; prevReports?: string[]}) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const queryWithOffset = {
         ...queryJSONWithoutFlatFilters,
         offset,
     };
-    debugger;
     const jsonQuery = JSON.stringify(queryWithOffset);
-    // return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
-    return API.makeRequestWithSideEffects(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+
+    API.makeRequestWithSideEffects(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        debugger;
+        const reports = Object.keys(result?.onyxData?.[0]?.value?.data ?? {})
+            .filter((key) => key.startsWith('report_'))
+            .map((key) => key.replace('report_', ''));
+
+        if (result?.onyxData[0]?.value?.search?.offset) {
+            if (prevReports) {
+                setActiveReportIDs([...prevReports, ...reports], true);
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    hasMoreResults: !!result?.onyxData.at(0)?.value?.search?.hasMoreResults,
+                    previousLengthOfResults: prevReports.length,
+                });
+            }
+        } else {
+            setActiveReportIDs(reports);
+            saveLastSearchParams({
+                queryJSON,
+                offset,
+                hasMoreResults: !!result?.onyxData?.[0]?.value?.search?.hasMoreResults,
+                previousLengthOfResults: reports.length,
+            });
+        }
+
+        console.log(finallyData);
+        console.log(optimisticData);
+        console.log(result);
+        debugger;
+    });
 }
 
 /**

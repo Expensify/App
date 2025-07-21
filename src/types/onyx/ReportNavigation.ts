@@ -1,4 +1,4 @@
-import type {SearchParams} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 /**
  *hehhehehe
@@ -11,7 +11,16 @@ type LastSearchParams = {
     /**
      *
      */
-    hasMoreResults: boolean;
-} & SearchParams;
+    hasMoreResults?: boolean;
+
+    /**
+     *
+     */
+    queryJSON?: SearchQueryJSON;
+    /**
+     *
+     */
+    offset?: number;
+};
 
 export default LastSearchParams;

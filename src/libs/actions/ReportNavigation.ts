@@ -2,7 +2,10 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
-function setActiveReportIDs(ids: string[]) {
+function setActiveReportIDs(ids: string[], shouldMerge = false) {
+    if (shouldMerge) {
+        return Onyx.merge(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS, ids);
+    }
     return Onyx.set(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS, ids);
 }
 

@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import UseOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
@@ -89,7 +88,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import report from '@src/types/onyx/Report';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -114,7 +112,6 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
-import PrevNextButtons from './PrevNextButtons';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
@@ -959,14 +956,16 @@ function MoneyReportHeader({
     );
 
     const shouldDisplayNavigationArrows = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
-    const [lastSearchQuery] = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [rawReports] = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [rawReports] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
+
     const headerNavigation = shouldDisplayNavigationArrows ? (
         <MoneyRequestReportNavigation
             reportID={moneyRequestReport?.reportID ?? ''}
             lastSearchQuery={lastSearchQuery}
             rawReports={rawReports}
             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+            backTo={route.params.backTo}
         />
     ) : undefined;
 
