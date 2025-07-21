@@ -1323,9 +1323,9 @@ const recentReportComparator = (option: OptionData) => {
  * Sort options by a given comparator and return first sorted options.
  * Function uses a min heap to efficiently get the first sorted options.
  */
-function optionsOrderBy<T = OptionData>(options: T[], limit: number, comparator: (option: T) => number | string, filter?: (option: T) => boolean | undefined): T[] {
+function optionsOrderBy<T = OptionData>(options: T[], limit: number, comparator: (option: T) => number | string, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
-    const heap = new MinHeap<T>(comparator);
+    const heap = new MinHeap<T>(comparator, reversed);
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
@@ -1842,55 +1842,6 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
     return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
 }
 
-function getValidPersonalDetailOptions(
-    options: OptionList['personalDetails'],
-    {
-        loginsToExclude = {},
-        includeDomainEmail = false,
-        shouldBoldTitleByDefault = false,
-        currentUserRef,
-    }: {
-        loginsToExclude?: Record<string, boolean>;
-        includeDomainEmail?: boolean;
-        shouldBoldTitleByDefault: boolean;
-        // If the current user is found in the options and you pass an object ref, it will be assigned
-        currentUserRef?: {
-            current?: OptionData;
-        };
-    },
-) {
-    const personalDetailsOptions: OptionData[] = [];
-    for (let i = 0; i < options.length; i++) {
-        // eslint-disable-next-line rulesdir/prefer-at
-        const detail = options[i];
-        if (
-            !detail?.login ||
-            !detail.accountID ||
-            !!detail?.isOptimisticPersonalDetail ||
-            (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            detail?.login === CONST.SETUP_SPECIALIST_LOGIN
-        ) {
-            continue;
-        }
-
-        if (currentUserRef && !!currentUserLogin && detail.login === currentUserLogin) {
-            // eslint-disable-next-line no-param-reassign
-            currentUserRef.current = detail;
-        }
-
-        if (loginsToExclude[detail.login]) {
-            continue;
-        }
-
-        detail.isBold = shouldBoldTitleByDefault;
-
-        personalDetailsOptions.push(detail);
-    }
-
-    return personalDetailsOptions;
-}
-
 /**
  * Returns a list of logins that should be restricted (i.e., hidden or excluded in the UI)
  * based on dynamic business logic and feature flags.
@@ -2031,18 +1982,38 @@ function getValidOptions(
                 .split(' ')
                 .filter((term) => term.length > 0);
             const filteringFunction = (personalDetail: OptionData) => {
+                if (
+                    !personalDetail?.login ||
+                    !personalDetail.accountID ||
+                    !!personalDetail?.isOptimisticPersonalDetail ||
+                    (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
+                    // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+                    personalDetail?.login === CONST.SETUP_SPECIALIST_LOGIN
+                ) {
+                    return false;
+                }
+                if (personalDetailLoginsToExclude[personalDetail.login]) {
+                    return false;
+                }
+
                 const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
+
                 return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
             };
-            filteredPersonalDetails = optionsOrderBy(options.personalDetails, maxElements, personalDetailsComparator, filteringFunction);
-        }
 
-        personalDetailsOptions = getValidPersonalDetailOptions(filteredPersonalDetails, {
-            loginsToExclude: personalDetailLoginsToExclude,
-            shouldBoldTitleByDefault,
-            includeDomainEmail,
-            currentUserRef,
-        });
+            personalDetailsOptions = optionsOrderBy(options.personalDetails, maxElements, personalDetailsComparator, filteringFunction, true);
+
+            for (let i = 0; i < personalDetailsOptions.length; i++) {
+                const personalDetail = personalDetailsOptions.at(i);
+                if (!personalDetail) {
+                    continue;
+                }
+                if (!!currentUserLogin && personalDetail?.login === currentUserLogin) {
+                    currentUserRef.current = personalDetail;
+                }
+                personalDetail.isBold = shouldBoldTitleByDefault;
+            }
+        }
     }
 
     if (excludeHiddenThreads) {
@@ -2733,7 +2704,6 @@ export {
     getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,
-    getValidPersonalDetailOptions,
     hasEnabledOptions,
     isCurrentUser,
     isDisablingOrDeletingLastEnabledCategory,

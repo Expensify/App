@@ -18,7 +18,7 @@ import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {Options} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -496,19 +496,16 @@ function SearchAutocompleteList(
 
         try {
             if (autocompleteQueryValue.trim() === '') {
-                const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, recentReportComparator);
-
                 const endTime = Date.now();
                 Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
                 Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
                 Log.info('[CMD_K_DEBUG] Filter options completed (empty query path)', false, {
                     actionId,
                     duration: endTime - startTime,
-                    resultCount: orderedReportOptions.length,
                     timestamp: endTime,
                 });
 
-                return orderedReportOptions;
+                return searchOptions.recentReports;
             }
 
             const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {

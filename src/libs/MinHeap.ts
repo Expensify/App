@@ -6,11 +6,11 @@ type GetCompareValue<T> = (item: T) => number | string;
  * Comparison function for a min-heap based on the provided `getCompareValue` function.
  * @param getCompareValue
  */
-function getMinCompare<T>(getCompareValue?: GetCompareValue<T>): (a: T, b: T) => number {
+function getMinCompare<T>(getCompareValue?: GetCompareValue<T>, reversed = false): (a: T, b: T) => number {
     return (a, b) => {
         const aVal = typeof getCompareValue === 'function' ? getCompareValue(a) : a;
         const bVal = typeof getCompareValue === 'function' ? getCompareValue(b) : b;
-        return aVal <= bVal ? -1 : 1;
+        return (aVal <= bVal ? -1 : 1) * (reversed ? -1 : 1);
     };
 }
 
@@ -41,8 +41,8 @@ function getMinCompare<T>(getCompareValue?: GetCompareValue<T>): (a: T, b: T) =>
 class MinHeap<T = number> {
     private heap: Heap<T>;
 
-    constructor(getCompareValue?: GetCompareValue<T>) {
-        this.heap = new Heap<T>(getMinCompare(getCompareValue));
+    constructor(getCompareValue?: GetCompareValue<T>, reversed = false) {
+        this.heap = new Heap<T>(getMinCompare(getCompareValue, reversed));
     }
 
     push(value: T): this {
