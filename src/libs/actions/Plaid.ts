@@ -6,6 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -116,7 +117,15 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
     });
 }
 
-function importPlaidAccounts(publicToken: string, feed: string, feedName: string, country: string, domainName: string, plaidAccounts: string) {
+function importPlaidAccounts(
+    publicToken: string,
+    feed: string,
+    feedName: string,
+    country: string,
+    domainName: string,
+    plaidAccounts: string,
+    statementPeriodEndDay: CompanyCardStatementCloseDate | undefined,
+) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
         feed,
@@ -124,6 +133,7 @@ function importPlaidAccounts(publicToken: string, feed: string, feedName: string
         country,
         domainName,
         plaidAccounts,
+        statementPeriodEndDay,
     };
 
     API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);
