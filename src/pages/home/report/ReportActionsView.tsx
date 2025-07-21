@@ -137,10 +137,10 @@ function ReportActionsView({
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!isMoneyRequestReport(report) || !allReportActions?.length) {
-            if (shouldBuildOptimisticCreatedReportAction) {
+            if (isReportTransactionThread && shouldBuildOptimisticCreatedReportAction) {
                 const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
                 optimisticCreatedReportAction.pendingAction = null;
-                return [optimisticCreatedReportAction];
+                return [optimisticCreatedReportAction, ...(allReportActions ?? [])];
             }
 
             return allReportActions;
