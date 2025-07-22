@@ -2,8 +2,8 @@ import isEmpty from 'lodash/isEmpty';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
@@ -35,7 +35,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
         }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
         ref: ForwardedRef<TRef>,
     ) {
-        const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+        const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
         if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {

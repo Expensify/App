@@ -40,7 +40,8 @@ Onyx.connect({
 function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined) {
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
+        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
@@ -48,9 +49,9 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             ReportUtils.isUnread(report, oneTransactionThreadReport) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
+                chatReport,
                 currentReportId: currentReportID,
                 betas: [],
-                policies: {},
                 doesReportHaveViolations: false,
                 isInFocusMode: false,
                 excludeEmptyChats: false,

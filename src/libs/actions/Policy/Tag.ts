@@ -1,5 +1,4 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import {Platform} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -10,6 +9,7 @@ import type {
     RenamePolicyTagListParams,
     RenamePolicyTagsParams,
     SetPolicyTagApproverParams,
+    SetPolicyTagListsRequired,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
     UpdatePolicyTagGLCodeParams,
@@ -18,6 +18,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -27,7 +28,6 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
@@ -327,6 +327,90 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+}
+
+function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isRequired: boolean, policyTags: OnyxEntry<PolicyTagLists>) {
+    if (!policyTags) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                            acc[key] = {
+                                ...acc[key],
+                                required: isRequired,
+                                errors: undefined,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            };
+
+                            return acc;
+                        }
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                            acc[key] = {
+                                ...acc[key],
+                                errors: undefined,
+                                pendingAction: null,
+                                pendingFields: {
+                                    required: null,
+                                },
+                            };
+                            return acc;
+                        }
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                        acc[key] = {
+                            ...acc[key],
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                            pendingAction: null,
+                            pendingFields: {
+                                required: null,
+                            },
+                        };
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTagListsRequired = {
+        policyID,
+        tagListIndexes,
+        isRequired,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
 }
 
 function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
@@ -680,9 +764,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData, {
-        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, persistedRequests, parameters),
-    });
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -723,31 +805,43 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
                 },
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    hasMultipleTagLists: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
                 },
             },
         ],
     };
 
-    fetch(spreadsheet?.fileURI ?? '').then((res) => {
-        if (!res.ok && Platform.OS !== 'android') {
-            throw Error(res.statusText);
-        }
-
-        res.blob().then((blob) => {
-            const file = new File([blob], 'testFile.csv', {type: blob.type || 'text/csv'});
-
+    readFileAsync(
+        spreadsheet?.fileURI ?? '',
+        spreadsheet?.fileName ?? CONST.MULTI_LEVEL_TAGS_FILE_NAME,
+        (file) => {
             const parameters: ImportMultiLevelTagsParams = {
                 policyID,
                 isFirstLineHeader: spreadsheet?.containsHeader,
@@ -757,8 +851,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             };
 
             API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
-        });
-    });
+        },
+        () => {},
+        spreadsheet?.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
+    );
 }
 
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
@@ -1132,6 +1228,7 @@ export {
     clearPolicyTagListErrorField,
     deletePolicyTags,
     enablePolicyTags,
+    setWorkspaceTagRequired,
     openPolicyTagsPage,
     renamePolicyTag,
     renamePolicyTagList,

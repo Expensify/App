@@ -24,11 +24,11 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isIOUReport, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, getIOUData, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isScanning} from '@libs/TransactionUtils';
+import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {isCardTransaction as isCardTransactionUtils, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -41,9 +41,10 @@ function TransactionPreviewContent({
     isHovered,
     chatReport,
     personalDetails,
-    iouReport,
+    report,
     transaction,
     violations,
+    transactionRawAmount,
     offlineWithFeedbackOnClose,
     containerStyles,
     transactionPreviewWidth,
@@ -53,7 +54,7 @@ function TransactionPreviewContent({
     walletTermsErrors,
     reportPreviewAction,
     shouldHideOnDelete = true,
-    shouldShowIOUData,
+    shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
 }: TransactionPreviewContentProps) {
@@ -61,24 +62,25 @@ function TransactionPreviewContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
-    const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
+
+    const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
 
     const transactionPreviewCommonArguments = useMemo(
         () => ({
-            iouReport,
+            iouReport: report,
             transaction,
             action,
             isBillSplit,
             violations,
             transactionDetails,
         }),
-        [action, iouReport, isBillSplit, transaction, transactionDetails, violations],
+        [action, report, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(
@@ -118,19 +120,15 @@ function TransactionPreviewContent({
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
-    const iouData = shouldShowIOUData
-        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails, requestAmount ?? 0)
-        : undefined;
-    const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
-    const shouldShowIOUHeader = !!from && !!to;
+
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const isApproved = isReportApproved({report: iouReport});
-    const isIOUSettled = isSettled(iouReport?.reportID);
-    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
+    const isApproved = isReportApproved({report});
+    const isIOUSettled = isSettled(report?.reportID);
+    const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
@@ -138,28 +136,68 @@ function TransactionPreviewContent({
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
+    const isCardTransaction = isCardTransactionUtils(transaction);
     if (isReportAPolicyExpenseChat && isBillSplit) {
         sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
     }
 
+    // Compute the from/to data only for IOU reports
+    const {from, to} = useMemo(() => {
+        if (!shouldShowPayerAndReceiver) {
+            return {
+                from: undefined,
+                to: undefined,
+            };
+        }
+
+        // For IOU or Split, we want the unprocessed amount because it is important whether the amount was positive or negative
+        const payerAndReceiver = getIOUPayerAndReceiver(managerID, ownerAccountID, personalDetails, transactionRawAmount);
+
+        return {
+            from: payerAndReceiver.from,
+            to: payerAndReceiver.to,
+        };
+    }, [managerID, ownerAccountID, personalDetails, shouldShowPayerAndReceiver, transactionRawAmount]);
+
+    const shouldShowIOUHeader = !!from && !!to;
+
     // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
-    const splitShare = useMemo(
-        () =>
-            shouldShowSplitShare
-                ? (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID))
-                : 0,
-        [
-            shouldShowSplitShare,
-            isReportAPolicyExpenseChat,
-            action?.actorAccountID,
-            participantAccountIDs.length,
-            transaction?.comment?.splits,
-            requestAmount,
-            requestCurrency,
-            sessionAccountID,
-        ],
-    );
+    const actorAccountID = action?.actorAccountID;
+    const splitShare = useMemo(() => {
+        if (!shouldShowSplitShare) {
+            return 0;
+        }
+
+        const splitAmount = transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount;
+        if (splitAmount !== undefined) {
+            return splitAmount;
+        }
+
+        let originalParticipantCount = participantAccountIDs.length;
+
+        if (isBillSplit) {
+            // Try to get the participant count from transaction splits data
+            const transactionSplitsCount = transaction?.comment?.splits?.length;
+            if (transactionSplitsCount && transactionSplitsCount > 0) {
+                originalParticipantCount = transactionSplitsCount;
+            } else if (isMoneyRequestAction(action)) {
+                originalParticipantCount = getOriginalMessage(action)?.participantAccountIDs?.length ?? participantAccountIDs.length;
+            }
+        }
+
+        return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+    }, [
+        shouldShowSplitShare,
+        isReportAPolicyExpenseChat,
+        participantAccountIDs.length,
+        transaction?.comment?.splits,
+        amount,
+        requestCurrency,
+        sessionAccountID,
+        isBillSplit,
+        action,
+        actorAccountID,
+    ]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
@@ -333,7 +371,7 @@ function TransactionPreviewContent({
                             </View>
                         </View>
                     )}
-                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && areThereDuplicates && (
+                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
                             text={translate('violations.keepThisOne')}
                             success

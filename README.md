@@ -125,15 +125,27 @@ After completing these steps, you should be able to build Android apps with preb
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-## Receiving Notifications
-To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+## Receiving Mobile Push Notifications
+To receive mobile push notifications in the development build while hitting the Staging or Production API, you need to use the production airship config.
 ### Android
-1. Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
-2. Rebuild the app.
+
+#### HybridApp
+
+Add `inProduction = true` to [Mobile-Expensify/Android/assets/airshipconfig.properties](https://github.com/Expensify/Mobile-Expensify/blob/main/Android/assets/airshipconfig.properties)
+
+#### Standalone
+
+Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
 
 ### iOS
-1. Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
-2. Rebuild the app.
+
+#### HybridApp
+
+Set `inProduction` to `true` in [Mobile-Expensify/iOS/AirshipConfig/Debug/AirshipConfig.plist](https://github.com/Expensify/Mobile-Expensify/blob/ab67becf5e8610c8df9b4da3132501153c7291a1/iOS/AirshipConfig/Debug/AirshipConfig.plist#L8)
+
+#### Standalone
+
+Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -510,7 +522,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
 > [!Note]  
@@ -783,8 +795,13 @@ Some pointers:
 - Always prefer longer and more complex strings in the translation files. For example
   if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
   key to the translation file and use the arrow function version, like so:
-  `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
+
+  ```
+  nameOfTheKey: ({amount, dateTime}) => `User has sent ${amount} to you on ${datetime}`,
+  ```
+
   This is because the order of the phrases might vary from one language to another.
+
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
@@ -809,6 +826,25 @@ Some pointers:
   In your code, you can use the translation like this:
 
   `translate('common.messages', {count: 1});`
+
+## Generating translations
+`src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated. The script to perform this transformation is `scripts/generateTranslations.ts`.
+
+### Running the translation script
+To run the translation script:
+
+```bash
+npx ts-node scripts/generateTranslations.ts
+```
+
+You will need `OPENAI_API_KEY` set in your `.env`. Expensify employees can follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/20012).  If you want to test the script without actually talking to ChatGPT, you can pass the `--dry-run` flag to the script.
+
+### Fine-tuning translations
+If you are unhappy with the results of an AI translation, there are currently two methods of recourse:
+
+1. If you are adding a string that can have an ambiguous meaning without proper context, you can add a context annotation in `en.ts`. This takes the form of a comment before your string starting with `@context`.
+2. The base prompt(s) can be found in `prompts/translation`, and can be adjusted if necessary.
+
 ----
 
 # Deploying

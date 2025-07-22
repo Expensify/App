@@ -1,4 +1,4 @@
-import React, {useContext, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -16,6 +16,10 @@ type SearchRouterContext = {
     unregisterSearchPageInput: () => void;
 };
 
+type HistoryState = {
+    isSearchModalOpen?: boolean;
+};
+
 const defaultSearchContext: SearchRouterContext = {
     isSearchRouterDisplayed: false,
     openSearchRouter: () => {},
@@ -27,13 +31,47 @@ const defaultSearchContext: SearchRouterContext = {
 
 const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
 
+const isBrowserWithHistory = typeof window !== 'undefined' && typeof window.history !== 'undefined';
+const canListenPopState = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
+
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
     const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
 
+    useEffect(() => {
+        if (!canListenPopState) {
+            return;
+        }
+
+        /**
+         * Handle browser back/forward navigation
+         * When user clicks back/forward, we check the history state:
+         * - If state has isSearchModalOpen=true, we show the modal
+         * - If state has isSearchModalOpen=false or no state, we hide the modal
+         * This creates a proper browser history integration where modal state
+         * is part of the navigation history
+         */
+        const handlePopState = (event: PopStateEvent) => {
+            const state = event.state as HistoryState | null;
+            if (state?.isSearchModalOpen) {
+                setIsSearchRouterDisplayed(true);
+                searchRouterDisplayedRef.current = true;
+            } else {
+                setIsSearchRouterDisplayed(false);
+                searchRouterDisplayedRef.current = false;
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
+            if (isBrowserWithHistory) {
+                window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
+            }
             close(
                 () => {
                     setIsSearchRouterDisplayed(true);
@@ -46,6 +84,12 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         const closeSearchRouter = () => {
             setIsSearchRouterDisplayed(false);
             searchRouterDisplayedRef.current = false;
+            if (isBrowserWithHistory) {
+                const state = window.history.state as HistoryState | null;
+                if (state?.isSearchModalOpen) {
+                    window.history.replaceState({isSearchModalOpen: false} satisfies HistoryState, '');
+                }
+            }
         };
 
         // There are callbacks that live outside of React render-loop and interact with SearchRouter

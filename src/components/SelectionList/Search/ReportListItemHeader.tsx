@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem, ReportListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,7 +20,7 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
-    report: ReportListItemType;
+    report: TransactionReportGroupListItemType;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -34,9 +34,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is hovered */
-    isHovered?: boolean;
-
     /** Whether the item is focused */
     isFocused?: boolean;
 
@@ -46,7 +43,7 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
-    report: ReportListItemType;
+    report: TransactionReportGroupListItemType;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -73,7 +70,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 type ReportCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
-    reportItem: ReportListItemType;
+    reportItem: TransactionReportGroupListItemType;
 };
 
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
@@ -82,7 +79,11 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     let total = reportItem?.total ?? 0;
 
     if (total) {
-        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+        if (reportItem?.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total ?? 0);
+        } else {
+            total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+        }
     }
 
     return (
@@ -158,24 +159,22 @@ function ReportListItemHeader<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     isDisabled,
-    isHovered,
     isFocused,
     canSelectMultiple,
 }: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {currentSearchHash} = useSearchContext();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
 
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem));
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
     };
     return !isLargeScreenWidth ? (
         <View>

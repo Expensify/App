@@ -7,7 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingCompanySize} from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
@@ -15,6 +15,7 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearInitialPath} from './OnboardingFlow';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -103,6 +104,10 @@ function setOnboardingCompanySize(value: OnboardingCompanySize) {
     Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, value);
 }
 
+function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
+}
+
 function setOnboardingErrorMessage(value: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
 }
@@ -129,8 +134,8 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     });
 }
 
-function setOnboardingMergeAccountStepValue(value: boolean) {
-    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value});
+function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
@@ -250,4 +255,5 @@ export {
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
+    setOnboardingUserReportedIntegration,
 };

@@ -33,6 +33,10 @@ const includeModules = [
     'react-native-web',
     'react-native-webview',
     '@react-native-picker',
+    '@react-navigation/material-top-tabs',
+    '@react-navigation/native',
+    '@react-navigation/native-stack',
+    '@react-navigation/stack',
     'react-native-modal',
     'react-native-gesture-handler',
     'react-native-google-places-autocomplete',
@@ -160,6 +164,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     ],
     module: {
         rules: [
+            {
+                test: /\.m?js$/,
+                resolve: {
+                    fullySpecified: false,
+                },
+            },
             // Transpiles and lints all the JS
             {
                 test: /\.(js|ts)x?$/,
@@ -267,6 +277,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@pages': path.resolve(__dirname, '../../src/pages/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '@prompts': path.resolve(__dirname, '../../prompts'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@styles': path.resolve(__dirname, '../../src/styles/'),
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.

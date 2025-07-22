@@ -5,13 +5,11 @@ import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
-import translations from '@src/languages/translations';
+import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import LocaleListener from './LocaleListener';
-import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
@@ -25,26 +23,21 @@ Onyx.connect({
     },
 });
 
-// Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
-LocaleListener.connect();
-
 // Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
 let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
+
 function init() {
     CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
-        // This is not a supported locale, so we'll use ES_ES instead
-        if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
-            // eslint-disable-next-line no-param-reassign
-            memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
-            return memo;
-        }
-
         // eslint-disable-next-line no-param-reassign
         memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
         return memo;
     }, {});
 }
+
+// Memoized function to create PluralRules instances
+const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
+const memoizedCreatePluralRules = memoize(createPluralRules);
 
 /**
  * Helper function to get the translated string for given
@@ -59,8 +52,8 @@ function init() {
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
-function getTranslatedPhrase<TKey extends TranslationPaths>(language: 'en' | 'es', phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
-    const translatedPhrase = translations?.[language]?.[phraseKey];
+function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
+    const translatedPhrase = IntlStore.get(phraseKey, language);
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
@@ -82,7 +75,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(language: 'en' | 'es
                 throw new Error(`Invalid plural form for '${phraseKey}'`);
             }
 
-            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+            const pluralRule = memoizedCreatePluralRules(language).select(phraseObject.count);
 
             const pluralResult = translateResult[pluralRule];
             if (pluralResult) {
@@ -117,14 +110,16 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
 /**
  * Return translated string for given locale and phrase
  *
- * @param [desiredLanguage] eg 'en', 'es-ES'
+ * @param [locale] eg 'en', 'es'
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
-    // Search phrase in full locale e.g. es-ES
-    const language = ([CONST.LOCALES.ES_ES_ONFIDO, CONST.LOCALES.ES_ES] as string[]).includes(desiredLanguage) ? CONST.LOCALES.ES : (desiredLanguage as 'en' | 'es');
+function translate<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    if (!locale) {
+        // If no language is provided, return the path as is
+        return Array.isArray(path) ? path.join('.') : path;
+    }
 
-    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, ...parameters);
+    const translatedPhrase = memoizedGetTranslatedPhrase(locale, path, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
@@ -133,20 +128,21 @@ function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' 
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
-        Log.alert(`${phraseString} was not found in the en locale`);
+        Log.alert(`${phraseString} was not found in the ${locale} locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
         }
         return phraseString;
     }
-    throw new Error(`${path} was not found in the default language`);
+    throw new Error(`${path} was not found in the ${locale} locale`);
 }
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...parameters);
+    const currentLocale = IntlStore.getCurrentLocale();
+    return translate(currentLocale, phrase, ...parameters);
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
@@ -154,7 +150,7 @@ function getPreferredListFormat(): Intl.ListFormat {
         init();
     }
 
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
 }
 
 /**
@@ -197,7 +193,7 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
  * Returns the user device's preferred language.
  */
 function getDevicePreferredLocale(): Locale {
-    return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
+    return RNLocalize.findBestAvailableLanguage(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};

@@ -50,4 +50,16 @@ const navigateAfterOnboarding = (
     });
 };
 
-export default navigateAfterOnboarding;
+const navigateAfterOnboardingWithMicrotaskQueue = (
+    isSmallScreenWidth: boolean,
+    canUseDefaultRooms: boolean | undefined,
+    onboardingPolicyID?: string,
+    onboardingAdminsChatReportID?: string,
+    shouldPreventOpenAdminRoom = false,
+) => {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+    });
+};
+
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue};

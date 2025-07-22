@@ -21,12 +21,12 @@ type UseWorkspaceListParams = {
     policies: OnyxCollection<Policy>;
     currentUserLogin: string | undefined;
     shouldShowPendingDeletePolicy: boolean;
-    selectedPolicyID: string | undefined;
+    selectedPolicyIDs: string[] | undefined;
     searchTerm: string;
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
 };
 
-function useWorkspaceList({policies, currentUserLogin, selectedPolicyID, searchTerm, shouldShowPendingDeletePolicy, additionalFilter}: UseWorkspaceListParams) {
+function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, additionalFilter}: UseWorkspaceListParams) {
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -54,16 +54,16 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyID, searchT
                 ],
                 keyForList: policy?.id,
                 isPolicyAdmin: isPolicyAdmin(policy),
-                isSelected: selectedPolicyID === policy?.id,
+                isSelected: policy?.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             }));
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyID]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyIDs]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
             tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
-                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyID),
+                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs),
             ),
-        [searchTerm, usersWorkspaces, selectedPolicyID],
+        [searchTerm, usersWorkspaces, selectedPolicyIDs],
     );
 
     const sections = useMemo(() => {

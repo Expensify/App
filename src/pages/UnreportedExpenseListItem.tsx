@@ -7,6 +7,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -47,7 +48,9 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     shouldUseNarrowLayout
                     isSelected={isSelected}
                     shouldShowTooltip={false}
-                    dateColumnSize="normal"
+                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                    amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                    taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     onCheckboxPress={() => {
                         onSelectRow(item);
                         setIsSelected((val) => !val);

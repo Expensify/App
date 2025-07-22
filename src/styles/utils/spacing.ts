@@ -459,7 +459,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv1Half: {
         paddingVertical: 6,
     },
 
@@ -721,6 +721,10 @@ export default {
 
     gap1: {
         gap: 4,
+    },
+
+    gapHalf: {
+        gap: 2,
     },
 
     gap2: {

@@ -1,11 +1,14 @@
 import React, {useMemo} from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -13,13 +16,20 @@ type ReportListItem = ListItem & {
 function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const firstTransactionKey = selectedTransactionsKeys.at(0);
-    const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
-    const firstTransactionPolicyID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.policyID : undefined;
-    const selectedReportID = Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) ? firstTransactionReportID : undefined;
-    const selectedPolicyID = Object.values(selectedTransactions).every((transaction) => transaction.policyID === firstTransactionPolicyID) ? firstTransactionPolicyID : undefined;
 
-    const selectReport = (item: ReportListItem) => {
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const transactionsReports = useMemo(() => {
+        const reports = Object.values(selectedTransactions).reduce((acc, transaction) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            if (report) {
+                acc.add(report);
+            }
+            return acc;
+        }, new Set<Report>());
+        return [...reports];
+    }, [allReports, selectedTransactions]);
+
+    const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
@@ -33,8 +43,7 @@ function SearchTransactionsChangeReport() {
     return (
         <IOURequestEditReportCommon
             backTo={undefined}
-            selectedReportID={selectedReportID}
-            selectedPolicyID={selectedPolicyID}
+            transactionsReports={transactionsReports}
             selectReport={selectReport}
         />
     );

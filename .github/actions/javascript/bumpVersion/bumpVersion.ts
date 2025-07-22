@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
-import bumpVersion from '@scripts/bumpVersion';
 import * as versionUpdater from '@github/libs/versionUpdater';
+import bumpVersion from '@scripts/bumpVersion';
 
 async function run() {
     try {

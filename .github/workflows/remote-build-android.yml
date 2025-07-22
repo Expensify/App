@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches-ignore: [staging, production]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

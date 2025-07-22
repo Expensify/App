@@ -1,14 +1,15 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
+import IntlStore from '@src/languages/IntlStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowOneTransactionThreadID, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -24,8 +25,10 @@ describe('ReportActionsUtils', () => {
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return waitForBatchedUpdates();
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
@@ -355,14 +358,13 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getOneTransactionThreadReportID', () => {
-        const IOUReportID = 'REPORT_IOU';
-        const IOUExpenseReportID = 'REPORT_EXPENSE';
-        const IOUTransactionID = 'TRANSACTION_IOU';
-        const IOUExpenseTransactionID = 'TRANSACTION_EXPENSE';
-
+        const IOUReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_IOU` as const;
+        const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
+        const IOUExpenseTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_EXPENSE` as const;
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.reportID}` as const;
         const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-            [`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`]: {...mockIOUReport, reportID: IOUReportID},
-            [`${ONYXKEYS.COLLECTION.REPORT}${IOUExpenseReportID}`]: {...mockIOUReport, type: CONST.REPORT.TYPE.EXPENSE, reportID: IOUExpenseReportID},
+            [IOUReportID]: {...mockIOUReport, reportID: IOUReportID},
+            [mockChatReportID]: mockChatReport,
         };
 
         const linkedCreateAction = {
@@ -393,32 +395,30 @@ describe('ReportActionsUtils', () => {
             },
         };
 
-        beforeEach(async () => {
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, mockedReports);
-        });
-
         it('should return the childReportID for a valid single IOU action', () => {
-            const result = getOneTransactionThreadReportID(IOUReportID, [linkedCreateAction], false, [IOUTransactionID]);
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
         });
 
         it('should return undefined for action with a transaction that is not linked to it', () => {
-            const result = getOneTransactionThreadReportID(IOUReportID, [unlinkedCreateAction], false, [IOUTransactionID]);
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedCreateAction], false, [IOUTransactionID]);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined if multiple IOU actions are present', () => {
-            const result = getOneTransactionThreadReportID(IOUReportID, [linkedCreateAction, linkedCreateAction], false, [IOUTransactionID]);
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toBeUndefined();
         });
 
         it('should skip actions where original message type is PAY', () => {
-            const result = getOneTransactionThreadReportID(IOUReportID, [linkedPayAction, linkedCreateAction], false, [IOUTransactionID]);
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedPayAction, linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
         });
 
         it('should return undefined if no valid IOU actions are present', () => {
-            const result = getOneTransactionThreadReportID(IOUReportID, [unlinkedCreateAction, linkedDeleteAction, linkedPayAction], false, [IOUTransactionID]);
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedCreateAction, linkedDeleteAction, linkedPayAction], false, [
+                IOUTransactionID,
+            ]);
             expect(result).toBeUndefined();
         });
     });
@@ -763,6 +763,64 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('hasRequestFromCurrentAccount', () => {
+        const currentUserAccountID = 1242;
+        const deletedIOUReportID = '2';
+        const activeIOUReportID = '3';
+
+        const deletedIOUReportAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: '22',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    deleted: '2025-07-15 09:06:16.568',
+                    html: '',
+                    isDeletedParentAction: false,
+                    isEdited: true,
+                    text: '',
+                    type: 'COMMENT',
+                },
+            ],
+        };
+
+        const activeIOUReportAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: '33',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    deleted: '',
+                    html: '$87.00 expense',
+                    isDeletedParentAction: false,
+                    isEdited: true,
+                    text: '',
+                    type: 'COMMENT',
+                },
+            ],
+        };
+
+        beforeEach(() => {
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
+            } as unknown as KeyValueMapping);
+            return waitForBatchedUpdates();
+        });
+
+        it('should return false for a deleted IOU report action', () => {
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for an active IOU report action', () => {
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            expect(result).toBe(true);
+        });
+    });
+
     describe('getLastVisibleAction', () => {
         it('should return the last visible action for a report', () => {
             const report: Report = {
@@ -856,14 +914,14 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getSendMoneyFlowOneTransactionThreadID', () => {
-        const mockChatReportID = 'REPORT';
-        const mockDMChatReportID = 'REPORT_DM';
-        const childReportID = 'childReport123';
+    describe('getSendMoneyFlowAction', () => {
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
+        const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
+        const childReportID = `${ONYXKEYS.COLLECTION.REPORT}childReport123` as const;
 
         const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-            [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReportID}`]: {...mockChatReport, reportID: mockChatReportID},
-            [`${ONYXKEYS.COLLECTION.REPORT}${mockDMChatReportID}`]: {
+            [mockChatReportID]: {...mockChatReport, reportID: mockChatReportID},
+            [mockDMChatReportID]: {
                 ...mockChatReport,
                 reportID: mockDMChatReportID,
                 chatType: undefined,
@@ -871,10 +929,6 @@ describe('ReportActionsUtils', () => {
                 parentReportActionID: undefined,
             },
         };
-
-        beforeEach(async () => {
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, mockedReports);
-        });
 
         const createAction = {
             ...mockIOUAction,
@@ -895,27 +949,27 @@ describe('ReportActionsUtils', () => {
         };
 
         it('should return undefined for a single non-IOU action', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([nonIOUAction], mockDMChatReportID)).toBeUndefined();
+            expect(getSendMoneyFlowAction([nonIOUAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for multiple IOU actions regardless of type', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction, payAction], mockDMChatReportID)).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction, payAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for a single IOU action that is not `Pay`', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([createAction], mockDMChatReportID)).toBeUndefined();
+            expect(getSendMoneyFlowAction([createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return the appropriate childReportID for a valid single `Pay` IOU action in DM chat', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockDMChatReportID)).toEqual(childReportID);
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockDMChatReportID])?.childReportID).toEqual(childReportID);
         });
 
         it('should return undefined for a valid single `Pay` IOU action in a chat that is not DM', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockChatReportID)).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction, createAction], mockDMChatReportID)).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction, createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
     });
 

@@ -3,6 +3,7 @@
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
         "module": "commonjs",
+        "moduleResolution": "node",
         "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
@@ -19,6 +20,7 @@
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],
+            "@prompts/*": ["./prompts/*"],
             "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
@@ -35,6 +37,7 @@
         "config",
         "tests",
         "jest",
+        "prompts",
         "__mocks__",
         ".github/**/*",
         ".storybook/**/*",

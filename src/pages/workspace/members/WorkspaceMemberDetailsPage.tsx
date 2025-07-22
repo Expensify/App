@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -21,6 +20,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -29,8 +29,10 @@ import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -166,7 +168,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
-        Navigation.goBack();
+        navigateAfterInteraction(() => Navigation.goBack());
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
@@ -360,22 +362,26 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldShowRightIcon
                                 onPress={openRoleSelectionModal}
                             />
-                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.common.customField1')}
-                                    title={member?.employeeUserID}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.common.customField2')}
-                                    title={member?.employeePayrollID}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
-                                />
-                            </OfflineWithFeedback>
+                            {isControlPolicy(policy) && (
+                                <>
+                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.common.customField1')}
+                                            title={member?.employeeUserID}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.common.customField2')}
+                                            title={member?.employeePayrollID}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
+                                        />
+                                    </OfflineWithFeedback>
+                                </>
+                            )}
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}
