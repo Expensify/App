@@ -188,6 +188,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
+    const shouldCalculateTotals = useMemo(
+        () =>
+            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS ||
+            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH ||
+            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+
+        [currentSearchKey],
+    );
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
@@ -239,11 +247,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        handleSearch({queryJSON, offset});
+        handleSearch({queryJSON, offset, shouldCalculateTotals});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON]);
+    }, [handleSearch, isOffline, offset, queryJSON, shouldCalculateTotals]);
 
     useEffect(() => {
         openSearch();
@@ -255,6 +263,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         previousTransactions,
         queryJSON,
         offset,
+        shouldCalculateTotals,
         reportActions,
         previousReportActions,
     });

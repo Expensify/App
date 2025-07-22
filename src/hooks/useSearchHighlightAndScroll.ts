@@ -18,12 +18,22 @@ type UseSearchHighlightAndScroll = {
     previousReportActions: OnyxCollection<ReportActions>;
     queryJSON: SearchQueryJSON;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 /**
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
-function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
+function useSearchHighlightAndScroll({
+    searchResults,
+    transactions,
+    previousTransactions,
+    reportActions,
+    previousReportActions,
+    queryJSON,
+    offset,
+    shouldCalculateTotals,
+}: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
@@ -97,12 +107,12 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, offset});
+            search({queryJSON, offset, shouldCalculateTotals});
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
+    }, [isFocused, transactions, previousTransactions, queryJSON, offset, shouldCalculateTotals, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
