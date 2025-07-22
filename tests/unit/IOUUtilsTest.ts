@@ -220,7 +220,7 @@ describe('hasRTERWithoutViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations)).toBe(true);
     });
 
     test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
@@ -249,7 +249,7 @@ describe('hasRTERWithoutViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithViolation)], violations)).toBe(false);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations)).toBe(false);
     });
 });
 
@@ -309,7 +309,71 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations)).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+    });
+
+    test('Return true if report can be submitted after being reopened', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(6),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: fakePolicy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+            [expenseReport.reportID]: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REOPENED,
+            },
+        });
+
+        const transactionIDWithViolation = 1;
+        const transactionIDWithoutViolation = 2;
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport?.reportID,
+        };
+        const transactionWithoutViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithoutViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport?.reportID,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -328,7 +392,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined)).toBe(false);
+        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -382,5 +446,17 @@ describe('Check valid amount for IOU/Expense request', () => {
         });
         const expenseAmount = TransactionUtils.getAmount(expenseTransaction, true, false);
         expect(expenseAmount).toBeLessThan(0);
+    });
+
+    test('Unreported expense amount should retain negative sign', () => {
+        const unreportedTransaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {
+                amount: 100,
+                currency: 'USD',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            },
+        });
+        const unreportedAmount = TransactionUtils.getAmount(unreportedTransaction, true, false);
+        expect(unreportedAmount).toBeLessThan(0);
     });
 });

@@ -1,12 +1,12 @@
 import React, {useCallback} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import {dismissInstantSubmitExplanation} from '@userActions/User';
+import {dismissASAPSubmitExplanation} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +29,7 @@ const menuSections = [
 ];
 
 function AutoSubmitModal() {
-    const [dismissedInstantSubmitExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION, {canBeMissing: true});
+    const [dismissedASAPSubmitExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -37,9 +37,9 @@ function AutoSubmitModal() {
     const onClose = useCallback((willShowAgain: boolean) => {
         InteractionManager.runAfterInteractions(() => {
             if (!willShowAgain) {
-                dismissInstantSubmitExplanation(true);
+                dismissASAPSubmitExplanation(true);
             } else {
-                dismissInstantSubmitExplanation(false);
+                dismissASAPSubmitExplanation(false);
             }
         });
     }, []);
@@ -58,7 +58,7 @@ function AutoSubmitModal() {
             illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
-            shouldShowDismissModalOption={dismissedInstantSubmitExplanation === false}
+            shouldShowDismissModalOption={dismissedASAPSubmitExplanation === false}
             onConfirm={onClose}
             titleStyles={[styles.mb1]}
             contentInnerContainerStyles={[styles.mb5]}

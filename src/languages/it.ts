@@ -276,6 +276,8 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -561,6 +563,7 @@ const translations = {
         longID: 'ID lungo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
+        chooseFiles: 'Scegli file',
         dropTitle: 'Lascia andare',
         dropMessage: 'Trascina qui il tuo file',
         ignore: 'Ignore',
@@ -674,6 +677,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Aggiungi allegati',
+        addReceipt: 'Aggiungi ricevuta',
         scanReceipts: 'Scansiona ricevute',
         replaceReceipt: 'Sostituisci ricevuta',
     },
@@ -920,8 +924,11 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
+        import: 'Importa foglio di calcolo',
         dragAndDrop: 'Trascina e rilascia il tuo foglio di calcolo qui, oppure scegli un file qui sotto. Formati supportati: .csv, .txt, .xls e .xlsx.',
+        dragAndDropMultiLevelTag: `<muted-link>Trascina e rilascia il tuo foglio di calcolo qui, oppure scegli un file qui sotto. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Scopri di più</a> sui formati di file supportati.</muted-link>`,
         chooseSpreadsheet: 'Seleziona un file di foglio di calcolo da importare. Formati supportati: .csv, .txt, .xls e .xlsx.',
+        chooseSpreadsheetMultiLevelTag: `<muted-link>Seleziona un file di foglio di calcolo da importare. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Scopri di più</a> sui formati di file supportati.</muted-link>`,
         fileContainsHeader: 'Il file contiene intestazioni di colonna',
         column: ({name}: SpreadSheetColumnParams) => `Colonna ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ops! Un campo obbligatorio ("${fieldName}") non è stato mappato. Si prega di controllare e riprovare.`,
@@ -956,9 +963,13 @@ const translations = {
     },
     receipt: {
         upload: 'Carica ricevuta',
+        uploadMultiple: 'Carica ricevute',
         dragReceiptBeforeEmail: 'Trascina una ricevuta su questa pagina, inoltra una ricevuta a',
+        dragReceiptsBeforeEmail: 'Trascina ricevute su questa pagina, inoltra ricevute a',
         dragReceiptAfterEmail: 'oppure scegli un file da caricare qui sotto.',
+        dragReceiptsAfterEmail: 'oppure scegli file da caricare qui sotto.',
         chooseReceipt: 'Scegli una ricevuta da caricare o inoltra una ricevuta a',
+        chooseReceipts: 'Scegli ricevute da caricare o inoltra ricevute a',
         takePhoto: 'Scatta una foto',
         cameraAccess: "L'accesso alla fotocamera è necessario per scattare foto delle ricevute.",
         deniedCameraAccess: "L'accesso alla fotocamera non è ancora stato concesso, si prega di seguire",
@@ -1026,6 +1037,9 @@ const translations = {
         createExpense: 'Crea spesa',
         trackDistance: 'Traccia distanza',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
+        removeExpense: 'Rimuovi spesa',
+        removeThisExpense: 'Rimuovi questa spesa',
+        removeExpenseConfirmation: 'Sei sicuro di voler rimuovere questa ricevuta? Questa azione non può essere annullata.',
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Crea ${amount} spesa`,
@@ -1147,8 +1161,7 @@ const translations = {
         automaticallyForwarded: `approvato tramite <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: `approvato`,
         rejectedThisReport: 'ha respinto questo rapporto',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `ha iniziato a saldare. Il pagamento è in sospeso fino a quando ${submitterDisplayName} non aggiunge un conto bancario.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `ha avviato il pagamento, ma è in attesa che ${submitterDisplayName} aggiunga un conto bancario.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} ha annullato il pagamento`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha attivato il loro Expensify Wallet entro 30 giorni`,
@@ -1222,7 +1235,6 @@ const translations = {
         unheldExpense: 'sblocca questa spesa',
         moveUnreportedExpense: 'Sposta spesa non segnalata',
         addUnreportedExpense: 'Aggiungi spesa non segnalata',
-        createNewExpense: 'Crea nuova spesa',
         selectUnreportedExpense: 'Seleziona almeno una spesa da aggiungere al rapporto.',
         emptyStateUnreportedExpenseTitle: 'Nessuna spesa non segnalata',
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
@@ -1535,6 +1547,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Aiuto',
+        whatIsNew: 'Novità',
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
@@ -1624,9 +1637,10 @@ const translations = {
             afterEmail: 'in altri account. Si prega di unire altri account in esso invece.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Non puoi unire',
-            afterEmail: 'in altri account perché è il proprietario della fatturazione di un account fatturato. Si prega di unire altri account in esso invece.',
+            beforeEmail: 'Non puoi unire account in ',
+            afterEmail: ' perché questo account possiede una relazione di fatturazione con fattura emessa.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Riprova più tardi',
             description: 'Ci sono stati troppi tentativi di unire gli account. Per favore riprova più tardi.',
@@ -1770,7 +1784,7 @@ const translations = {
         nameOnCard: 'Nome sulla carta',
         paymentCardNumber: 'Numero di carta',
         expiration: 'Data di scadenza',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Indirizzo di fatturazione',
         growlMessageOnSave: 'La tua carta di pagamento è stata aggiunta con successo',
@@ -2180,6 +2194,11 @@ const translations = {
             title: 'Usi qualche software di contabilità?',
             none: 'Nessuno',
         },
+        interestedFeatures: {
+            title: 'Quali funzionalità ti interessano?',
+            featuresAlreadyEnabled: 'Il tuo spazio di lavoro ha già abilitato quanto segue:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
+        },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
         },
@@ -2248,7 +2267,7 @@ const translations = {
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
@@ -2261,7 +2280,7 @@ const translations = {
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Conferma i dettagli.\n' +
@@ -2274,7 +2293,7 @@ const translations = {
                 description:
                     '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Scegli il tuo spazio *personale*.\n' +
@@ -2369,7 +2388,7 @@ const translations = {
                 description:
                     '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci un’email o numero di telefono.\n' +
                     '\n' +
@@ -2382,7 +2401,7 @@ const translations = {
                 description:
                     '*Dividi le spese* con una o più persone.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci email o numeri di telefono.\n' +
                     '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
@@ -2403,7 +2422,7 @@ const translations = {
                 description:
                     'Ecco come creare un report:\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea report*.\n' +
                     '3. Clicca su *Aggiungi spesa*.\n' +
                     '4. Aggiungi la tua prima spesa.\n' +
@@ -2643,11 +2662,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Per collegare un conto bancario, per favore <a href="${contactMethodRoute}">aggiungi un'email come login principale</a> e riprova. Puoi aggiungere il tuo numero di telefono come login secondario.`,
         hasBeenThrottledError: "Si è verificato un errore durante l'aggiunta del tuo conto bancario. Attendi qualche minuto e riprova.",
-        hasCurrencyError: {
-            phrase1: 'Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a',
-            link: 'le impostazioni del tuo spazio di lavoro',
-            phrase2: 'impostarlo su USD e riprovare.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a <a href="${workspaceRoute}">le impostazioni del tuo spazio di lavoro</a> impostarlo su USD e riprovare.`,
         error: {
             youNeedToSelectAnOption: "Seleziona un'opzione per procedere",
             noBankAccountAvailable: 'Spiacente, non è disponibile alcun conto bancario.',
@@ -2681,6 +2697,8 @@ const translations = {
             validationAmounts: "Gli importi di convalida inseriti non sono corretti. Si prega di ricontrollare l'estratto conto bancario e riprovare.",
             fullName: 'Per favore, inserisci un nome completo valido',
             ownershipPercentage: 'Per favore, inserisci un numero percentuale valido',
+            deletePaymentBankAccount:
+                'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con la carta Expensify. Se desideri comunque eliminare questo conto, contatta il Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3193,6 +3211,18 @@ const translations = {
             certify: 'Si prega di certificare che le informazioni sono veritiere e accurate',
             consent: "Si prega di acconsentire all'informativa sulla privacy",
         },
+    },
+    docusignStep: {
+        subheader: 'Modulo Docusign',
+        pleaseComplete:
+            'Completa il modulo di autorizzazione ACH tramite il link Docusign qui sotto e carica una copia firmata qui per consentirci di prelevare fondi direttamente dal tuo conto bancario.',
+        pleaseCompleteTheBusinessAccount: 'Completa la richiesta di conto aziendale e l’accordo di addebito diretto.',
+        pleaseCompleteTheDirect:
+            'Completa l’accordo di addebito diretto tramite il link Docusign qui sotto e carica una copia firmata qui per consentirci di prelevare fondi direttamente dal tuo conto bancario.',
+        takeMeTo: 'Vai a Docusign',
+        uploadAdditional: 'Carica documentazione aggiuntiva',
+        pleaseUpload: 'Carica il modulo DEFT e la pagina di firma Docusign.',
+        pleaseUploadTheDirect: 'Carica l’accordo di addebito diretto e la pagina di firma Docusign.',
     },
     finishStep: {
         connect: 'Collega conto bancario',
@@ -3806,6 +3836,18 @@ const translations = {
             },
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: "Per favore, aggiungi l'account in Xero e sincronizza nuovamente la connessione.",
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Esportatore preferito',
@@ -4291,6 +4333,11 @@ const translations = {
                     pleaseSelectFeedType: 'Si prega di selezionare un tipo di feed prima di continuare',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Ultimo giorno lavorativo del mese',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Giorno del mese personalizzato',
+            },
             assignCard: 'Assegna carta',
             findCard: 'Trova carta',
             cardNumber: 'Numero di carta',
@@ -4308,6 +4355,7 @@ const translations = {
                 'Importeremo tutte le transazioni da questa data in poi. Se non viene specificata alcuna data, risaliremo indietro fino a quanto consentito dalla tua banca.',
             fromTheBeginning: "Dall'inizio",
             customStartDate: 'Data di inizio personalizzata',
+            customCloseDate: 'Data di chiusura personalizzata',
             letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
             confirmationDescription: 'Inizieremo immediatamente a importare le transazioni.',
             cardholder: 'Titolare della carta',
@@ -4531,6 +4579,7 @@ const translations = {
                 removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo feed di carte? Questo disassegnerà tutte le carte.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
+                    statementCloseDateRequired: "Selezionare una data di chiusura dell'estratto conto.",
                 },
                 corporate: "Limita l'eliminazione delle transazioni",
                 personal: "Consenti l'eliminazione delle transazioni",
@@ -4557,6 +4606,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Goditi il cashback su ogni acquisto negli Stati Uniti, fino al 50% di sconto sulla tua fattura Expensify, carte virtuali illimitate e molto altro ancora.',
                 expensifyCardBannerLearnMoreButton: 'Scopri di più',
+                statementCloseDateTitle: "Data di chiusura dell'estratto conto",
+                statementCloseDateDescription: "Comunicateci la data di chiusura dell'estratto conto della vostra carta e creeremo un estratto conto corrispondente in Expensify.",
             },
             workflows: {
                 title: 'Flussi di lavoro',
@@ -5910,11 +5961,16 @@ const translations = {
                 title: 'Nessuna spesa da esportare',
                 subtitle: 'È ora di rilassarsi, bel lavoro.',
             },
+            emptyStatementsResults: {
+                title: 'Nessuna spesa da visualizzare',
+                subtitle: 'Nessun risultato. Provare a regolare i filtri.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
         },
+        statements: 'Dichiarazioni',
         unapproved: 'Non approvato',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCompanyCards: 'Carte aziendali non approvate',
@@ -5941,6 +5997,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultima dichiarazione',
                 },
             },
             status: 'Stato',
@@ -5979,6 +6036,7 @@ const translations = {
                 members: 'Membro',
                 cards: 'Carta',
             },
+            feed: 'Feed',
         },
         groupBy: 'Gruppo per',
         moneyRequestReport: {
@@ -6336,7 +6394,7 @@ const translations = {
         shipNewCardButton: 'Spedisci nuova carta',
         addressError: 'Indirizzo richiesto',
         successTitle: 'La tua nuova carta è in arrivo!',
-        successDescription: "Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, la tua carta virtuale è pronta all'uso.",
+        successDescription: 'Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, puoi utilizzare una carta virtuale.',
         reasonError: 'Il motivo è obbligatorio',
     },
     eReceipt: {
@@ -6414,7 +6472,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importo oltre il limite di ${formattedLimit}/persona`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importo oltre il limite giornaliero ${formattedLimit}/persona per categoria`,
         receiptNotSmartScanned:
-            'Dettagli della spesa e ricevuta aggiunti manualmente. Si prega di verificare i dettagli. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Scopri di più</a> sulla verifica automatica di tutte le ricevute.',
+            'Ricevuta e dettagli della spesa aggiunti manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Scopri di più.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Ricevuta richiesta';
             if (formattedLimit ?? category) {
@@ -6779,11 +6837,8 @@ const translations = {
                 title: 'Abbonamento annullato',
                 subtitle: 'Il tuo abbonamento annuale è stato annullato.',
                 info: 'Se vuoi continuare a utilizzare il tuo workspace su base pay-per-use, sei a posto.',
-                preventFutureActivity: {
-                    part1: 'Se desideri prevenire attività e addebiti futuri, devi',
-                    link: 'elimina il tuo/i tuoi spazio/i di lavoro',
-                    part2: '. Si noti che quando si eliminano i propri workspace, verrà addebitata qualsiasi attività in sospeso che è stata sostenuta durante il mese di calendario corrente.',
-                },
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Se desideri prevenire attività e addebiti futuri, devi <a href="${workspacesListRoute}">elimina il tuo/i tuoi spazio/i di lavoro</a>. Si noti che quando si eliminano i propri workspace, verrà addebitata qualsiasi attività in sospeso che è stata sostenuta durante il mese di calendario corrente.`,
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',
@@ -6948,66 +7003,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Inizia',
-            part2: 'qui!',
-        },
-        saveSearchTooltip: {
-            part1: 'Rinomina le tue ricerche salvate',
-            part2: 'qui!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Check what',
-            part2: 'richiede la tua attenzione',
-            part3: 'e',
-            part4: 'chatta sulle spese.',
-        },
-        workspaceChatTooltip: {
-            part1: 'Chatta con',
-            part2: 'approvatori',
-        },
-        globalCreateTooltip: {
-            part1: 'Crea spese',
-            part2: ', inizia a chattare,',
-            part3: 'e altro ancora.',
-            part4: 'Provalo!',
-        },
-        GBRRBRChat: {
-            part1: 'Vedrai 🟢 su',
-            part2: 'azioni da intraprendere',
-            part3: ',\ne 🔴 su',
-            part4: 'elementi da rivedere.',
-        },
-        accountSwitcher: {
-            part1: 'Accedi al tuo',
-            part2: 'Account Copilot',
-            part3: 'qui',
-        },
-        expenseReportsFilter: {
-            part1: 'Benvenuto! Trova tutti i tuoi',
-            part2: "rapporti dell'azienda",
-            part3: 'qui.',
-        },
+        conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>Rinomina le tue ricerche salvate</strong> qui!</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>Crea spese</strong>, inizia a chattare, e altro ancora. Provalo!</tooltip>',
+        bottomNavInboxTooltip: '<tooltip>Controlla cosa <strong>richiede la tua attenzione</strong> e <strong>chatta sulle spese.</strong></tooltip>',
+        workspaceChatTooltip: '<tooltip>Chatta con <strong>approvatori</strong></tooltip>',
+        GBRRBRChat: '<tooltip>Vedrai 🟢 su <strong>azioni da intraprendere</strong>,\ne 🔴 su <strong>elementi da rivedere.</strong></tooltip>',
+        accountSwitcher: '<tooltip>Accedi al tuo <strong>Account Copilot</strong> qui</tooltip>',
+        expenseReportsFilter: "<tooltip>Benvenuto! Trova tutti i tuoi <strong>rapporti dell'azienda</strong> qui.</tooltip>",
         scanTestTooltip: {
-            part1: 'Vuoi vedere come funziona Scan?',
-            part2: 'Prova una ricevuta di test!',
-            part3: 'Scegli il nostro',
-            part4: 'responsabile dei test',
-            part5: 'per provarlo!',
-            part6: 'Ora,',
-            part7: 'invia la tua spesa',
-            part8: 'e guarda la magia accadere!',
+            main: '<tooltip><strong>Vuoi vedere come funziona Scan?</strong> Prova una ricevuta di test!</tooltip>',
+            manager: '<tooltip>Scegli il nostro <strong>responsabile dei test</strong> per provarlo!</tooltip>',
+            confirmation: '<tooltip>Ora, <strong>invia la tua spesa</strong> e guarda la magia accadere!</tooltip>',
             tryItOut: 'Provalo',
             noThanks: 'No grazie',
         },
-        outstandingFilter: {
-            part1: 'Filtra per spese che',
-            part2: 'necessita approvazione',
-        },
-        scanTestDriveTooltip: {
-            part1: 'Invia questa ricevuta a',
-            part2: 'completa il test drive!',
-        },
+        outstandingFilter: '<tooltip>Filtra per spese che <strong>necessita approvazione</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Invia questa ricevuta a <strong>completa il test drive!</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Eliminare le modifiche?',

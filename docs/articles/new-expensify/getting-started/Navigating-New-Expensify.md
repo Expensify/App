@@ -49,7 +49,7 @@ The **Reports** tab consolidates all filtering and reporting tools:
 
 # Workspaces Page
 
-The **Workspaces** tab helps you manage everything related to your company or personal workspaces. Whether you're creating a new workspace, editing an existing one, or managing features like billing and card connections, this section is your main hub.
+The **Workspaces** tab shows you a clean list of all your workspaces and allows you to manage everything related to your company or personal workspaces. This section is your main hub for workspace management.
 
 From the **Workspaces** tab, you can:
 
@@ -59,10 +59,8 @@ From the **Workspaces** tab, you can:
 - **Enable features** – Turn on or off modules like Company Cards, Workflows, Tags, Distance tracking, and more via the **More features** menu.
 - **Set up accounting connections** – Integrate tools like QuickBooks or NetSuite under **Accounting**.
 - **Edit categories and tags** – Create or disable expense categories and tags to organize expenses.
-- **Track billing and subscription** – Navigate to the **Subscription** section to choose a plan, view billing history, or cancel your subscription.
-- **Access domains** (if applicable) – Allow centralized control over company-wide settings like SAML, domain groups, and company card feeds.
 
-**Tip:** All workspace-specific settings live under this tab, while account specific settings live under the **Account** tab.
+**Tip:** All workspace-specific settings live under this tab, while account-level settings (including billing and subscription management) live under the **Account** tab.
 
 ---
 
@@ -74,6 +72,7 @@ The **Account** tab includes all personal and account-level settings. Here’s w
 - **Wallet** – Add or manage personal payment methods (e.g., cards or bank accounts).
 - **Preferences** – Choose your default payment currency, language, and notification preferences.
 - **Security** – Set up two-factor authentication and manage device access.
+- **Subscription** – Manage your billing, view subscription details, and track usage.
 - **Help** – Access Expensify Help docs and reach out to Concierge.
 - **Switch to Expensify Classic** – Return to the classic layout if needed.
 - **About** – View app version details and system information.

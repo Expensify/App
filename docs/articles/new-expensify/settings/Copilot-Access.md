@@ -62,9 +62,9 @@ To **change a Copilot's access level**:
 
 If you've been added as a Copilot, you can switch into the other user’s account easily.
 
-1. Click your **profile icon**.
-2. In the top-left corner of the screen, click the **account switcher arrow** beside your name.
-3. Select the account you'd like to act as.
+1. Navigate to the **Account** tab
+2. Click your name or profile icon to access a drop-down that lists the accounts you have Copilot access to
+3. Select the account you want to access
 
 You'll see a **dual avatar** in the bottom-left corner confirming you're in Copilot mode.
 

@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -14,6 +14,7 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
@@ -307,23 +308,26 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             init();
         }
 
-        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-            if (delegatorEmail) {
-                connect(delegatorEmail, true)
-                    ?.then((success) => {
-                        App.setAppLoading(!!success);
-                    })
-                    .finally(() => {
-                        setIsDelegatorFromOldDotIsReady(true);
-                    });
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!CONFIG.IS_HYBRID_APP) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+                if (delegatorEmail) {
+                    connect(delegatorEmail, true)
+                        ?.then((success) => {
+                            App.setAppLoading(!!success);
+                        })
+                        .finally(() => {
+                            setIsDelegatorFromOldDotIsReady(true);
+                        });
+                } else {
+                    App.openApp();
+                }
             } else {
-                App.openApp();
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
             }
-        } else {
-            Log.info('[AuthScreens] Sending ReconnectApp');
-            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);
@@ -756,6 +760,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             cardStyle: {
                                 ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                             },
+                            animation: InternalPlatformAnimations.FADE,
                         },
                     }}
                     component={TestToolsModalNavigator}

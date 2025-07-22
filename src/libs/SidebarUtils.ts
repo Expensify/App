@@ -238,13 +238,7 @@ function shouldDisplayReportInLHN(
     const isSystemChat = isSystemChatUtil(report);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID) ||
-        hasErrorsOtherThanFailedReceipt ||
-        isFocused ||
-        isSystemChat ||
-        !!report.isPinned ||
-        (!isInFocusMode && isReportArchived) ||
-        reportAttributes?.[report?.reportID]?.requiresAttention;
+        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -624,7 +618,7 @@ function getOptionData({
     const lastAction = visibleReportActionItems[report.reportID];
     // lastActorAccountID can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
+    const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
@@ -654,7 +648,7 @@ function getOptionData({
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
-    const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report);
+    const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, !!result.private_isArchived);
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
@@ -751,7 +745,7 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             const card = getExpensifyCardFromReportAction({reportAction: lastAction, policyID: report.policyID});
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, card});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (lastAction && isOldDotReportAction(lastAction)) {

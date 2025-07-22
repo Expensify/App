@@ -9,7 +9,7 @@ import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -25,7 +25,11 @@ import {
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
+    canFlagReportAction,
     canHoldUnholdReportAction,
+    canJoinChat,
+    canLeaveChat,
+    canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
     getApprovalChain,
@@ -50,8 +54,10 @@ import {
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatUsedForOnboarding,
+    isDeprecatedGroupDM,
     isPayer,
     isReportOutstanding,
+    isRootGroupChat,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
@@ -59,11 +65,12 @@ import {
     shouldDisableThread,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
+    shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
-import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,7 +82,7 @@ import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/r
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
     createAnnounceRoom,
@@ -276,7 +283,6 @@ const policy: Policy = {
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        initOnyxDerivedValues();
 
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
@@ -437,6 +443,21 @@ describe('ReportUtils', () => {
                 },
             };
             expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(false);
+        });
+    });
+
+    describe('sortOutstandingReportsBySelected', () => {
+        it('should return -1 when report1 is selected and report2 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report1.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+        });
+        it('should return 1 when report2 is selected and report1 is not', () => {
+            const report1 = LHNTestUtils.getFakeReport();
+            const report2 = LHNTestUtils.getFakeReport();
+            const selectedReportID = report2.reportID;
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
         });
     });
 
@@ -720,6 +741,102 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
+        });
+    });
+
+    describe('Automatically approved report message via automatic (not by a human) action is', () => {
+        test('shown when the report is forwarded (Control feature)', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+            );
+        });
+
+        test('shown when the report is approved', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+            );
+        });
+    });
+
+    describe('Automatically submitted via harvesting (delayed submit) report message is', () => {
+        test('shown when report is submitted and status is submitted', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
+            );
+        });
+
+        test('shown when report is submitted and status is closed', () => {
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+                'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
+            );
         });
     });
 
@@ -1024,7 +1141,7 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         parentReportID: '102',
                         type: CONST.REPORT.TYPE.EXPENSE,
-                        managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -1046,7 +1163,7 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         parentReportID: '103',
-                        managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
@@ -1177,6 +1294,7 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         parentReportID: '101',
                         policyID: paidPolicy.id,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -2260,7 +2378,7 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return false when the user’s email is domain-based and the includeDomainEmail is false', () => {
+        it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
             const isInFocusMode = false;
@@ -2653,9 +2771,51 @@ describe('ReportUtils', () => {
                 },
             };
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
-                expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
-            });
+            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
+        });
+
+        it('should return true for demo transaction', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    isDemoTransaction: true,
+                },
+            };
+
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            const moneyRequestAction = {
+                ...parentReportAction,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
         });
     });
 
@@ -3424,21 +3584,161 @@ describe('ReportUtils', () => {
     });
 
     describe('getMoneyReportPreviewName', () => {
-        // It is unknown why this test is failing, so I am disabling it and opening up an issue to investigate.
-        // https://github.com/Expensify/App/issues/64815
-        // it('should return the report name if present', () => {
-        //     const action: ReportAction = {
-        //         ...createRandomReportAction(1),
-        //         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-        //     };
-        //     const report: Report = {
-        //         ...createRandomReport(1),
-        //     };
-        //     const result = getMoneyReportPreviewName(action, report);
-        //     expect(result).toBe('Five, Four, One, Three, Two...');
-        // });
+        beforeAll(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+            });
+        });
 
-        it('should return the child report name if the report name is not present', () => {
+        afterAll(async () => {
+            await Onyx.clear();
+        });
+
+        it('should return the report name when the chat type is policy room', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name when the chat type is domain all', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name when the chat type is group', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return policy name when the chat type is invoice', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            // Policies are empty, so the policy name is "Unavailable workspace"
+            expect(result).toBe('Unavailable workspace');
+        });
+
+        it('should return the report name when the chat type is policy admins', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name when the chat type is policy announce', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the owner name expenses when the chat type is policy expense chat', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
+            expect(result).toBe("Ragnar Lothbrok's expenses");
+        });
+
+        it('should return the display name of the current user when the chat type is self dm', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
+            expect(result).toBe('Lagertha Lothbrok (you)');
+        });
+
+        it('should return the participant name when the chat type is system', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                },
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            // participant accountID: 1 corresponds to "Ragnar Lothbrok"
+            expect(result).toBe('Ragnar Lothbrok');
+        });
+
+        it('should return the participant names when the chat type is trip room', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+                chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
+            expect(result).toBe('Ragnar, floki@vikings.net');
+        });
+
+        it('should return the child report name when the report name is not present', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3455,6 +3755,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(10000),
                 type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -3467,11 +3768,27 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
+        it('should return false for an expense report the current user is not the submitter', async () => {
+            // Given an expense report the current user is not the submitter
+            const report: Report = {
+                ...createRandomReport(10000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID + 1,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const result = canAddTransaction(report, false);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
                 ...createRandomReport(10001),
                 type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
@@ -3592,6 +3909,95 @@ describe('ReportUtils', () => {
 
             // Then it cannot be edited
             expect(result).toBeFalsy();
+        });
+    });
+
+    describe('isDeprecatedGroupDM', () => {
+        it('should return false if the report is a chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                parentReportActionID: '1',
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
+        });
+
+        it('should return false if the report is a task report', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.TASK,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
+        });
+
+        it('should return false if the report is a money request report', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
+        });
+
+        it('should return false if the report is an archived room', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isDeprecatedGroupDM(report, true)).toBeFalsy();
+        });
+
+        it('should return false if the report is a public / admin / announce chat room', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
+        });
+
+        it('should return false if the report has less than 2 participants', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
+        });
+
+        it('should return true if the report has more than 2 participants', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isDeprecatedGroupDM(report)).toBeTruthy();
+        });
+    });
+
+    describe('canUserPerformWriteAction', () => {
+        it('should return false for announce room when the role of the employee is auditor ', async () => {
+            // Given a policy announce room of a policy that the user has an auditor role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.AUDITOR};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
     });
 
@@ -3781,6 +4187,532 @@ describe('ReportUtils', () => {
 
             // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
             expect(result).toBe(false);
+        });
+    });
+
+    describe('canLeaveChat', () => {
+        beforeEach(async () => {
+            jest.clearAllMocks();
+
+            await Onyx.clear();
+        });
+
+        it('should return true for root group chat', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            expect(canLeaveChat(report, undefined)).toBe(true);
+        });
+
+        it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: false,
+                policyID: '1',
+            };
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+        });
+
+        it('should return false if the chat is public room and the user is the guest', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is hidden for the current user', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                chatType: undefined,
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
+        });
+
+        it('should return false for selfDM reports', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
+        });
+
+        it('should return false for the public announce room if the user is a member of the policy', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE,
+            };
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(false);
+        });
+
+        it('should return true for the invoice room if the user is not the sender or receiver', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: 1234,
+                },
+                policyID: '1',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+        });
+
+        it('should return true for chat thread if the user is joined', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canLeaveChat(report, undefined)).toBe(true);
+        });
+
+        it('should return true for user created policy room', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+        });
+    });
+
+    describe('canJoinChat', () => {
+        beforeEach(async () => {
+            jest.clearAllMocks();
+
+            await Onyx.clear();
+        });
+
+        it('should return false if the parent report action is a whisper action', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    whisperedTo: [1234],
+                },
+            };
+
+            expect(canJoinChat(report, parentReportAction, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is not hidden for the current user', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is one of these types: group chat, selfDM, invoice room, system chat, expense chat', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is archived', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+            };
+
+            expect(canJoinChat(report, undefined, undefined, true)).toBe(false);
+        });
+
+        it('should return true if the report is chat thread', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                chatType: undefined,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined)).toBe(true);
+        });
+    });
+
+    describe('isRootGroupChat', () => {
+        it('should return false if the report is chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            expect(isRootGroupChat(report)).toBe(false);
+        });
+
+        it('should return true if the report is a group chat and it is not a chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            expect(isRootGroupChat(report)).toBe(true);
+        });
+
+        it('should return true if the report is a deprecated group DM and it is not a chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isRootGroupChat(report)).toBe(true);
+        });
+    });
+    describe('isWhisperAction', () => {
+        it('an action where reportAction.message.whisperedTo has accountIDs is a whisper action', () => {
+            const whisperReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+            };
+            expect(isWhisperAction(whisperReportAction)).toBe(true);
+        });
+        it('an action where reportAction.originalMessage.whisperedTo does not exist is not a whisper action', () => {
+            const nonWhisperReportAction = {
+                ...createRandomReportAction(1),
+                message: [
+                    {
+                        whisperedTo: undefined,
+                    },
+                ],
+            } as ReportAction;
+            expect(isWhisperAction(nonWhisperReportAction)).toBe(false);
+        });
+    });
+
+    describe('canFlagReportAction', () => {
+        describe('a whisper action', () => {
+            const whisperReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+            };
+
+            it('cannot be flagged if it is from concierge', () => {
+                const whisperReportActionFromConcierge = {
+                    ...whisperReportAction,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                };
+
+                // The reportID doesn't matter because there is an early return for whisper actions and the report is not looked at
+                expect(canFlagReportAction(whisperReportActionFromConcierge, '123456')).toBe(false);
+            });
+
+            it('cannot be flagged if it is from the current user', () => {
+                const whisperReportActionFromCurrentUser = {
+                    ...whisperReportAction,
+                    actorAccountID: currentUserAccountID,
+                };
+
+                // The reportID doesn't matter because there is an early return for whisper actions and the report is not looked at
+                expect(canFlagReportAction(whisperReportActionFromCurrentUser, '123456')).toBe(false);
+            });
+
+            it('can be flagged if it is not from concierge or the current user', () => {
+                expect(canFlagReportAction(whisperReportAction, '123456')).toBe(true);
+            });
+        });
+
+        describe('a non-whisper action', () => {
+            const report = {
+                ...createRandomReport(1),
+            };
+            const nonWhisperReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        whisperedTo: undefined,
+                    },
+                ],
+            } as ReportAction;
+
+            beforeAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            });
+
+            it('cannot be flagged if it is from the current user', () => {
+                const nonWhisperReportActionFromCurrentUser = {
+                    ...nonWhisperReportAction,
+                    actorAccountID: currentUserAccountID,
+                };
+                expect(canFlagReportAction(nonWhisperReportActionFromCurrentUser, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action name is something other than ADD_COMMENT', () => {
+                const nonWhisperReportActionWithDifferentActionName = {
+                    ...nonWhisperReportAction,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                };
+                expect(canFlagReportAction(nonWhisperReportActionWithDifferentActionName, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action is deleted', () => {
+                const deletedReportAction = {
+                    ...nonWhisperReportAction,
+                    message: [
+                        {
+                            whisperedTo: undefined,
+                            html: '',
+                            deleted: getRandomDate(),
+                        },
+                    ],
+                } as ReportAction;
+                expect(canFlagReportAction(deletedReportAction, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action is a created task report', () => {
+                const createdTaskReportAction = {
+                    ...nonWhisperReportAction,
+                    originalMessage: {
+                        // This signifies that the action is a created task report along with the ADD_COMMENT action name
+                        taskReportID: '123456',
+                    },
+                } as ReportAction;
+                expect(canFlagReportAction(createdTaskReportAction, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the report does not exist', () => {
+                // cspell:disable-next-line
+                expect(canFlagReportAction(nonWhisperReportAction, 'starwarsisthebest')).toBe(false);
+            });
+
+            it('cannot be flagged if the report is not allowed to be commented on', () => {
+                // eslint-disable-next-line rulesdir/no-negated-variables
+                const reportThatCannotBeCommentedOn = {
+                    ...createRandomReport(2),
+
+                    // If the permissions does not contain WRITE, then it cannot be commented on
+                    permissions: [],
+                } as Report;
+                expect(canFlagReportAction(nonWhisperReportAction, reportThatCannotBeCommentedOn.reportID)).toBe(false);
+            });
+
+            it('can be flagged', () => {
+                expect(canFlagReportAction(nonWhisperReportAction, report.reportID)).toBe(true);
+            });
+        });
+    });
+
+    // Note: shouldShowFlagComment() calls isArchivedNonExpenseReport() which has it's own unit tests, so whether
+    // the report is an expense report or not does not need to be tested here.
+    describe('shouldShowFlagComment', () => {
+        const validReportAction: ReportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+
+            // Actor is not the current user or Concierge
+            actorAccountID: 123456,
+        };
+
+        describe('can flag report action', () => {
+            let expenseReport: Report;
+            const reportActionThatCanBeFlagged: ReportAction = {
+                ...validReportAction,
+            };
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const reportActionThatCannotBeFlagged: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+
+                // If the actor is Concierge, the report action cannot be flagged
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                expenseReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, null);
+            });
+
+            it('should return true for an archived expense report with an action that can be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCanBeFlagged, expenseReport, true)).toBe(true);
+            });
+
+            it('should return true for a non-archived expense report with an action that can be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCanBeFlagged, expenseReport, false)).toBe(true);
+            });
+
+            it('should return false for an archived expense report with an action that cannot be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCannotBeFlagged, expenseReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived expense report with an action that cannot be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCannotBeFlagged, expenseReport, false)).toBe(false);
+            });
+        });
+
+        describe('Chat with Chronos', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CHRONOS]),
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return false for an archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Chat with Concierge', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, chatReport.reportID);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, null);
+            });
+
+            it('should return false for an archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Action from Concierge', () => {
+            let chatReport: Report;
+            const actionFromConcierge: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return false for an archived chat report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived chat report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
+            });
         });
     });
 });

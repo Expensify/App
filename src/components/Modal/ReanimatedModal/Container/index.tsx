@@ -1,47 +1,48 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Easing, Keyframe, runOnJS} from 'react-native-reanimated';
+import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
+import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import GestureHandler from './GestureHandler';
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
-
-function Container({style, animationInTiming = 300, animationOutTiming = 300, onCloseCallBack, onOpenCallBack, type, ...props}: Partial<ReanimatedModalProps> & ContainerProps) {
+function Container({
+    style,
+    animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
+    animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    onCloseCallBack,
+    onOpenCallBack,
+    animationIn,
+    animationOut,
+    type,
+    onSwipeComplete,
+    swipeDirection,
+    swipeThreshold = 100,
+    ...props
+}: Partial<ReanimatedModalProps> & ContainerProps) {
     const styles = useThemeStyles();
 
     const Entering = useMemo(() => {
-        const SlideIn = new Keyframe({
-            from: {transform: [{translateY: '100%'}]},
-            to: {
-                transform: [{translateY: '0%'}],
-                easing,
-            },
-        });
+        const AnimationIn = new Keyframe(getModalInAnimation(animationIn));
 
-        return SlideIn.duration(animationInTiming).withCallback(() => {
+        return AnimationIn.duration(animationInTiming).withCallback(() => {
             'worklet';
 
             runOnJS(onOpenCallBack)();
         });
-    }, [animationInTiming, onOpenCallBack]);
+    }, [animationIn, animationInTiming, onOpenCallBack]);
 
     const Exiting = useMemo(() => {
-        const SlideOut = new Keyframe({
-            from: {transform: [{translateY: '0%'}]},
-            to: {
-                transform: [{translateY: '100%'}],
-                easing,
-            },
-        });
+        const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
 
-        return SlideOut.duration(animationOutTiming).withCallback(() => {
+        return AnimationOut.duration(animationOutTiming).withCallback(() => {
             'worklet';
 
             runOnJS(onCloseCallBack)();
         });
-    }, [animationOutTiming, onCloseCallBack]);
+    }, [animationOutTiming, onCloseCallBack, animationOut]);
 
     return (
         <View
@@ -49,13 +50,19 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <Animated.View
-                style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && styles.flex1]}
-                entering={Entering}
-                exiting={Exiting}
+            <GestureHandler
+                swipeThreshold={swipeThreshold}
+                swipeDirection={swipeDirection}
+                onSwipeComplete={onSwipeComplete}
             >
-                {props.children}
-            </Animated.View>
+                <Animated.View
+                    style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && styles.flex1]}
+                    entering={Entering}
+                    exiting={Exiting}
+                >
+                    {props.children}
+                </Animated.View>
+            </GestureHandler>
         </View>
     );
 }
