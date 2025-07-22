@@ -1842,8 +1842,8 @@ function pushTransactionViolationsOnyxData(
     policyTagLists: PolicyTagLists,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     policyUpdate: Partial<Policy>,
-    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>>,
-    policyTagListsUpdate: Record<string, Partial<PolicyTagList>>,
+    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
     if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate) && isEmptyObject(policyTagListsUpdate)) {
         return;
