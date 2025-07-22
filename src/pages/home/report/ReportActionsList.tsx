@@ -173,6 +173,7 @@ function ReportActionsList({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -387,9 +388,19 @@ function ReportActionsList({
         if (linkedReportActionID) {
             return;
         }
+
+        const shouldScrollToEnd = isExpenseReport(report) && isSearchTopmostFullScreenRoute();
+
+        if (shouldScrollToEnd) {
+            setShouldScrollToEndAfterLayout(true);
+        }
+
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+
+            if (!shouldScrollToEnd) {
+                reportScrollManager.scrollToBottom();
+            }
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -639,8 +650,12 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
+            if (shouldScrollToEndAfterLayout) {
+                reportScrollManager.scrollToEnd();
+                setShouldScrollToEndAfterLayout(false);
+            }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager],
+        [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
