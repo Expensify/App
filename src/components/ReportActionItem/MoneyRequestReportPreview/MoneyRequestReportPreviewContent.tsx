@@ -639,16 +639,14 @@ function MoneyRequestReportPreviewContent({
                                                 {shouldShowEmptyPlaceholder ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                        <View style={[styles.flexRow, styles.alignItemsCenter, isIconNeeded && styles.gap1]}>
-                                                            <Text style={[styles.flex1, styles.alignItemsCenter, styles.lh16]}>{approvedOrSettledIcon}</Text>
-                                                            <Text
-                                                                style={[styles.textLabelSupporting, styles.lh16]}
-                                                                numberOfLines={1}
-                                                            >
-                                                                {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
-                                                            </Text>
-                                                        </View>
+                                                    <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter, isIconNeeded && styles.gap1]}>
+                                                        <Text style={[styles.alignItemsCenter, styles.lh16]}>{approvedOrSettledIcon}</Text>
+                                                        <Text
+                                                            style={[styles.textLabelSupporting, styles.lh16]}
+                                                            numberOfLines={1}
+                                                        >
+                                                            {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
+                                                        </Text>
                                                     </View>
                                                 )}
                                             </View>
