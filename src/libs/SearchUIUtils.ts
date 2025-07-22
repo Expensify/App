@@ -465,16 +465,18 @@ function getSuggestedSearchesVisibility(
     });
 
     return {
-        [CONST.SEARCH.SEARCH_LIST.EXPENSES]: true,
-        [CONST.SEARCH.SEARCH_LIST.REPORTS]: true,
-        [CONST.SEARCH.SEARCH_LIST.CHATS]: true,
-        [CONST.SEARCH.SEARCH_LIST.SUBMIT]: shouldShowSubmitSuggestion,
-        [CONST.SEARCH.SEARCH_LIST.PAY]: shouldShowPaySuggestion,
-        [CONST.SEARCH.SEARCH_LIST.APPROVE]: shouldShowApproveSuggestion,
-        [CONST.SEARCH.SEARCH_LIST.EXPORT]: shouldShowExportSuggestion,
-        [CONST.SEARCH.SEARCH_LIST.STATEMENTS]: shouldShowStatementsSuggestion,
-        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
-        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS]: showShowUnapprovedCompanyCardsSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
+        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
+        [CONST.SEARCH.SEARCH_KEYS.CHATS]: true,
+        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
+        // s77rt remove DEV lock
+        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion && isDevelopment(),
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
+        // s77rt remove DEV lock
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: showShowUnapprovedCompanyCardsSuggestion && isDevelopment(),
     };
 }
 
@@ -1736,8 +1738,7 @@ function createTypeMenuSections(
             });
         }
 
-        // s77rt remove DEV lock
-        if (accountingSection.menuItems.length > 0 && isDevelopment()) {
+        if (accountingSection.menuItems.length > 0) {
             typeMenuSections.push(accountingSection);
         }
     }
