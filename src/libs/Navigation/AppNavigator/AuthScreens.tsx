@@ -244,7 +244,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
-    const {initialURL} = useContext(InitialURLContext);
+    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -326,8 +326,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         });
                 } else {
                     const reportID = getReportIDFromLink(initialURL ?? null);
-                    if (reportID) {
+                    if (reportID && !isAuthenticatedAtStartup) {
                         Report.openReport(reportID);
+                        // Don't want to call `openReport` again when logging out and then logging in
+                        setIsAuthenticatedAtStartup(true);
                     }
                     App.openApp();
                 }

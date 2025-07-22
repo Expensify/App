@@ -3440,11 +3440,6 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            // Navigation for signed users is handled by react-navigation.
-                            if (isAuthenticated) {
-                                return;
-                            }
-
                             const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                                 // Check if the report exists in the collection
                                 const report = reportParam ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
