@@ -406,8 +406,10 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
     }
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+    const isNativePlatform = isAndroidNative || isIOSNative;
 
-    if (!isAndroidNative || 'size' in file) {
+    if (!isNativePlatform || 'size' in file) {
         return Promise.resolve(file);
     }
 
@@ -453,6 +455,7 @@ type TranslationAdditionalData = {
 const getFileValidationErrorText = (
     validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
     additionalData: TranslationAdditionalData = {},
+    isValidatingReceipt = false,
 ): {
     title: string;
     reason: string;
@@ -477,7 +480,11 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translateLocal('attachmentPicker.attachmentTooLarge'),
-                reason: translateLocal('attachmentPicker.sizeExceeded'),
+                reason: isValidatingReceipt
+                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
+                      })
+                    : translateLocal('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {

@@ -13,7 +13,7 @@ import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {UserPlus} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
@@ -130,6 +130,7 @@ function MoneyRequestParticipantsSelector(
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
+    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
@@ -191,7 +192,7 @@ function MoneyRequestParticipantsSelector(
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-                canShowManagerMcTest: !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT,
+                canShowManagerMcTest,
                 isPerDiemRequest,
                 showRBR: false,
             },
@@ -215,7 +216,7 @@ function MoneyRequestParticipantsSelector(
         options.reports,
         participants,
         isPerDiemRequest,
-        hasBeenAddedToNudgeMigration,
+        canShowManagerMcTest,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -580,7 +581,7 @@ function MoneyRequestParticipantsSelector(
         return (
             <>
                 {ClickableImportContactTextComponent}
-                <EmptySelectionListContent contentType={iouType} />;
+                <EmptySelectionListContent contentType={iouType} />
             </>
         );
     }, [iouType, ClickableImportContactTextComponent]);
@@ -615,6 +616,7 @@ function MoneyRequestParticipantsSelector(
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={onSelectRow}
                 shouldSingleExecuteRowSelect
+                canShowProductTrainingTooltip={canShowManagerMcTest}
                 headerContent={
                     <ImportContactButton
                         showImportContacts={showImportContacts}

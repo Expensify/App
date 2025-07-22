@@ -112,6 +112,28 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     return Onyx.multiSet(draftTransactionsSet);
 }
 
+function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
+    if (!transaction) {
+        return;
+    }
+
+    Onyx.update([
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: {
+                ...transaction,
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
+            value: null,
+        },
+    ]);
+}
+
 function removeTransactionReceipt(transactionID: string | undefined) {
     if (!transactionID) {
         return;
@@ -153,5 +175,6 @@ export {
     removeTransactionReceipt,
     removeDraftTransactions,
     removeDraftSplitTransaction,
+    replaceDefaultDraftTransaction,
     buildOptimisticTransactionAndCreateDraft,
 };

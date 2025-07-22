@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -10,12 +10,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// Wrapper component with OnyxProvider
+// Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
-        <OnyxProvider>
+        <OnyxListItemProvider>
             <LocaleContextProvider>{children}</LocaleContextProvider>
-        </OnyxProvider>
+        </OnyxListItemProvider>
     );
 }
 const CURRENT_USER_EMAIL = 'fake@gmail.com';
