@@ -1,6 +1,6 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-type PDFViewBaseProps = {
+type PDFViewProps = {
     /** URL to full-sized image */
     sourceURL: string;
 
@@ -32,9 +32,7 @@ type PDFViewBaseProps = {
     isUsedAsChatAttachment?: boolean;
 };
 
-type PDFViewProps = PDFViewBaseProps;
-
-type PDFViewNativeProps = PDFViewBaseProps & {
+type PDFViewNativeProps = PDFViewProps & {
     onPress?: (page: number, x: number, y: number) => void;
 };
 
