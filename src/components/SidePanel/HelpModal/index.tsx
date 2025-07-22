@@ -35,6 +35,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     // Close Side Panel on escape key press
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+    // Close Side Panel on debug key press i.e. opening the TestTools modal
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, () => closeSidePanel(), {shouldBubble: true});
 
     // Close Side Panel on small screens when navigation keyboard shortcuts are used
