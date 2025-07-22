@@ -133,7 +133,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         };
     }, [listData, translate]);
 
-    // In the component
     const selectUser = useCallback(
         (option: Option) => {
             const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
