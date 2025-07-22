@@ -43,6 +43,10 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
                 .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT),
     });
 
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {
+        canBeMissing: true,
+    });
+
     // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
     // We have to do it this way because there can be a case when actions are not available
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
@@ -62,7 +66,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1 && isDM(chatReport);
+    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1 && (chatReport ? isDM(chatReport) : policy?.type === CONST.POLICY.TYPE.PERSONAL);
     const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
 
     return areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;

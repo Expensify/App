@@ -712,23 +712,22 @@ function MenuItem(
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                                                    {iconReportID ||
-                                                        (iconAccountID !== undefined && (
-                                                            <ReportAvatar
-                                                                subscriptBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
-                                                                isHovered={isHovered}
-                                                                isPressed={pressed}
-                                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                                                                size={avatarSize}
-                                                                secondAvatarStyle={[
-                                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                                    pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
-                                                                    isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
-                                                                ]}
-                                                                reportID={iconReportID}
-                                                                accountIDs={!!iconAccountID && Number(iconAccountID) > 0 ? [Number(iconAccountID)] : undefined}
-                                                            />
-                                                        ))}
+                                                    {(!!iconReportID || !!iconAccountID) && (
+                                                        <ReportAvatar
+                                                            subscriptBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            isHovered={isHovered}
+                                                            isPressed={pressed}
+                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                                            size={avatarSize}
+                                                            secondAvatarStyle={[
+                                                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                                pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
+                                                                isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
+                                                            ]}
+                                                            reportID={iconReportID}
+                                                            accountIDs={!!iconAccountID && Number(iconAccountID) > 0 ? [Number(iconAccountID)] : undefined}
+                                                        />
+                                                    )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[

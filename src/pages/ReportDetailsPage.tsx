@@ -577,7 +577,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         subscriptAvatarSize={CONST.AVATAR_SIZE.HEADER}
                         singleAvatarSize={CONST.AVATAR_SIZE.X_LARGE}
                         size={CONST.AVATAR_SIZE.LARGE}
-                        reportID={moneyRequestReport?.reportID ?? report?.reportID}
+                        reportID={report?.reportID ?? moneyRequestReport?.reportID}
                     />
                 </View>
             );
