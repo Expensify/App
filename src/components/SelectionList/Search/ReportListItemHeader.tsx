@@ -1,34 +1,29 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem, ReportListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import ActionCell from './ActionCell';
-import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
+    report: TransactionReportGroupListItemType;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The section list item */
-    item: TItem;
 
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
@@ -39,9 +34,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is hovered */
-    isHovered?: boolean;
-
     /** Whether the item is focused */
     isFocused?: boolean;
 
@@ -51,13 +43,10 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
+    report: TransactionReportGroupListItemType;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The section list item */
-    item: TItem;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -81,7 +70,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 type ReportCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
-    reportItem: ReportListItemType;
+    reportItem: TransactionReportGroupListItemType;
 };
 
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
@@ -90,7 +79,11 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     let total = reportItem?.total ?? 0;
 
     if (total) {
-        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+        if (reportItem?.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total ?? 0);
+        } else {
+            total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+        }
     }
 
     return (
@@ -102,10 +95,9 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function FirstHeaderRow<TItem extends ListItem>({
+function HeaderFirstRow<TItem extends ListItem>({
     policy,
-    report: moneyRequestReport,
-    item,
+    report: reportItem,
     onCheckboxPress,
     isDisabled,
     canSelectMultiple,
@@ -115,25 +107,24 @@ function FirstHeaderRow<TItem extends ListItem>({
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const reportItem = item as unknown as ReportListItemType;
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={() => onCheckboxPress?.(item)}
-                        isChecked={item.isSelected}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                        disabled={!!isDisabled || item.isDisabledCheckbox}
-                        accessibilityLabel={item.text ?? ''}
+                        onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                        isChecked={reportItem.isSelected}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled)]}
+                        disabled={!!isDisabled || reportItem.isDisabledCheckbox}
+                        accessibilityLabel={reportItem.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
                     />
                 )}
-                <View style={{flexShrink: 1, flexGrow: 1, minWidth: 0}}>
+                <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
                     <ReportSearchHeader
-                        report={moneyRequestReport}
+                        report={reportItem}
                         policy={policy}
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
@@ -153,7 +144,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                     <ActionCell
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
-                        isSelected={item.isSelected}
+                        isSelected={reportItem.isSelected}
                         isLoading={reportItem.isActionLoading}
                     />
                 </View>
@@ -164,91 +155,47 @@ function FirstHeaderRow<TItem extends ListItem>({
 
 function ReportListItemHeader<TItem extends ListItem>({
     policy,
-    report: moneyRequestReport,
-    item,
+    report: reportItem,
     onSelectRow,
     onCheckboxPress,
     isDisabled,
-    isHovered,
     isFocused,
     canSelectMultiple,
 }: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const reportItem = item as unknown as ReportListItemType;
-    const {currentSearchHash} = useSearchContext();
-    const {translate} = useLocalize();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
-    const showArrowComponent = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-    const participantToDisplayName = useMemo(
-        () => reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden'),
-        [reportItem?.to?.displayName, reportItem?.to?.login, translate],
-    );
-    const shouldShowToRecipient = useMemo(
-        () => thereIsFromAndTo && !!reportItem?.to?.accountID && reportItem?.from?.accountID !== reportItem?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName),
-        [thereIsFromAndTo, reportItem?.from?.accountID, reportItem?.to?.accountID, participantToDisplayName],
-    );
+    const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
+
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
     };
     return !isLargeScreenWidth ? (
         <View>
-            <FirstHeaderRow
-                item={item}
-                report={moneyRequestReport}
+            <HeaderFirstRow
+                report={reportItem}
                 policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 avatarBorderColor={avatarBorderColor}
             />
-            <View
-                style={[
-                    styles.pt0,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    showArrowComponent ? styles.justifyContentBetween : styles.justifyContentEnd,
-                    styles.pr3,
-                    styles.pl3,
-                    styles.gap2,
-                ]}
-            >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    {showArrowComponent && (
-                        <UserInfoCellsWithArrow
-                            shouldShowToRecipient={shouldShowToRecipient}
-                            participantFrom={reportItem?.from}
-                            participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
-                            participantToDisplayName={participantToDisplayName}
-                            participantTo={reportItem?.to}
-                            avatarSize="mid-subscript"
-                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                            infoCellsAvatarStyle={styles.pr1}
-                            fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
-                        />
-                    )}
-                </View>
-                <View>
-                    <ActionCell
-                        action={reportItem.action}
-                        goToItem={handleOnButtonPress}
-                        isSelected={item.isSelected}
-                        isLoading={reportItem.isActionLoading}
-                    />
-                </View>
-            </View>
+            <UserInfoAndActionButtonRow
+                item={reportItem}
+                handleActionButtonPress={handleOnButtonPress}
+                shouldShowUserInfo={showUserInfo}
+            />
         </View>
     ) : (
         <View>
-            <FirstHeaderRow
-                item={item}
-                report={moneyRequestReport}
+            <HeaderFirstRow
+                report={reportItem}
                 policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
@@ -257,7 +204,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
             />
-            <View style={[styles.mr3, styles.ml3, styles.pv2]}>
+            <View style={[styles.pv2, styles.ph3]}>
                 <View style={[styles.borderBottom]} />
             </View>
         </View>

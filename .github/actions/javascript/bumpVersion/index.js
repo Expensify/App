@@ -3404,8 +3404,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const bumpVersion_1 = __importDefault(__nccwpck_require__(3891));
 const versionUpdater = __importStar(__nccwpck_require__(8982));
+const bumpVersion_1 = __importDefault(__nccwpck_require__(3891));
 async function run() {
     try {
         const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });

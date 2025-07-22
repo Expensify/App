@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import Avatar from '@components/Avatar';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';

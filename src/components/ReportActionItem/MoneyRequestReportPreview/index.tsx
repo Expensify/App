@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,11 +22,12 @@ import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
+    allReports,
+    policies,
     iouReportID,
     policyID,
     chatReportID,
     action,
-    containerStyles,
     contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
@@ -41,31 +41,55 @@ function MoneyRequestReportPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
-    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) =>
-            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
-        canBeMissing: true,
-    });
+    const personalDetailsList = usePersonalDetails();
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const invoiceReceiverPolicy =
+        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
+    const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState(256);
-    const [currentWrapperWidth, setCurrentWrapperWidth] = useState(256);
-    const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, currentWrapperWidth, transactions.length === 1),
-        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
+
+    const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
+    const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
+
+    const updateWidths = useCallback(() => {
+        const {currentWidth, currentWrapperWidth} = widthsRef.current;
+
+        if (currentWidth && currentWrapperWidth) {
+            setWidths({currentWidth, currentWrapperWidth});
+        }
+    }, []);
+
+    const onCarouselLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWidth !== newWidth) {
+                widthsRef.current.currentWidth = newWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
+    const onWrapperLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWrapperWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
+                widthsRef.current.currentWrapperWidth = newWrapperWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
     );
 
-    const shouldShowIOUData = useMemo(() => {
+    const reportPreviewStyles = useMemo(
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
+    );
+    const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;
         }
@@ -86,6 +110,7 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
+            allReports={allReports}
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
@@ -96,13 +121,13 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
-            shouldShowIOUData={shouldShowIOUData}
+            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
         />
     );
 
@@ -113,7 +138,7 @@ function MoneyRequestReportPreview({
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}
-            containerStyles={[reportPreviewStyles.componentStyle, containerStyles]}
+            containerStyles={[reportPreviewStyles.componentStyle]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
@@ -126,15 +151,10 @@ function MoneyRequestReportPreview({
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
-            isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
-            onCarouselLayout={(e: LayoutChangeEvent) => {
-                setCurrentWidth(e.nativeEvent.layout.width ?? 255);
-            }}
-            onWrapperLayout={(e: LayoutChangeEvent) => {
-                setCurrentWrapperWidth(e.nativeEvent.layout.width ?? 255);
-            }}
-            currentWidth={currentWidth}
+            onCarouselLayout={onCarouselLayout}
+            onWrapperLayout={onWrapperLayout}
+            currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}

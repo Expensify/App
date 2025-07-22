@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -65,6 +66,7 @@ type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSear
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
+type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -76,17 +78,19 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
+    currentSearchKey: SuggestedSearchKey | undefined;
     setCurrentSearchHash: (hash: number) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
         (clearIDs: true, unused?: undefined): void;
     };
+    removeTransaction: (transactionID: string | undefined) => void;
     shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
@@ -122,7 +126,6 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
@@ -141,7 +144,7 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     filters: ASTNode;
-    policyID?: string;
+    policyID?: string[];
 };
 
 type SearchQueryJSON = {
@@ -198,4 +201,5 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SingularSearchStatus,
+    SearchDatePreset,
 };

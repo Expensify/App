@@ -8,7 +8,6 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
-import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -20,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -153,45 +153,68 @@ function AttachmentPicker({
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    const targetAsset = response.assets?.[0];
-                    const targetAssetUri = targetAsset?.uri;
-
-                    if (!targetAssetUri) {
+                    const assets = response.assets;
+                    if (!assets || assets.length === 0) {
                         return resolve();
                     }
 
-                    if (targetAsset?.type?.startsWith('image')) {
-                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
-                            .then((isHEIC) => {
-                                // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                if (isHEIC && targetAssetUri) {
-                                    ImageManipulator.manipulate(targetAssetUri)
-                                        .renderAsync()
-                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                        .then((manipulationResult) => {
-                                            const uri = manipulationResult.uri;
-                                            const convertedAsset = {
-                                                uri,
-                                                name: uri
-                                                    .substring(uri.lastIndexOf('/') + 1)
-                                                    .split('?')
-                                                    .at(0),
-                                                type: 'image/jpeg',
-                                                width: manipulationResult.width,
-                                                height: manipulationResult.height,
-                                            };
+                    const processedAssets: Asset[] = [];
+                    let processedCount = 0;
 
-                                            return resolve([convertedAsset]);
-                                        })
-                                        .catch((err) => reject(err));
-                                } else {
-                                    return resolve(response.assets);
-                                }
-                            })
-                            .catch((err) => reject(err));
-                    } else {
-                        return resolve(response.assets);
-                    }
+                    const checkAllProcessed = () => {
+                        processedCount++;
+                        if (processedCount === assets.length) {
+                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
+                        }
+                    };
+
+                    assets.forEach((asset) => {
+                        if (!asset.uri) {
+                            checkAllProcessed();
+                            return;
+                        }
+
+                        if (asset.type?.startsWith('image')) {
+                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
+                                .then((isHEIC) => {
+                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                                    if (isHEIC && asset.uri) {
+                                        ImageManipulator.manipulate(asset.uri)
+                                            .renderAsync()
+                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
+                                            .then((manipulationResult) => {
+                                                const uri = manipulationResult.uri;
+                                                const convertedAsset = {
+                                                    uri,
+                                                    name: uri
+                                                        .substring(uri.lastIndexOf('/') + 1)
+                                                        .split('?')
+                                                        .at(0),
+                                                    type: 'image/jpeg',
+                                                    width: manipulationResult.width,
+                                                    height: manipulationResult.height,
+                                                };
+                                                processedAssets.push(convertedAsset);
+                                                checkAllProcessed();
+                                            })
+                                            .catch((error: Error) => {
+                                                showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                                checkAllProcessed();
+                                            });
+                                    } else {
+                                        processedAssets.push(asset);
+                                        checkAllProcessed();
+                                    }
+                                })
+                                .catch((error: Error) => {
+                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                    checkAllProcessed();
+                                });
+                        } else {
+                            processedAssets.push(asset);
+                            checkAllProcessed();
+                        }
+                    });
                 });
             }),
         [fileLimit, showGeneralAlert, type],
@@ -287,42 +310,20 @@ function AttachmentPicker({
         setIsVisible(false);
     };
 
-    const validateAndCompleteAttachmentSelection = useCallback(
-        (fileData: FileResponse) => {
-            // Check if the file dimensions indicate corruption
-            // The width/height for a corrupted file is -1 on android native and 0 on ios native
-            // We must check only numeric values because the width/height can be undefined for non-image files
-            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current([result]);
-                })
-                .catch((error: Error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
-                });
-        },
-        [showGeneralAlert, showImageCorruptionAlert],
-    );
-
     /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void[]> | undefined => {
+        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
-                return Promise.resolve([]);
+                return Promise.resolve();
             }
 
             const filesToProcess = attachments.map((fileData) => {
                 if (!fileData) {
-                    onCanceled.current();
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -345,20 +346,10 @@ function AttachmentPicker({
                             fileDataObject.height = height;
                             return fileDataObject;
                         })
-                        .then((file) => {
-                            return getDataForUpload(file)
-                                .then((result) => completeAttachmentSelection.current([result]))
-                                .catch((error) => {
-                                    if (error instanceof Error) {
-                                        showGeneralAlert(error.message);
-                                    } else {
-                                        showGeneralAlert('An unknown error occurred');
-                                    }
-                                    throw error;
-                                });
-                        })
+                        .then((file) => getDataForUpload(file))
                         .catch(() => {
                             showImageCorruptionAlert();
+                            return null;
                         });
                 }
 
@@ -370,21 +361,41 @@ function AttachmentPicker({
 
                             if (fileDataObject.width <= 0 || fileDataObject.height <= 0) {
                                 showImageCorruptionAlert();
-                                return Promise.resolve(); // Skip processing this corrupted file
+                                return null;
                             }
 
-                            return validateAndCompleteAttachmentSelection(fileDataObject);
+                            return getDataForUpload(fileDataObject);
                         })
                         .catch(() => {
                             showImageCorruptionAlert();
+                            return null;
                         });
                 }
-                return validateAndCompleteAttachmentSelection(fileDataObject);
+
+                return getDataForUpload(fileDataObject).catch((error: Error) => {
+                    showGeneralAlert(error.message);
+                    return null;
+                });
             });
 
-            return Promise.all(filesToProcess);
+            return Promise.all(filesToProcess)
+                .then((results) => {
+                    const validResults = results.filter((result): result is FileObject => result !== null);
+                    if (validResults.length > 0) {
+                        completeAttachmentSelection.current(validResults);
+                    } else {
+                        onCanceled.current();
+                    }
+                })
+                .catch((error) => {
+                    if (error instanceof Error) {
+                        showGeneralAlert(error.message);
+                    } else {
+                        showGeneralAlert('An unknown error occurred');
+                    }
+                });
         },
-        [shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
+        [shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**

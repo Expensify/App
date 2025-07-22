@@ -610,6 +610,9 @@ type XeroExportConfig = {
 
     /** TODO: Will be handled in another issue */
     reimbursable: ExpenseTypesValues;
+
+    /** The accounting Method for Xero connection config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1433,7 +1436,7 @@ type ACHAccount = {
 };
 
 /** Prohibited expense types */
-type ProhibitedExpenses = {
+type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the policy prohibits alcohol expenses */
     alcohol?: boolean;
 
@@ -1448,7 +1451,7 @@ type ProhibitedExpenses = {
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
-};
+}>;
 
 /** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -1681,6 +1684,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+        /** The set reimburser for the policy */
+        reimburser?: string;
+
+        /** The set exporter for the policy */
+        exporter?: string;
 
         /** Detailed settings for the autoReimbursement */
         autoReimbursement?: OnyxCommon.OnyxValueWithOfflineFeedback<

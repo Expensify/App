@@ -1,21 +1,22 @@
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as XLSX from 'xlsx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
+import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
-import type {FileObject} from './AttachmentModal';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
@@ -24,6 +25,7 @@ import FilePicker from './FilePicker';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
@@ -38,7 +40,7 @@ type ImportSpreadsheetProps = {
 function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isReadingFile, setIsReadingFIle] = useState(false);
+    const [isReadingFile, setIsReadingFile] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
@@ -93,14 +95,14 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
             if (shouldReadAsText) {
                 return fetch(fileURI)
                     .then((data) => {
-                        setIsReadingFIle(true);
+                        setIsReadingFile(true);
                         return data.text();
                     })
                     .then((text) => XLSX.read(text, {type: 'string'}));
             }
             return fetch(fileURI)
                 .then((data) => {
-                    setIsReadingFIle(true);
+                    setIsReadingFile(true);
                     return data.arrayBuffer();
                 })
                 .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
@@ -110,7 +112,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-                setSpreadsheetData(formattedSpreadsheetData, fileURI, spreadsheet?.isImportingMultiLevelTags ?? false)
+                setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, spreadsheet?.isImportingMultiLevelTags ?? false)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
@@ -119,9 +121,23 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                     });
             })
             .finally(() => {
-                setIsReadingFIle(false);
+                setIsReadingFile(false);
             });
     };
+
+    const getTextForImportModal = () => {
+        let text = '';
+        if (spreadsheet?.isImportingMultiLevelTags) {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
+        } else {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
+        }
+        return text;
+    };
+
+    const acceptableFileTypes = spreadsheet?.isImportingMultiLevelTags
+        ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')
+        : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 
     const desktopView = (
         <>
@@ -139,12 +155,12 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
+                <Text style={[styles.textFileUpload, styles.mb1]}>{spreadsheet?.isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
                 <Text style={[styles.subTextFileUpload, styles.textSupporting]}>
-                    {isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop')}
+                    <RenderHTML html={getTextForImportModal()} />
                 </Text>
             </View>
-            <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
+            <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
                         success
@@ -182,7 +198,12 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.goBack(backTo)}
+                            onBackButtonPress={() => {
+                                if (spreadsheet?.isImportingMultiLevelTags) {
+                                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                                }
+                                Navigation.goBack(backTo);
+                            }}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>

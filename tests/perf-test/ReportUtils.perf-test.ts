@@ -20,11 +20,12 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -88,10 +89,11 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
+        const transaction = createRandomTransaction(1);
         const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -160,10 +162,9 @@ describe('ReportUtils', () => {
         const currentReportId = '2';
         const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
-        const policies = getMockedPolicies();
 
         await waitForBatchedUpdates();
-        await measureFunction(() => shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}));
+        await measureFunction(() => shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false}));
     });
 
     test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {

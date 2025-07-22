@@ -104,7 +104,7 @@ You can flag rule violations for:
 4. Set custom report names for consistency.
 5. Set the workspace **default currency** under **Settings > Workspace > [Workspace Name] > Overview > Default currency**.
 6. Go to **Settings > Workspace > [Workspace Name] > Workflows** to configure:
-   - **Delayed submission** – Auto-submit based on a set schedule.
+   - **Delay submission** – Auto-submit based on a set schedule.
 7. Go to **Settings > Workspace > [Workspace Name] > Report fields** to customize reports or invoices.
 8. Click the **Travel** tab to define flight class or hotel preferences.
 9. Use the **Per diem** tab to import location-specific expense rules.

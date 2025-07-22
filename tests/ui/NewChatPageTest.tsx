@@ -4,7 +4,7 @@ import React from 'react';
 import {SectionList} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {translateLocal} from '@libs/Localize';
@@ -20,13 +20,13 @@ jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
-    <OnyxProvider>
+    <OnyxListItemProvider>
         <LocaleContextProvider>
             <OptionsListContextProvider>
                 <ScreenWrapper testID="test">{children}</ScreenWrapper>
             </OptionsListContextProvider>
         </LocaleContextProvider>
-    </OnyxProvider>
+    </OnyxListItemProvider>
 );
 
 describe('NewChatPage', () => {
@@ -47,7 +47,7 @@ describe('NewChatPage', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
-        await act(() => {
+        act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
@@ -72,7 +72,7 @@ describe('NewChatPage', () => {
             // And NewChatPage is opened
             render(<NewChatPage />, {wrapper});
             await waitForBatchedUpdatesWithAct();
-            await act(() => {
+            act(() => {
                 (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
             });
 

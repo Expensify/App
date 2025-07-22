@@ -1,4 +1,4 @@
-import {PUBLIC_DOMAINS, Str} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ function appendCountryCode(phone: string): string {
  */
 function isEmailPublicDomain(email: string): boolean {
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    return (PUBLIC_DOMAINS as readonly string[]).includes(emailDomain);
+    return PUBLIC_DOMAINS_SET.has(emailDomain);
 }
 
 /**

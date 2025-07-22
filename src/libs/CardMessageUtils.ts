@@ -5,7 +5,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction, WorkspaceCardsList} from '@src/types/onyx';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from './PolicyUtils';
-import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
+import {getOriginalMessage, isCardIssuedAction} from './ReportActionsUtils';
 
 let allUserCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -29,19 +29,13 @@ Onyx.connect({
 });
 
 function getExpensifyCardFromReportAction({reportAction, policyID}: {reportAction?: ReportAction; policyID?: string}): Card | undefined {
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(reportAction)
-        : undefined;
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const allExpensifyCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     return isPolicyAdmin(getPolicy(policyID)) ? allExpensifyCards?.[cardID] : allUserCards[cardID];
 }
 

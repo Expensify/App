@@ -1,16 +1,13 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -19,10 +16,12 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,22 +37,24 @@ import {
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {hasVBBA} from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
@@ -67,29 +68,24 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-    // TODO: to be refactored in step 3
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const {q} = route.params;
-
-    const {isBetaEnabled} = usePermissions();
-
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -102,38 +98,16 @@ function SearchPage({route}: SearchPageProps) {
 
         setLastSearchType(currentSearchResults.search.type);
         if (currentSearchResults.data) {
-            setLastNonEmptySearchResults(currentSearchResults);
+            lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    // TODO: to be refactored in step 3
-    /**
-     * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     */
-    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
-        setPdfFile(null);
-    };
-
-    // TODO: to be refactored in step 3
-    const getConfirmModalPrompt = () => {
-        if (!attachmentInvalidReason) {
-            return '';
-        }
-        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-        }
-        return translate(attachmentInvalidReason);
-    };
-
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
-            return [];
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
@@ -408,55 +382,71 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
-    // TODO: to be refactored in step 3
-    const hideReceiptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
-
-    // TODO: to be refactored in step 3
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
-            if (!isFileValid) {
-                return;
-            }
-
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                setPdfFile(originalFile);
-                return;
-            }
-
-            // With the image size > 24MB, we use manipulateAsync to resize the image.
-            // It takes a long time so we should display a loading indicator while the resize image progresses.
-            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsLoadingReceipt(true);
-            }
-            resizeImageIfNeeded(originalFile).then((resizedFile) => {
-                setIsLoadingReceipt(false);
-                // Store the receipt on the transaction object in Onyx
-                const source = URL.createObjectURL(resizedFile as Blob);
-                const newReportID = generateReportID();
-                initMoneyRequest({
-                    reportID: newReportID,
-                    newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                });
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
-                navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
-            });
+    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        const newReportID = generateReportID();
+        const initialTransaction = initMoneyRequest({
+            isFromGlobalCreate: true,
+            reportID: newReportID,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
         });
-    };
 
-    const initScanRequest = (e: DragEvent) => {
-        const file = e?.dataTransfer?.files[0];
-        if (file) {
-            file.uri = URL.createObjectURL(file);
-            setReceiptAndNavigate(file);
+        const newReceiptFiles: ReceiptFile[] = [];
+
+        files.forEach((file, index) => {
+            const source = URL.createObjectURL(file as Blob);
+            const transaction =
+                index === 0
+                    ? (initialTransaction as Partial<Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID: newReportID,
+                      });
+            const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+            newReceiptFiles.push({
+                file,
+                source,
+                transactionID,
+            });
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
+        });
+
+        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
+            Promise.all(setParticipantsPromises).then(() =>
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        CONST.IOU.TYPE.SUBMIT,
+                        initialTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        activePolicyExpenseChat?.reportID,
+                    ),
+                ),
+            );
+        } else {
+            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
         }
     };
 
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+
+    const initScanRequest = (e: DragEvent) => {
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+
+        if (files.length === 0) {
+            return;
+        }
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+        });
+
+        validateFiles(files);
+    };
+
     const createExportAll = useCallback(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return [];
         }
 
@@ -474,25 +464,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
-
-    // TODO: to be refactored in step 3
-    const PDFThumbnailView = pdfFile ? (
-        <PDFThumbnail
-            style={styles.invisiblePDF}
-            previewSourceURL={pdfFile.uri ?? ''}
-            onLoadSuccess={() => {
-                setPdfFile(null);
-                setReceiptAndNavigate(pdfFile, true);
-            }}
-            onPassword={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-            }}
-            onLoadError={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            }}
-        />
-    ) : null;
+    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults.current;
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -524,13 +496,27 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <SearchPageNarrow
-                    queryJSON={queryJSON}
-                    headerButtonsOptions={headerButtonsOptions}
-                    lastNonEmptySearchResults={lastNonEmptySearchResults}
-                    currentSearchResults={currentSearchResults}
-                />
-                {!!selectionMode && selectionMode?.isEnabled && (
+                <DragAndDropProvider>
+                    {PDFValidationComponent}
+                    <SearchPageNarrow
+                        queryJSON={queryJSON}
+                        headerButtonsOptions={headerButtonsOptions}
+                        searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    />
+                    <DragAndDropConsumer onDrop={initScanRequest}>
+                        <DropZoneUI
+                            icon={Expensicons.SmartScan}
+                            dropTitle={translate('dropzone.scanReceipts')}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTextStyles={styles.receiptDropText}
+                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                        />
+                    </DragAndDropConsumer>
+                    {ErrorModal}
+                </DragAndDropProvider>
+                {isMobileSelectionModeEnabled && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
@@ -587,44 +573,38 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                            <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
-                                {PDFThumbnailView}
+                            <DragAndDropProvider>
+                                {PDFValidationComponent}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <SearchFiltersBar
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <Search
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
-                                    currentSearchResults={currentSearchResults}
-                                    lastNonEmptySearchResults={lastNonEmptySearchResults}
+                                    searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
                                     handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
-                                <DropZoneUI
-                                    onDrop={initScanRequest}
-                                    icon={Expensicons.SmartScan}
-                                    dropTitle={translate('dropzone.scanReceipts')}
-                                    dropStyles={styles.receiptDropOverlay}
-                                    dropTextStyles={styles.receiptDropText}
-                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                                />
+                                <DragAndDropConsumer onDrop={initScanRequest}>
+                                    <DropZoneUI
+                                        icon={Expensicons.SmartScan}
+                                        dropTitle={translate('dropzone.scanReceipts')}
+                                        dropStyles={styles.receiptDropOverlay(true)}
+                                        dropTextStyles={styles.receiptDropText}
+                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                                    />
+                                </DragAndDropConsumer>
                             </DragAndDropProvider>
                         </ScreenWrapper>
-                        <ConfirmModal
-                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideReceiptModal}
-                            onCancel={hideReceiptModal}
-                            isVisible={isAttachmentInvalid}
-                            prompt={getConfirmModalPrompt()}
-                            confirmText={translate('common.close')}
-                            shouldShowCancelButton={false}
-                        />
+                        {ErrorModal}
                     </View>
                 )}
                 <ConfirmModal

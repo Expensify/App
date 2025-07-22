@@ -50,7 +50,17 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             rbr: HTMLElementModel.fromCustomModel({
                 tagName: 'rbr',
-                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.formError, ...styles.mb0};
+                    }
+                    return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
+            'muted-link': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-link',
+                mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
                 contentModel: HTMLContentModel.block,
             }),
             'muted-text': HTMLElementModel.fromCustomModel({
@@ -84,6 +94,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     }
                     return {whiteSpace: 'normal', ...styles.onlyEmojisText};
                 },
+                contentModel: HTMLContentModel.block,
+            }),
+            tooltip: HTMLElementModel.fromCustomModel({
+                tagName: 'tooltip',
+                mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
@@ -134,22 +149,25 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
         }),
         [
+            styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
             styles.colorMuted,
+            styles.mutedNormalTextLabel,
+            styles.productTrainingTooltipText,
             styles.textLabelSupporting,
             styles.lh16,
             styles.textSupporting,
             styles.textLineThrough,
-            styles.mutedNormalTextLabel,
+            styles.textMicro,
             styles.onlyEmojisText,
-            styles.onlyEmojisTextLineHeight,
-            styles.taskTitleMenuItem,
+            styles.strong,
             styles.taskTitleMenuItemItalic,
             styles.em,
-            styles.strong,
             styles.h1,
             styles.blockquote,
+            styles.onlyEmojisTextLineHeight,
+            styles.subTextFileUpload,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

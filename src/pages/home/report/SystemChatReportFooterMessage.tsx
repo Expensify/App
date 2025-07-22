@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -23,7 +23,9 @@ function SystemChatReportFooterMessage() {
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
-            ? PolicyUtils.getPolicy(activePolicyID)
+            ? // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+              // eslint-disable-next-line deprecation/deprecation
+              PolicyUtils.getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find(
                   (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
               );

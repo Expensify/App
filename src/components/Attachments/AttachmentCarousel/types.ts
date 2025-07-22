@@ -12,6 +12,9 @@ type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
     source: AttachmentSource;
 
+    /** The report currently being looked at */
+    report: Report;
+
     /** The id of the current active attachment */
     attachmentID?: string;
 
@@ -21,9 +24,6 @@ type AttachmentCarouselProps = {
     /** Function to change the download button Visibility */
     setDownloadButtonVisibility?: (isButtonVisible: boolean) => void;
 
-    /** The report currently being looked at */
-    report: Report;
-
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
@@ -31,7 +31,7 @@ type AttachmentCarouselProps = {
     accountID?: number;
 
     /** A callback that is called when swipe-down-to-close gesture happens */
-    onClose: () => void;
+    onClose?: () => void;
 
     attachmentLink?: string;
 

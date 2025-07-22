@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches-ignore: [staging, production]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -37,7 +38,7 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        uses: callstackincubator/ios@172a7f01cd8b19fdb5da9a984637d468eb6e0fad
+        uses: callstackincubator/ios@78ed46313dac4ed09cb5cc73b9b1b9193d59d863
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:

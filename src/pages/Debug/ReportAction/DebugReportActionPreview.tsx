@@ -1,7 +1,7 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ScrollView from '@components/ScrollView';
+import useOnyx from '@hooks/useOnyx';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -15,11 +15,15 @@ type DebugReportActionPreviewProps = {
 };
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     return (
         <ScrollView>
             <ReportActionItem
+                allReports={allReports}
+                policies={policies}
                 action={reportAction ?? ({} as ReportAction)}
                 report={report ?? ({} as Report)}
                 reportActions={[]}

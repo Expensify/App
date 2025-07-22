@@ -14,7 +14,7 @@ import type {OptionRowLHNDataProps} from './types';
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused = false,
+    isOptionFocused = false,
     fullReport,
     reportAttributes,
     oneTransactionThreadReport,
@@ -35,7 +35,7 @@ function OptionRowLHNData({
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
-    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
+    const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData | undefined>(undefined);
     const optionItem = useMemo(() => {
@@ -88,8 +88,9 @@ function OptionRowLHNData({
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isReportFocused}
+            isOptionFocused={isReportFocused}
             optionItem={optionItem}
+            report={fullReport}
         />
     );
 }

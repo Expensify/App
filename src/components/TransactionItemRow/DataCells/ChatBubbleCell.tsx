@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -19,7 +19,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
-function ChatBubbleCell({transaction, containerStyles}: {transaction: Transaction; containerStyles?: ViewStyle[]}) {
+function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -28,9 +28,15 @@ function ChatBubbleCell({transaction, containerStyles}: {transaction: Transactio
         canBeMissing: true,
     });
 
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
         canBeMissing: true,
     });
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`, {
+        canBeMissing: false,
+    });
+
+    const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
     const threadMessages = useMemo(
         () => ({
