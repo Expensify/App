@@ -4719,7 +4719,7 @@ function updateMoneyRequestTaxAmount(
 
 type UpdateMoneyRequestTaxRateParams = {
     transactionID: string;
-    optimisticReportActionID: string;
+    optimisticReportActionID: string | undefined;
     taxCode: string;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
