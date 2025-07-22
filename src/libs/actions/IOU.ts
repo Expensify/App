@@ -11540,11 +11540,11 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         return false;
     }
 
-    const submitQueryString = getTodoSearchQuery('submit', userAccountID);
+    const submitQueryString = getTodoSearchQuery(CONST.SEARCH.TODO_SEARCH_KEYS.SUBMIT, userAccountID);
 
     const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
 
-    const approveQueryString = getTodoSearchQuery('approve', userAccountID);
+    const approveQueryString = getTodoSearchQuery(CONST.SEARCH.TODO_SEARCH_KEYS.APPROVE, userAccountID);
     const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
 
     const validSearchTypes =
