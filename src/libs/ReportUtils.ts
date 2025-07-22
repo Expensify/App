@@ -2491,20 +2491,22 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  * Rules:
  * - **Admins**: reports that are in "Open" or "Processing" status
  * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
- * - **Approvers**: Expenses on Open or Processing reports
+ * - **Managers**: Expenses on Open or Processing reports
  *
  * @param reportID - The ID of the money request report to check for merge eligibility
  * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
- * @param isSubmitter - Whether the current user is the submitter of the target report
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean, isSubmitter: boolean): boolean {
+function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean): boolean {
     const report = getReportOrDraftReport(reportID);
 
     if (!isMoneyRequestReport(report)) {
         return false;
     }
+
+    const isManager = isReportManager(report);
+    const isSubmitter = isReportOwner(report);
 
     // Admins: return expenses on Open or Processing reports
     if (isAdmin) {
@@ -2516,8 +2518,8 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
         return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report));
     }
 
-    // Approvers: return expenses that haven’t been approved, on Processing reports assigned to them for approval
-    return isExpenseReport(report) && isProcessingReport(report) && isReportManager(report);
+    // Managers: return expenses that haven’t been approved, on Processing reports assigned to them for approval
+    return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
 /**

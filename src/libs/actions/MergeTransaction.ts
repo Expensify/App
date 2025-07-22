@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge} from '@libs/ReportUtils';
+import {getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,16 +59,28 @@ function getTransactionsForMergingLocally(
     const transactionsArray = Object.values(transactions ?? {});
     const targetTransaction = transactionsArray.find((transaction) => transaction?.transactionID === targetTransactionID);
     const isAdmin = isPolicyAdmin(policy, currentUserLogin);
-    const isSubmitter = isCurrentUserSubmitter(report);
+    const isManager = isReportManager(report);
 
-    const eligibleTransactions: Transaction[] = targetTransaction
-        ? transactionsArray.filter((transaction): transaction is Transaction => {
-              if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
-                  return false;
-              }
-              return areTransactionsEligibleForMerge(targetTransaction, transaction) && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin, isSubmitter);
-          })
-        : [];
+    let eligibleTransactions: Transaction[] = [];
+
+    // In phase 1:
+    // for managers and admins: we have decided to only return transaction from the target transaction report;
+    // for submitter: can see all transactions that you're also a submitter
+    if (!targetTransaction) {
+        eligibleTransactions = [];
+    } else if (isAdmin || isManager) {
+        const reportTransactions = getReportTransactions(report?.reportID);
+        eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
+            return areTransactionsEligibleForMerge(targetTransaction, transaction);
+        });
+    } else {
+        eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
+            if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
+                return false;
+            }
+            return areTransactionsEligibleForMerge(targetTransaction, transaction) && isMoneyRequestReportEligibleForMerge(transaction.reportID, false);
+        });
+    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransactionID}`, {
         eligibleTransactions,

@@ -525,10 +525,9 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return true;
     }
 
-    const isSubmitter = isCurrentUserSubmitter(parentReport);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin, isSubmitter);
+    return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
 function getSecondaryReportActions({
