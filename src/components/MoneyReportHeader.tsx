@@ -992,7 +992,7 @@ function MoneyReportHeader({
                 />
             </View>
         ),
-        <View style={styles.flexRow}>
+        <View style={[styles.flexRow, styles.containerWithSpaceBetween]}>
             <View style={styles.flexShrink1}>
                 {shouldShowNextStep && !!optimisticNextStep?.message?.length && (
                     <MoneyReportHeaderStatusBar
