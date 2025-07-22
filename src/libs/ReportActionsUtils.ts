@@ -1317,8 +1317,14 @@ function getOneTransactionThreadReportAction(
  * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
-    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-    return getOneTransactionThreadReportAction(...args)?.childReportID ?? CONST.FAKE_REPORT_ID;
+    const reportAction = getOneTransactionThreadReportAction(...args);
+
+    if (reportAction) {
+        // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
+        return reportAction.childReportID ?? CONST.FAKE_REPORT_ID;
+    }
+
+    return undefined;
 }
 
 /**
