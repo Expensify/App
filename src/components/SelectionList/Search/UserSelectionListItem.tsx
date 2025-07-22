@@ -31,7 +31,6 @@ function UserSelectionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
-    shouldAddCurrentUserPostfix,
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -61,9 +60,8 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            shouldAddCurrentUserPostfix,
         });
-    }, [item.accountID, shouldAddCurrentUserPostfix]);
+    }, [item.accountID]);
 
     return (
         <BaseListItem

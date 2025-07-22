@@ -115,7 +115,6 @@ function ShareDetailsPage({
                         undefined,
                         undefined,
                         undefined,
-                        undefined,
                     );
                 }
                 if (report.reportID) {

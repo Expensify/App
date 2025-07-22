@@ -270,7 +270,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    // wrapping in useMemo because this is array operation and can cause performance issues
+    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -300,14 +301,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
-    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
+    // wrapping in useMemo because this is array operation and can cause performance issues
+    const visibleTransactions = useMemo(
+        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        [reportTransactions, isOffline],
+    );
+    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
     });
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    // wrapping in useMemo to stabilize children re-rendering
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
@@ -478,7 +484,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -756,6 +762,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
     const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
 
+    // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
+    const showReportActionsLoadingState = useMemo(
+        () => reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions,
+        [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
+    );
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -833,7 +845,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
-                                        showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                                        showReportActionsLoadingState={showReportActionsLoadingState}
                                     />
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (

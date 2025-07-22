@@ -2,6 +2,7 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarouselView from './Attachments/AttachmentCarousel/AttachmentCarouselView';
@@ -57,9 +59,12 @@ type AttachmentComposerModalProps = {
 
     /** Should disable send button */
     shouldDisableSendButton: boolean;
+
+    /** The report currently being looked at */
+    report?: OnyxEntry<OnyxTypes.Report>;
 };
 
-function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide = () => {}, headerTitle, children, shouldDisableSendButton = false}: AttachmentComposerModalProps) {
+function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide = () => {}, headerTitle, children, shouldDisableSendButton = false, report}: AttachmentComposerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -284,6 +289,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                             setShouldShowArrows={setShouldShowArrows}
                             onAttachmentError={setAttachmentError}
                             shouldShowArrows={shouldShowArrows}
+                            report={report}
                         />
                     )}
                     <LayoutAnimationConfig skipEntering>

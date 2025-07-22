@@ -215,9 +215,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -375,9 +372,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
-
-    /** Whether to add the current user postfix to the display name */
-    shouldAddCurrentUserPostfix?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -398,8 +392,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
-    /** Whether to add the current user postfix to the display name */
-    shouldAddCurrentUserPostfix?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -471,6 +463,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    policies?: OnyxCollection<Policy>;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -481,6 +474,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
 };
 
 type ValidListItem =
@@ -827,9 +823,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
-
-    /** Whether to add the current user postfix to the display name */
-    shouldAddCurrentUserPostfix?: boolean;
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;

@@ -18,7 +18,7 @@ import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -27,14 +27,15 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -55,7 +56,6 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
@@ -139,6 +139,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -149,9 +150,6 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-
-    // TODO: remove beta check after the feature is enabled
-    const {isBetaEnabled} = usePermissions();
 
     /**
      * Updates the Highlight state of the composer
@@ -233,7 +231,7 @@ function ReportActionCompose({
 
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
@@ -585,13 +583,14 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
+                            report={report}
                         >
                             {({displayFilesInModal}) => {
                                 const handleAttachmentDrop = (event: DragEvent) => {
                                     if (isAttachmentPreviewActive) {
                                         return;
                                     }
-                                    if (isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+                                    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
                                         const files = Array.from(event.dataTransfer?.files).map((file) => {
                                             // eslint-disable-next-line no-param-reassign
                                             file.uri = URL.createObjectURL(file);
@@ -668,8 +667,7 @@ function ReportActionCompose({
                                             onValueChange={onValueChange}
                                             didHideComposerInput={didHideComposerInput}
                                         />
-                                        {/* TODO: remove beta check after the feature is enabled */}
-                                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && shouldDisplayDualDropZone && (
+                                        {shouldDisplayDualDropZone && (
                                             <DualDropZone
                                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
                                                 onAttachmentDrop={handleAttachmentDrop}
@@ -677,30 +675,16 @@ function ReportActionCompose({
                                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                                             />
                                         )}
-                                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
+                                        {!shouldDisplayDualDropZone && (
                                             <DragAndDropConsumer onDrop={handleAttachmentDrop}>
                                                 <DropZoneUI
                                                     icon={Expensicons.MessageInABottle}
                                                     dropTitle={translate('dropzone.addAttachments')}
                                                     dropStyles={styles.attachmentDropOverlay(true)}
                                                     dropTextStyles={styles.attachmentDropText}
-                                                    dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(true)}
+                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
                                                 />
                                             </DragAndDropConsumer>
-                                        )}
-                                        {!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (
-                                            <ReportDropUI
-                                                onDrop={(event: DragEvent) => {
-                                                    if (isAttachmentPreviewActive) {
-                                                        return;
-                                                    }
-                                                    const data = event.dataTransfer?.files[0];
-                                                    if (data) {
-                                                        data.uri = URL.createObjectURL(data);
-                                                        displayFilesInModal([data]);
-                                                    }
-                                                }}
-                                            />
                                         )}
                                     </>
                                 );

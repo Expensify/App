@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import Onyx from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
@@ -15,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionOrDraftTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {removeDraftTransaction, removeTransactionReceipt, updateDraftTransactions} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -77,24 +76,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
 
                 const secondTransactionID = receipts.at(1)?.transactionID;
                 const secondTransaction = secondTransactionID ? getTransactionOrDraftTransaction(secondTransactionID) : undefined;
-
-                if (secondTransaction) {
-                    updateDraftTransactions([
-                        {
-                            onyxMethod: Onyx.METHOD.SET,
-                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-                            value: {
-                                ...secondTransaction,
-                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                            },
-                        },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`,
-                            value: null,
-                        },
-                    ]);
-                }
+                replaceDefaultDraftTransaction(secondTransaction);
                 return;
             }
             removeDraftTransaction(currentReceipt.transactionID);
