@@ -2193,6 +2193,11 @@ const translations = {
             title: 'Você usa algum software de contabilidade?',
             none: 'Nenhum',
         },
+        interestedFeatures: {
+            title: 'Quais recursos você está interessado?',
+            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+        },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
         },
@@ -6152,8 +6157,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} de ${oldValue} para ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} para ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `alterou o espaço de trabalho para ${toPolicyName}${fromPolicyName ? `(anteriormente ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Espaço de trabalho alterado${fromPolicyName ? ` (anteriormente ${fromPolicyName})` : ''}`;
+                    }
+                    return `Espaço de trabalho alterado para ${toPolicyName}${fromPolicyName ? ` (anteriormente ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `alterado o tipo de ${oldType} para ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `enviei este relatório para ${delegateUser} já que ${originalManager} está de férias`,
                 exportedToCSV: `exportado para CSV`,
