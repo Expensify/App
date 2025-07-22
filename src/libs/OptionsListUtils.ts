@@ -2322,7 +2322,7 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
-    return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+    return [item.participantsList?.[0]?.displayName ?? item?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
 function getCurrentUserSearchTerms(item: OptionData) {
