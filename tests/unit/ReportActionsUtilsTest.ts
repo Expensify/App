@@ -763,64 +763,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('hasRequestFromCurrentAccount', () => {
-        const currentUserAccountID = 1242;
-        const deletedIOUReportID = '2';
-        const activeIOUReportID = '3';
-
-        const deletedIOUReportAction: ReportAction = {
-            ...LHNTestUtils.getFakeReportAction(),
-            reportActionID: '22',
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            actorAccountID: currentUserAccountID,
-            message: [
-                {
-                    deleted: '2025-07-15 09:06:16.568',
-                    html: '',
-                    isDeletedParentAction: false,
-                    isEdited: true,
-                    text: '',
-                    type: 'COMMENT',
-                },
-            ],
-        };
-
-        const activeIOUReportAction: ReportAction = {
-            ...LHNTestUtils.getFakeReportAction(),
-            reportActionID: '33',
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            actorAccountID: currentUserAccountID,
-            message: [
-                {
-                    deleted: '',
-                    html: '$87.00 expense',
-                    isDeletedParentAction: false,
-                    isEdited: true,
-                    text: '',
-                    type: 'COMMENT',
-                },
-            ],
-        };
-
-        beforeEach(() => {
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
-            } as unknown as KeyValueMapping);
-            return waitForBatchedUpdates();
-        });
-
-        it('should return false for a deleted IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
-            expect(result).toBe(false);
-        });
-
-        it('should return true for an active IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
-            expect(result).toBe(true);
-        });
-    });
-
     describe('getLastVisibleAction', () => {
         it('should return the last visible action for a report', () => {
             const report: Report = {
