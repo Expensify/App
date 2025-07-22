@@ -325,7 +325,7 @@ function BaseReportActionContextMenu({
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
-            <FocusTrapForModal active={!isMini && !isSmallScreenWidth}>
+            <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
                 <View
                     ref={contentRef}
                     style={wrapperStyle}
