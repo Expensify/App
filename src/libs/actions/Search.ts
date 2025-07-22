@@ -285,7 +285,7 @@ function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
-function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; offset?: number; prevReports?: string[]},shouldCalculateTotals = false) {
+function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; offset?: number; prevReports?: string[]}, shouldCalculateTotals = false) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
@@ -302,10 +302,9 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
         const reports = Object.keys(response?.data ?? {})
             .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
             .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
-
         if (response?.search?.offset) {
             if (prevReports) {
-                setActiveReportsIDs([...prevReports, ...reports]);
+                setActiveReportsIDs(reports, true);
                 saveLastSearchParams({
                     queryJSON,
                     offset,

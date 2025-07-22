@@ -239,8 +239,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const results = searchResults ? getSections(type, status, searchResults.data, searchResults.search, groupBy).map((element) => element?.reportID ?? '') : [];
-
+        const results = searchResults ? getSections(type, searchResults.data, searchResults.search, groupBy).map((element) => element?.reportID ?? '') : [];
         handleSearch({queryJSON, offset, prevReports: results});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
