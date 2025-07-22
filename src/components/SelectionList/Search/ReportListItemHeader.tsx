@@ -29,9 +29,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is hovered */
-    isHovered?: boolean;
-
     /** Whether the item is focused */
     isFocused?: boolean;
 
@@ -151,7 +148,6 @@ function ReportListItemHeader<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     isDisabled,
-    isHovered,
     isFocused,
     canSelectMultiple,
 }: ReportListItemHeaderProps<TItem>) {
@@ -164,8 +160,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
 
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
