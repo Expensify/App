@@ -119,6 +119,7 @@ function MoneyRequestParticipantsSelector(
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -280,6 +281,8 @@ function MoneyRequestParticipantsSelector(
             chatOptions.personalDetails,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
 
         newSections.push(formatResults.section);
@@ -321,7 +324,7 @@ function MoneyRequestParticipantsSelector(
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -340,14 +343,15 @@ function MoneyRequestParticipantsSelector(
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
-        chatOptions.selfDMChat,
         chatOptions.workspaceChats,
+        chatOptions.selfDMChat,
         chatOptions.userToInvite,
         personalDetails,
         translate,
-        showImportContacts,
-        inputHelperText,
         isPerDiemRequest,
+        showImportContacts,
+        reportAttributesDerived,
+        inputHelperText,
     ]);
 
     /**
