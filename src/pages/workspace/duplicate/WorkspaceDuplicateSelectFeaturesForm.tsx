@@ -56,8 +56,53 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 alternateText: 'eqwewq',
             },
             {
-                translation: translate('workspace.common.members'),
-                value: 'members',
+                translation: translate('workspace.common.accounting'),
+                value: 'accounting',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.tags'),
+                value: 'tags',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.taxes'),
+                value: 'taxes',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.workflows'),
+                value: 'workflows',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.rules'),
+                value: 'rules',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.distanceRates'),
+                value: 'distanceRates',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.expensifyCard'),
+                value: 'expensifyCard',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.companyCards'),
+                value: 'companyCards',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.perDiem'),
+                value: 'perDiem',
+                alternateText: 'eqwewq',
+            },
+            {
+                translation: translate('workspace.common.invoices'),
+                value: 'invoices',
                 alternateText: 'eqwewq',
             },
         ];
