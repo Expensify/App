@@ -2,9 +2,10 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,7 +71,7 @@ function AnimatedCollapsible({
             targetHeight,
             {
                 duration,
-                easing: Easing.inOut(Easing.quad),
+                easing,
             },
             (finished) => {
                 if (!finished) {
@@ -92,7 +93,7 @@ function AnimatedCollapsible({
         isAnimating.set(true);
         return withTiming(targetOpacity, {
             duration,
-            easing: Easing.inOut(Easing.quad),
+            easing,
         });
     });
 
