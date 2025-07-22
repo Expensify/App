@@ -34,8 +34,15 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, formatPhoneNumber), [task?.assigneeAccountID, personalDetails, formatPhoneNumber]);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails), false, formatPhoneNumber);
+    const assignee = useMemo(
+        () => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, formatPhoneNumber),
+        [task?.assigneeAccountID, personalDetails, formatPhoneNumber],
+    );
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
+        false,
+        formatPhoneNumber,
+    );
     const shareDestination = useMemo(
         () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, formatPhoneNumber) : undefined),
         [task?.shareDestination, reports, personalDetails, formatPhoneNumber],
