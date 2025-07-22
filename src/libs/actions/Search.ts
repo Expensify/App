@@ -42,6 +42,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
+type OnyxSearchResponse = {
+    data: [];
+    search: {
+        offset: number;
+        hasMoreResults: boolean;
+    };
+};
+
 function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -264,17 +272,18 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
-        const reports = Object.keys(result?.onyxData?.[0]?.value?.data ?? {})
+        const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+        const reports = Object.keys(response?.data ?? {})
             .filter((key) => key.startsWith('report_'))
             .map((key) => key.replace('report_', ''));
 
-        if (result?.onyxData[0]?.value?.search?.offset) {
+        if (response?.search?.offset) {
             if (prevReports) {
                 setActiveReportIDs([...reports], true);
                 saveLastSearchParams({
                     queryJSON,
                     offset,
-                    hasMoreResults: !!result?.onyxData.at(0)?.value?.search?.hasMoreResults,
+                    hasMoreResults: !!response?.search?.hasMoreResults,
                     previousLengthOfResults: prevReports.length,
                 });
             }
@@ -283,7 +292,7 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
             saveLastSearchParams({
                 queryJSON,
                 offset,
-                hasMoreResults: !!result?.onyxData?.[0]?.value?.search?.hasMoreResults,
+                hasMoreResults: !!response?.search?.hasMoreResults,
                 previousLengthOfResults: reports.length,
             });
         }
