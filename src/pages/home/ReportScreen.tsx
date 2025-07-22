@@ -134,12 +134,13 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function useKeyboardAnimation(isModalVisible?: boolean) {
+function useKeyboardAnimation(isModalVisible?: boolean, isComposerFullSize?: boolean) {
     const progress = useSharedValue(0);
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
     const scrollY = useSharedValue(0);
     const keyboardAbsoluteHeight = useSharedValue(0);
+    const willCloseComposer = useSharedValue(false);
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -170,12 +171,22 @@ function useKeyboardAnimation(isModalVisible?: boolean) {
                     keyboardAbsoluteHeight.set(e.height);
                 }
 
+                if (isComposerFullSize) {
+                    willCloseComposer.set(true);
+                    return offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
+                }
+
+                if (willCloseComposer.get()) {
+                    willCloseComposer.set(false);
+                    return;
+                }
+
                 return offset.set(scrollYValueAtStart);
             }
 
             // When we close the keyboard we need to maintain the position that we had when the keyboard was open
             // The position is: currentScroll + keyboardHeight (as we add keyboard height to the scrollOfffset)
-            return offset.set(scrollYValueAtStart + prevHeight);
+            offset.set(scrollYValueAtStart + prevHeight);
         },
         onInteractive: (e) => {
             'worklet';
@@ -240,7 +251,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation(modal?.isPopover);
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation(modal?.isPopover, isComposerFullSize);
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
@@ -877,13 +888,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             offset={composerHeight}
             interpolator="ios"
             textInputNativeID="composer"
+            enableSwipeToDismiss={!isComposerFullSize}
         >
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
                         navigation={navigation}
                         style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios'}
+                        shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios' || isComposerFullSize}
                         testID={`report-screen-${reportID}`}
                         includeSafeAreaPaddingBottom={false}
                     >
@@ -938,6 +950,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             keyboardOffset={keyboardOffset}
                                             composerHeight={composerHeight}
                                             keyboardHeight={keyboardHeight}
+                                            isComposerFullSize={isComposerFullSize}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
