@@ -7,7 +7,7 @@ import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAss
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -651,9 +651,9 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
+function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, formatPhoneNumber: FormatPhoneNumberType, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, formatPhoneNumber);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -954,7 +954,7 @@ function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>, formatPhoneNumber: FormatPhoneNumberType): Assignee | undefined {
     if (!assigneeAccountID) {
         return;
     }
@@ -971,7 +971,7 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+        displayName: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
         subtitle: details.login ?? '',
     };
 }
@@ -979,7 +979,7 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 /**
  * Get the share destination data
  * */
-function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
+function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>, formatPhoneNumber: FormatPhoneNumberType): ShareDestination {
     const report = reports?.[`report_${reportID}`];
 
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
@@ -987,7 +987,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), isMultipleParticipant, formatPhoneNumber);
 
     let subtitle = '';
     if (isOneOnOneChat) {
@@ -995,13 +995,13 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
-        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
+        subtitle = formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
-        displayName: ReportUtils.getReportName(report),
+        icons: ReportUtils.getIcons(report, formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
+        displayName: ReportUtils.getReportName(report, formatPhoneNumber),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
