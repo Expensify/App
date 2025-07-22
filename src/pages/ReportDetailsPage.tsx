@@ -609,7 +609,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             <View style={styles.mb3}>
                 <RoomHeaderAvatars
                     icons={icons}
-                    reportID={report?.reportID}
+                    report={report}
                 />
             </View>
         );
