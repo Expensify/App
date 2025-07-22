@@ -24,7 +24,7 @@ const defaultSearchContext: SearchContext = {
     shouldShowExportModeOption: false,
     shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
-    setCurrentSearchHash: () => {},
+    setCurrentSearchHashAndKey: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -43,7 +43,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
-    const setCurrentSearchHash = useCallback((searchHash: number, searchKey: SuggestedSearchKey | undefined) => {
+    const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SuggestedSearchKey | undefined) => {
         setSearchContextData((prevState) => {
             if (searchHash === prevState.currentSearchHash && searchKey === prevState.currentSearchKey) {
                 return prevState;
@@ -175,7 +175,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         () => ({
             ...searchContextData,
             removeTransaction,
-            setCurrentSearchHash,
+            setCurrentSearchHashAndKey,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
@@ -190,7 +190,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         [
             searchContextData,
             removeTransaction,
-            setCurrentSearchHash,
+            setCurrentSearchHashAndKey,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,

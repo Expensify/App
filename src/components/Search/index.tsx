@@ -149,7 +149,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
-        setCurrentSearchHash,
+        setCurrentSearchHashAndKey,
         setSelectedTransactions,
         selectedTransactions,
         clearSelectedTransactions,
@@ -204,8 +204,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     useFocusEffect(
         useCallback(() => {
             clearSelectedTransactions(hash);
-            setCurrentSearchHash(hash, key);
-        }, [hash, key, clearSelectedTransactions, setCurrentSearchHash]),
+            setCurrentSearchHashAndKey(hash, key);
+        }, [hash, key, clearSelectedTransactions, setCurrentSearchHashAndKey]),
     );
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);

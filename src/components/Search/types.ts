@@ -79,7 +79,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
-    setCurrentSearchHash: (hash: number, key: SuggestedSearchKey | undefined) => void;
+    setCurrentSearchHashAndKey: (hash: number, key: SuggestedSearchKey | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
