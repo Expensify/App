@@ -215,7 +215,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        const selectedKeys = Object.keys(selectedTransactions).filter((transactionKey) => selectedTransactions[transactionKey]);
         if (selectedKeys.length === 0 && isMobileSelectionModeEnabled && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
@@ -230,7 +230,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        const selectedKeys = Object.keys(selectedTransactions).filter((transactionKey) => selectedTransactions[transactionKey]);
         if (!isSmallScreenWidth) {
             if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
                 turnOffMobileSelectionMode();
