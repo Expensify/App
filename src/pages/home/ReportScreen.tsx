@@ -886,7 +886,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     <ScreenWrapper
                         navigation={navigation}
                         style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios' || isComposerFullSize}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
                         testID={`report-screen-${reportID}`}
                         includeSafeAreaPaddingBottom={false}
                     >
