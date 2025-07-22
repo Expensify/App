@@ -9,11 +9,15 @@ RESTART_DELAY=3
 
 echo "🚀 Starting webpack-dev-server with auto-restart (max restarts: $MAX_RESTARTS)"
 
+run_wds () {
+    node --expose-gc "$(npm root)/webpack-dev-server/bin/webpack-dev-server.js" --open --config config/webpack/webpack.dev.ts
+}
+
 while [ $RESTART_COUNT -lt $MAX_RESTARTS ]; do
     echo "📊 Attempt #$((RESTART_COUNT + 1)) - Starting webpack-dev-server..."
     
     # Run webpack-dev-server with memory monitoring
-    NODE_OPTIONS='--expose-gc' webpack-dev-server --open --config config/webpack/webpack.dev.ts
+    run_wds
     
     # Capture exit code
     EXIT_CODE=$?
