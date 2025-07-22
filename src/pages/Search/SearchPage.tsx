@@ -22,7 +22,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,9 +81,6 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
     const {q} = route.params;
-
-    const {isBetaEnabled} = usePermissions();
-
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -500,7 +496,7 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                <DragAndDropProvider>
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
@@ -514,8 +510,8 @@ function SearchPage({route}: SearchPageProps) {
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
@@ -577,7 +573,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                            <DragAndDropProvider>
                                 {PDFValidationComponent}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
@@ -603,7 +599,7 @@ function SearchPage({route}: SearchPageProps) {
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>
