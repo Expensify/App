@@ -70,8 +70,9 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
         if (currentIndex === -1 || allReports.length === 0) {
             return '';
         }
-        const nextIndex = (currentIndex - 1) % allReports.length;
-        goToReportId(allReports.at(nextIndex));
+
+        const prevIndex = (currentIndex - 1) % allReports.length;
+        goToReportId(allReports.at(prevIndex));
     };
 
     return (

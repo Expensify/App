@@ -275,8 +275,8 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
     API.makeRequestWithSideEffects(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
         const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
         const reports = Object.keys(response?.data ?? {})
-            .filter((key) => key.startsWith('report_'))
-            .map((key) => key.replace('report_', ''));
+            .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+            .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
 
         if (response?.search?.offset) {
             if (prevReports) {

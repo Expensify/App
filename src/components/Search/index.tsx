@@ -219,11 +219,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        let results: string[] = [];
-
-        if (searchResults) {
-            results = getSections(type, status, searchResults.data, searchResults.search, groupBy).map((element) => element?.reportID ?? '');
-        }
+        const results = searchResults ? getSections(type, status, searchResults.data, searchResults.search, groupBy).map((element) => element?.reportID ?? '') : [];
 
         handleSearch({queryJSON, offset, prevReports: results});
         // eslint-disable-next-line react-compiler/react-compiler

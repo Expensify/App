@@ -6,13 +6,11 @@ import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PrevNextButtons from '@components/PrevNextButtons';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
-import UseOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -24,7 +22,6 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
@@ -36,7 +33,6 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
-import MoneyRequestReportNavigation from './MoneyRequestReportNavigation';
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -136,38 +132,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
-    const rawReports = UseOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
-    const allReports = rawReports?.[0] ?? [];
-
-    const goToReportId = (reportId?: string) => {
-        if (!reportId) {
-            return;
-        }
-        const backTo = Navigation.getActiveRoute();
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportId, backTo}));
-    };
-
-    const goToNextReport = () => {
-        const currentIndex = allReports.indexOf(report?.reportID ?? '');
-
-        if (currentIndex === -1 || allReports.length === 0) {
-            return '';
-        }
-
-        const nextIndex = (currentIndex + 1) % allReports.length;
-        goToReportId(allReports.at(nextIndex));
-    };
-
-    const goToPrevReport = () => {
-        const currentIndex = allReports.indexOf(report?.reportID ?? '');
-
-        if (currentIndex === -1 || allReports.length === 0) {
-            return '';
-        }
-
-        const nextIndex = (currentIndex - 1) % allReports.length;
-        goToReportId(allReports.at(nextIndex));
-    };
 
     const reportHeaderView = useMemo(
         () =>
