@@ -1893,9 +1893,9 @@ function pushTransactionViolationsOnyxData(
             continue;
         }
 
-        const transcations = getReportTransactions(report.reportID);
+        const transactions = getReportTransactions(report.reportID);
 
-        for (const transaction of transcations) {
+        for (const transaction of transactions) {
             // Skip it if transaction's optimistic violations already is pushed to ensure one update per transaction
             const transactionID = transaction?.transactionID;
             if (!transactionID || processedTransactionIDs.has(transactionID)) {
