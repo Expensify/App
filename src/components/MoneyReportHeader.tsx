@@ -328,8 +328,8 @@ function MoneyReportHeader({
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [reportsObj] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
+    const [reportsObj] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS, {canBeMissing: true});
     const rawReports = Object.keys(reportsObj ?? {});
     const shouldDisplayNavigationArrows = isReportInSearch && rawReports && rawReports.length > 0;
 
@@ -969,7 +969,7 @@ function MoneyReportHeader({
 
     const headerNavigation = shouldDisplayNavigationArrows ? (
         <MoneyRequestReportNavigation
-            reportID={moneyRequestReport?.reportID ?? ''}
+            reportID={moneyRequestReport?.reportID}
             lastSearchQuery={lastSearchQuery}
             rawReports={rawReports}
             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}

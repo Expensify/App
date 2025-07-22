@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestReportNavigationProps = {
-    reportID: string;
+    reportID?: string;
     lastSearchQuery?: OnyxTypes.LastSearchParams;
     rawReports?: string[];
     shouldDisplayNarrowVersion: boolean;
@@ -20,7 +20,7 @@ type MoneyRequestReportNavigationProps = {
 
 function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
     const allReports = rawReports ?? [];
-    const currentIndex = allReports.indexOf(reportID ?? '');
+    const currentIndex = allReports.indexOf(reportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
