@@ -391,7 +391,6 @@ function IOURequestStepDistance({
         transaction,
         backTo,
         report,
-        reportID,
         reportNameValuePairs,
         iouType,
         activePolicy,
@@ -399,6 +398,7 @@ function IOURequestStepDistance({
         shouldSkipConfirmation,
         transactionID,
         personalDetails,
+        reportAttributesDerived,
         translate,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
@@ -407,6 +407,7 @@ function IOURequestStepDistance({
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
+        reportID,
     ]);
 
     const getError = () => {

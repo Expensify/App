@@ -213,7 +213,7 @@ function IOURequestStepConfirmation({
                 }
                 return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
             }) ?? [],
-        [transaction?.participants, personalDetails, iouType],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
