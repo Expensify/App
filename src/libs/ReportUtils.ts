@@ -69,6 +69,7 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
@@ -87,7 +88,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './Error
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber} from './LocalePhoneNumber';
+
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
@@ -374,6 +375,7 @@ type BuildOptimisticIOUReportActionParams = {
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
+    formatPhoneNumber: FormatPhoneNumberType;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -649,6 +651,7 @@ type OptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
+    formatPhoneNumber: FormatPhoneNumberType;
 };
 
 type OptimisticTaskReport = SetRequired<
@@ -868,6 +871,7 @@ type GetReportNameParams = {
     draftReports?: OnyxCollection<Report>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     policies?: SearchPolicy[];
+    formatPhoneNumber: FormatPhoneNumberType;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -2778,6 +2782,7 @@ const phoneNumberCache: Record<string, string> = {};
  */
 function getDisplayNameForParticipant({
     accountID,
+    formatPhoneNumber,
     shouldUseShortForm = false,
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
@@ -2785,6 +2790,7 @@ function getDisplayNameForParticipant({
     shouldRemoveDomain = false,
 }: {
     accountID?: number;
+    formatPhoneNumber: FormatPhoneNumberType;
     shouldUseShortForm?: boolean;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: boolean;
@@ -2937,7 +2943,7 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
+function getGroupChatName(formatPhoneNumber: FormatPhoneNumberType, participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
@@ -2963,7 +2969,7 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport}) || formatPhoneNumber(participants?.[index]?.login ?? ''),
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber}) || formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
@@ -2972,7 +2978,7 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             .concat(shouldAddEllipsis ? '...' : '');
     }
 
-    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
+    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber})});
 }
 
 function getParticipants(reportID: string) {
@@ -3054,7 +3060,7 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
 /**
  * Helper function to get the icons for a chat thread. Only to be used in getIcons().
  */
-function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>): Icon[] {
+function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>, formatPhoneNumber: FormatPhoneNumberType): Icon[] {
     if (!report || !report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
@@ -3184,7 +3190,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
+function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: FormatPhoneNumberType): Icon[] {
     if (!report) {
         return [];
     }
@@ -3193,7 +3199,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        name: getGroupChatName(undefined, true, report),
+        name: getGroupChatName(formatPhoneNumber, undefined, true, report),
     };
     return [groupChatIcon];
 }
@@ -3241,6 +3247,7 @@ function getIconsForInvoiceReport(
  */
 function getIcons(
     report: OnyxInputOrEntry<Report>,
+    formatPhoneNumber: FormatPhoneNumberType,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList> = allPersonalDetails,
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
@@ -3262,7 +3269,7 @@ function getIcons(
         return getIconsForExpenseRequest(report, personalDetails, policy);
     }
     if (isChatThread(report)) {
-        return getIconsForChatThread(report, personalDetails, policy);
+        return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber);
     }
     if (isTaskReport(report)) {
         return getIconsForTaskReport(report, personalDetails, policy);
@@ -3297,7 +3304,7 @@ function getIcons(
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
     if (isGroupChat(report)) {
-        return getIconsForGroupChat(report);
+        return getIconsForGroupChat(report, formatPhoneNumber);
     }
     if (isInvoiceReport(report)) {
         return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
@@ -3315,6 +3322,7 @@ function getIcons(
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
+    formatPhoneNumber: FormatPhoneNumberType,
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3324,7 +3332,7 @@ function getDisplayNamesWithTooltips(
         .map((user) => {
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix}) || user?.login || '';
+            const displayName = getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber}) || user?.login || '';
             const avatar = user && 'avatar' in user ? user.avatar : undefined;
 
             let pronouns = user?.pronouns ?? undefined;
@@ -3356,8 +3364,8 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = ''): string {
-    const displayNameForParticipant = getDisplayNameForParticipant({accountID});
+function getUserDetailTooltipText(accountID: number, formatPhoneNumber: FormatPhoneNumberType, fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
 
@@ -3386,15 +3394,17 @@ function getReimbursementQueuedActionMessage({
     shouldUseShortDisplayName = true,
     reports,
     personalDetails,
+    formatPhoneNumber,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
     reportOrID: OnyxEntry<Report> | string | SearchReport;
     shouldUseShortDisplayName?: boolean;
     reports?: SearchReport[];
     personalDetails?: Partial<PersonalDetailsList>;
+    formatPhoneNumber: FormatPhoneNumberType;
 }): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, reports ?? allReports) : reportOrID;
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: shouldUseShortDisplayName, personalDetailsData: personalDetails}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: shouldUseShortDisplayName, personalDetailsData: personalDetails, formatPhoneNumber}) ?? '';
     const originalMessage = getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
     if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
@@ -3412,6 +3422,7 @@ function getReimbursementQueuedActionMessage({
 function getReimbursementDeQueuedOrCanceledActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOrID: OnyxEntry<Report> | string | SearchReport,
+    formatPhoneNumber: FormatPhoneNumberType,
     isLHNPreview = false,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
@@ -3420,10 +3431,10 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     const currency = originalMessage?.currency;
     const formattedAmount = convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
-        const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant({accountID: report?.managerID, shouldUseShortForm: true});
+        const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant({accountID: report?.managerID, shouldUseShortForm: true, formatPhoneNumber});
         return translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber}) ?? '';
     return translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
 }
 
@@ -3725,18 +3736,20 @@ function getPolicyExpenseChatName({
     personalDetailsList = allPersonalDetails,
     policies,
     reports,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy> | SearchPolicy;
     personalDetailsList?: Partial<PersonalDetailsList>;
     policies?: SearchPolicy[];
     reports?: SearchReport[];
+    formatPhoneNumber: FormatPhoneNumberType;
 }): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber}) || login;
 
     if (reportOwnerDisplayName) {
         return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
@@ -3901,10 +3914,12 @@ function getMoneyRequestReportName({
     report,
     policy,
     invoiceReceiverPolicy,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy> | SearchPolicy;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
+    formatPhoneNumber: FormatPhoneNumberType;
 }): string {
     if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
@@ -3919,9 +3934,9 @@ function getMoneyRequestReportName({
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
-        payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
+        payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy);
     } else {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber}) ?? '';
     }
 
     const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
@@ -3941,7 +3956,7 @@ function getMoneyRequestReportName({
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber}) ?? '';
         return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -4497,6 +4512,7 @@ function getTransactionReportName({
  */
 function getReportPreviewMessage(
     reportOrID: OnyxInputOrEntry<Report> | string,
+    formatPhoneNumber: FormatPhoneNumberType,
     iouReportAction: OnyxInputOrEntry<ReportAction> = null,
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
@@ -4568,7 +4584,7 @@ function getReportPreviewMessage(
 
     const parentReport = getParentReport(report);
     const policyName = getPolicyName({report: parentReport ?? report, policy});
-    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport});
+    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber});
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
@@ -4612,7 +4628,7 @@ function getReportPreviewMessage(
             }
         }
 
-        let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: true});
+        let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: true, formatPhoneNumber});
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
@@ -4620,7 +4636,7 @@ function getReportPreviewMessage(
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true}) ?? '';
+        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber}) ?? '';
         return translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
@@ -4648,12 +4664,12 @@ function getReportPreviewMessage(
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
-            lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport}) : '';
+            lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber}) : '';
         return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', {formattedAmount: amountToDisplay, comment})}`;
     }
 
     if (containsNonReimbursable) {
-        return translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: report.ownerAccountID}) ?? '', amount: formattedAmount});
+        return translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber}) ?? '', amount: formattedAmount});
     }
 
     return translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
@@ -4764,7 +4780,7 @@ function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): Original
  * @param parentReportAction
  * @param parentReportActionMessage
  */
-function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAction>, parentReportActionMessage: string) {
+function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAction>, parentReportActionMessage: string, formatPhoneNumber: FormatPhoneNumberType) {
     if (isEmptyObject(parentReportAction)) {
         return parentReportActionMessage || translateLocal('parentReportAction.deletedMessage');
     }
@@ -4779,7 +4795,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     const personalDetails = getPersonalDetailsByIDs({accountIDs: originalMessage?.targetAccountIDs ?? [], currentUserAccountID: 0});
 
     const participants = personalDetails.map((personalDetail) => {
-        const name = getEffectiveDisplayName(personalDetail);
+        const name = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         if (name && name?.length > 0) {
             return name;
         }
@@ -4808,7 +4824,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
  */
-function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
+function getInvoicePayerName(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
@@ -4822,7 +4838,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
 /**
  * Parse html of reportAction into text
  */
-function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, childReportID?: string): string {
+function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, formatPhoneNumber: FormatPhoneNumberType, childReportID?: string): string {
     if (!reportAction) {
         return '';
     }
@@ -4845,7 +4861,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
+            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1]), formatPhoneNumber) ?? '';
         }
     }
 
@@ -4875,12 +4891,14 @@ function getReportActionMessage({
     childReportID,
     reports,
     personalDetails,
+    formatPhoneNumber,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     reportID?: string;
     childReportID?: string;
     reports?: SearchReport[];
     personalDetails?: Partial<PersonalDetailsList>;
+    formatPhoneNumber: FormatPhoneNumberType;
 }) {
     if (isEmptyObject(reportAction)) {
         return '';
@@ -4906,6 +4924,7 @@ function getReportActionMessage({
             shouldUseShortDisplayName: false,
             reports,
             personalDetails,
+            formatPhoneNumber,
         });
     }
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
@@ -4913,10 +4932,10 @@ function getReportActionMessage({
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
-        return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports));
+        return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports), formatPhoneNumber);
     }
 
-    return parseReportActionHtmlToText(reportAction, reportID, childReportID);
+    return parseReportActionHtmlToText(reportAction, reportID, formatPhoneNumber, childReportID );
 }
 
 /**
@@ -4927,11 +4946,13 @@ function getInvoicesChatName({
     receiverPolicy,
     personalDetails,
     policies,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy> | SearchPolicy;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: SearchPolicy[];
+    formatPhoneNumber: FormatPhoneNumberType;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -4958,7 +4979,7 @@ function getInvoicesChatName({
  * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
  * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
  */
-const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
+const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData, formatPhoneNumber}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>; formatPhoneNumber: FormatPhoneNumberType}) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((id) => id !== currentUserAccountID)
@@ -4969,6 +4990,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
                 accountID,
                 shouldUseShortForm: true,
                 personalDetailsData,
+                formatPhoneNumber,
             }),
         }))
         .filter((participant) => participant.name)
@@ -4978,16 +5000,17 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
                 return getDisplayNameForParticipant({
                     accountID,
                     personalDetailsData,
+                    formatPhoneNumber,
                 });
             }
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
-function generateReportName(report: OnyxEntry<Report>): string {
+function generateReportName(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType): string {
     if (!report) {
         return '';
     }
-    return getReportNameInternal({report});
+    return getReportNameInternal({report, formatPhoneNumber});
 }
 
 /**
@@ -4995,6 +5018,7 @@ function generateReportName(report: OnyxEntry<Report>): string {
  */
 function getReportName(
     report: OnyxEntry<Report>,
+    formatPhoneNumber: FormatPhoneNumberType,
     policy?: OnyxEntry<Policy>,
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
@@ -5008,7 +5032,7 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, formatPhoneNumber});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -5019,8 +5043,8 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+function getInvoiceReportName(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, formatPhoneNumber});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -5039,6 +5063,7 @@ function getReportNameInternal({
     reports,
     reportNameValuePairs = allReportNameValuePair,
     policies,
+    formatPhoneNumber,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
@@ -5207,6 +5232,7 @@ function getReportNameInternal({
             childReportID: report?.reportID,
             reports,
             personalDetails,
+            formatPhoneNumber,
         }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             return `[${translateLocal('common.attachment')}]`;
@@ -5219,7 +5245,7 @@ function getReportNameInternal({
             return translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
-            return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
+            return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage, formatPhoneNumber);
         }
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
@@ -5245,7 +5271,7 @@ function getReportNameInternal({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(undefined, true, report) ?? '';
+        return getGroupChatName(formatPhoneNumber, undefined, true, report) ?? '';
     }
 
     if (isChatRoom(report)) {
@@ -5253,23 +5279,23 @@ function getReportNameInternal({
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName({report, policy, personalDetailsList: personalDetails, reports});
+        formattedName = getPolicyExpenseChatName({report, policy, personalDetailsList: personalDetails, reports, formatPhoneNumber});
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy});
+        formattedName = getMoneyRequestReportName({report, policy, formatPhoneNumber});
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, formatPhoneNumber, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
+        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies, formatPhoneNumber});
     }
 
     if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetails});
+        formattedName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetails, formatPhoneNumber});
     }
 
     if (formattedName) {
@@ -5277,7 +5303,7 @@ function getReportNameInternal({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetails, formatPhoneNumber});
 
     return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
 }
@@ -5285,7 +5311,7 @@ function getReportNameInternal({
 /**
  * Get the payee name given a report.
  */
-function getPayeeName(report: OnyxEntry<Report>): string | undefined {
+function getPayeeName(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType): string | undefined {
     if (isEmptyObject(report)) {
         return undefined;
     }
@@ -5297,7 +5323,7 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
     }
-    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true});
+    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber});
 }
 
 function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
@@ -5372,14 +5398,14 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy>): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType, invoiceReceiverPolicy?: OnyxEntry<Policy>): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         return {};
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport, invoiceReceiverPolicy)}`;
+        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport, formatPhoneNumber, invoiceReceiverPolicy)}`;
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
@@ -5393,7 +5419,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
     }
 
     return {
-        reportName: getReportName(parentReport),
+        reportName: getReportName(parentReport, formatPhoneNumber),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -6085,18 +6111,18 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
+function getReportDetails(reportID: string, formatPhoneNumber: FormatPhoneNumberType): {reportName: string; reportUrl: string} {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return {
-        reportName: getReportName(report) ?? report?.reportName ?? '',
+        reportName: getReportName(report, formatPhoneNumber) ?? report?.reportName ?? '',
         reportUrl: `${environmentURL}/r/${reportID}`,
     };
 }
 
-function getMovedTransactionMessage(action: ReportAction) {
+function getMovedTransactionMessage(action: ReportAction, formatPhoneNumber: FormatPhoneNumberType) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const {reportName, reportUrl} = getReportDetails(toReportID);
+    const {reportName, reportUrl} = getReportDetails(toReportID, formatPhoneNumber);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
@@ -6217,6 +6243,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         linkedExpenseReportAction,
         isPersonalTrackingExpense = false,
         reportActionID,
+        formatPhoneNumber,
     } = params;
 
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
@@ -6301,7 +6328,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             person: [
                 {
                     style: 'strong',
-                    text: getDisplayNameForParticipant(managerMcTestParticipant),
+                    text: getDisplayNameForParticipant({accountID: managerMcTestParticipant.accountID, formatPhoneNumber}),
                     type: 'TEXT',
                 },
             ],
@@ -6585,13 +6612,14 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
 function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
     iouReport: Report,
+    formatPhoneNumber: FormatPhoneNumberType,
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewMessage(iouReport);
+    const message = getReportPreviewMessage(iouReport, formatPhoneNumber);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -6758,6 +6786,7 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 function updateReportPreview(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
+    formatPhoneNumber: FormatPhoneNumberType,
     isPayRequest = false,
     comment = '',
     transaction?: OnyxEntry<Transaction>,
@@ -6776,7 +6805,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
+    const message = getReportPreviewMessage(iouReport, formatPhoneNumber,reportPreviewAction);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -7286,7 +7315,7 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number): Opt
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, formatPhoneNumber: FormatPhoneNumberType): OptimisticEditedTaskReportAction {
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 
     return {
@@ -7297,7 +7326,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `assigned to ${getDisplayNameForParticipant({accountID: assigneeAccountID})}`,
+                text: `assigned to ${getDisplayNameForParticipant({accountID: assigneeAccountID, formatPhoneNumber})}`,
                 html: `assigned to <mention-user accountID="${assigneeAccountID}"/>`,
             },
         ],
@@ -7730,6 +7759,7 @@ function buildOptimisticMoneyRequestEntities({
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
+    formatPhoneNumber,
 }: OptimisticMoneyRequestEntities): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, undefined, optimisticCreatedReportActionID);
 
@@ -7752,6 +7782,7 @@ function buildOptimisticMoneyRequestEntities({
         isOwnPolicyExpenseChat,
         created: iouActionCreationTime,
         linkedExpenseReportAction: linkedTrackedExpenseReportAction,
+        formatPhoneNumber,
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
@@ -8729,7 +8760,7 @@ function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[]): bool
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  */
-function getWhisperDisplayNames(participantAccountIDs?: number[]): string | undefined {
+function getWhisperDisplayNames(formatPhoneNumber: FormatPhoneNumberType, participantAccountIDs?: number[]): string | undefined {
     const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
@@ -8737,7 +8768,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
         return translateLocal('common.youAfterPreposition');
     }
 
-    return participantAccountIDs?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser})).join(', ');
+    return participantAccountIDs?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber})).join(', ');
 }
 
 /**
@@ -9574,18 +9605,19 @@ function getQuickActionDetails(
     personalDetails: PersonalDetailsList | undefined,
     policyChatForActivePolicy: Report | undefined,
     reportNameValuePairs: ReportNameValuePairs,
+    formatPhoneNumber: FormatPhoneNumberType,
 ): {quickActionAvatars: Icon[]; hideQABSubtitle: boolean} {
     const isValidQuickActionReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     let hideQABSubtitle = false;
     let quickActionAvatars: Icon[] = [];
     if (isValidQuickActionReport) {
-        const avatars = getIcons(quickActionReport, personalDetails);
+        const avatars = getIcons(quickActionReport, formatPhoneNumber, personalDetails);
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserAccountID);
     } else {
         hideQABSubtitle = true;
     }
     if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(policyChatForActivePolicy, personalDetails);
+        quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, personalDetails);
     }
     return {
         quickActionAvatars,
@@ -10983,12 +11015,12 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined, formatPhoneNumber: FormatPhoneNumberType): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
 
-        return getInvoiceReportName(properInvoiceReport);
+        return getInvoiceReportName(properInvoiceReport, formatPhoneNumber);
     }
 
     if (action?.reportName) {
@@ -10996,10 +11028,10 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return getReportName(getReport(report?.reportID, allReports));
+        return getReportName(getReport(report?.reportID, allReports), formatPhoneNumber);
     }
 
-    return getReportName(report);
+    return getReportName(report, formatPhoneNumber);
 }
 
 /**
@@ -11083,12 +11115,12 @@ function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportA
     return reportActionList.some((action) => isReopenedAction(action));
 }
 
-function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
+function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType, isInvoice?: boolean) {
     if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
         const originalMessage = getOriginalMessage(action);
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
-    return getReportName(iouReport) || action.childReportName;
+    return getReportName(iouReport, formatPhoneNumber) || action.childReportName;
 }
 
 export {

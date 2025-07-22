@@ -1032,8 +1032,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
-                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                    const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
+                    const parentReportName = getReportName(parentReport,formatPhoneNumber,policy, undefined, undefined);
+                    const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
                     const parentReportIcon = icons?.at(0);
 
                     result.parentReportName = parentReportName;
@@ -1055,7 +1055,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: FormatPhoneNumberType): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -1096,7 +1096,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
+                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, formatPhoneNumber}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -1248,7 +1248,7 @@ function getSections(
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, formatPhoneNumber);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber);
