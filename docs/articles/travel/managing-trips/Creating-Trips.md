@@ -1,5 +1,5 @@
 ---
-title: creating-trips.md
+title: Creating Trips
 description: Learn how to create trips in Expensify before or during booking, and how to manage multiple travel components under one itinerary.
 keywords: [create trip, trip ID, travel booking, roundtrip, expensify travel, classic, new expensify]
 ---
@@ -15,13 +15,13 @@ Create a trip in Expensify to bundle all your flights, hotels, and car rentals i
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
 ## What is a trip?
 
-A trip in Expensify groups together all related bookings for the same journey under one umbrella. For example, a round-trip flight, hotel stay, and rental car in the same city can all be part of a single trip.
+A trip groups together all related bookings for the same journey in one bucket. For example, a round-trip flight, hotel stay, and rental car in the same city can all be part of a single trip.
 
 Each trip includes:
 - A **trip ID**
@@ -44,21 +44,7 @@ To create a trip during checkout:
     - If you create a new trip, enter a trip name and optionally a trip description.
 4. Click **Save** to create the trip and proceed with checkout.
 
-The trip will be created automatically and will include this booking. You can add more travel to it later.
-
----
-
-## How to create a trip in advance
-
-1. In the travel tool, go to **Trips** > **My Trips**.
-2. Click the green **New Trip** button in the upper-right corner.
-3. In the pop-up window:
-   - Enter a **Trip name**
-   - Optionally enter a **Trip description**
-   - To change the traveler, click the **pencil icon** next to your name and search for a teammate
-4. Click **Save**
-
-This trip will now be listed in your My Trips view and appear as a selectable option during checkout.
+The trip will be created automatically and will include this booking. You can add more travel bookings to it later.
 
 ---
 
@@ -81,12 +67,12 @@ Each new booking tied to this trip will appear here automatically.
 # FAQ
 
 ## Can I create multiple trips?
-Yes. You can create and manage as many trips as needed, either during booking or in advance.
+Yes. You can create and manage as many trips as needed.
 
 ## Will I be charged multiple times for one trip?
 No. There is a single $15 fee per trip, no matter how many bookings are added to it.
 
 ## Can I change the traveler for a trip?
-When you create a trip, you can change who the trip is for. When you create a booking, the trip is tied to the person you're booking for. Once a trip is created, its traveler cannot be changed.
+When you create a booking, the trip is tied to the person you're booking for. Once a trip is created, its traveler cannot be changed.
 
 </div>
