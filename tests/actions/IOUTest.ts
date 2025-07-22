@@ -85,10 +85,11 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -240,6 +241,7 @@ describe('actions/IOU', () => {
 
             // When the user submits the transaction to the selfDM report
             trackExpense({
+                formatPhoneNumber,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -327,6 +329,7 @@ describe('actions/IOU', () => {
 
             // When the user confirms the category for the tracked expense
             trackExpense({
+                formatPhoneNumber,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
@@ -415,6 +418,7 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
+                formatPhoneNumber,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -452,6 +456,7 @@ describe('actions/IOU', () => {
 
             // Share the tracked expense with an accountant
             trackExpense({
+                formatPhoneNumber,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -535,7 +540,8 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
-                report: selfDMReport,
+                formatPhoneNumber,
+                    report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
@@ -572,6 +578,7 @@ describe('actions/IOU', () => {
 
             // Share the tracked expense with an accountant
             trackExpense({
+                formatPhoneNumber,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -643,7 +650,8 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
-                report: {reportID: ''},
+                formatPhoneNumber,
+                        report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -873,7 +881,8 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
-                        report: chatReport,
+                        formatPhoneNumber,
+                            report: chatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
@@ -1092,7 +1101,8 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
-                            report: chatReport,
+                            formatPhoneNumber,
+                                report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -1245,7 +1255,8 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
-                report: {reportID: ''},
+                formatPhoneNumber,
+                        report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -1575,6 +1586,7 @@ describe('actions/IOU', () => {
         });
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                formatPhoneNumber,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1595,6 +1607,7 @@ describe('actions/IOU', () => {
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
+                formatPhoneNumber,
                 report: {reportID: '123'},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1617,6 +1630,7 @@ describe('actions/IOU', () => {
     describe('createDistanceRequest', () => {
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             createDistanceRequest({
+                formatPhoneNumber,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
                 transactionParams: {
@@ -1634,6 +1648,7 @@ describe('actions/IOU', () => {
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             createDistanceRequest({
+                formatPhoneNumber,
                 report: {reportID: '123'},
                 participants: [],
                 transactionParams: {
@@ -1801,6 +1816,7 @@ describe('actions/IOU', () => {
                     splitBill(
                         // TODO: Migrate after the backend accepts accountIDs
                         {
+                            formatPhoneNumber,
                             participants: [
                                 [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
                                 [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
@@ -2132,6 +2148,7 @@ describe('actions/IOU', () => {
 
             // When the user split bill on the workspace
             splitBill({
+                formatPhoneNumber,
                 participants: [{reportID: workspaceReportID}],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -2179,6 +2196,7 @@ describe('actions/IOU', () => {
 
             // When the user split bill twice on the DM
             splitBill({
+                formatPhoneNumber,
                 participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -2193,6 +2211,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             splitBill({
+                formatPhoneNumber,
                 participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -2246,6 +2265,7 @@ describe('actions/IOU', () => {
 
             // When doing a distance split expense
             splitBill({
+                formatPhoneNumber,
                 participants: [{reportID: workspaceReportID}],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -2286,6 +2306,7 @@ describe('actions/IOU', () => {
 
             // When the user split bill on the group chat
             splitBill({
+                formatPhoneNumber,
                 participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -2332,6 +2353,7 @@ describe('actions/IOU', () => {
             };
             const iouAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
+                    formatPhoneNumber,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2353,7 +2375,7 @@ describe('actions/IOU', () => {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            saveSplitTransactions(draftTransaction, 1);
+            saveSplitTransactions(draftTransaction, 1, formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -2388,6 +2410,7 @@ describe('actions/IOU', () => {
             };
             const iouAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
+                    formatPhoneNumber,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2412,7 +2435,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(draftTransaction, hash);
+            saveSplitTransactions(draftTransaction, hash, formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -2440,6 +2463,7 @@ describe('actions/IOU', () => {
             let payIOUAction: OnyxEntry<ReportAction>;
             let transaction: OnyxEntry<Transaction>;
             requestMoney({
+                formatPhoneNumber,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2533,7 +2557,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.pause?.();
                     if (chatReport && iouReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, formatPhoneNumber);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2673,6 +2697,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            formatPhoneNumber,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -2708,7 +2733,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, formatPhoneNumber);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2801,6 +2826,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            formatPhoneNumber,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -2837,7 +2863,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport);
+                        payMoneyRequest('ACH', chatReport, expenseReport, formatPhoneNumber);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2878,7 +2904,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When paying the IOU report
-            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -2956,6 +2982,7 @@ describe('actions/IOU', () => {
             [transaction1, transaction2].forEach((transaction) =>
                 iouActions.push(
                     buildOptimisticIOUReportAction({
+                        formatPhoneNumber,
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                         amount: transaction.amount,
                         currency: transaction.currency,
@@ -2977,7 +3004,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, false);
+                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, formatPhoneNumber);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -3021,6 +3048,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         // When an IOU expense is submitted to that policy expense chat
                         requestMoney({
+                            formatPhoneNumber,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -3052,14 +3080,14 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, formatPhoneNumber);
                     }
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport);
+                        cancelPayment(expenseReport, chatReport, formatPhoneNumber  );
                     }
                     return waitForBatchedUpdates();
                 })
@@ -3114,13 +3142,14 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents();
+            subscribeToUserEvents(formatPhoneNumber );
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             // When a submit IOU expense is made
             requestMoney({
-                report: chatReport,
+                formatPhoneNumber,
+                    report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
                     payeeAccountID: TEST_USER_ACCOUNT_ID,
@@ -3340,6 +3369,7 @@ describe('actions/IOU', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                formatPhoneNumber,
                 report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -3428,7 +3458,7 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, formatPhoneNumber, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -3512,7 +3542,7 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, formatPhoneNumber, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -3537,6 +3567,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     transactionThreadReportID: thread.reportID,
                     amount: 20000,
@@ -3609,7 +3640,7 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, formatPhoneNumber, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -3703,7 +3734,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, formatPhoneNumber, '', userLogins, thread, createIOUAction?.reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -3860,6 +3891,7 @@ describe('actions/IOU', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    formatPhoneNumber,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: TEST_USER_LOGIN,
@@ -3918,6 +3950,7 @@ describe('actions/IOU', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                formatPhoneNumber,
                 report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -3944,7 +3977,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, formatPhoneNumber, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
@@ -4062,6 +4095,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            formatPhoneNumber,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -4118,7 +4152,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(formatPhoneNumber, expenseReport);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4170,6 +4204,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            formatPhoneNumber,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -4252,7 +4287,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(formatPhoneNumber, expenseReport);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4335,6 +4370,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            formatPhoneNumber,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -4413,7 +4449,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(formatPhoneNumber, expenseReport);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4468,6 +4504,7 @@ describe('actions/IOU', () => {
             [transaction1, transaction2].forEach((transaction) =>
                 iouActions.push(
                     buildOptimisticIOUReportAction({
+                        formatPhoneNumber,
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                         amount: transaction.amount,
                         currency: transaction.currency,
@@ -4528,6 +4565,7 @@ describe('actions/IOU', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
             const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                formatPhoneNumber,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -4593,6 +4631,7 @@ describe('actions/IOU', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
             const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                formatPhoneNumber,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -4662,7 +4701,7 @@ describe('actions/IOU', () => {
             const companyWebsite = 'https://www.53019.com';
 
             // When the user sends a new invoice to an individual
-            sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+            sendInvoice(currentUserAccountID, transaction, formatPhoneNumber, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
             expect(writeSpy).toHaveBeenCalledWith(
@@ -4678,7 +4717,7 @@ describe('actions/IOU', () => {
         it('should not clear transaction pending action when send invoice fails', async () => {
             // Given a send invoice request
             mockFetch?.pause?.();
-            sendInvoice(1, createRandomTransaction(1));
+            sendInvoice(1, createRandomTransaction(1), formatPhoneNumber);
 
             // When the request fails
             mockFetch?.fail?.();
@@ -4895,7 +4934,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
             // When updating a money request category
-            updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined);
+            updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined, formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -4960,7 +4999,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating a money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, formatPhoneNumber);
 
                 await waitForBatchedUpdates();
 
@@ -4992,7 +5031,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating the money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, formatPhoneNumber);
 
                 await waitForBatchedUpdates();
 
@@ -5144,6 +5183,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                formatPhoneNumber,
                 action,
                 report: {reportID: ''},
                 participantParams: {
@@ -5189,6 +5229,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
             trackExpense({
+                formatPhoneNumber,
                 report: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
                 action,
@@ -5715,6 +5756,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
 
             updateMoneyRequestAmountAndCurrency({
+                formatPhoneNumber,
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReportID: fakeReport.reportID,
                 amount: 20000,
@@ -5773,6 +5815,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
 
             updateMoneyRequestAmountAndCurrency({
+                formatPhoneNumber,
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReportID: fakeReport.reportID,
                 amount: 20000,
@@ -5843,6 +5886,7 @@ describe('actions/IOU', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    formatPhoneNumber,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -5873,7 +5917,7 @@ describe('actions/IOU', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport);
+                cancelPayment(expenseReport, chatReport, formatPhoneNumber);
             }
             await waitForBatchedUpdates();
 
@@ -5923,6 +5967,7 @@ describe('actions/IOU', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    formatPhoneNumber,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -5953,7 +5998,7 @@ describe('actions/IOU', () => {
             // When the expense report is paid elsewhere (but really, any payment option would work)
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
-                payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, formatPhoneNumber);
             }
             await waitForBatchedUpdates();
 
@@ -6272,7 +6317,7 @@ describe('actions/IOU', () => {
 
             const policyID = generatePolicyID();
             createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
-            createNewReport(creatorPersonalDetails, policyID);
+            createNewReport(creatorPersonalDetails, formatPhoneNumber, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1),
@@ -6283,6 +6328,7 @@ describe('actions/IOU', () => {
             const amount = 100;
 
             trackExpense({
+                formatPhoneNumber,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -6391,6 +6437,7 @@ describe('actions/IOU', () => {
                     },
                 });
                 requestMoney({
+                    formatPhoneNumber,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -6456,7 +6503,7 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(draftTransaction, -2);
+                saveSplitTransactions(draftTransaction, -2, formatPhoneNumber);
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
