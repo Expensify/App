@@ -962,21 +962,21 @@ function getCurrentSearchQueryJSON() {
 
 function getTodoSearchQuery(action: ValueOf<typeof CONST.SEARCH.TODO_SEARCH_KEYS>, userAccountID: number | undefined) {
     switch (action) {
-        case 'submit':
+        case CONST.SEARCH.TODO_SEARCH_KEYS.SUBMIT:
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                 from: [`${userAccountID}`],
             });
-        case 'approve':
+        case CONST.SEARCH.TODO_SEARCH_KEYS.APPROVE:
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
                 to: [`${userAccountID}`],
             });
-        case 'pay':
+        case CONST.SEARCH.TODO_SEARCH_KEYS.PAY:
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
@@ -984,7 +984,7 @@ function getTodoSearchQuery(action: ValueOf<typeof CONST.SEARCH.TODO_SEARCH_KEYS
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
                 payer: userAccountID?.toString(),
             });
-        case 'export':
+        case CONST.SEARCH.TODO_SEARCH_KEYS.EXPORT:
             return buildQueryStringFromFilterFormValues({
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
