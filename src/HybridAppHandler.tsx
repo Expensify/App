@@ -29,13 +29,11 @@ function HybridAppHandler() {
             }
 
             const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
-
             setupNewDotAfterTransitionFromOldDot(parsedHybridAppSettings, tryNewDot).then(() => {
-                if (parsedHybridAppSettings.hybridApp?.loggedOutFromOldDot) {
-                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-                } else if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+                if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
+                    return;
                 }
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
         });
     }, [isLoading, setSplashScreenState, splashScreenState, tryNewDot]);

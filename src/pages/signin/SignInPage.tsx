@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -22,7 +21,6 @@ import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
 import {setLocale} from '@userActions/App';
 import {clearSignInData} from '@userActions/Session';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -185,7 +183,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     useEffect(() => Performance.measureTTI(), []);
 
@@ -305,15 +302,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
-
-    // This effect is closing OldDot sign out modal when SignInPage appears
-    // It can't be performed in any other place because there would be an empty screen for a while
-    useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || !hybridApp?.loggedOutFromOldDot) {
-            return;
-        }
-        HybridAppModule.clearOldDotAfterSignOut();
-    }, [hybridApp?.loggedOutFromOldDot]);
 
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.

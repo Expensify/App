@@ -117,10 +117,21 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
-    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || !!hybridApp?.useNewDotSignInPage);
-    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
+
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const shouldHideSplash = (isSplashReadyToBeHidden || isSplashVisible) && shouldInit && !hybridApp?.loggedOutFromOldDot;
+
+    // This effect is closing OldDot sign out modal based on splash screen state
+    useEffect(() => {
+        if (!isSplashReadyToBeHidden || !shouldInit || !hybridApp?.loggedOutFromOldDot) {
+            return;
+        }
+
+        setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        HybridAppModule.clearOldDotAfterSignOut();
+    }, [hybridApp?.loggedOutFromOldDot, isSplashReadyToBeHidden, setSplashScreenState, shouldInit, splashScreenState]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
