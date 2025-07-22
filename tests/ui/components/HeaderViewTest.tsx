@@ -18,6 +18,14 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 
+jest.mock('@src/hooks/useLocalize', () => {
+    const mockFormatPhoneNumber = jest.fn((val: string): string => val);
+    return () => ({
+        translate: jest.fn(),
+        formatPhoneNumber: mockFormatPhoneNumber,
+    });
+});
+
 describe('HeaderView', () => {
     afterEach(() => {
         jest.clearAllMocks();
@@ -45,6 +53,8 @@ describe('HeaderView', () => {
                 displayName,
             },
         });
+
+        await Onyx.merge(ONYXKEYS.COUNTRY_CODE, 1);
 
         render(
             <HeaderView
