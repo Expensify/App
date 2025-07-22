@@ -128,7 +128,7 @@ function NewBaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     useHandleNativeVideoControls({
-        videoPlayerRef: videoViewRef,
+        videoViewRef,
         isOffline: true,
         isLocalFile: isUploading,
     });
@@ -604,8 +604,6 @@ function NewBaseVideoPlayer({
     //     }
     // }, []);
 
-    const [isFullscreen, setFullscreen] = useState(false);
-
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
@@ -709,10 +707,6 @@ function NewBaseVideoPlayer({
                                             ref={videoViewRef}
                                             onFullscreenEnter={() => {
                                                 isFullScreenRef.current = true;
-                                                setFullscreen(true);
-                                                console.log(`entering: ${isFullScreenRef.current}`);
-
-                                                // videoViewRef.current.nativeControls = true;
 
                                                 // onFullscreenUpdate?.(event);
 
@@ -724,9 +718,7 @@ function NewBaseVideoPlayer({
                                                 videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
                                             }}
                                             onFullscreenExit={() => {
-                                                // onFullscreenUpdate?.(event);
                                                 isFullScreenRef.current = false;
-                                                setFullscreen(false);
 
                                                 if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
                                                     videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
@@ -743,7 +735,6 @@ function NewBaseVideoPlayer({
                                                     playVideo();
                                                     videoResumeTryNumberRef.current = 3;
                                                 }
-                                                console.log(`exiting: ${isFullScreenRef.current}`);
                                             }}
                                         />
                                     </View>
