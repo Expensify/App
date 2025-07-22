@@ -104,7 +104,6 @@ function Expensify() {
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
     useDebugShortcut();
-
     usePriorityChange();
 
     const [initialUrl, setInitialUrl] = useState<string | null>(null);
