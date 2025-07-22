@@ -642,10 +642,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     if (shouldShowLoadingState) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
-            />
+            <Animated.View
+                entering={FadeIn.duration(100)}
+                exiting={FadeOut.duration(100)}
+                style={[styles.flex1]}
+            >
+                <SearchRowSkeleton
+                    shouldAnimate
+                    containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+                />
+            </Animated.View>
         );
     }
 
@@ -694,8 +700,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     return (
         <SearchScopeProvider isOnSearch>
             <Animated.View
-                entering={FadeIn.duration(300)}
-                exiting={FadeOut.duration(300)}
+                entering={FadeIn.duration(200)}
+                exiting={FadeOut.duration(200)}
                 style={[styles.flex1, animatedStyle]}
             >
                 <SearchList
