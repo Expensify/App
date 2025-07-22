@@ -4,6 +4,7 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -4258,7 +4259,11 @@ describe('ReportUtils', () => {
                 },
             });
 
-            expect(pushTransactionViolationsOnyxData({}, fakePolicy, fakePolicyCategories, fakePolicyTagsLists, {}, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate)).toMatchObject({
+            const onyxData: OnyxData = {};
+
+            pushTransactionViolationsOnyxData(onyxData, fakePolicy, fakePolicyCategories, fakePolicyTagsLists, {}, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+
+            expect(onyxData).toMatchObject({
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
                 optimisticData: [
                     {
