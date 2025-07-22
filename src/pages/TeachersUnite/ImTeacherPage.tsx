@@ -1,5 +1,5 @@
 import React from 'react';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import ImTeacherUpdateEmailPage from './ImTeacherUpdateEmailPage';
 import IntroSchoolPrincipalPage from './IntroSchoolPrincipalPage';
