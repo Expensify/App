@@ -51,7 +51,6 @@ type LocaleContextProps = {
 
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale | undefined;
-
 };
 
 const LocaleContext = createContext<LocaleContextProps>({
