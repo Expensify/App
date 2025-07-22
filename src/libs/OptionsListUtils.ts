@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -36,7 +37,6 @@ import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {MinHeap} from './MinHeap';
@@ -257,6 +257,7 @@ type GetUserToInviteConfig = {
     avatar?: AvatarSource;
     shouldAcceptName?: boolean;
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
+    formatPhoneNumber: FormatPhoneNumberType;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -526,7 +527,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
+function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, formatPhoneNumber: FormatPhoneNumberType): Participant {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -582,7 +583,7 @@ function uniqFast(items: string[]): string[] {
 /**
  * Get the last actor display name from last actor details.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, formatPhoneNumber: FormatPhoneNumberType) {
     if (!lastActorDetails) {
         return '';
     }
@@ -596,7 +597,12 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 /**
  * Should show the last actor display name from last actor details.
  */
-function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>) {
+function shouldShowLastActorDisplayName(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    lastAction: OnyxEntry<ReportAction>,
+    formatPhoneNumber: FormatPhoneNumberType,
+) {
     if (
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
@@ -608,7 +614,7 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, formatPhoneNumber);
 
     if (!lastActorDisplayName) {
         return false;
@@ -620,7 +626,7 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
+function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig, formatPhoneNumber: FormatPhoneNumberType) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
@@ -718,7 +724,13 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
+function getLastMessageTextForReport(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    formatPhoneNumber: FormatPhoneNumberType,
+    policy?: OnyxEntry<Policy>,
+    isReportArchived = false,
+): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
@@ -894,7 +906,13 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 /**
  * Creates a report list option
  */
-function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>, config?: PreviewConfig): OptionData {
+function createOption(
+    accountIDs: number[],
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    report: OnyxInputOrEntry<Report>,
+    formatPhoneNumber: FormatPhoneNumberType,
+    config?: PreviewConfig,
+): OptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const result: OptionData = {
         text: undefined,
@@ -985,8 +1003,8 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, !!result.private_isArchived);
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, formatPhoneNumber);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, formatPhoneNumber, undefined, !!result.private_isArchived);
         let lastMessageText = lastMessageTextFromReport;
 
         const shouldDisplayLastActorName =
@@ -994,7 +1012,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
             !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
-            shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, formatPhoneNumber);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
@@ -1002,7 +1020,8 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.lastMessageText = lastMessageText;
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
+        result.alternateText =
+            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, formatPhoneNumber);
 
         reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
     } else {
@@ -1032,11 +1051,11 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant): OptionData {
+function getReportOption(participant: Participant, formatPhoneNumber: FormatPhoneNumberType): OptionData {
     const report = getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, {
+    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, formatPhoneNumber, {
         showChatPreviewLine: false,
         forcePolicyNamePreview: false,
     });
@@ -1072,10 +1091,10 @@ function getReportOption(participant: Participant): OptionData {
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>): OptionData {
+function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>, formatPhoneNumber: FormatPhoneNumberType): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, {
+    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, formatPhoneNumber, {
         showChatPreviewLine: false,
         forcePolicyNamePreview: false,
     });
@@ -1103,14 +1122,14 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(participant: Participant | OptionData): OptionData {
+function getPolicyExpenseReportOption(participant: Participant | OptionData, formatPhoneNumber: FormatPhoneNumberType): OptionData {
     const expenseReport = reportUtilsIsPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
-    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(expenseReport) ? expenseReport : null, {
+    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(expenseReport) ? expenseReport : null, formatPhoneNumber, {
         showChatPreviewLine: false,
         forcePolicyNamePreview: false,
     });
@@ -1219,6 +1238,7 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
 function processReport(
     report: OnyxEntry<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    formatPhoneNumber: FormatPhoneNumberType,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1242,18 +1262,18 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report),
+            ...createOption(accountIDs, personalDetails, report, formatPhoneNumber),
         },
     };
 }
 
-function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>) {
+function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, formatPhoneNumber: FormatPhoneNumberType, reports?: OnyxCollection<Report>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
         Object.values(reports).forEach((report) => {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, formatPhoneNumber);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1268,9 +1288,15 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
-        ...createOption([personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], {
-            showPersonalDetails: true,
-        }),
+        ...createOption(
+            [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            personalDetails,
+            reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            formatPhoneNumber,
+            {
+                showPersonalDetails: true,
+            },
+        ),
     }));
 
     return {
@@ -1279,12 +1305,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, formatPhoneNumber: FormatPhoneNumberType) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report),
+        ...createOption(accountIDs, personalDetails, report, formatPhoneNumber),
     };
 }
 
@@ -1463,7 +1489,14 @@ function canCreateOptimisticPersonalDetailOption({
  * - If prop shouldAcceptName = true, the searchValue can be also a normal string
  * - The searchValue isn't the current personal detail login
  */
-function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptions = [], showChatPreviewLine = false, shouldAcceptName = false}: GetUserToInviteConfig): OptionData | null {
+function getUserToInviteOption({
+    searchValue,
+    loginsToExclude = {},
+    selectedOptions = [],
+    showChatPreviewLine = false,
+    shouldAcceptName = false,
+    formatPhoneNumber,
+}: GetUserToInviteConfig): OptionData | null {
     if (!searchValue) {
         return null;
     }
@@ -1488,7 +1521,7 @@ function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptio
             login: searchValue,
         },
     };
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, formatPhoneNumber, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
@@ -1605,7 +1638,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
+function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig, formatPhoneNumber: FormatPhoneNumberType): GetValidReportsReturnTypeCombined {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1750,7 +1783,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, formatPhoneNumber);
         const isSelected = isReportSelected(option, selectedOptions);
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
         let lastIOUCreationDate;
@@ -1894,6 +1927,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
  */
 function getValidOptions(
     options: OptionList,
+    formatPhoneNumber: FormatPhoneNumberType,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -1933,16 +1967,20 @@ function getValidOptions(
     let workspaceChats: OptionData[] = [];
     let selfDMChat: OptionData | undefined;
     if (includeRecentReports) {
-        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(options.reports, {
-            ...getValidReportsConfig,
-            includeP2P,
-            includeDomainEmail,
-            selectedOptions,
-            loginsToExclude,
-            shouldBoldTitleByDefault,
-            shouldSeparateSelfDMChat,
-            shouldSeparateWorkspaceChat,
-        });
+        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(
+            options.reports,
+            {
+                ...getValidReportsConfig,
+                includeP2P,
+                includeDomainEmail,
+                selectedOptions,
+                loginsToExclude,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+            },
+            formatPhoneNumber,
+        );
         recentReportOptions = recentReports;
         workspaceChats = workspaceOptions;
         selfDMChat = selfDMOption;
@@ -2000,10 +2038,10 @@ function getValidOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true): Options {
+function getSearchOptions(options: OptionList, formatPhoneNumber: FormatPhoneNumberType, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-    const optionList = getValidOptions(options, {
+    const optionList = getValidOptions(options, formatPhoneNumber, {
         betas,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
@@ -2025,8 +2063,8 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
-    return getValidOptions(options, {
+function getShareLogOptions(options: OptionList, formatPhoneNumber: FormatPhoneNumberType, betas: Beta[] = []): Options {
+    return getValidOptions(options, formatPhoneNumber, {
         betas,
         includeMultipleParticipantReports: true,
         includeP2P: true,
@@ -2041,7 +2079,7 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, formatPhoneNumber: FormatPhoneNumberType, amountText?: string): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
         text: formatPhoneNumber(getDisplayNameOrDefault(personalDetail, login)),
@@ -2068,6 +2106,7 @@ function getAttendeeOptions(
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
+    formatPhoneNumber: FormatPhoneNumberType,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2099,24 +2138,21 @@ function getAttendeeOptions(
             login: attendee.email ?? attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never, formatPhoneNumber));
 
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats,
-            includeRecentReports: false,
-            includeP2P,
-            includeSelectedOptions: false,
-            includeSelfDM: false,
-            includeInvoiceRooms,
-            action,
-            recentAttendees: filteredRecentAttendees,
-        },
-    );
+    return getValidOptions({reports, personalDetails}, formatPhoneNumber, {
+        betas,
+        selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        includeOwnedWorkspaceChats,
+        includeRecentReports: false,
+        includeP2P,
+        includeSelectedOptions: false,
+        includeSelfDM: false,
+        includeInvoiceRooms,
+        action,
+        recentAttendees: filteredRecentAttendees,
+    });
 }
 
 /**
@@ -2124,6 +2160,7 @@ function getAttendeeOptions(
  */
 
 function getShareDestinationOptions(
+    formatPhoneNumber: FormatPhoneNumberType,
     reports: Array<SearchOption<Report>> = [],
     personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
@@ -2131,22 +2168,19 @@ function getShareDestinationOptions(
     excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
 ) {
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions,
-            includeMultipleParticipantReports: true,
-            showChatPreviewLine: true,
-            forcePolicyNamePreview: true,
-            includeThreads: true,
-            includeMoneyRequests: true,
-            includeTasks: true,
-            excludeLogins,
-            includeOwnedWorkspaceChats,
-            includeSelfDM: true,
-        },
-    );
+    return getValidOptions({reports, personalDetails}, formatPhoneNumber, {
+        betas,
+        selectedOptions,
+        includeMultipleParticipantReports: true,
+        showChatPreviewLine: true,
+        forcePolicyNamePreview: true,
+        includeThreads: true,
+        includeMoneyRequests: true,
+        includeTasks: true,
+        excludeLogins,
+        includeOwnedWorkspaceChats,
+        includeSelfDM: true,
+    });
 }
 
 /**
@@ -2180,22 +2214,20 @@ function formatMemberForList(member: OptionData): MemberForList {
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
+    formatPhoneNumber: FormatPhoneNumberType,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
 ): Options {
-    const options = getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            includeP2P: true,
-            excludeLogins,
-            includeSelectedOptions,
-            includeRecentReports,
-        },
-    );
+    const options = getValidOptions({reports, personalDetails}, formatPhoneNumber, {
+        betas,
+        includeP2P: true,
+        excludeLogins,
+        includeSelectedOptions,
+        includeRecentReports,
+    });
 
     const orderedOptions = orderOptions(options);
     return {
@@ -2260,6 +2292,7 @@ function formatSectionsFromSearchTerm(
     selectedOptions: OptionData[],
     filteredRecentReports: OptionData[],
     filteredPersonalDetails: OptionData[],
+    formatPhoneNumber: FormatPhoneNumberType,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: OptionData[] = [],
@@ -2274,7 +2307,9 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat
+                              ? getPolicyExpenseReportOption(participant, formatPhoneNumber)
+                              : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2300,7 +2335,9 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat
+                          ? getPolicyExpenseReportOption(participant, formatPhoneNumber)
+                          : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
@@ -2417,7 +2454,7 @@ function filterCurrentUserOption(currentUserOption: OptionData | null | undefine
     }, currentUserOption);
 }
 
-function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): OptionData | null {
+function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, formatPhoneNumber: FormatPhoneNumberType, config?: FilterUserToInviteConfig): OptionData | null {
     const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
@@ -2442,6 +2479,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         searchValue,
         loginsToExclude,
         ...config,
+        formatPhoneNumber,
     });
 }
 
@@ -2473,7 +2511,7 @@ function filterSelfDMChat(report: OptionData, searchTerms: string[]): OptionData
     return isMatch ? report : undefined;
 }
 
-function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
+function filterOptions(options: Options, searchInputValue: string, formatPhoneNumber: FormatPhoneNumberType, config?: FilterUserToInviteConfig): Options {
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
@@ -2488,6 +2526,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             currentUserOption,
         },
         searchValue,
+        formatPhoneNumber,
         config,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
@@ -2542,10 +2581,10 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, formatPhoneNumber: FormatPhoneNumberType, config: FilterAndOrderConfig = {}): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, config);
+        filterResult = filterOptions(options, searchInputValue, formatPhoneNumber, config);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
@@ -2585,11 +2624,13 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
-function getManagerMcTestParticipant(): Participant | undefined {
+function getManagerMcTestParticipant(formatPhoneNumber: FormatPhoneNumberType): Participant | undefined {
     const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
-    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
+    return managerMcTestPersonalDetails
+        ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails, formatPhoneNumber), reportID: managerMcTestReport?.reportID}
+        : undefined;
 }
 
 function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
