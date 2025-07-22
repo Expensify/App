@@ -273,7 +273,6 @@ function PopoverMenu({
     }, [enteredSubMenuIndexes, menuItems]);
 
     const renderBackButtonItem = () => {
-        // const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
         const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
 
