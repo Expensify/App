@@ -1826,9 +1826,14 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 /**
  * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
+ * @param onyxData The OnyxData object to push updates to
+ * @param policy The current policy
+ * @param policyCategories The current policy categories
+ * @param policyTagLists The current policy tags
+ * @param allTransactionViolations The policy transactions violations
  * @param policyUpdate Changed policy properties, if none pass empty object
  * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
- * @param policyTagListsUpdate Changed categories properties, if none pass empty object
+ * @param policyTagListsUpdate Changed tag properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
@@ -1839,7 +1844,7 @@ function pushTransactionViolationsOnyxData(
     policyUpdate: Partial<Policy>,
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
-): OnyxData {
+) {
     if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate) && isEmptyObject(policyTagListsUpdate)) {
         return onyxData;
     }
@@ -1884,16 +1889,19 @@ function pushTransactionViolationsOnyxData(
     const failureData: OnyxUpdate[] = [];
 
     // Iterate through all reports to find transactions that need optimistic violations
-    reports.forEach((report) => {
-        // Skipping invoice report because they do not have category or tag violations
+    for (const report of reports) {
+        // Skipping invoice report because should not have any category or tag violations
         if (!report?.reportID || isInvoiceReport(report)) {
-            return;
+            continue;
         }
 
-        getReportTransactions(report.reportID).forEach((transaction) => {
+        const transcations = getReportTransactions(report.reportID);
+
+        for (const transaction of transcations) {
+            // If transaction's optimistic violations already is pushed, skip it to ensure one duplicates update per transaction
             const transactionID = transaction?.transactionID;
             if (!transactionID || processedTransactionIDs.has(transactionID)) {
-                return;
+                continue;
             }
 
             processedTransactionIDs.add(transactionID);
@@ -1910,25 +1918,35 @@ function pushTransactionViolationsOnyxData(
                 false,
             );
 
-            if (optimisticViolations) {
-                optimisticData.push(optimisticViolations);
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    value: existingViolations ?? null,
-                });
+            if (isEmptyObject(optimisticViolations)) {
+                continue;
             }
-        });
-    });
 
+            optimisticData.push(optimisticViolations);
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: existingViolations ?? null,
+            });
+        }
+    }
+
+    // Excluding failure data since both optimistic data and failure data contain the same number of updates
     if (optimisticData.length === 0) {
         return onyxData;
     }
-    return {
-        ...onyxData,
-        optimisticData: optimisticData.length > 0 ? [...(onyxData?.optimisticData ?? []), ...optimisticData] : onyxData.optimisticData,
-        failureData: failureData.length > 0 ? [...(onyxData?.failureData ?? []), ...failureData] : onyxData.failureData,
-    };
+
+    if (!onyxData.optimisticData) {
+        onyxData.optimisticData = [];
+    }
+
+    if (!onyxData.failureData) {
+        onyxData.failureData = [];
+    }
+
+    // Push optimistic data and failure data to OnyxData
+    onyxData.optimisticData.push(...optimisticData);
+    onyxData.failureData.push(...failureData);
 }
 
 /**
