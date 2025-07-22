@@ -51,7 +51,7 @@ function TaskShareDestinationSelectorModal() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
