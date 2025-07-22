@@ -37,7 +37,7 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
 
     const pressableStyle = [
         styles.transactionListItemStyle,
@@ -80,8 +80,8 @@ function TransactionListItem<TItem extends ListItem>({
     );
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
-    }, [canSelectMultiple, currentSearchHash, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
+        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
+    }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);

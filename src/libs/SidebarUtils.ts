@@ -748,7 +748,7 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             const card = getExpensifyCardFromReportAction({reportAction: lastAction, policyID: report.policyID});
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, card});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (lastAction && isOldDotReportAction(lastAction)) {

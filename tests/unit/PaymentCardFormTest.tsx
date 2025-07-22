@@ -6,7 +6,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import AddPaymentCard from '@pages/settings/Subscription/PaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,7 @@ describe('Subscription/AddPaymentCard', () => {
 
     const renderAddPaymentCardPage = (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
         return render(
-            <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
                 <PortalProvider>
                     <NavigationContainer>
                         <Stack.Navigator initialRouteName={initialRouteName}>

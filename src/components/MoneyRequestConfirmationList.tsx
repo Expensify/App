@@ -56,7 +56,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -124,9 +123,6 @@ type MoneyRequestConfirmationListProps = {
 
     /** Number of expenses to be created */
     expensesNumber?: number;
-
-    /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: Route;
 
     /** The policyID of the request */
     policyID?: string;
@@ -215,7 +211,6 @@ function MoneyRequestConfirmationList({
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     isReadOnly = false,
-    bankAccountRoute = '',
     policyID,
     reportID = '',
     receiptPath = '',
@@ -401,7 +396,7 @@ function MoneyRequestConfirmationList({
     const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
-    const isCategoryRequired = !!policy?.requiresCategory;
+    const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -1002,7 +997,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                addBankAccountRoute={bankAccountRoute}
+                chatReportID={reportID}
                 shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
@@ -1072,7 +1067,6 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         iouType,
         confirm,
-        bankAccountRoute,
         iouCurrencyCode,
         policyID,
         isConfirmed,
@@ -1088,6 +1082,7 @@ function MoneyRequestConfirmationList({
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
         isConfirming,
+        reportID,
     ]);
 
     const listFooterContent = (
@@ -1185,7 +1180,6 @@ export default memo(
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         deepEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
         prevProps.policyID === nextProps.policyID &&
         prevProps.reportID === nextProps.reportID &&
         prevProps.receiptPath === nextProps.receiptPath &&

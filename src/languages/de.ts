@@ -1073,8 +1073,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Machen Sie Fotos von all Ihren Belegen auf einmal, dann bestätigen Sie die Details selbst oder lassen Sie SmartScan dies übernehmen.',
         receiptScanInProgress: 'Belegscan läuft',
         receiptScanInProgressDescription: 'Belegscan läuft. Später erneut prüfen oder die Details jetzt eingeben.',
-        removeFromReport: 'Ausgabe aus Bericht entfernen',
-        moveToPersonalSpace: 'Ausgaben in persönlichen Bereich verschieben',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Mögliche doppelte Ausgaben erkannt. Überprüfen Sie die Duplikate, um die Einreichung zu ermöglichen.'
@@ -2207,6 +2205,11 @@ const translations = {
             title: 'Verwenden Sie eine Buchhaltungssoftware?',
             none: 'Keine',
         },
+        interestedFeatures: {
+            title: 'Für welche Funktionen interessieren Sie sich?',
+            featuresAlreadyEnabled: 'Ihr Arbeitsbereich hat bereits Folgendes aktiviert:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
+        },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
         },
@@ -2270,7 +2273,7 @@ const translations = {
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     `4. Gib die E-Mail oder Telefonnummer deines Chefs ein.\n` +
@@ -2281,7 +2284,7 @@ const translations = {
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Details bestätigen.\n' +
@@ -2292,7 +2295,7 @@ const translations = {
                 title: 'Verfolge eine Ausgabe',
                 description:
                     '*Verfolge eine Ausgabe* in jeder Währung – mit oder ohne Beleg.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Wähle deinen *persönlichen* Bereich.\n' +
@@ -2376,7 +2379,7 @@ const translations = {
                 title: 'Starte einen Chat',
                 description:
                     '*Starte einen Chat* mit jeder Person über E-Mail oder Telefonnummer.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib eine E-Mail oder Telefonnummer ein.\n\n' +
                     'Falls die Person Expensify noch nicht nutzt, wird sie automatisch eingeladen.\n\n' +
@@ -2386,7 +2389,7 @@ const translations = {
                 title: 'Teile eine Ausgabe',
                 description:
                     '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
                     '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
@@ -2405,7 +2408,7 @@ const translations = {
                 title: 'Erstelle deinen ersten Bericht',
                 description:
                     'So erstellst du einen Bericht:\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Bericht erstellen*.\n' +
                     '3. Klicke auf *Ausgabe hinzufügen*.\n' +
                     '4. Füge deine erste Ausgabe hinzu.\n\n' +
@@ -2682,6 +2685,8 @@ const translations = {
             validationAmounts: 'Die eingegebenen Validierungsbeträge sind falsch. Bitte überprüfen Sie Ihren Kontoauszug und versuchen Sie es erneut.',
             fullName: 'Bitte geben Sie einen gültigen vollständigen Namen ein',
             ownershipPercentage: 'Bitte geben Sie eine gültige Prozentzahl ein.',
+            deletePaymentBankAccount:
+                'Dieses Bankkonto kann nicht gelöscht werden, da es für Expensify-Karten-Zahlungen verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an den Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3816,6 +3821,18 @@ const translations = {
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
+            accountingMethods: {
+                label: 'Wann exportieren',
+                description: 'Wählen Sie, wann die Ausgaben exportiert werden sollen:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden exportiert, wenn sie endgültig genehmigt sind.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden exportiert, wenn sie bezahlt sind.',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Bevorzugter Exporteur',
@@ -5942,11 +5959,16 @@ const translations = {
                 title: 'Keine Ausgaben zum Exportieren',
                 subtitle: 'Zeit, es ruhig angehen zu lassen, gute Arbeit.',
             },
+            emptyStatementsResults: {
+                title: 'Keine Ausgaben zu sehen',
+                subtitle: 'Keine Ergebnisse. Bitte versuchen Sie, Ihre Filter anzupassen.',
+            },
             emptyUnapprovedResults: {
                 title: 'Keine Ausgaben zur Genehmigung',
                 subtitle: 'Null Ausgaben. Maximale Entspannung. Gut gemacht!',
             },
         },
+        statements: 'Erklärungen',
         unapproved: 'Nicht bewilligt',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCompanyCards: 'Nicht genehmigte Firmenkarten',
@@ -6143,8 +6165,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} in ${newValue} geändert`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `hat den Arbeitsbereich in ${toPolicyName}${fromPolicyName ? `(vorher ${fromPolicyName})` : ''} geändert`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Arbeitsbereich geändert${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
+                    }
+                    return `Arbeitsbereich geändert zu ${toPolicyName}${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `Typ von ${oldType} zu ${newType} geändert`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `diesen Bericht an ${delegateUser} gesendet, da ${originalManager} im Urlaub ist`,
                 exportedToCSV: `in CSV exportiert`,

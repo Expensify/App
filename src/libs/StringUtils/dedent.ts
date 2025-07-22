@@ -45,7 +45,6 @@ export default function dedent(str: string): string {
     let minIndent = Number.MAX_SAFE_INTEGER;
     for (const line of lines) {
         if (line.trim().length === 0) {
-            // eslint-disable-next-line no-continue
             continue;
         }
         const indentation = line.match(/^ */)?.[0].length ?? 0;
