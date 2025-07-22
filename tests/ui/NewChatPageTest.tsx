@@ -18,6 +18,26 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
+jest.mock('react-native-permissions', () => ({
+    __esModule: true,
+    RESULTS: {
+        UNAVAILABLE: 'unavailable',
+        GRANTED: 'granted',
+        LIMITED: 'limited',
+        DENIED: 'denied',
+        BLOCKED: 'blocked',
+    },
+    check: jest.fn(() => Promise.resolve('unavailable')),
+    request: jest.fn(() => Promise.resolve('unavailable')),
+    PERMISSIONS: {
+        IOS: {
+            CONTACTS: 'ios.permission.CONTACTS',
+        },
+        ANDROID: {
+            READ_CONTACTS: 'android.permission.READ_CONTACTS',
+        },
+    },
+}));
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
