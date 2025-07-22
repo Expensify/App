@@ -10,7 +10,7 @@ import usePrevious from './usePrevious';
  */
 function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
     const [inputValue, setInputValue] = useState('');
-    const [result, setResult] = useState(data);
+    const [result, setResult] = useState(() => sortData(data));
     const prevData = usePrevious(data);
     const [, startTransition] = useTransition();
     useEffect(() => {
