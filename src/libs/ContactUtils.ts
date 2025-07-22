@@ -2,6 +2,7 @@ import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
+import localeCompare from './LocaleCompare';
 import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
@@ -24,7 +25,7 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
         const isExpensifyB = b.toLowerCase().includes(expensifyDomain);
 
         // Prioritize Expensify emails, then sort alphabetically
-        return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : a.localeCompare(b);
+        return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : localeCompare(a, b);
     });
 }
 

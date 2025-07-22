@@ -164,10 +164,11 @@ import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session'
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -1072,9 +1073,12 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
+            const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
+            const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+            const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action, formatPhoneNumber)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport, formatPhoneNumber)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {

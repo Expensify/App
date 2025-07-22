@@ -61,6 +61,7 @@ import type {
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
+import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -78,8 +79,10 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
+import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
+import type {EnablePolicyFeatureCommand} from '@userActions/RequestConflictUtils';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
@@ -5445,6 +5448,68 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
+function updateFeature(
+    request: {
+        endpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
+        parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM];
+    },
+    policyID: string,
+) {
+    if (request.endpoint === WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM) {
+        API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, {
+            policyID,
+            enabled: request.parameters.enabled,
+            customUnitID: generateCustomUnitID(),
+        });
+        return;
+    }
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.writeWithNoDuplicatesEnableFeatureConflicts(request.endpoint, request.parameters);
+}
+
+function updateInterestedFeatures(features: Feature[], policyID: string) {
+    let shouldUpgradeToCorporate = false;
+
+    const requests: Array<{
+        endpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
+        parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM];
+    }> = [];
+
+    features.forEach((feature) => {
+        // If the feature is not enabled by default and it's programmatically enabled, we need to enable it
+        if (!feature.enabledByDefault && feature.programmaticallyEnabled) {
+            if (feature.requiresUpdate && !shouldUpgradeToCorporate) {
+                shouldUpgradeToCorporate = true;
+            }
+            requests.push({
+                endpoint: feature.apiEndpoint,
+                parameters: {
+                    policyID,
+                    enabled: true,
+                },
+            });
+        }
+        // If the feature is enabled by default and it's programmatically disabled, we need to disable it
+        if (feature.enabledByDefault && !feature.programmaticallyEnabled) {
+            requests.push({
+                endpoint: feature.apiEndpoint,
+                parameters: {
+                    policyID,
+                    enabled: false,
+                },
+            });
+        }
+    });
+
+    if (shouldUpgradeToCorporate) {
+        API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, {policyID});
+    }
+
+    requests.forEach((request) => {
+        updateFeature(request, policyID);
+    });
+}
+
 function clearPolicyTitleFieldError(policyID: string) {
     if (!policyID) {
         return;
@@ -5566,5 +5631,6 @@ export {
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
+    updateInterestedFeatures,
     clearPolicyTitleFieldError,
 };

@@ -1050,7 +1050,7 @@ function IOURequestStepScan({
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
                     {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}

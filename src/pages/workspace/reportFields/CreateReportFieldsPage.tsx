@@ -12,7 +12,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
@@ -41,7 +40,7 @@ function WorkspaceCreateReportFieldsPage({
     },
 }: CreateReportFieldsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
