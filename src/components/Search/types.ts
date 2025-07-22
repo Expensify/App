@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -70,7 +70,7 @@ type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
 type SearchContextData = {
     currentSearchHash: number;
-    currentSearchKey: SuggestedSearchKey | undefined;
+    currentSearchKey: SearchKey | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -79,7 +79,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
-    setCurrentSearchHashAndKey: (hash: number, key: SuggestedSearchKey | undefined) => void;
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;

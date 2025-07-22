@@ -1851,4 +1851,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey as SuggestedSearchKey};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey};

@@ -1,7 +1,7 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -43,7 +43,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
-    const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SuggestedSearchKey | undefined) => {
+    const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
             if (searchHash === prevState.currentSearchHash && searchKey === prevState.currentSearchKey) {
                 return prevState;
