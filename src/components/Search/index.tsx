@@ -251,11 +251,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        handleSearch({queryJSON, offset, shouldCalculateTotals});
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, shouldCalculateTotals]);
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
     useEffect(() => {
         openSearch();
@@ -266,6 +266,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         transactions,
         previousTransactions,
         queryJSON,
+        searchKey,
         offset,
         shouldCalculateTotals,
         reportActions,

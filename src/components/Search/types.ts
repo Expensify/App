@@ -169,6 +169,7 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
     shouldCalculateTotals: boolean;
 };

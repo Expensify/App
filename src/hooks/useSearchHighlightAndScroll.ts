@@ -4,7 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
-import {isReportActionEntry} from '@libs/SearchUIUtils';
+import {isReportActionEntry, SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
@@ -17,6 +17,7 @@ type UseSearchHighlightAndScroll = {
     reportActions: OnyxCollection<ReportActions>;
     previousReportActions: OnyxCollection<ReportActions>;
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
     shouldCalculateTotals: boolean;
 };
@@ -31,6 +32,7 @@ function useSearchHighlightAndScroll({
     reportActions,
     previousReportActions,
     queryJSON,
+    searchKey,
     offset,
     shouldCalculateTotals,
 }: UseSearchHighlightAndScroll) {
@@ -107,7 +109,7 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, offset, shouldCalculateTotals});
+            search({queryJSON, searchKey, offset, shouldCalculateTotals});
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;

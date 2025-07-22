@@ -276,11 +276,22 @@ function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
-function search({queryJSON, offset, shouldCalculateTotals = false}: {queryJSON: SearchQueryJSON; offset?: number; shouldCalculateTotals?: boolean}) {
+function search({
+    queryJSON,
+    searchKey,
+    offset,
+    shouldCalculateTotals = false,
+}: {
+    queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
+    offset?: number;
+    shouldCalculateTotals?: boolean;
+}) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
+        searchKey,
         offset,
         shouldCalculateTotals,
     };
