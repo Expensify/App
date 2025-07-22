@@ -2,7 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types'
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
@@ -158,7 +158,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     );
 
     const errorMessage = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
-    
+
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
@@ -194,7 +194,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                     shouldSaveDraft
                 />
                 {!!errorMessage && (
-                    <FormHelpMessage 
+                    <FormHelpMessage
                         style={[styles.mt3, styles.mbn1]}
                         isError
                         message={errorMessage}
