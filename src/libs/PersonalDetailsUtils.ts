@@ -1,13 +1,13 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -219,7 +219,11 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
  * They will have an "optimistic" accountID that must be cleaned up later.
  */
-function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAccountIDs: number[], formatPhoneNumber: FormatPhoneNumberType): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+function getPersonalDetailsOnyxDataForOptimisticUsers(
+    newLogins: string[],
+    newAccountIDs: number[],
+    formatPhoneNumber: FormatPhoneNumberType,
+): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
@@ -323,7 +327,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(    formatPhoneNumber: FormatPhoneNumberType, personalDetail?: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(formatPhoneNumber: FormatPhoneNumberType, personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
         return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
@@ -334,7 +338,11 @@ function getEffectiveDisplayName(    formatPhoneNumber: FormatPhoneNumberType, p
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>, formatPhoneNumber: FormatPhoneNumberType): string {
+function createDisplayName(
+    login: string,
+    passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>,
+    formatPhoneNumber: FormatPhoneNumberType,
+): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = formatPhoneNumber(login);

@@ -20,13 +20,13 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
@@ -1368,7 +1368,7 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 }
 
 // We pass getReportName as a param to avoid cyclic dependency.
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName, formatPhoneNumber: FormatPhoneNumberType): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
@@ -1383,7 +1383,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, g
     }
 
     if (isLeaveAction) {
-        verb = getPolicyChangeLogEmployeeLeftMessage(reportAction);
+        verb = getPolicyChangeLogEmployeeLeftMessage(reportAction, formatPhoneNumber);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
@@ -1392,7 +1392,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, g
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const handleText = getEffectiveDisplayName(personalDetail) ?? translateLocal('common.hidden');
+        const handleText = getEffectiveDisplayName(formatPhoneNumber, personalDetail) ?? translateLocal('common.hidden');
 
         return {
             kind: 'userMention',
@@ -1730,8 +1730,8 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
     }
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName, formatPhoneNumber: FormatPhoneNumberType): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback, formatPhoneNumber);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -1847,7 +1847,7 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
  * @param reportAction
  * @returns the actionable mention whisper message.
  */
-function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): string {
+function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>, formatPhoneNumber: FormatPhoneNumberType): string {
     if (!reportAction) {
         return '';
     }
@@ -1856,7 +1856,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const displayName = getEffectiveDisplayName(personalDetail);
+        const displayName = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         const handleText = isEmpty(displayName) ? translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
@@ -2137,7 +2137,7 @@ function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Repo
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
 }
 
-function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>, formatPhoneNumber: FormatPhoneNumberType): string {
     if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
         return '';
     }
@@ -2175,7 +2175,7 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
-function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, formatPhoneNumber: FormatPhoneNumberType, useName = false): string {
     if (!isLeavePolicyAction(reportAction)) {
         return '';
     }
