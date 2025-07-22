@@ -1826,8 +1826,8 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 /**
  * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
- * @param onyxData The OnyxData object to push updates to 
- * @param policy The current policy 
+ * @param onyxData The OnyxData object to push updates to
+ * @param policy The current policy
  * @param policyCategories The current policy categories
  * @param policyTagLists The current policy tags
  * @param allTransactionViolations The policy transactions violations
@@ -1888,16 +1888,14 @@ function pushTransactionViolationsOnyxData(
 
     // Iterate through all reports to find transactions that need optimistic violations
     for (const report of reports) {
-
         // Skipping invoice report because should not have any category or tag violations
         if (!report?.reportID || isInvoiceReport(report)) {
             continue;
         }
-        
+
         const transcations = getReportTransactions(report.reportID);
 
-        for (const transaction of transcations){
-
+        for (const transaction of transcations) {
             // Skip it if transaction's optimistic violations already is pushed to ensure one update per transaction
             const transactionID = transaction?.transactionID;
             if (!transactionID || processedTransactionIDs.has(transactionID)) {
@@ -1928,7 +1926,7 @@ function pushTransactionViolationsOnyxData(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
                 value: existingViolations ?? null,
             });
-        };
+        }
     }
 }
 

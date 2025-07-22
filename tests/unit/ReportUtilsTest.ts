@@ -4,7 +4,6 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -79,6 +78,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTag, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -4259,7 +4259,7 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const onyxData: OnyxData = {};
+            const onyxData: OnyxData = {optimisticData: [], failureData: []};
 
             pushTransactionViolationsOnyxData(onyxData, fakePolicy, fakePolicyCategories, fakePolicyTagsLists, {}, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
