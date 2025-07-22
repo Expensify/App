@@ -294,11 +294,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID);
+            const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
+            deletePaymentBankAccount(bankAccountID, undefined, bankAccount);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
+    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, bankAccountList]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it

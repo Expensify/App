@@ -65,10 +65,9 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const canAddTransaction = canAddTransactionUtil(report);
 
-    return isExpenseReport && canAddTransaction && isReportSubmitter && reportTransactions.length === 0;
+    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
@@ -77,7 +76,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
@@ -132,22 +131,13 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
-    const isOneExpenseReport = isExpenseReport && reportTransactions.length === 1;
-    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
-    const isProcessingReport = isProcessingReportUtils(report);
-    const isOneExpenseReportOnHold = isOneExpenseReport && isReportOnHold;
-
-    if (isProcessingReport || isOneExpenseReportOnHold) {
-        return true;
-    }
-
-    return false;
+    return isProcessingReportUtils(report);
 }
 
 function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
@@ -266,7 +256,7 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
     }
 
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
 
@@ -294,7 +284,7 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
         return true;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -368,7 +358,7 @@ function isMarkAsCashActionForTransaction(parentReport: Report, violations: Tran
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(parentReport.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(parentReport);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 

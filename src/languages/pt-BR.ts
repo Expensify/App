@@ -2193,6 +2193,11 @@ const translations = {
             title: 'Você usa algum software de contabilidade?',
             none: 'Nenhum',
         },
+        interestedFeatures: {
+            title: 'Quais recursos você está interessado?',
+            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+        },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
         },
@@ -2697,6 +2702,8 @@ const translations = {
             validationAmounts: 'Os valores de validação que você inseriu estão incorretos. Por favor, verifique novamente seu extrato bancário e tente novamente.',
             fullName: 'Por favor, insira um nome completo válido.',
             ownershipPercentage: 'Por favor, insira um número percentual válido',
+            deletePaymentBankAccount:
+                'Este banco conta não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim deseja excluir essa conta, entre em contato com o Concierge.',
         },
     },
     addPersonalBankAccount: {

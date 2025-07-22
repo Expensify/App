@@ -96,21 +96,6 @@ function AnimatedCollapsible({
         });
     });
 
-    // Animation for icon rotation
-    const iconRotation = useDerivedValue(() => {
-        const shouldAnimate = shouldAnimateOnMount || hasBeenToggled.get();
-        const targetRotation = isExpanded ? 0 : 180; // 0 degrees for up arrow, 180 for down arrow
-
-        if (!shouldAnimate) {
-            return targetRotation;
-        }
-
-        return withTiming(targetRotation, {
-            duration,
-            easing: Easing.inOut(Easing.quad),
-        });
-    });
-
     const contentAnimatedStyle = useAnimatedStyle(() => {
         if (!isExpanded && derivedHeight.get() === 0) {
             return {
@@ -124,16 +109,6 @@ function AnimatedCollapsible({
             height: derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
-        };
-    });
-
-    const iconAnimatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [
-                {
-                    rotate: `${iconRotation.get()}deg`,
-                },
-            ],
         };
     });
 
@@ -153,13 +128,13 @@ function AnimatedCollapsible({
             accessibilityRole={CONST.ROLE.BUTTON}
             accessibilityLabel="Collapse"
         >
-            <Animated.View style={iconAnimatedStyle}>
-                <Icon
-                    src={Expensicons.UpArrow}
-                    fill={theme.icon}
-                    small
-                />
-            </Animated.View>
+            {({hovered}) => (
+                    <Icon
+                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                        fill={hovered ? theme.textSupporting : theme.icon}
+                        small
+                    />
+            )}
         </PressableWithFeedback>
     );
 

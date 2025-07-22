@@ -7,7 +7,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchQueryString, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -38,7 +38,6 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
-    SearchResultsInfo,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -46,7 +45,8 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
-import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from './CardFeedUtils';
+import type {CardFeedForDisplay} from './CardFeedUtils';
+import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -77,7 +77,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -182,7 +182,7 @@ type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
-type SuggestedSearchKey = ValueOf<typeof CONST.SEARCH.SUGGESTED_SEARCH_KEYS>;
+type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -197,10 +197,12 @@ type SearchTypeMenuSection = {
 };
 
 type SearchTypeMenuItem = {
-    key: SuggestedSearchKey;
+    key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
+    hash: number;
+    searchQuery: string;
     emptyState?: {
         headerMedia: DotLottieAnimation;
         title: TranslationPaths;
@@ -213,12 +215,193 @@ type SearchTypeMenuItem = {
             isDisabled?: boolean;
         }>;
     };
-    getSearchQuery: (policyID?: string) => SearchQueryString;
 };
 
 type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
+
+/**
+ * Returns a list of all possible searches in the LHN, along with their query & hash.
+ * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
+ * contains the conditionals for rendering each of these.
+ *
+ * If you are updating this function, do not add more params unless absolutely necessary for the searches. The amount of data needed to
+ * get the list of searches should be as minimal as possible.
+ *
+ * These searches should be as static as possible, and should not contain conditionals, or any other logic
+ */
+function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<ValueOf<typeof CONST.SEARCH.SEARCH_LIST>, SearchTypeMenuItem> {
+    return {
+        [CONST.SEARCH.SEARCH_LIST.EXPENSES]: {
+            key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            translationPath: 'common.expenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            searchQuery: buildCannedSearchQuery(),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.REPORTS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            translationPath: 'common.reports',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Document,
+            searchQuery: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.CHATS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.CHATS,
+            translationPath: 'common.chats',
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.SUBMIT]: {
+            key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+            translationPath: 'common.submit',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Pencil,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                from: [`${accountID}`],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.APPROVE]: {
+            key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
+            translationPath: 'search.bulkActions.approve',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.ThumbsUp,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                to: [`${accountID}`],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.PAY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.PAY,
+            translationPath: 'search.bulkActions.pay',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyBag,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                payer: `${accountID}`,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.EXPORT]: {
+            key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
+            translationPath: 'common.export',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CheckCircle,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
+                exporter: [`${accountID}`],
+                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.STATEMENTS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
+            translationPath: 'search.statements',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CreditCard,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.CARDS,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
+                postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            translationPath: 'search.unapprovedCash',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyHourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+            translationPath: 'search.unapprovedCompanyCards',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CreditCardHourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+    };
+}
 
 /**
  * @private
@@ -513,7 +696,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SuggestedSearchKey): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -686,13 +869,13 @@ function getAction(
     data: OnyxTypes.SearchResults['data'],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
-    currentSearch: SuggestedSearchKey,
+    currentSearch: SearchKey,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
 
-    if (currentSearch === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT) {
+    if (currentSearch === CONST.SEARCH.SEARCH_KEYS.EXPORT) {
         return CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING;
     }
 
@@ -928,7 +1111,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
-    currentSearch: SuggestedSearchKey,
+    currentSearch: SearchKey,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1055,7 +1238,7 @@ function getSections(
     metadata: OnyxTypes.SearchResults['search'],
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    currentSearch: SuggestedSearchKey = CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
+    currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1300,47 +1483,19 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 function createTypeMenuSections(
-    currentUserLogin: string | undefined,
+    currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
-    feeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
+    defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
+    const suggestedSearches = getSuggestedSearches(defaultCardFeed?.id, currentUserAccountID);
+
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
-            menuItems: [
-                {
-                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
-                    translationPath: 'common.expenses',
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    icon: Expensicons.Receipt,
-                    getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({policyID});
-                        return queryString;
-                    },
-                },
-                {
-                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS,
-                    translationPath: 'common.reports',
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    icon: Expensicons.Document,
-                    getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
-                        return queryString;
-                    },
-                },
-                {
-                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS,
-                    translationPath: 'common.chats',
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    icon: Expensicons.ChatBubbles,
-                    getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
-                        return queryString;
-                    },
-                },
-            ],
+            menuItems: [suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPENSES], suggestedSearches[CONST.SEARCH.SEARCH_LIST.REPORTS], suggestedSearches[CONST.SEARCH.SEARCH_LIST.CHATS]],
         },
     ];
 
@@ -1353,7 +1508,7 @@ function createTypeMenuSections(
         }
 
         const reimburser = policy.reimburser;
-        const isReimburser = reimburser === currentUserLogin;
+        const isReimburser = reimburser === currentUserEmail;
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
 
         if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
@@ -1368,7 +1523,7 @@ function createTypeMenuSections(
     });
 
     const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !currentUserLogin || !isPaidGroupPolicy(policy)) {
+        if (!policy || !currentUserEmail || !isPaidGroupPolicy(policy)) {
             return false;
         }
 
@@ -1376,20 +1531,20 @@ function createTypeMenuSections(
             return false;
         }
 
-        const isPolicyApprover = policy.approver === currentUserLogin;
+        const isPolicyApprover = policy.approver === currentUserEmail;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === currentUserLogin || employee.forwardsTo === currentUserLogin;
+            return employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail;
         });
 
         return isPolicyApprover || isSubmittedTo;
     });
 
     const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !currentUserLogin) {
+        if (!policy || !currentUserEmail) {
             return false;
         }
 
-        return policy.exporter === currentUserLogin;
+        return policy.exporter === currentUserEmail;
     });
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
@@ -1404,10 +1559,7 @@ function createTypeMenuSections(
         if (showSubmitSuggestion) {
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
-                translationPath: 'common.submit',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.Pencil,
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.SUBMIT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
@@ -1448,85 +1600,38 @@ function createTypeMenuSections(
                               ]
                             : [],
                 },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${currentUserAccountID}`],
-                    });
-                    return queryString;
-                },
             });
         }
 
         if (showApproveSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
-                translationPath: 'search.bulkActions.approve',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.ThumbsUp,
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.APPROVE],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${currentUserAccountID}`],
-                    });
-                    return queryString;
                 },
             });
         }
 
         if (showPaySuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
-                translationPath: 'search.bulkActions.pay',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyBag,
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.PAY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: currentUserAccountID?.toString(),
-                    });
-                    return queryString;
                 },
             });
         }
 
         if (showExportSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
-                translationPath: 'common.export',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.CheckCircle,
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPORT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${currentUserAccountID}`],
-                        exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                    });
-                    return queryString;
                 },
             });
         }
@@ -1539,18 +1644,12 @@ function createTypeMenuSections(
         menuItems: [],
     };
 
-    let defaultFeed: string | undefined;
-
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
-    const activePolicy = getActivePolicy();
-    const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(feeds);
-
-    // The active (default) policy is prioritized to correctly set the default feed
-    [activePolicy, ...Object.values(policies)].some((policy) => {
+    Object.values(policies).some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
         }
@@ -1559,15 +1658,10 @@ function createTypeMenuSections(
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForStatementsSuggestion = !!policy.areCompanyCardsEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsForDisplayPerPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCompanyCardsSuggestion = isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = false; // s77rt TODO
-
-        // The default feed must be based on an eligible policy
-        if ((isEligibleForStatementsSuggestion || isEligibleForUnapprovedCompanyCardsSuggestion) && !defaultFeed) {
-            defaultFeed = cardFeedsForDisplayPerPolicy[policy.id]?.sort((a, b) => a.name.localeCompare(b.name)).at(0)?.id;
-        }
 
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
         showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
@@ -1580,23 +1674,11 @@ function createTypeMenuSections(
 
     if (shouldShowStatementsSuggestion) {
         accountingSection.menuItems.push({
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.STATEMENTS,
-            translationPath: 'search.statements',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.CreditCard,
+            ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.STATEMENTS],
             emptyState: {
                 headerMedia: DotLottieAnimations.GenericEmptyState,
                 title: 'search.searchResults.emptyStatementsResults.title',
                 subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
-            },
-            getSearchQuery: () => {
-                const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.CARDS,
-                    feed: defaultFeed ? [defaultFeed] : undefined,
-                    postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
-                });
-                return queryString;
             },
         });
     }
@@ -1604,86 +1686,38 @@ function createTypeMenuSections(
     if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push(
             {
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH,
-                translationPath: 'search.unapprovedCash',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyHourglass,
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                    });
-                    return queryString;
                 },
             },
             {
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-                translationPath: 'search.unapprovedCompanyCards',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.CreditCardHourglass,
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                        feed: defaultFeed ? [defaultFeed] : undefined,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                    });
-                    return queryString;
                 },
             },
         );
     } else if (showShowUnapprovedCashSuggestion) {
         accountingSection.menuItems.push({
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED,
-            translationPath: 'search.unapproved',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
+            ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY],
             emptyState: {
                 headerMedia: DotLottieAnimations.Fireworks,
                 title: 'search.searchResults.emptyUnapprovedResults.title',
                 subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-            },
-            getSearchQuery: () => {
-                const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                    reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                });
-                return queryString;
             },
         });
     } else if (showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push({
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED,
-            translationPath: 'search.unapproved',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
+            ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY],
             emptyState: {
                 headerMedia: DotLottieAnimations.Fireworks,
                 title: 'search.searchResults.emptyUnapprovedResults.title',
                 subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-            },
-            getSearchQuery: () => {
-                const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                    feed: defaultFeed ? [defaultFeed] : undefined,
-                    status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                });
-                return queryString;
             },
         });
     }
@@ -1721,13 +1755,13 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(searchResults: SearchResultsInfo | undefined, queryJSON: SearchQueryJSON | undefined) {
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
-        (searchResults?.hasResults ?? searchResults?.hasMoreResults) &&
-        searchResults?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.status === status.join(',') : searchResults?.status === status);
+        searchResults?.data !== undefined &&
+        searchResults?.search?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
 
     return isDataLoaded;
 }
@@ -1774,6 +1808,7 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 export {
+    getSuggestedSearches,
     getListItem,
     getSections,
     getShouldShowMerchant,
@@ -1805,4 +1840,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SuggestedSearchKey};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey as SuggestedSearchKey};
