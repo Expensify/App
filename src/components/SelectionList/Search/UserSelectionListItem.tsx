@@ -62,8 +62,9 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            formatPhoneNumber,
         });
-    }, [item.accountID]);
+    }, [item.accountID, formatPhoneNumber]);
 
     return (
         <BaseListItem
