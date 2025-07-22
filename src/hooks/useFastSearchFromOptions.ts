@@ -8,8 +8,8 @@ import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import arrayLastElement from '@src/utils/arrayLastElement';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -194,8 +194,7 @@ function useFastSearchFromOptions(
             }
             const deburredInput = deburr(searchInput);
             const searchWords = deburredInput.split(/\s+/);
-            const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
-            const longestSearchWord = searchWordsSorted.at(searchWordsSorted.length - 1); // longest word is the last element
+            const longestSearchWord = arrayLastElement(searchWords, (a, b) => a.length - b.length); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
             }

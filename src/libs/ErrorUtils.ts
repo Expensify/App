@@ -5,8 +5,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+import arrayFirstElement from '@src/utils/arrayFirstElement';
+import arrayLastElement from '@src/utils/arrayLastElement';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
@@ -42,7 +44,7 @@ function getAuthenticateErrorMessage(response: Response): TranslationPaths {
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+    return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 
 /**
@@ -77,7 +79,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: O
         return '';
     }
 
-    const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const key = arrayLastElement(Object.keys(errors)) ?? '';
     return getErrorMessageWithTranslationData(errors[key] ?? '');
 }
 
@@ -88,7 +90,7 @@ function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxDa
         return {};
     }
 
-    const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const key = arrayLastElement(Object.keys(errors)) ?? '';
 
     return {key: errors[key]};
 }
@@ -104,7 +106,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
         return {};
     }
 
-    const key = Object.keys(errorsForField).sort().reverse().at(0) ?? '';
+    const key = arrayLastElement(Object.keys(errorsForField)) ?? '';
     return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
@@ -115,7 +117,7 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
         return {};
     }
 
-    const key = Object.keys(errorsForField).sort().at(0) ?? '';
+    const key = arrayFirstElement(Object.keys(errorsForField)) ?? '';
     return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
@@ -139,7 +141,7 @@ function getLatestError(errors?: Errors): Errors {
         return {};
     }
 
-    const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const key = arrayLastElement(Object.keys(errors)) ?? '';
     return {[key]: getErrorMessageWithTranslationData(errors[key])};
 }
 

@@ -1,4 +1,3 @@
-import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -11,6 +10,7 @@ import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccount, BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arrayLastElement from '@src/utils/arrayLastElement';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap> {
     return (corpayFields?.formFields ?? []).reduce(
@@ -37,7 +37,15 @@ function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typ
 }
 
 function getLatestCreatedBankAccount(bankAccountList: OnyxEntry<BankAccountList>): BankAccount | undefined {
-    return lodashSortBy(Object.values(bankAccountList ?? {}), 'accountData.created').pop();
+    const comparator = (bankAccount1: BankAccount, bankAccount2: BankAccount) => {
+        const created1 = bankAccount1.accountData?.created ?? '';
+        const created2 = bankAccount2.accountData?.created ?? '';
+        if (created1 === created2) {
+            return 0;
+        }
+        return created1 > created2 ? 1 : -1;
+    };
+    return arrayLastElement(Object.values(bankAccountList ?? {}), comparator);
 }
 
 function getSubstepValues(

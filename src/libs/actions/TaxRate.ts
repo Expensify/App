@@ -24,6 +24,7 @@ import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import arrayFirstElement from '@src/utils/arrayFirstElement';
 
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
@@ -298,9 +299,7 @@ type TaxRateDeleteMap = Record<
 function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[]) {
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const firstTaxID = Object.keys(policyTaxRates ?? {})
-        .sort((a, b) => a.localeCompare(b))
-        .at(0);
+    const firstTaxID = arrayFirstElement(Object.keys(policyTaxRates ?? {}), (a, b) => a.localeCompare(b));
     const distanceRateCustomUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
     const customUnitID = distanceRateCustomUnit?.customUnitID;
     const ratesToUpdate = Object.values(distanceRateCustomUnit?.rates ?? {}).filter(
