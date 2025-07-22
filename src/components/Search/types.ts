@@ -70,6 +70,7 @@ type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentSearchKey: SuggestedSearchKey | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -78,8 +79,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
-    currentSearchKey: SuggestedSearchKey | undefined;
-    setCurrentSearchHash: (hash: number) => void;
+    setCurrentSearchHash: (hash: number, key: SuggestedSearchKey | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;

@@ -162,8 +162,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
@@ -183,10 +181,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
     const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+
+    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const key = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+
     const shouldCalculateTotals = useMemo(
-        () => searchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-        [searchKey],
+        () => key === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+        [key],
     );
 
     const previousReportActions = usePrevious(reportActions);
@@ -203,8 +204,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     useFocusEffect(
         useCallback(() => {
             clearSelectedTransactions(hash);
-            setCurrentSearchHash(hash);
-        }, [hash, clearSelectedTransactions, setCurrentSearchHash]),
+            setCurrentSearchHash(hash, key);
+        }, [hash, key, clearSelectedTransactions, setCurrentSearchHash]),
     );
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -289,8 +290,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, key);
+    }, [key, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
