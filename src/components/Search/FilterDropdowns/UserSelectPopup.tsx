@@ -76,8 +76,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
     }, [selectedOptions]);
 
-    const listData = useMemo(() => {
-        const optionsList = getValidOptions(
+    const optionsList = useMemo(() => {
+        return getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -89,7 +89,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 includeCurrentUser: true,
             },
         );
+    }, [options.reports, options.personalDetails, selectedOptions]);
 
+    const listData = useMemo(() => {
         const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -113,7 +115,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             });
 
         return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, selectedAccountIDs, accountID]);
+    }, [optionsList, cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, selectedAccountIDs, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
