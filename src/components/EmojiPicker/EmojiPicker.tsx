@@ -15,6 +15,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import DomUtils from '@libs/DomUtils';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -117,7 +118,10 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      * Hide the emoji picker menu.
      */
     const hideEmojiPicker = (isNavigating?: boolean) => {
-        blurActiveElement();
+        const activeElementId = DomUtils.getActiveElement()?.id;
+        if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
+            blurActiveElement();
+        }
         const currOnModalHide = onModalHide.current;
         onModalHide.current = () => {
             if (currOnModalHide) {

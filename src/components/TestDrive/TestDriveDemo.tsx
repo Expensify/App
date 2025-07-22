@@ -64,7 +64,7 @@ function TestDriveDemo() {
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
-                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected?.choice)}
+                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected)}
                             iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>

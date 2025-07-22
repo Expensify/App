@@ -27,7 +27,7 @@ type ErrorObject = {
     fileExtension?: string;
 };
 
-function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = false) {
+function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = true) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -44,6 +44,18 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const validFiles = useRef<FileObject[]>([]);
     const filesToValidate = useRef<FileObject[]>([]);
     const collectedErrors = useRef<ErrorObject[]>([]);
+
+    const deduplicateErrors = useCallback((errors: ErrorObject[]) => {
+        const uniqueErrors = new Set<string>();
+        return errors.filter((error) => {
+            const key = `${error.error}-${error.fileExtension ?? ''}`;
+            if (uniqueErrors.has(key)) {
+                return false;
+            }
+            uniqueErrors.add(key);
+            return true;
+        });
+    }, []);
 
     const resetValidationState = useCallback(() => {
         setIsErrorModalVisible(false);
@@ -120,7 +132,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         }
 
         if (collectedErrors.current.length > 0) {
-            const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
+            const uniqueErrors = deduplicateErrors(collectedErrors.current);
             setErrorQueue(uniqueErrors);
             setCurrentErrorIndex(0);
             const firstError = uniqueErrors.at(0);
@@ -135,9 +147,14 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             proceedWithFilesAction(validFiles.current);
             resetValidationState();
         }
-    }, [pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
+    }, [deduplicateErrors, pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
 
     const validateAndResizeFiles = (files: FileObject[]) => {
+        // Early return for empty files
+        if (files.length === 0) {
+            return;
+        }
+
         // Reset collected errors for new validation
         collectedErrors.current = [];
 
@@ -261,21 +278,21 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                   style={styles.invisiblePDF}
                   previewSourceURL={file.uri ?? ''}
                   onLoadSuccess={() => {
-                      validatedPDFs.current = [...(validatedPDFs.current ?? []), file];
-                      validFiles.current = [...(validFiles.current ?? []), file];
+                      validatedPDFs.current.push(file);
+                      validFiles.current.push(file);
                       checkIfAllValidatedAndProceed();
                   }}
                   onPassword={() => {
-                      validatedPDFs.current = [...(validatedPDFs.current ?? []), file];
+                      validatedPDFs.current.push(file);
                       if (isValidatingReceipts) {
                           collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
                       } else {
-                          validFiles.current = [...(validFiles.current ?? []), file];
+                          validFiles.current.push(file);
                       }
                       checkIfAllValidatedAndProceed();
                   }}
                   onLoadError={() => {
-                      validatedPDFs.current = [...(validatedPDFs.current ?? []), file];
+                      validatedPDFs.current.push(file);
                       collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
                       checkIfAllValidatedAndProceed();
                   }}
@@ -287,21 +304,21 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         if (!fileError) {
             return '';
         }
-        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).reason;
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE) {
+        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
                     {prompt}
-                    <TextLink href=""> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
                 </Text>
             );
         }
         return prompt;
-    }, [fileError, invalidFileExtension, translate]);
+    }, [fileError, invalidFileExtension, isValidatingReceipts, translate]);
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).title}
+            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).title}
             onConfirm={onConfirm}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}

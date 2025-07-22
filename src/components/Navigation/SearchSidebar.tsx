@@ -57,8 +57,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
     if (shouldUseNarrowLayout) {
         return null;

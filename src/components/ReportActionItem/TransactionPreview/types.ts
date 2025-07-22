@@ -105,7 +105,7 @@ type TransactionPreviewContentProps = {
     /** Holds the transaction data entry from Onyx */
     transaction: OnyxEntry<Transaction>;
 
-    /** The original amount value on the transaction. This is used to deduce who is the sender and who is the receiver of the money request
+    /** The amount of the transaction saved in the database. This is used to deduce who is the sender and who is the receiver of the money request
      * In case of Splits the property `transaction` is actually an original transaction (for the whole split) and it does not have the data required to deduce who is the sender */
     transactionRawAmount: number;
 
