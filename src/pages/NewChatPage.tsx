@@ -21,6 +21,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
+import useContactsImporter from '@libs/ContactPermission/useContactsImporter';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,6 +57,7 @@ function useOptions() {
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const {contacts} = useContactsImporter();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -64,7 +66,7 @@ function useOptions() {
         const filteredOptions = getValidOptions(
             {
                 reports: listOptions.reports ?? [],
-                personalDetails: listOptions.personalDetails ?? [],
+                personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
             {
                 betas: betas ?? [],
@@ -73,7 +75,7 @@ function useOptions() {
             },
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions, contacts]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {

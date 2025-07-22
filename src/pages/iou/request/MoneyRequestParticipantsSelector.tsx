@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
+import useContactsImporter from '@libs/ContactPermission/useContactsImporter';
 import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
@@ -102,7 +103,7 @@ function MoneyRequestParticipantsSelector(
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
+    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactsImporter();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
@@ -119,7 +120,7 @@ function MoneyRequestParticipantsSelector(
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
@@ -132,14 +133,6 @@ function MoneyRequestParticipantsSelector(
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
 
-    const importAndSaveContacts = useCallback(() => {
-        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
-            setContacts(usersFromContact);
-        });
-    }, []);
-
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
@@ -149,13 +142,6 @@ function MoneyRequestParticipantsSelector(
         // e.g. if the approver was changed in the policy, we need to update the options list
         initializeOptions();
     }, [initializeOptions]);
-
-    useContactPermissions({
-        importAndSaveContacts,
-        setContacts,
-        contactPermissionState,
-        setContactPermissionState,
-    });
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
