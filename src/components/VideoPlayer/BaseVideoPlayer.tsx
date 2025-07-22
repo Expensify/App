@@ -80,7 +80,7 @@ function NewBaseVideoPlayer({
     }));
 
     /* eslint-disable no-param-reassign */
-    const player1 = useVideoPlayer(sourceURL, (player) => {
+    const videoPlayer = useVideoPlayer(sourceURL, (player) => {
         player.loop = isLooping;
         if (shouldPlay) {
             player.play();
@@ -90,9 +90,9 @@ function NewBaseVideoPlayer({
     });
     /* eslint-enable no-param-reassign */
 
-    const {currentTime, bufferedPosition} = useEvent(player1, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {isPlaying} = useEvent(player1, 'playingChange', {isPlaying: false});
-    const {status} = useEvent(player1, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
+    const {currentTime, bufferedPosition} = useEvent(videoPlayer, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
+    const {isPlaying} = useEvent(videoPlayer, 'playingChange', {isPlaying: false});
+    const {status} = useEvent(videoPlayer, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
         return status === 'loading' || status === 'idle';
@@ -121,20 +121,20 @@ function NewBaseVideoPlayer({
     const shouldUseNewRate = !videoPopoverMenuSource.current || videoPopoverMenuSource.current !== sourceURL;
 
     useEffect(() => {
-        videoPlayerRef.current = player1;
-    }, [player1]);
+        videoPlayerRef.current = videoPlayer;
+    }, [videoPlayer]);
 
     const togglePlayCurrentVideo = useCallback(() => {
         setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
-        } else if (player1.playing) {
+        } else if (videoPlayer.playing) {
             pauseVideo();
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, pauseVideo, playVideo, player1.playing, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, pauseVideo, playVideo, videoPlayer.playing, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -213,14 +213,14 @@ function NewBaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
-    useEventListener(player1, 'mutedChange', (payload: MutedChangeEventPayload) => {
+    useEventListener(videoPlayer, 'mutedChange', (payload: MutedChangeEventPayload) => {
         if (payload.muted || !payload.oldMuted) {
             return;
         }
         updateVolume(lastNonZeroVolume.get());
     });
 
-    useEventListener(player1, 'playingChange', (payload: PlayingChangeEventPayload) => {
+    useEventListener(videoPlayer, 'playingChange', (payload: PlayingChangeEventPayload) => {
         const isVideoPlaying = payload.isPlaying;
         preventPausingWhenExitingFullscreen(isVideoPlaying);
         if (isVideoPlaying && isEnded) {
@@ -228,13 +228,13 @@ function NewBaseVideoPlayer({
         }
     });
 
-    useEventListener(player1, 'statusChange', (payload: StatusChangeEventPayload) => {
+    useEventListener(videoPlayer, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (payload.status === 'readyToPlay') {
-            player1.play();
+            videoPlayer.play();
         }
         if (payload.status === 'loading') {
             preventPausingWhenExitingFullscreen(false);
-            player1.pause();
+            videoPlayer.pause();
         }
         if (payload.error) {
             // No need to set hasError while offline, since the offline indicator is already shown.
@@ -246,18 +246,18 @@ function NewBaseVideoPlayer({
         }
     });
 
-    useEventListener(player1, 'playToEnd', () => {
+    useEventListener(videoPlayer, 'playToEnd', () => {
         setIsEnded(true);
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.set(1);
     });
 
     useEffect(() => {
-        if (!player1.duration) {
+        if (!videoPlayer.duration) {
             return;
         }
-        setDuration(player1.duration);
-    }, [player1.duration]);
+        setDuration(videoPlayer.duration);
+    }, [videoPlayer.duration]);
 
     // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
@@ -409,7 +409,7 @@ function NewBaseVideoPlayer({
                                     >
                                         <VideoView
                                             allowsFullscreen
-                                            player={player1}
+                                            player={videoPlayer}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             nativeControls={isFullScreenRef.current}
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
@@ -432,11 +432,11 @@ function NewBaseVideoPlayer({
                                                 }
 
                                                 // Sync volume updates in full screen mode after leaving it
-                                                updateVolume(player1.muted ? 0 : player1.volume || 1);
+                                                updateVolume(videoPlayer.muted ? 0 : videoPlayer.volume || 1);
 
                                                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                                                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
-                                                if (player1.playing) {
+                                                if (videoPlayer.playing) {
                                                     pauseVideo();
                                                     playVideo();
                                                     videoResumeTryNumberRef.current = 3;
