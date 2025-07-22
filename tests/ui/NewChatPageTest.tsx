@@ -19,6 +19,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
 jest.mock('react-native-permissions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     RESULTS: {
         UNAVAILABLE: 'unavailable',
