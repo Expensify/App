@@ -4838,6 +4838,27 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeight,
         },
 
+        transactionListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            flex: 1,
+            userSelect: 'none',
+        },
+
+        transactionGroupListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            paddingVertical: 8,
+            flex: 1,
+            userSelect: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            flexDirection: 'row',
+        },
+
         searchQueryListItemStyle: {
             alignItems: 'center',
             flexDirection: 'row',
