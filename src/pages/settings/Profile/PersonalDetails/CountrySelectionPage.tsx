@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
+// import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionListSingle from '@components/SelectionListSingle';
 import useLocalize from '@hooks/useLocalize';
@@ -87,13 +87,15 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             /> */}
             <SelectionListSingle
                 headerMessage={headerMessage}
-                textInputLabel={translate('common.country')}
-                textInputValue={searchValue}
+                textInputOptions={{
+                    textInputLabel: translate('common.country'),
+                    textInputValue: searchValue,
+                    onChangeText: setSearchValue,
+                }}
                 data={searchResults}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 shouldSingleExecuteRowSelect
-                onChangeText={setSearchValue}
                 initiallyFocusedItemKey={currentCountry}
                 addBottomSafeAreaPadding
             />

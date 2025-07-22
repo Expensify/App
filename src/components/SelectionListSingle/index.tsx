@@ -2,8 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {forwardRef, useCallback, useMemo, useRef, useState} from 'react';
-import type {ReactElement} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, NativeSyntheticEvent, TextInput as RNTextInput, StyleProp, TextInputKeyPressEventData, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -12,7 +12,6 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import BaseSelectionListItemRenderer from '@components/SelectionList/BaseSelectionListItemRenderer';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
@@ -20,12 +19,39 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import SelectionListHeader from './ListHeader';
+import SelectionListTextInput from './SelectionListInput';
 import type {ListItem, ValidListItem} from './types';
 
+const ANIMATED_HIGHLIGHT_DURATION =
+    CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
+    CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
+    CONST.ANIMATED_HIGHLIGHT_START_DELAY +
+    CONST.ANIMATED_HIGHLIGHT_START_DURATION +
+    CONST.ANIMATED_HIGHLIGHT_END_DELAY +
+    CONST.ANIMATED_HIGHLIGHT_END_DURATION;
+
+type SelectionListSingleHandle = {
+    scrollAndHighlightItem: (items: string[]) => void;
+    scrollToIndex: (index: number, animated?: boolean) => void;
+    focusTextInput: () => void;
+};
+
+type DataDetailsType<TItem extends ListItem> = {
+    allOptions: TItem[];
+    selectedOptions: TItem[];
+    allSelected: boolean;
+    someSelected: boolean;
+    disabledIndexes: number[];
+    disabledArrowKeyIndexes: number[];
+};
+
 type SelectionListSingleProps<TItem extends ListItem> = {
-    data: TItem[] | typeof CONST.EMPTY_ARRAY;
+    ref?: React.Ref<SelectionListSingleHandle>;
+    data: TItem[];
     ListItem: ValidListItem;
     onSelectRow: (item: TItem) => void;
+    onSelectAll?: () => void;
     onCheckboxPress?: (item: TItem) => void;
     showLoadingPlaceholder?: boolean;
     showListEmptyContent?: boolean;
@@ -43,16 +69,17 @@ type SelectionListSingleProps<TItem extends ListItem> = {
     onEndReachedThreshold?: number;
     listStyle?: StyleProp<ViewStyle>;
     isLoadingNewOptions?: boolean;
-    textInputLabel?: string;
-    textInputValue?: string;
-    onChangeText?: (text: string) => void;
     shouldShowTextInput?: boolean;
     textInputOptions?: {
+        onChangeText?: (text: string) => void;
+        textInputLabel?: string;
+        textInputValue?: string;
         textInputHint?: string;
         textInputPlaceholder?: string;
         textInputMaxLength?: number;
         inputMode?: InputModeOptions;
         textInputErrorText?: string;
+        textInputRef?: RefObject<RNTextInput | null> | ((ref: RNTextInput | null) => void);
     };
     canSelectMultiple?: boolean;
     shouldShowTooltips?: boolean;
@@ -73,12 +100,16 @@ type SelectionListSingleProps<TItem extends ListItem> = {
     isSmallScreenWidth?: boolean;
     shouldClearInputOnSelect?: boolean;
     shouldUpdateFocusedIndex?: boolean;
+    listHeaderContent?: React.ReactNode;
+    customListHeader?: React.ReactNode;
 };
 
 function SelectionListSingle<TItem extends ListItem>({
     data,
+    ref,
     ListItem,
     onConfirm,
+    onSelectAll,
     onCheckboxPress,
     confirmButtonText,
     confirmButtonStyle,
@@ -95,11 +126,9 @@ function SelectionListSingle<TItem extends ListItem>({
     onEndReachedThreshold,
     listStyle,
     isLoadingNewOptions,
-    textInputLabel,
-    textInputValue,
     textInputOptions,
-    onChangeText,
-    shouldShowTextInput = !!textInputLabel,
+    shouldShowTextInput = !!textInputOptions?.textInputLabel,
+    listHeaderContent,
     onSelectRow,
     canSelectMultiple = false,
     shouldShowTooltips = true,
@@ -120,9 +149,11 @@ function SelectionListSingle<TItem extends ListItem>({
     isSmallScreenWidth,
     shouldClearInputOnSelect,
     shouldUpdateFocusedIndex = false,
+    customListHeader,
 }: SelectionListSingleProps<TItem>) {
     const styles = useThemeStyles();
     const [currentPage, setCurrentPage] = useState(1);
+    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
@@ -133,11 +164,32 @@ function SelectionListSingle<TItem extends ListItem>({
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
     const listRef = useRef<FlashList<TItem>>(null);
+    const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
+
+    const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
+        const disabledIndexes = data
+            .filter((item) => item?.isDisabled && !isItemSelected(item))
+            .map((item) => item.index)
+            .filter((i): i is number => i !== undefined);
+
+        const disabledArrowKeyIndexes = data
+            .filter((item) => !!item?.isDisabled && !isItemSelected(item) && !item?.isDisabledCheckbox)
+            .map((item) => item.index)
+            .filter((i): i is number => i !== undefined);
+
+        const allOptions = data;
+        const totalSelectable = allOptions.length - disabledIndexes.length;
+        const selectedOptions = data.filter(isItemSelected);
+        const allSelected = selectedOptions.length > 0 && selectedOptions.length === totalSelectable;
+        const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
+
+        return {allOptions, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
+    }, [data, isItemSelected]);
 
     const showConfirmButton = useMemo(() => !!confirmButtonText, [confirmButtonText]);
 
@@ -159,12 +211,12 @@ function SelectionListSingle<TItem extends ListItem>({
         [data],
     );
 
-    const setHasKeyBeenPressed = useCallback(() => {
+    function setHasKeyBeenPressed() {
         if (hasKeyBeenPressed.current) {
             return;
         }
         hasKeyBeenPressed.current = true;
-    }, []);
+    }
 
     // eslint-disable-next-line react-compiler/react-compiler
     const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
@@ -172,11 +224,7 @@ function SelectionListSingle<TItem extends ListItem>({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: data.findIndex((item) => item.keyForList === initiallyFocusedItemKey),
         maxIndex: Math.min(data.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
-        disabledIndexes: data
-            .filter((item) => !!item)
-            .filter((item) => !!item.isDisabledCheckbox || (item?.isDisabled && !isItemSelected(item)))
-            .map((item) => item.index)
-            .filter((index) => index !== undefined),
+        disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             if (!shouldScrollToFocusedIndex) {
@@ -198,7 +246,7 @@ function SelectionListSingle<TItem extends ListItem>({
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
                 if (shouldShowTextInput && shouldClearInputOnSelect) {
-                    onChangeText?.('');
+                    textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
                     if (!item.isDisabledCheckbox) {
                         onCheckboxPress?.(item);
@@ -206,11 +254,9 @@ function SelectionListSingle<TItem extends ListItem>({
                     return;
                 }
             }
-
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
                 setFocusedIndex(indexToFocus);
             }
-
             onSelectRow(item);
 
             if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
@@ -226,11 +272,21 @@ function SelectionListSingle<TItem extends ListItem>({
             shouldPreventDefaultFocusOnSelectRow,
             shouldClearInputOnSelect,
             isSmallScreenWidth,
-            onChangeText,
+            textInputOptions,
             onCheckboxPress,
             setFocusedIndex,
         ],
     );
+
+    const selectFocusedOption = useCallback(() => {
+        const focusedOption = focusedIndex !== -1 ? data.at(focusedIndex) : undefined;
+
+        if (!focusedOption || (focusedOption.isDisabled && !isItemSelected(focusedOption))) {
+            return;
+        }
+
+        selectRow(focusedOption);
+    }, [data, focusedIndex, isItemSelected, selectRow]);
 
     const headerMessageContent = () =>
         (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (data.length === 0 && !showLoadingPlaceholder)) &&
@@ -245,12 +301,14 @@ function SelectionListSingle<TItem extends ListItem>({
             const isDisabled = item.isDisabled;
             const selected = isItemSelected(item);
             const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
+            const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
             return (
                 <View>
                     <BaseSelectionListItemRenderer
                         ListItem={ListItem}
                         item={{
+                            shouldAnimateInHighlight: isItemHighlighted,
                             isSelected: selected,
                             ...item,
                         }}
@@ -283,6 +341,7 @@ function SelectionListSingle<TItem extends ListItem>({
             focusedIndex,
             isItemSelected,
             isRowMultilineSupported,
+            itemsToHighlight,
             listItemTitleStyles,
             listItemWrapperStyle,
             rightHandSideComponent,
@@ -295,52 +354,6 @@ function SelectionListSingle<TItem extends ListItem>({
             singleExecution,
         ],
     );
-
-    const renderInput = useCallback(() => {
-        return (
-            <View style={[styles.ph5, styles.pb3]}>
-                <TextInput
-                    onKeyPress={textInputKeyPress}
-                    ref={(element) => {
-                        innerTextInputRef.current = element as RNTextInput;
-                    }}
-                    onFocus={() => (isTextInputFocusedRef.current = true)}
-                    onBlur={() => (isTextInputFocusedRef.current = false)}
-                    label={textInputLabel}
-                    accessibilityLabel={textInputLabel}
-                    hint={textInputOptions?.textInputHint}
-                    role={CONST.ROLE.PRESENTATION}
-                    value={textInputValue}
-                    placeholder={textInputOptions?.textInputPlaceholder}
-                    maxLength={textInputOptions?.textInputMaxLength}
-                    onChangeText={onChangeText}
-                    inputMode={textInputOptions?.inputMode}
-                    selectTextOnFocus
-                    spellCheck={false}
-                    // onSubmitEditing={selectFocusedOption}
-                    submitBehavior={data.length ? 'blurAndSubmit' : 'submit'}
-                    isLoading={isLoadingNewOptions}
-                    testID="selection-list-text-input"
-                    errorText={textInputOptions?.textInputErrorText}
-                    shouldInterceptSwipe={false}
-                />
-            </View>
-        );
-    }, [
-        styles.ph5,
-        styles.pb3,
-        textInputKeyPress,
-        textInputLabel,
-        textInputOptions?.textInputHint,
-        textInputOptions?.textInputPlaceholder,
-        textInputOptions?.textInputMaxLength,
-        textInputOptions?.inputMode,
-        textInputOptions?.textInputErrorText,
-        textInputValue,
-        onChangeText,
-        data.length,
-        isLoadingNewOptions,
-    ]);
 
     const [slicedData, ShowMoreButtonInstance] = useMemo(() => {
         const pageSize = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -369,29 +382,104 @@ function SelectionListSingle<TItem extends ListItem>({
         return null;
     };
 
+    /**
+     * Highlights the items and scrolls to the first item present in the items list.
+     *
+     * @param items - The list of items to highlight.
+     * @param timeout - The timeout in milliseconds before removing the highlight.
+     */
+    const scrollAndHighlightItem = useCallback(
+        (items: string[]) => {
+            const newItemsToHighlight = new Set<string>();
+            items.forEach((item) => {
+                newItemsToHighlight.add(item);
+            });
+            const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
+            scrollToIndex(index);
+            setItemsToHighlight(newItemsToHighlight);
+
+            if (itemFocusTimeoutRef.current) {
+                clearTimeout(itemFocusTimeoutRef.current);
+            }
+            itemFocusTimeoutRef.current = setTimeout(() => {
+                setItemsToHighlight(null);
+            }, ANIMATED_HIGHLIGHT_DURATION);
+        },
+        [data, scrollToIndex],
+    );
+
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef.current) {
+            return;
+        }
+
+        innerTextInputRef.current.focus();
+    }, []);
+
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, focusTextInput}), [focusTextInput, scrollAndHighlightItem, scrollToIndex]);
+
     return (
         <View style={styles.flex1}>
-            {shouldShowTextInput && renderInput()}
+            {shouldShowTextInput && (
+                <SelectionListTextInput
+                    onKeyPress={textInputKeyPress}
+                    ref={(el) => {
+                        innerTextInputRef.current = el as RNTextInput;
+                        if (!textInputOptions?.textInputRef) {
+                            return;
+                        }
+                        if (typeof textInputOptions.textInputRef === 'function') {
+                            textInputOptions.textInputRef(el as RNTextInput);
+                        } else {
+                            // eslint-disable-next-line no-param-reassign
+                            textInputOptions.textInputRef.current = el as RNTextInput;
+                        }
+                    }}
+                    options={textInputOptions}
+                    isLoading={isLoadingNewOptions}
+                    dataLength={data.length}
+                    onSubmit={selectFocusedOption}
+                    onFocusChange={(focused) => (isTextInputFocusedRef.current = focused)}
+                />
+            )}
+
             {headerMessageContent()}
             {data.length === 0 ? (
                 renderListEmptyContent()
             ) : (
-                <FlashList
-                    data={slicedData}
-                    renderItem={renderItem}
-                    ref={listRef}
-                    keyExtractor={(item, index) => item.keyForList ?? `${index}`}
-                    estimatedItemSize={64}
-                    ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                    scrollEnabled={scrollEnabled}
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    showsVerticalScrollIndicator={showScrollIndicator}
-                    onEndReached={onEndReached}
-                    onEndReachedThreshold={onEndReachedThreshold}
-                    style={[listStyle]}
-                    initialScrollIndex={focusedIndex}
-                />
+                <>
+                    {!listHeaderContent && (
+                        <SelectionListHeader
+                            dataDetails={dataDetails}
+                            headerMessage={headerMessage}
+                            customListHeader={customListHeader}
+                            canSelectMultiple={canSelectMultiple}
+                            onSelectAll={() => {
+                                onSelectAll?.();
+                                if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+                                    innerTextInputRef.current.focus();
+                                }
+                            }}
+                            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        />
+                    )}
+                    <FlashList
+                        data={slicedData}
+                        renderItem={renderItem}
+                        ref={listRef}
+                        keyExtractor={(item, index) => item.keyForList ?? `${index}`}
+                        estimatedItemSize={64}
+                        ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                        scrollEnabled={scrollEnabled}
+                        indicatorStyle="white"
+                        keyboardShouldPersistTaps="always"
+                        showsVerticalScrollIndicator={showScrollIndicator}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={onEndReachedThreshold}
+                        style={[listStyle]}
+                        initialScrollIndex={focusedIndex}
+                    />
+                </>
             )}
 
             {showConfirmButton && (
