@@ -35,7 +35,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -84,7 +84,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, formatPhoneNumber);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -123,7 +123,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies]);
+    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, formatPhoneNumber]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active

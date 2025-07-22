@@ -219,7 +219,7 @@ function MoneyReportHeader({
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const isOnHold = isOnHoldTransactionUtils(transaction);
 
@@ -241,7 +241,15 @@ function MoneyReportHeader({
         [allViolations, transactionIDs],
     );
 
-    const details = useReportAvatarDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
+    const details = useReportAvatarDetails({
+        report: chatReport,
+        iouReport: moneyRequestReport,
+        action: reportPreviewAction,
+        policy,
+        innerPolicies: policies,
+        personalDetails,
+        formatPhoneNumber,
+    });
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
@@ -340,13 +348,13 @@ function MoneyReportHeader({
                 InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
+                payInvoice(type, chatReport, moneyRequestReport, formatPhoneNumber, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, formatPhoneNumber, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation, formatPhoneNumber],
     );
 
     const confirmApproval = () => {
@@ -357,7 +365,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, true);
+            approveMoneyRequest(moneyRequestReport, formatPhoneNumber, true);
         }
     };
 
@@ -536,7 +544,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport) {
                         return;
                     }
-                    submitReport(moneyRequestReport);
+                    submitReport(formatPhoneNumber, moneyRequestReport);
                 }}
             />
         ),
@@ -711,7 +719,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                submitReport(moneyRequestReport);
+                submitReport(formatPhoneNumber, moneyRequestReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -735,7 +743,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport);
+                unapproveExpenseReport(moneyRequestReport, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -837,7 +845,7 @@ function MoneyReportHeader({
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport);
+                retractReport(moneyRequestReport, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -849,7 +857,7 @@ function MoneyReportHeader({
                     setIsReopenWarningModalVisible(true);
                     return;
                 }
-                reopenReport(moneyRequestReport);
+                reopenReport(moneyRequestReport, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
@@ -924,7 +932,7 @@ function MoneyReportHeader({
         </Text>
     );
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
-        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, isUserValidated, confirmApproval, moneyRequestReport);
+        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, formatPhoneNumber, isUserValidated, confirmApproval, moneyRequestReport);
 
     const KYCMoreDropdown = (
         <KYCWall
@@ -1072,7 +1080,7 @@ function MoneyReportHeader({
                     if (!chatReport) {
                         return;
                     }
-                    cancelPayment(moneyRequestReport, chatReport);
+                    cancelPayment(moneyRequestReport, chatReport, formatPhoneNumber);
                     setIsCancelPaymentModalVisible(false);
                 }}
                 onCancel={() => setIsCancelPaymentModalVisible(false)}
@@ -1161,7 +1169,7 @@ function MoneyReportHeader({
                 confirmText={translate('iou.unapproveReport')}
                 onConfirm={() => {
                     setIsUnapproveModalVisible(false);
-                    unapproveExpenseReport(moneyRequestReport);
+                    unapproveExpenseReport(moneyRequestReport, formatPhoneNumber);
                 }}
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsUnapproveModalVisible(false)}
@@ -1174,7 +1182,7 @@ function MoneyReportHeader({
                 confirmText={translate('iou.reopenReport')}
                 onConfirm={() => {
                     setIsReopenWarningModalVisible(false);
-                    reopenReport(moneyRequestReport);
+                    reopenReport(moneyRequestReport, formatPhoneNumber);
                 }}
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsReopenWarningModalVisible(false)}

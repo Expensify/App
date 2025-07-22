@@ -762,7 +762,7 @@ function getLastMessageTextForReport(
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, formatPhoneNumber, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -776,6 +776,7 @@ function getLastMessageTextForReport(
             : undefined;
         const reportPreviewMessage = getReportPreviewMessage(
             !isEmptyObject(iouReport) ? iouReport : null,
+            formatPhoneNumber,
             lastIOUMoneyReportAction ?? lastReportAction,
             true,
             reportUtilsIsChatReport(report),
@@ -785,9 +786,9 @@ function getLastMessageTextForReport(
         );
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
     } else if (isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
+        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report, formatPhoneNumber});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report, true);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report, formatPhoneNumber, true);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -795,10 +796,10 @@ function getLastMessageTextForReport(
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction, formatPhoneNumber});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
+        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction, formatPhoneNumber);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -1023,10 +1024,12 @@ function createOption(
         result.alternateText =
             showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, formatPhoneNumber);
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber}) || formatPhoneNumber(personalDetail?.login ?? '')
+            : getReportName(report, formatPhoneNumber);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber}) || formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1042,7 +1045,7 @@ function createOption(
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, formatPhoneNumber, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
     return result;
@@ -1064,7 +1067,7 @@ function getReportOption(participant: Participant, formatPhoneNumber: FormatPhon
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, formatPhoneNumber);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report});
@@ -1103,7 +1106,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, formatPhoneNumber);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails && !option.text) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;

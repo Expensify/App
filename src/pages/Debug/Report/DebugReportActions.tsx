@@ -23,7 +23,7 @@ type DebugReportActionsProps = {
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -50,7 +50,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, isReportArchived).messageText ?? translate('report.noActivityYet'));
+                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, formatPhoneNumber, isReportArchived).messageText ?? translate('report.noActivityYet'));
             }
 
             if (reportActionMessage.html) {

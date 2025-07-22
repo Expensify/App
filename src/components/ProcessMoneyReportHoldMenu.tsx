@@ -58,7 +58,7 @@ function ProcessMoneyReportHoldMenu({
     transactionCount,
     startAnimation,
 }: ProcessMoneyReportHoldMenuProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -69,7 +69,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(moneyRequestReport, full);
+            approveMoneyRequest(moneyRequestReport, formatPhoneNumber, full);
             if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID)) {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
             }
@@ -77,7 +77,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, formatPhoneNumber, full);
         }
         onClose();
     };

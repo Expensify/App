@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -45,6 +46,7 @@ type AvatarDetailsProps = {
     report: OnyxEntry<Report>;
     iouReport?: OnyxEntry<Report>;
     policies?: OnyxCollection<Policy>;
+    formatPhoneNumber: FormatPhoneNumberType;
 };
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
@@ -72,7 +74,8 @@ function getIconDetails({
     reportPreviewSenderID,
     innerPolicies,
     policy,
-}: AvatarDetailsProps & {reportPreviewSenderID: number | undefined}) {
+    formatPhoneNumber,
+}: AvatarDetailsProps & {reportPreviewSenderID: number | undefined} & {formatPhoneNumber: FormatPhoneNumberType}) {
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
     const accountID = reportPreviewSenderID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -94,7 +97,7 @@ function getIconDetails({
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
     const getPrimaryAvatar = () => {
-        const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
+        const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const actorHint = isWorkspaceActor ? getPolicyName({report, policy}) : (login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
 
@@ -155,7 +158,7 @@ function getIconDetails({
         if (displayAllActors) {
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
+            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId, formatPhoneNumber});
             const secondaryPolicyAvatar = invoiceReceiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(invoiceReceiverPolicy?.name);
             const isWorkspaceInvoice = isInvoiceRoom(report) && !isIndividualInvoiceRoom(report);
 
@@ -177,7 +180,7 @@ function getIconDetails({
         if (!isWorkspaceActor) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const avatarIconIndex = report?.isOwnPolicyExpenseChat || isPolicyExpenseChat(report) ? 0 : 1;
-            const reportIcons = getIcons(report, personalDetails, undefined, undefined, undefined, policy);
+            const reportIcons = getIcons(report, formatPhoneNumber, personalDetails, undefined, undefined, undefined, policy);
 
             return reportIcons.at(avatarIconIndex) ?? defaultAvatar;
         }
@@ -185,7 +188,7 @@ function getIconDetails({
         if (isInvoiceReportUtils(iouReport)) {
             const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
+            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId, formatPhoneNumber});
 
             return {
                 source: secondaryUserAvatar,
@@ -243,6 +246,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
                 report,
                 iouReport,
                 reportPreviewSenderID: undefined,
+                formatPhoneNumber: rest.formatPhoneNumber,
             }),
         };
     }

@@ -259,7 +259,7 @@ function MoneyRequestConfirmationList({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
@@ -628,7 +628,7 @@ function MoneyRequestConfirmationList({
             return [];
         }
 
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, formatPhoneNumber);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
@@ -704,6 +704,7 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
+        formatPhoneNumber,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -754,7 +755,7 @@ function MoneyRequestConfirmationList({
                 ...[
                     {
                         title: translate('moneyRequestConfirmationList.paidBy'),
-                        data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                        data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, formatPhoneNumber)],
                         shouldShow: true,
                     },
                     {
@@ -780,7 +781,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt, formatPhoneNumber]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {

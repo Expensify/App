@@ -19,6 +19,7 @@ import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQuery
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -55,6 +56,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -67,7 +69,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, formatPhoneNumber);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -111,9 +113,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, formatPhoneNumber);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
+    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, formatPhoneNumber]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -284,7 +286,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         timestamp: endTime,
                     });
                 } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    navigateToAndOpenReport(item.login ? [item.login] : [], formatPhoneNumber, false);
 
                     const endTime = Date.now();
                     Log.info('[CMD_K_DEBUG] Page user navigation handled', false, {

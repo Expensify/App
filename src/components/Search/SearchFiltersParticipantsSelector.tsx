@@ -36,7 +36,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -58,21 +58,22 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            formatPhoneNumber,
             {
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
+    }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions, formatPhoneNumber]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions, formatPhoneNumber]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -80,7 +81,15 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            formatPhoneNumber,
+            personalDetails,
+            true,
+        );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
@@ -89,6 +98,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
+                formatPhoneNumber,
             });
             if (selectedCurrentUser) {
                 selectedCurrentUser.text = formattedName;

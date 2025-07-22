@@ -3,6 +3,7 @@ import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview'
 import {WebView} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,23 +17,27 @@ type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
+    const {formatPhoneNumber} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
 
-    const onMessage = useCallback((event: WebViewMessageEvent) => {
-        try {
-            const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
-            const {type, url} = parsedData || {};
-            if (!webViewRef.current) {
-                return;
-            }
+    const onMessage = useCallback(
+        (event: WebViewMessageEvent) => {
+            try {
+                const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
+                const {type, url} = parsedData || {};
+                if (!webViewRef.current) {
+                    return;
+                }
 
-            handleWalletStatementNavigation(type, url);
-        } catch (error) {
-            console.error('Error parsing message from WebView:', error);
-        }
-    }, []);
+                handleWalletStatementNavigation(formatPhoneNumber, type, url);
+            } catch (error) {
+                console.error('Error parsing message from WebView:', error);
+            }
+        },
+        [formatPhoneNumber],
+    );
 
     return (
         <WebView

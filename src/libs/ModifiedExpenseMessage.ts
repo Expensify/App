@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
@@ -137,7 +138,7 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     });
 }
 
-function getForExpenseMovedFromSelfDM(destinationReportID: string) {
+function getForExpenseMovedFromSelfDM(destinationReportID: string, formatPhoneNumber: FormatPhoneNumberType) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
@@ -147,7 +148,9 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName({report: rootParentReport}) : buildReportNameFromParticipantNames({report: rootParentReport});
+    const reportName = isPolicyExpenseChat(rootParentReport)
+        ? getPolicyExpenseChatName({report: rootParentReport, formatPhoneNumber})
+        : buildReportNameFromParticipantNames({report: rootParentReport, formatPhoneNumber});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
@@ -169,10 +172,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
+    formatPhoneNumber,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
+    formatPhoneNumber: FormatPhoneNumberType;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -186,11 +191,11 @@ function getForReportAction({
     }
 
     if (reportActionOriginalMessage?.movedToReportID) {
-        return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
+        return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID, formatPhoneNumber);
     }
 
     if (reportActionOriginalMessage?.movedFromReport) {
-        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
+        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`], formatPhoneNumber);
         return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
     }
 

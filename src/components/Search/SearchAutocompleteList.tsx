@@ -166,7 +166,7 @@ function SearchAutocompleteList(
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -178,8 +178,8 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? []);
-    }, [areOptionsInitialized, betas, options]);
+        return getSearchOptions(options, formatPhoneNumber, betas ?? []);
+    }, [areOptionsInitialized, betas, options, formatPhoneNumber]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
 
@@ -509,7 +509,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, formatPhoneNumber) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,

@@ -10,20 +10,19 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
-    let userDisplayName = getUserDetailTooltipText(accountID, userDetails.displayName ? userDetails.displayName.trim() : '');
+    let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
@@ -33,7 +32,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     // the Copilot feature is implemented.
     if (delegateAccountID && delegateAccountID > 0) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
-        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID);
+        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID, formatPhoneNumber);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails?.login ?? '';
         userAvatar = delegateUserDetails?.avatar;

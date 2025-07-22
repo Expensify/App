@@ -78,6 +78,7 @@ import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
+import useLocalize from '@hooks/useLocalize';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -225,6 +226,7 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

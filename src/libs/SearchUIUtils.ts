@@ -1494,6 +1494,7 @@ function createTypeMenuSections(
     currentUserAccountID: number | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
+    formatPhoneNumber: FormatPhoneNumberType,
     policies: OnyxCollection<OnyxTypes.Policy> = {},
 ): SearchTypeMenuSection[] {
     const suggestedSearches = getSuggestedSearches(defaultCardFeed?.id, currentUserAccountID);
@@ -1592,7 +1593,7 @@ function createTypeMenuSections(
                                               }
 
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  const createdReportID = createNewReport(personalDetails, formatPhoneNumber, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                       Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });

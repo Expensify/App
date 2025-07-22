@@ -46,6 +46,7 @@ type TaskViewProps = {
 function TaskView({report, parentReport, action}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
@@ -57,7 +58,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
 
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false, formatPhoneNumber);
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
@@ -67,7 +68,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
-    const {translate} = useLocalize();
+
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextValue = useMemo(
         () => ({
@@ -92,7 +93,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report?.reportID)}
+                    onClose={() => clearTaskErrors(report?.reportID, formatPhoneNumber)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>
@@ -178,7 +179,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                         {report?.managerID ? (
                             <MenuItem
                                 label={translate('task.assignee')}
-                                title={getDisplayNameForParticipant({accountID: report.managerID})}
+                                title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber})}
                                 icon={getAvatarsForAccountIDs([report?.managerID ?? CONST.DEFAULT_NUMBER_ID], personalDetails)}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALLER}

@@ -90,7 +90,7 @@ function Expensify() {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
@@ -204,12 +204,12 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '');
+            Report.openReportFromDeepLink(url ?? '', formatPhoneNumber);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+            Report.openReportFromDeepLink(state.url, formatPhoneNumber);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();

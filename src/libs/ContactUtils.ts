@@ -1,3 +1,4 @@
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
@@ -27,7 +28,7 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
     });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<PersonalDetails>> => {
+const getContacts = (deviceContacts: DeviceContact[] | [], formatPhoneNumber: FormatPhoneNumberType): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [])?.at(0) ?? '';
@@ -46,6 +47,7 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<P
                 email,
                 phone: phoneNumber,
                 avatar: avatarSource,
+                formatPhoneNumber,
             });
         })
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);

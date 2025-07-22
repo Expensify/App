@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
@@ -89,10 +90,10 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
+function getNextApproverDisplayName(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType, isUnapprove?: boolean) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
-    return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
@@ -136,6 +137,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
 function buildNextStep(
     report: OnyxEntry<Report>,
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
+    formatPhoneNumber: FormatPhoneNumberType,
     shouldFixViolations?: boolean,
     isUnapprove?: boolean,
     isReopen?: boolean,
@@ -163,9 +165,10 @@ function buildNextStep(
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
 
-    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
-    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
+    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber});
+    const policyOwnerDisplayName =
+        policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID, formatPhoneNumber});
+    const nextApproverDisplayName = getNextApproverDisplayName(report, formatPhoneNumber, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
@@ -471,7 +474,7 @@ function buildNextStep(
                               text: 'an admin',
                           }
                         : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
+                              text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber}),
                               type: 'strong',
                           },
                     {

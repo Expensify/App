@@ -30,6 +30,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
         ONYXKEYS.NVP_PREFERRED_LOCALE,
+        ONYXKEYS.COUNTRY_CODE,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -38,11 +39,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, countryCodeByIP, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
                 locale: null,
+                countryCodeByIP: 1,
             };
         }
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
@@ -144,7 +146,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: generateReportName(report),
+                reportName: generateReportName(report, countryCodeByIP ?? 1),
                 isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
                 requiresAttention,
@@ -161,6 +163,7 @@ export default createOnyxDerivedValueConfig({
         return {
             reports: reportAttributes,
             locale: preferredLocale ?? null,
+            countryCodeByIP,
         };
     },
 });

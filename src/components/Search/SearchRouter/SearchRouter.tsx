@@ -6,6 +6,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
@@ -80,7 +81,7 @@ type SearchRouterProps = {
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -385,7 +386,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         if (item?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                         } else if ('login' in item) {
-                            navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                            navigateToAndOpenReport(item.login ? [item.login] : [], formatPhoneNumber, false);
                         }
                     });
                     onRouterClose();

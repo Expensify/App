@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
@@ -47,6 +48,7 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
 }: KYCWallProps) {
+    const {formatPhoneNumber} = useLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -112,7 +114,7 @@ function KYCWall({
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && isIOUReport(iouReport)) {
-                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
+                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport, formatPhoneNumber) ?? {};
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));

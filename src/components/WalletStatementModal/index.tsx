@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,6 +9,7 @@ import type {WalletStatementMessage, WalletStatementProps} from './types';
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
+    const {formatPhoneNumber} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +21,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(type, url);
+        handleWalletStatementNavigation(formatPhoneNumber, type, url);
     };
 
     return (

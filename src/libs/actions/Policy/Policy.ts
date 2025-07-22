@@ -5,6 +5,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -2636,7 +2637,7 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
  * @returns policyID of the workspace we have created
  */
 // eslint-disable-next-line rulesdir/no-call-actions-from-actions
-function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceFromIOUCreationData | undefined {
+function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
@@ -2997,7 +2998,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, null, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, formatPhoneNumber, null, false, false, newWorkspace),
                         },
                     ],
                     created: DateUtils.getDBTime(),

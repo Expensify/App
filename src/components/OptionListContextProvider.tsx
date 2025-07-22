@@ -1,5 +1,6 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
@@ -42,6 +43,7 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
+    const {formatPhoneNumber} = useLocalize();
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
@@ -56,12 +58,12 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
 
     const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, reports);
+        const optionLists = createOptionList(personalDetails, formatPhoneNumber, reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, reports]);
+    }, [personalDetails, reports, formatPhoneNumber]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -116,7 +118,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             changedReportKeys.forEach((reportKey) => {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const {reportOption} = processReport(report, personalDetails);
+                const {reportOption} = processReport(report, personalDetails, formatPhoneNumber);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -150,7 +152,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails);
+                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, formatPhoneNumber);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -180,7 +182,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         // Handle initial personal details load. This initialization is required here specifically to prevent
         // UI freezing that occurs when resetting the app from the troubleshooting page.
         if (!prevPersonalDetails) {
-            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, reports);
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, formatPhoneNumber, reports);
             setOptions((prevOptions) => ({
                 ...prevOptions,
                 personalDetails: newPersonalDetailsOptions,
@@ -208,7 +210,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     if (!report) {
                         return;
                     }
-                    const newReportOption = createOptionFromReport(report, personalDetails);
+                    const newReportOption = createOptionFromReport(report, personalDetails, formatPhoneNumber);
                     const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                     newReportOptions.push({
                         newReportOption,
@@ -218,7 +220,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, formatPhoneNumber).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};

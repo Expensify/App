@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -344,6 +345,7 @@ function updateReportsToDisplayInLHN(
 function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
+    formatPhoneNumber: FormatPhoneNumberType,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
@@ -372,7 +374,7 @@ function sortReportsToDisplayInLHN(
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
-            displayName: getReportName(report),
+            displayName: getReportName(report, formatPhoneNumber),
             lastVisibleActionCreated: report?.lastVisibleActionCreated,
         };
 
@@ -510,6 +512,7 @@ function getOptionData({
     parentReportAction,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     invoiceReceiverPolicy,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -520,6 +523,7 @@ function getOptionData({
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
+    formatPhoneNumber: FormatPhoneNumberType;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -613,7 +617,7 @@ function getOptionData({
     const status = personalDetail?.status ?? '';
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, undefined, isSelfDM(report));
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, formatPhoneNumber, undefined, isSelfDM(report));
 
     const lastAction = visibleReportActionItems[report.reportID];
     // lastActorAccountID can be an empty string
@@ -639,10 +643,10 @@ function getOptionData({
         lastActorDetails.accountID = lastAction.actorAccountID;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, formatPhoneNumber);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, !!result?.private_isArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, formatPhoneNumber, policy, !!result?.private_isArchived);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -674,7 +678,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, formatPhoneNumber) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -684,7 +688,7 @@ function getOptionData({
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`], formatPhoneNumber) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -742,7 +746,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
             result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
-            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
+            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, formatPhoneNumber, true);
         } else if (isCardIssuedAction(lastAction)) {
             const card = getExpensifyCardFromReportAction({reportAction: lastAction, policyID: report.policyID});
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
@@ -753,7 +757,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
             result.alternateText = getUpdateRoomDescriptionMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogAddEmployeeMessage(lastAction);
+            result.alternateText = getPolicyChangeLogAddEmployeeMessage(lastAction, formatPhoneNumber);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
@@ -787,16 +791,20 @@ function getOptionData({
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
 
             if (!result.alternateText) {
-                result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'));
+                result.alternateText = formatReportLastMessageText(
+                    getWelcomeMessage(report, policy, formatPhoneNumber, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'),
+                );
             }
         }
         result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'));
+            lastMessageText = formatReportLastMessageText(
+                getWelcomeMessage(report, policy, formatPhoneNumber, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'),
+            );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, formatPhoneNumber) && !isArchivedReport(reportNameValuePairs)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText))}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText));
@@ -815,13 +823,22 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, formatPhoneNumber, policy, undefined, undefined, invoiceReceiverPolicy);
 
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID, policy, invoiceReceiverPolicy);
+    result.icons = getIcons(
+        report,
+        formatPhoneNumber,
+        personalDetails,
+        personalDetail?.avatar,
+        personalDetail?.login,
+        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        policy,
+        invoiceReceiverPolicy,
+    );
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
@@ -832,14 +849,14 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): WelcomeMessage {
+function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, formatPhoneNumber: FormatPhoneNumberType, isReportArchived = false): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(report, isReportArchived);
+        return getRoomWelcomeMessage(report, formatPhoneNumber, isReportArchived);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -851,7 +868,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
             welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
             welcomeMessage.messageText = ensureSingleSpacing(
-                `${welcomeMessage.phrase1} ${getDisplayNameForParticipant({accountID: report?.ownerAccountID})} ${welcomeMessage.phrase2} ${getPolicyName({report})} ${
+                `${welcomeMessage.phrase1} ${getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber})} ${welcomeMessage.phrase2} ${getPolicyName({report})} ${
                     welcomeMessage.phrase3
                 }`,
             );
@@ -874,7 +891,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant, formatPhoneNumber);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
         .map(({displayName}, index) => {
             if (index === displayNamesWithTooltips.length - 1) {
@@ -897,7 +914,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false): WelcomeMessage {
+function getRoomWelcomeMessage(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType, isReportArchived = false): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName({report});
 
@@ -930,7 +947,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber})
                 : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                   // eslint-disable-next-line deprecation/deprecation
                   getPolicy(report?.invoiceReceiver?.policyID)?.name;
@@ -942,7 +959,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = ensureSingleSpacing(`${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`);
+    welcomeMessage.messageText = ensureSingleSpacing(
+        `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? getReportName(report, formatPhoneNumber) : ''} ${welcomeMessage.phrase2 ?? ''}`,
+    );
 
     return welcomeMessage;
 }

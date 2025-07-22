@@ -2,6 +2,7 @@ import React, {memo, useMemo} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -91,6 +92,7 @@ function MultipleAvatars({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
@@ -114,7 +116,10 @@ function MultipleAvatars({
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
 
     const avatarSize = useMemo(() => {
         if (isFocusMode) {

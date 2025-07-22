@@ -38,7 +38,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -53,25 +53,25 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
-            const alternateText = getAlternateText(report, {});
+            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, formatPhoneNumber));
+            const alternateText = getAlternateText(report, {}, formatPhoneNumber);
             return {...report, alternateText};
         });
-    }, [personalDetails, reports, selectedReportIDs]);
+    }, [personalDetails, reports, selectedReportIDs, formatPhoneNumber]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, undefined, false);
-    }, [areOptionsInitialized, isScreenTransitionEnd, options]);
+        return getSearchOptions(options, formatPhoneNumber, undefined, false);
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, formatPhoneNumber]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions, formatPhoneNumber]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -79,7 +79,15 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, false);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            formatPhoneNumber,
+            personalDetails,
+            false,
+        );
 
         newSections.push(formattedResults.section);
 

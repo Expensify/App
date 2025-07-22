@@ -9,6 +9,7 @@ import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, UserSelectionListItemProps} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ function UserSelectionListItem<TItem extends ListItem>({
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {formatPhoneNumber} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -61,8 +63,9 @@ function UserSelectionListItem<TItem extends ListItem>({
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
             shouldAddCurrentUserPostfix: true,
+            formatPhoneNumber,
         });
-    }, [item.accountID]);
+    }, [item.accountID, formatPhoneNumber]);
 
     return (
         <BaseListItem

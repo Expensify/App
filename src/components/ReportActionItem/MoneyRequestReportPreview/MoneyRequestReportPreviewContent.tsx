@@ -124,7 +124,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -209,13 +209,13 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness);
+                    payInvoice(type, chatReport, iouReport, formatPhoneNumber, payAsBusiness);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport);
+                    payMoneyRequest(type, chatReport, iouReport, formatPhoneNumber);
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation],
+        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation, formatPhoneNumber],
     );
 
     const confirmApproval = () => {
@@ -226,7 +226,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, true);
+            approveMoneyRequest(iouReport, formatPhoneNumber, true);
         }
     };
 
@@ -245,9 +245,9 @@ function MoneyRequestReportPreviewContent({
         if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName({report: chatReport, policy});
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true, formatPhoneNumber});
         }
 
         if (isApproved) {
@@ -258,7 +258,7 @@ function MoneyRequestReportPreviewContent({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
@@ -280,6 +280,7 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
         managerID,
+        formatPhoneNumber,
     ]);
 
     /*
@@ -496,7 +497,7 @@ function MoneyRequestReportPreviewContent({
             <Button
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('iou.submitAmount', {amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
-                onPress={() => submitReport(iouReport)}
+                onPress={() => submitReport(formatPhoneNumber, iouReport)}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
@@ -657,7 +658,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
+                                                            {getMoneyReportPreviewName(action, iouReport, formatPhoneNumber, isInvoice)}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>

@@ -1,3 +1,4 @@
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
@@ -36,6 +37,7 @@ function navigateToQuickAction(
     currentUserPersonalDetails: PersonalDetails,
     policyID: string | undefined,
     selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
+    formatPhoneNumber: FormatPhoneNumberType,
 ) {
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action);
@@ -65,7 +67,7 @@ function navigateToQuickAction(
             break;
         case CONST.QUICK_ACTIONS.CREATE_REPORT:
             selectOption(() => {
-                const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+                const optimisticReportID = createNewReport(currentUserPersonalDetails, formatPhoneNumber, policyID);
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(
                         isSearchTopmostFullScreenRoute()

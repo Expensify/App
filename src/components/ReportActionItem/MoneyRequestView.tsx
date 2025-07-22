@@ -118,7 +118,7 @@ const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.
 function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
@@ -284,7 +284,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
             if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
+            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories, formatPhoneNumber);
         },
         [transaction, report, policy, policyTagList, policyCategories],
     );
@@ -534,7 +534,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, formatPhoneNumber, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -845,7 +845,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
+                            title={getReportName(parentReport, formatPhoneNumber) || parentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

@@ -1,6 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
+import {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
@@ -75,7 +76,7 @@ function updatePronouns(pronouns: string) {
     });
 }
 
-function setDisplayName(firstName: string, lastName: string) {
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: FormatPhoneNumberType) {
     if (!currentUserAccountID) {
         return;
     }
@@ -84,15 +85,19 @@ function setDisplayName(firstName: string, lastName: string) {
         [currentUserAccountID]: {
             firstName,
             lastName,
-            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                firstName,
-                lastName,
-            }),
+            displayName: PersonalDetailsUtils.createDisplayName(
+                currentUserEmail ?? '',
+                {
+                    firstName,
+                    lastName,
+                },
+                formatPhoneNumber,
+            ),
         },
     });
 }
 
-function updateDisplayName(firstName: string, lastName: string) {
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: FormatPhoneNumberType) {
     if (!currentUserAccountID) {
         return;
     }
@@ -108,10 +113,14 @@ function updateDisplayName(firstName: string, lastName: string) {
                     [currentUserAccountID]: {
                         firstName,
                         lastName,
-                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                            firstName,
-                            lastName,
-                        }),
+                        displayName: PersonalDetailsUtils.createDisplayName(
+                            currentUserEmail ?? '',
+                            {
+                                firstName,
+                                lastName,
+                            },
+                            formatPhoneNumber,
+                        ),
                     },
                 },
             },
@@ -119,7 +128,7 @@ function updateDisplayName(firstName: string, lastName: string) {
     });
 }
 
-function updateLegalName(legalFirstName: string, legalLastName: string) {
+function updateLegalName(legalFirstName: string, legalLastName: string, formatPhoneNumber: FormatPhoneNumberType) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: OnyxUpdate[] = [
         {
@@ -138,10 +147,14 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                        firstName: legalFirstName,
-                        lastName: legalLastName,
-                    }),
+                    displayName: PersonalDetailsUtils.createDisplayName(
+                        currentUserEmail ?? '',
+                        {
+                            firstName: legalFirstName,
+                            lastName: legalLastName,
+                        },
+                        formatPhoneNumber,
+                    ),
                     firstName: legalFirstName,
                     lastName: legalLastName,
                 },

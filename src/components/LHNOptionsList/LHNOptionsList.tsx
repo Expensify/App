@@ -62,7 +62,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
@@ -212,7 +212,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
+            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, formatPhoneNumber, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
@@ -246,6 +246,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
+                    formatPhoneNumber={formatPhoneNumber}
                 />
             );
         },
@@ -271,6 +272,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
+            formatPhoneNumber,
         ],
     );
 

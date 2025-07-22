@@ -4,6 +4,7 @@ import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -473,7 +474,7 @@ function requestValidateCodeAction() {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, formatPhoneNumber: FormatPhoneNumberType, shouldResetActionCode?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -548,7 +549,7 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
                     value: {
                         [currentUserAccountID]: {
                             login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails),
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails, formatPhoneNumber),
                         },
                     },
                 },
@@ -647,7 +648,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[], formatPhoneNumber: FormatPhoneNumberType) {
     onyxUpdates.forEach((update) => {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             return;
@@ -656,7 +657,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action, formatPhoneNumber));
     });
 }
 
@@ -883,7 +884,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents() {
+function subscribeToUserEvents(formatPhoneNumber: FormatPhoneNumberType) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (currentUserAccountID === -1) {
         return;
@@ -936,7 +937,7 @@ function subscribeToUserEvents() {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON);
+                triggerNotifications(pushJSON, formatPhoneNumber);
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1102,7 +1103,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: FormatPhoneNumberType, backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1139,7 +1140,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: str
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails, formatPhoneNumber),
                 },
             },
         },

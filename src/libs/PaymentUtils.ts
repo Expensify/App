@@ -4,6 +4,7 @@ import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
@@ -123,6 +124,7 @@ const selectPaymentType = (
     triggerKYCFlow: TriggerKYCFlow,
     policy: OnyxEntry<Policy>,
     onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void,
+    formatPhoneNumber: FormatPhoneNumberType,
     isUserValidated?: boolean,
     confirmApproval?: () => void,
     iouReport?: OnyxEntry<Report>,
@@ -146,7 +148,7 @@ const selectPaymentType = (
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport);
+            approveMoneyRequest(iouReport, formatPhoneNumber);
         }
         return;
     }

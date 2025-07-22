@@ -1,4 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
@@ -32,6 +33,7 @@ function buildSubstitutionsMap(
     cardList: CardList,
     cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
+    formatPhoneNumber: FormatPhoneNumberType,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -69,7 +71,7 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies, formatPhoneNumber);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

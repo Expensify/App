@@ -44,7 +44,7 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -60,8 +60,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant, formatPhoneNumber);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, formatPhoneNumber, isReportArchived);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const policyName = getPolicyName({report});
 
@@ -81,7 +81,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, formatPhoneNumber);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -134,7 +134,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.ownerAccountID})}</Text>
+                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
                             <Text style={[styles.textStrong]}>{getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
@@ -151,7 +151,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text>
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
+                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber})}</Text>
                                 ) : (
                                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                                     // eslint-disable-next-line deprecation/deprecation
@@ -178,7 +178,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     onPress={navigateToReport}
                                     suppressHighlighting
                                 >
-                                    {getReportName(report)}
+                                    {getReportName(report, formatPhoneNumber)}
                                 </Text>
                             )}
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}

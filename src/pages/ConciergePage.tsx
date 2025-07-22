@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
@@ -18,6 +19,7 @@ import ROUTES from '@src/ROUTES';
  *     - Else re-route to the login page
  */
 function ConciergePage() {
+    const {formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -32,7 +34,7 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(formatPhoneNumber, true, () => !isUnmounted.current);
                 });
             } else {
                 Navigation.navigate(ROUTES.HOME);

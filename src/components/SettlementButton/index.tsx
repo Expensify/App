@@ -54,7 +54,7 @@ function SettlementButton({
     onlyShowPayElsewhere,
     wrapperStyle,
 }: SettlementButtonProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -87,7 +87,7 @@ function SettlementButton({
             showLockedAccountModal();
             return;
         }
-        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport);
+        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, formatPhoneNumber, isUserValidated, confirmApproval, iouReport);
     };
 
     const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {

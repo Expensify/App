@@ -35,7 +35,7 @@ import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
@@ -185,7 +185,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     Navigation.dismissModal();
 
                     if (report && isIOUReport(report)) {
-                        convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                        convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, formatPhoneNumber);
                     } else {
                         changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);
                     }

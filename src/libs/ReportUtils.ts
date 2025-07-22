@@ -88,6 +88,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './Error
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
+import {formatPhoneNumberWithCountryCode} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
@@ -5036,10 +5037,11 @@ const buildReportNameFromParticipantNames = ({
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
-function generateReportName(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType): string {
+function generateReportName(report: OnyxEntry<Report>, countryCodeByIP: number): string {
     if (!report) {
         return '';
     }
+    const formatPhoneNumber = (phoneNumber: string) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
     return getReportNameInternal({report, formatPhoneNumber});
 }
 
@@ -5289,7 +5291,7 @@ function getReportNameInternal({
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports, formatPhoneNumber});
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {

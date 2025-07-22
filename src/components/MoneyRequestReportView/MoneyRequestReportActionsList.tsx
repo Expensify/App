@@ -118,7 +118,7 @@ function MoneyRequestReportActionsList({
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, formatPhoneNumber} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
@@ -511,7 +511,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID);
+            openReport(report.reportID, formatPhoneNumber);
             reportScrollManager.scrollToEnd();
             return;
         }

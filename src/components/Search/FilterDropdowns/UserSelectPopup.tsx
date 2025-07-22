@@ -35,7 +35,7 @@ type UserSelectPopupProps = {
 
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
@@ -70,6 +70,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            formatPhoneNumber,
             {
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -78,7 +79,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             },
         );
 
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
