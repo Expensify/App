@@ -294,7 +294,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             const nextIndex = currentErrorIndex + 1;
             const nextError = errorQueue.at(nextIndex);
             if (nextError) {
-                if (validFiles.current.length === 0) {
+                if (isValidatingMultipleFiles && currentErrorIndex === errorQueue.length - 2 && validFilesToUpload.length === 0) {
                     setIsValidatingMultipleFiles(false);
                 }
                 setCurrentErrorIndex(nextIndex);
