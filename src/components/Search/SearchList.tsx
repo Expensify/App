@@ -257,7 +257,7 @@ function SearchList(
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused,
+        isActive: isFocused && focusedIndex >= 0,
         shouldStopPropagation: true,
     });
 
