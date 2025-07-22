@@ -799,8 +799,8 @@ function getOptionData({
         result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             lastMessageText = formatReportLastMessageText(
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 getWelcomeMessage(report, policy, formatPhoneNumber, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
