@@ -1,6 +1,7 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {Fragment, useEffect, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -68,7 +69,18 @@ function CurrencyPicker({
     const hidePickerModal = () => {
         setIsPickerVisible(false);
         if (shouldSaveCurrencyInNavigation) {
-            Navigation.setParams({currency: value});
+            InteractionManager.runAfterInteractions(() => {
+                navigation.dispatch({
+                    type: 'SET_PARAMS',
+                    payload: {
+                        key: route.key,
+                        params: {
+                            currency: value,
+                            isPickerVisible: false,
+                        },
+                    },
+                });
+            });
         }
     };
 
@@ -80,7 +92,7 @@ function CurrencyPicker({
     const BlockingComponent = shouldShowFullPageOfflineView ? FullPageOfflineBlockingView : Fragment;
 
     useEffect(() => {
-        if (!shouldSyncPickerVisibilityWithNavigation) {
+        if ((shouldSaveCurrencyInNavigation && !isPickerVisible) || !shouldSyncPickerVisibilityWithNavigation) {
             return;
         }
         Navigation.setParams({isPickerVisible: String(isPickerVisible)});
