@@ -1,5 +1,3 @@
 {
-  "plugins": [
-    "expo-video"
-  ]
+    "plugins": ["expo-video"]
 }

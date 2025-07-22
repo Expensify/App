@@ -41,11 +41,6 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         resetCallback();
     }, [resetCallback, stopVideo]);
 
-    // Visibility.isVisible
-    // Jak okno nie jest widoczne i zostanie wywołany playVideo() to nie playuj tylko ustaw pending == true
-    // Jak okno się zrobi widoczne i pending był ustawiony wcześniej na true to play()
-    // czy to jest dalej osiągalne?
-
     useEffect(() => {
         return Visibility.onVisibilityChange(() => {
             if (!(Visibility.isVisible() && isPlayPendingRef.current)) {

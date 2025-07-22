@@ -35,7 +35,6 @@ function NewBaseVideoPlayer({
     style,
     videoPlayerStyle,
     videoControlsStyle,
-    videoStyle,
     videoDuration = 0,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     shouldUseSharedVideoElement = false,

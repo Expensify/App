@@ -1,6 +1,5 @@
 import * as Browser from '@libs/Browser';
 
-
 /**
  * Converts seconds to '[hours:]minutes:seconds' format
  */
