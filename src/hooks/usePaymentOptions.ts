@@ -7,6 +7,7 @@ import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {
     doesReportBelongToWorkspace,
+    getBankAccountRoute,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
@@ -26,7 +27,6 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
-    | 'addBankAccountRoute'
     | 'currency'
     | 'iouReport'
     | 'chatReportID'
@@ -45,7 +45,6 @@ type UsePaymentOptionsProps = Pick<
  * It dynamically generates payment or approval options to ensure the user interface reflects the correct actions possible for the user's current situation.
  */
 function usePaymentOptions({
-    addBankAccountRoute = '',
     currency = CONST.CURRENCY.USD,
     iouReport,
     chatReportID = '',
@@ -174,7 +173,10 @@ function usePaymentOptions({
                         {
                             text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                             icon: Expensicons.Bank,
-                            onSelected: () => Navigation.navigate(addBankAccountRoute),
+                            onSelected: () => {
+                                const bankAccountRoute = getBankAccountRoute(chatReport);
+                                Navigation.navigate(bankAccountRoute);
+                            },
                         },
                     ],
                 });
@@ -190,7 +192,10 @@ function usePaymentOptions({
                     {
                         text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                         icon: Expensicons.Bank,
-                        onSelected: () => Navigation.navigate(addBankAccountRoute),
+                        onSelected: () => {
+                            const bankAccountRoute = getBankAccountRoute(chatReport);
+                            Navigation.navigate(bankAccountRoute);
+                        },
                     },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
