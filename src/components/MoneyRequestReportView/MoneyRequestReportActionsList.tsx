@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
@@ -20,6 +19,7 @@ import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -45,6 +45,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -82,8 +83,8 @@ type MoneyRequestReportListProps = {
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
 
-    /** All transactions grouped by reportID */
-    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
+    /** List of transactions belonging to this report */
+    transactions?: OnyxTypes.Transaction[];
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -109,7 +110,7 @@ function MoneyRequestReportActionsList({
     report,
     policy,
     reportActions = [],
-    transactionsAndViolationsByReport,
+    transactions = [],
     newTransactions,
     hasNewerActions,
     hasOlderActions,
@@ -121,11 +122,11 @@ function MoneyRequestReportActionsList({
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
+    const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const {transactions: reportTransactions} = transactionsAndViolationsByReport[report.reportID] ?? {};
-    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
+    // wrapped in useMemo to avoid unnecessary re-renders and improve performance
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
@@ -133,6 +134,7 @@ function MoneyRequestReportActionsList({
     const linkedReportActionID = route?.params?.reportActionID;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
@@ -155,7 +157,7 @@ function MoneyRequestReportActionsList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
@@ -472,6 +474,7 @@ function MoneyRequestReportActionsList({
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
+                    policies={policies}
                     reportAction={reportAction}
                     reportActions={reportActions}
                     parentReportAction={parentReportAction}
@@ -486,7 +489,6 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         },
@@ -500,8 +502,8 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            transactionsAndViolationsByReport,
             allReports,
+            policies,
         ],
     );
 
@@ -536,12 +538,28 @@ function MoneyRequestReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    /**
+     * Runs when the FlatList finishes laying out
+     */
+    const recordTimeToMeasureItemLayout = useCallback(() => {
+        if (didLayout.current) {
+            return;
+        }
+
+        didLayout.current = true;
+
+        markOpenReportEnd();
+    }, []);
+
+    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+    // Wrapped into useCallback to stabilize children re-renders
+    const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
     return (
         <View
             style={[styles.flex1]}
             ref={wrapperViewRef}
         >
-            {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <>
                     <ButtonWithDropdownMenu
                         onPress={() => null}
@@ -554,7 +572,7 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                            isChecked={isSelectAllChecked}
                             isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                             onPress={() => {
                                 if (selectedTransactionIDs.length !== 0) {
@@ -567,7 +585,7 @@ function MoneyRequestReportActionsList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
-                                if (selectedTransactionIDs.length === transactions.length) {
+                                if (isSelectAllChecked) {
                                     clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
@@ -575,7 +593,7 @@ function MoneyRequestReportActionsList({
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedTransactionIDs.length === transactions.length}}
+                            accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
@@ -584,7 +602,14 @@ function MoneyRequestReportActionsList({
                     <ConfirmModal
                         title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
-                        onConfirm={handleDeleteTransactions}
+                        onConfirm={() => {
+                            const shouldNavigateBack =
+                                transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+                            handleDeleteTransactions();
+                            if (shouldNavigateBack) {
+                                Navigation.goBack(route.params?.backTo);
+                            }
+                        }}
                         onCancel={hideDeleteModal}
                         prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                         confirmText={translate('common.delete')}
@@ -615,7 +640,8 @@ function MoneyRequestReportActionsList({
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.reportActionID}
+                        keyExtractor={keyExtractor}
+                        onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={0.75}
                         onStartReached={onStartReached}

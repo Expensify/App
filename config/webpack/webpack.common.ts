@@ -33,6 +33,10 @@ const includeModules = [
     'react-native-web',
     'react-native-webview',
     '@react-native-picker',
+    '@react-navigation/material-top-tabs',
+    '@react-navigation/native',
+    '@react-navigation/native-stack',
+    '@react-navigation/stack',
     'react-native-modal',
     'react-native-gesture-handler',
     'react-native-google-places-autocomplete',
@@ -160,6 +164,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     ],
     module: {
         rules: [
+            {
+                test: /\.m?js$/,
+                resolve: {
+                    fullySpecified: false,
+                },
+            },
             // Transpiles and lints all the JS
             {
                 test: /\.(js|ts)x?$/,

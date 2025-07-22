@@ -4,16 +4,17 @@ import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMem
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,7 +54,6 @@ import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
-import {PersonalDetailsContext} from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -108,9 +108,6 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
-
-    /** All transactions grouped by reportID */
-    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -151,7 +148,6 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
-    transactionsAndViolationsByReport,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -170,10 +166,11 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -315,7 +312,7 @@ function ReportActionsList({
     const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
-    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
+    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     // eslint-disable-next-line react-compiler/react-compiler
     hasNewestReportActionRef.current = hasNewestReportAction;
@@ -555,7 +552,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = isArchivedNonExpenseReport(report, reportNameValuePairs);
+        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
@@ -583,6 +580,7 @@ function ReportActionsList({
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
+                    policies={policies}
                     reportAction={reportAction}
                     reportActions={sortedReportActions}
                     parentReportAction={parentReportAction}
@@ -590,7 +588,6 @@ function ReportActionsList({
                     index={index}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
@@ -607,29 +604,29 @@ function ReportActionsList({
             );
         },
         [
-            sortedReportActions,
-            parentReportAction,
-            parentReportActionForTransactionThread,
             report,
-            transactionThreadReport,
-            transactionsAndViolationsByReport,
             allReports,
+            policies,
             transactions,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            unreadMarkerReportActionID,
-            firstVisibleReportActionID,
+            parentReportAction,
+            sortedReportActions,
+            transactionThreadReport,
+            parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
+            firstVisibleReportActionID,
+            unreadMarkerReportActionID,
         ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, reportNameValuePairs)],
-        [unreadMarkerReportActionID, shouldUseNarrowLayout, report, reportNameValuePairs],
+        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
+        [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
     const hideComposer = !canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;

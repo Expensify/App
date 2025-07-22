@@ -4,14 +4,14 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -40,7 +40,7 @@ const defaultProps = {
 // Helper function to render TransactionItemRow with providers
 const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, isInReportTableView = true) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -145,7 +145,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with report action errors', async () => {
@@ -320,7 +320,7 @@ describe('TransactionItemRowRBR', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with violations, and missing merchant error', async () => {

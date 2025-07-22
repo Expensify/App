@@ -33,9 +33,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
-import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
-import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -177,7 +175,6 @@ const isReadyToOpenApp = new Promise<void>((resolve) => {
 });
 
 function confirmReadyToOpenApp() {
-    Timing.end(CONST.TIMING.OPEN_APP);
     resolveIsReadyPromise();
 }
 
@@ -332,9 +329,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
 function openApp(shouldKeepPublicRooms = false) {
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP),
-        });
+        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms));
     });
 }
 
@@ -359,9 +354,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
 
             const isFullReconnect = !updateIDFrom;
-            API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect), {
-                checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
-            });
+            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
         });
     });
 }

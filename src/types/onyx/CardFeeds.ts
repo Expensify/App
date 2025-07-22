@@ -4,6 +4,9 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Card statement close date */
+type CompanyCardStatementCloseDate = ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>;
+
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
@@ -16,6 +19,27 @@ type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VISA
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
+
+/** Card feed details */
+type CardFeedDetails = {
+    /** Processor ID */
+    processorID?: string;
+
+    /** Financial institution (bank) ID */
+    bankID?: string;
+
+    /** Financial institution (bank) name */
+    bankName?: string;
+
+    /** Company ID */
+    companyID?: string;
+
+    /** Distribution ID */
+    distributionID?: string;
+
+    /** Delivery file name */
+    deliveryFileName?: string;
+};
 
 /** Custom card feed data */
 type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -43,7 +67,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay?: string;
 
-    /** Indicates the day when the statement period for this card ends */
+    /** Plaid access token */
     plaidAccessToken?: string;
 }>;
 
@@ -68,6 +92,9 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     pending?: boolean;
 
     /** Indicates the day when the statement period for this card ends */
+    statementPeriodEndDay?: string;
+
+    /** Plaid access token */
     plaidAccessToken?: string;
 }>;
 
@@ -103,11 +130,14 @@ type AddNewCardFeedData = {
     /** Card feed provider */
     feedType: CardFeedProvider;
 
+    /** Card feed details */
+    feedDetails?: CardFeedDetails;
+
     /** Name of the card */
     cardTitle: string;
 
     /** Selected bank */
-    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
     /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
@@ -158,6 +188,7 @@ export type {
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
     CompanyCardFeed,
+    CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
@@ -165,4 +196,5 @@ export type {
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
     FundID,
+    CompanyCardStatementCloseDate,
 };
