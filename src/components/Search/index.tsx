@@ -281,6 +281,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
+        // Group-by option cannot be used for chats or tasks
+        const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+        const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+        if (groupBy && (isChat || isTask)) {
+            return [];
+        }
+
         return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearchKey);
     }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
@@ -528,8 +535,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = baseKey === newSearchResultKey;
+
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
@@ -537,6 +546,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                         return transactionKey === newSearchResultKey;
                     });
+
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
