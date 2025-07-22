@@ -68,6 +68,12 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Test identifier used to find elements in unit and e2e tests */
     testID?: string;
+
+    /** Whether to show a loading spinner icon for the menu item */
+    shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Whether to close the modal on select */
+    shouldCloseModalOnSelect?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
@@ -239,13 +245,17 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
-            close(
-                () => {
-                    selectedItem.onSelected?.();
-                },
-                undefined,
-                selectedItem.shouldCloseAllModals,
-            );
+            if (selectedItem.shouldCloseModalOnSelect !== false) {
+                close(
+                    () => {
+                        selectedItem.onSelected?.();
+                    },
+                    undefined,
+                    selectedItem.shouldCloseAllModals,
+                );
+            } else {
+                selectedItem.onSelected?.();
+            }
         } else {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -290,7 +300,7 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, ...menuItemProps} = item;
 
         return (
             <OfflineWithFeedback
@@ -326,6 +336,7 @@ function PopoverMenu({
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
             </OfflineWithFeedback>
         );

@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import CONST from '@src/CONST';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +58,7 @@ describe('useReportAvatarDetails', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        initOnyxDerivedValues();
         jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email) => personalDetails[mockedEmailToID[email]]);
     });
 
@@ -72,31 +75,35 @@ describe('useReportAvatarDetails', () => {
         return waitForBatchedUpdates();
     });
 
-    it('returns avatar with no reportPreviewSenderID when action is not a report preview', () => {
-        const {result} = renderHook(() =>
-            useReportAvatarDetails({
-                action: actionR14932,
-                iouReport: iouReportR14932,
-                report: mockedDMChatRoom,
-                ...policiesMock,
-            }),
+    it('returns avatar with no reportPreviewSenderID when action is not a report preview', async () => {
+        const {result} = renderHook(
+            () =>
+                useReportAvatarDetails({
+                    action: actionR14932,
+                    iouReport: iouReportR14932,
+                    report: mockedDMChatRoom,
+                    ...policiesMock,
+                }),
+            {wrapper: OnyxListItemProvider},
         );
-
+        await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedOwnerAccountAvatar);
         expect(result.current.secondaryAvatar.source).toBeFalsy();
         expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
-    it('returns childManagerAccountID and his avatar when all conditions are met for Send Money flow', () => {
-        const {result} = renderHook(() =>
-            useReportAvatarDetails({
-                action: {...validAction, childMoneyRequestCount: 0},
-                iouReport: iouReportR14932,
-                report: mockedDMChatRoom,
-                ...policiesMock,
-            }),
+    it('returns childManagerAccountID and his avatar when all conditions are met for Send Money flow', async () => {
+        const {result} = renderHook(
+            () =>
+                useReportAvatarDetails({
+                    action: {...validAction, childMoneyRequestCount: 0},
+                    iouReport: iouReportR14932,
+                    report: mockedDMChatRoom,
+                    ...policiesMock,
+                }),
+            {wrapper: OnyxListItemProvider},
         );
-
+        await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
         expect(result.current.secondaryAvatar.source).toBeFalsy();
         expect(result.current.reportPreviewSenderID).toBe(iouReportR14932.managerID);
@@ -115,15 +122,17 @@ describe('useReportAvatarDetails', () => {
                 attendees: [{email: personalDetails[51760358].login, displayName: 'Test Two', avatarUrl: 'https://none.com/none2'}],
             },
         });
-        const {result} = renderHook(() =>
-            useReportAvatarDetails({
-                action: validAction,
-                iouReport: iouReportR14932,
-                report: mockedDMChatRoom,
-                ...policiesMock,
-            }),
+        const {result} = renderHook(
+            () =>
+                useReportAvatarDetails({
+                    action: validAction,
+                    iouReport: iouReportR14932,
+                    report: mockedDMChatRoom,
+                    ...policiesMock,
+                }),
+            {wrapper: OnyxListItemProvider},
         );
-
+        await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
         expect(result.current.secondaryAvatar.source).toBe(mockedOwnerAccountAvatar);
         expect(result.current.reportPreviewSenderID).toBeUndefined();
@@ -138,30 +147,34 @@ describe('useReportAvatarDetails', () => {
             ...transactionR14932,
             amount: -100,
         });
-        const {result} = renderHook(() =>
-            useReportAvatarDetails({
-                action: validAction,
-                iouReport: iouReportR14932,
-                report: mockedDMChatRoom,
-                ...policiesMock,
-            }),
+        const {result} = renderHook(
+            () =>
+                useReportAvatarDetails({
+                    action: validAction,
+                    iouReport: iouReportR14932,
+                    report: mockedDMChatRoom,
+                    ...policiesMock,
+                }),
+            {wrapper: OnyxListItemProvider},
         );
-
+        await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
         expect(result.current.secondaryAvatar.source).toBe(mockedOwnerAccountAvatar);
         expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
-    it('returns childOwnerAccountID as reportPreviewSenderID and a single avatar when all conditions are met', () => {
-        const {result} = renderHook(() =>
-            useReportAvatarDetails({
-                action: validAction,
-                iouReport: iouReportR14932,
-                report: mockedDMChatRoom,
-                ...policiesMock,
-            }),
+    it('returns childOwnerAccountID as reportPreviewSenderID and a single avatar when all conditions are met', async () => {
+        const {result} = renderHook(
+            () =>
+                useReportAvatarDetails({
+                    action: validAction,
+                    iouReport: iouReportR14932,
+                    report: mockedDMChatRoom,
+                    ...policiesMock,
+                }),
+            {wrapper: OnyxListItemProvider},
         );
-
+        await waitForBatchedUpdates();
         expect(result.current.primaryAvatar.source).toBe(mockedOwnerAccountAvatar);
         expect(result.current.secondaryAvatar.source).toBeFalsy();
         expect(result.current.reportPreviewSenderID).toBe(iouReportR14932.ownerAccountID);
