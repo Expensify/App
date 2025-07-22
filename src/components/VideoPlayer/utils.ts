@@ -1,4 +1,4 @@
-import * as Browser from '@libs/Browser';
+import {isMobileWebKit} from '@libs/Browser';
 
 /**
  * Converts seconds to '[hours:]minutes:seconds' format
@@ -18,7 +18,7 @@ function convertSecondsToTime(secondsTotal: number) {
 function addSkipTimeTagToURL(url: string, seconds: number) {
     // On iOS: mWeb (WebKit-based browser engines), we don't add the time fragment
     // because it's not supported and will throw (WebKitBlobResource error 1).
-    if (Browser.isMobileWebKit() || url.includes('#t=')) {
+    if (isMobileWebKit() || url.includes('#t=')) {
         return url;
     }
     return `${url}#t=${seconds}`;

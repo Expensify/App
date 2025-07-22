@@ -1,8 +1,8 @@
 import type {VideoView} from 'expo-video';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 
 type UseHandleNativeVideoControlParams = {
-    videoViewRef: MutableRefObject<VideoView | null>;
+    videoViewRef: RefObject<VideoView | null>;
     isLocalFile: boolean;
     isOffline: boolean;
 };

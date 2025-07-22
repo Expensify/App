@@ -1,5 +1,5 @@
 import type {VideoPlayer, VideoView} from 'expo-video';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {View} from 'react-native';
 
 type StatusCallback = (isPlaying: boolean) => void;
@@ -34,9 +34,9 @@ type PlaybackContextVideoRefs = {
     play: () => void;
     pause: () => void;
     isPlaying: (statusCallback: StatusCallback) => void;
-    resumeTryNumberRef: MutableRefObject<number>;
-    playerRef: MutableRefObject<VideoPlayer | null>;
-    viewRef: MutableRefObject<VideoView | null>;
+    resumeTryNumberRef: RefObject<number>;
+    playerRef: RefObject<VideoPlayer | null>;
+    viewRef: RefObject<VideoView | null>;
     updateRefs: (playerRef: VideoPlayer | null, viewRef: VideoView | null) => void;
 };
 

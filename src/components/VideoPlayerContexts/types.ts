@@ -1,5 +1,5 @@
 import type {VideoPlayer} from 'expo-video';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -15,8 +15,8 @@ type VolumeContext = {
 
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
-    videoPopoverMenuPlayerRef: MutableRefObject<VideoPlayer | null>;
-    videoPopoverMenuSource: MutableRefObject<string | null>;
+    videoPopoverMenuPlayerRef: RefObject<VideoPlayer | null>;
+    videoPopoverMenuSource: RefObject<string | null>;
     currentPlaybackSpeed: PlaybackSpeed;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
     setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
@@ -24,8 +24,8 @@ type VideoPopoverMenuContext = {
 };
 
 type FullScreenContext = {
-    isFullScreenRef: MutableRefObject<boolean>;
-    lockedWindowDimensionsRef: MutableRefObject<ResponsiveLayoutProperties | null>;
+    isFullScreenRef: RefObject<boolean>;
+    lockedWindowDimensionsRef: RefObject<ResponsiveLayoutProperties | null>;
     lockWindowDimensions: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
     unlockWindowDimensions: () => void;
 };
