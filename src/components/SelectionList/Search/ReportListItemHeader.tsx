@@ -143,14 +143,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({
-    report: reportItem,
-    onSelectRow,
-    onCheckboxPress,
-    isDisabled,
-    isFocused,
-    canSelectMultiple,
-}: ReportListItemHeaderProps<TItem>) {
+function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();

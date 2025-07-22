@@ -141,7 +141,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
