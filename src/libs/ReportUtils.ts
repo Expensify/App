@@ -9967,7 +9967,12 @@ function getOutstandingReportsForUser(
         return [];
     }
     return Object.values(reports)
-        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
+        .filter(
+            (report) =>
+                report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                isReportOutstanding(report, policyID, reportNameValuePairs) &&
+                report?.ownerAccountID === reportOwnerAccountID,
+        )
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
