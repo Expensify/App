@@ -183,11 +183,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-    const key = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
 
     const shouldCalculateTotals = useMemo(
-        () => key === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-        [key],
+        () => searchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+        [searchKey],
     );
 
     const previousReportActions = usePrevious(reportActions);
@@ -204,8 +204,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     useFocusEffect(
         useCallback(() => {
             clearSelectedTransactions(hash);
-            setCurrentSearchHashAndKey(hash, key);
-        }, [hash, key, clearSelectedTransactions, setCurrentSearchHashAndKey]),
+            setCurrentSearchHashAndKey(hash, searchKey);
+        }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]),
     );
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -290,8 +290,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, key);
-    }, [key, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
