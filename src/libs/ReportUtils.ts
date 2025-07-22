@@ -3978,7 +3978,13 @@ function getTransactionDetails(
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
+        amount: getTransactionAmount(
+            transaction,
+            !isEmptyObject(report) && isExpenseReport(report),
+            transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+            allowNegativeAmount,
+            disableOppositeConversion,
+        ),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
