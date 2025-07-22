@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ const defaultProps = {
 // Helper function to render TransactionItemRow with providers
 const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
                 // eslint-disable-next-line react/jsx-props-no-spreading

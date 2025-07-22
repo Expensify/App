@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
@@ -21,13 +22,14 @@ function MoneyRequestReportTotalSpend({hasComments, isLoadingReportActions, isEm
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isFocused = useIsFocused();
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.ph5, styles.justifyContentBetween, styles.mb2]}>
             <Animated.Text
                 style={[styles.textLabelSupporting]}
                 entering={hasComments ? undefined : FadeIn}
-                exiting={FadeOut}
+                exiting={isFocused ? FadeOut : undefined}
             >
                 {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
             </Animated.Text>

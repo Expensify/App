@@ -9,6 +9,20 @@ import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Translator from '@scripts/utils/Translator/Translator';
 
+let processExitSpy: jest.SpyInstance;
+let consoleErrorSpy: jest.SpyInstance;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+let mockEn: any = jest.requireActual('@src/languages/en');
+jest.mock('@src/languages/en', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    get default() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return mockEn;
+    },
+}));
 jest.mock('openai');
 
 let tempDir: string;
@@ -20,6 +34,9 @@ describe('generateTranslations', () => {
     const ORIGINAL_ARGV = process.argv;
 
     beforeEach(() => {
+        processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+        consoleErrorSpy = jest.spyOn(console, 'error');
+
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-test-'));
         LANGUAGES_DIR = path.join(tempDir, 'src/languages');
         EN_PATH = path.join(LANGUAGES_DIR, 'en.ts');
@@ -41,6 +58,7 @@ describe('generateTranslations', () => {
 
     afterAll(() => {
         process.argv = ORIGINAL_ARGV;
+        jest.restoreAllMocks();
     });
 
     it('translates nested structures', async () => {
@@ -560,5 +578,202 @@ describe('generateTranslations', () => {
         expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
 
         fs.rmSync(oldDir, {recursive: true});
+    });
+
+    it('translates only specified paths when --paths is provided', async () => {
+        const strings = {
+            greeting: 'Hello',
+            farewell: 'Goodbye',
+            common: {
+                save: 'Save',
+                cancel: 'Cancel',
+            },
+            errors: {
+                generic: 'An error occurred',
+                network: 'Network error',
+            },
+        };
+        mockEn = strings;
+
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Override process.argv to specify only certain paths
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
+
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        // Only the specified paths should be translated
+        expect(itContent).toContain('[it] Save');
+        expect(itContent).toContain('[it] An error occurred');
+
+        // Other paths should not be translated
+        expect(itContent).not.toContain('[it] Hello');
+        expect(itContent).not.toContain('[it] Goodbye');
+        expect(itContent).not.toContain('[it] Cancel');
+        expect(itContent).not.toContain('[it] Network error');
+
+        expect(translateSpy).toHaveBeenCalledTimes(2);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined);
+    });
+
+    it('translates nested paths when parent path is specified', async () => {
+        const strings = {
+            greeting: 'Hello',
+            common: {
+                save: 'Save',
+                cancel: 'Cancel',
+                nested: {
+                    deep: 'Deep value',
+                },
+            },
+            errors: {
+                generic: 'An error occurred',
+            },
+        };
+
+        mockEn = strings;
+
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Override process.argv to specify parent path
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common'];
+
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        // All nested paths under 'common' should be translated
+        expect(itContent).toContain('[it] Save');
+        expect(itContent).toContain('[it] Cancel');
+        expect(itContent).toContain('[it] Deep value');
+
+        // Other paths should not be translated
+        expect(itContent).not.toContain('[it] Hello');
+        expect(itContent).not.toContain('[it] An error occurred');
+
+        expect(translateSpy).toHaveBeenCalledTimes(3);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined);
+    });
+
+    it('ignores --compare-ref when --paths is provided', async () => {
+        const strings = {
+            greeting: 'Hello',
+            common: {
+                save: 'Save',
+            },
+        };
+        mockEn = strings;
+
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Override process.argv to specify both paths and compare-ref
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save', '--compare-ref', 'main'];
+
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+        const githubSpy = jest.spyOn(GitHubUtils, 'getFileContents');
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        // Only the specified path should be translated
+        expect(itContent).toContain('[it] Save');
+        expect(itContent).not.toContain('[it] Hello');
+
+        // GitHubUtils.getFileContents should not be called since --compare-ref is ignored
+        expect(githubSpy).not.toHaveBeenCalled();
+        expect(translateSpy).toHaveBeenCalledTimes(1);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+    });
+
+    it('throws error for invalid paths', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    common: {
+                        save: 'Save',
+                    },
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Override process.argv to specify a non-existent path
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'nonexistent.path'];
+
+        // Expect the script to throw an error during CLI parsing
+        await generateTranslations();
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid value for --paths: found the following invalid paths: ["nonexistent.path"]');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('validates paths against actual translation structure', async () => {
+        const strings = {
+            greeting: 'Hello',
+            common: {
+                save: 'Save',
+            },
+            errors: {
+                generic: 'An error occurred',
+            },
+        };
+        mockEn = strings;
+
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Test that valid paths work
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'greeting,common.save'];
+
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        // Should translate the specified paths
+        expect(itContent).toContain('[it] Hello');
+        expect(itContent).toContain('[it] Save');
+
+        // Should not translate other paths
+        expect(itContent).not.toContain('[it] Cancel');
+        expect(itContent).not.toContain('[it] An error occurred');
+
+        expect(translateSpy).toHaveBeenCalledTimes(2);
     });
 });
