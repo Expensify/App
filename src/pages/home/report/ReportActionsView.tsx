@@ -73,6 +73,8 @@ type ReportActionsViewProps = {
     keyboardOffset: SharedValue<number>;
 
     composerHeight: number;
+
+    isComposerFullSize?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -90,6 +92,7 @@ function ReportActionsView({
     keyboardOffset,
     composerHeight,
     keyboardHeight,
+    isComposerFullSize,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -322,6 +325,7 @@ function ReportActionsView({
                 keyboardOffset={keyboardOffset}
                 composerHeight={composerHeight}
                 keyboardHeight={keyboardHeight}
+                isComposerFullSize={isComposerFullSize}
             />
             <UserTypingEventListener report={report} />
         </>

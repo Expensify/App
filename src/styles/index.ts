@@ -2167,6 +2167,10 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeMedium,
         },
 
+        chatItemComposeBoxTopSpacer: {
+            height: 16,
+        },
+
         chatItemFullComposeBox: {
             ...flex.flex1,
             ...sizing.h100,
@@ -2181,7 +2185,6 @@ const styles = (theme: ThemeColors) =>
 
         chatFooterFullCompose: {
             height: '100%',
-            paddingTop: 20,
         },
 
         chatItemDraft: {

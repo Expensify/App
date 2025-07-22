@@ -9,9 +9,8 @@ import type {SharedValue} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
+import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -42,8 +41,6 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
-    canShowReportRecipientLocalTime,
-    canUserPerformWriteAction,
     chatIncludesChronosWithID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
@@ -165,8 +162,6 @@ function ReportActionsList({
     composerHeight,
     keyboardHeight,
 }: ReportActionsListProps) {
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -641,8 +636,6 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report);
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
@@ -715,7 +708,10 @@ function ReportActionsList({
     });
 
     const safeAreaBottom = isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
-    const bottomSpacer = useMemo(() => (Platform.OS === 'ios' ? composerHeight + safeAreaBottom : 0), [composerHeight, safeAreaBottom]);
+    const bottomSpacer = useMemo(
+        () => (Platform.OS === 'ios' && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom),
+        [composerHeight, safeAreaBottom, isComposerFullSize],
+    );
 
     return (
         <>
@@ -724,7 +720,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, {paddingBottom: bottomSpacer}]}
+                style={[styles.flex1, {paddingBottom: bottomSpacer}]}
                 testID={reportActionsListTestID}
                 nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
