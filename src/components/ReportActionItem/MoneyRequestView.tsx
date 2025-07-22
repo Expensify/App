@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePolicyCategories, usePolicyTags} from '@components/OnyxProvider';
+import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
@@ -79,6 +79,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
@@ -590,11 +591,11 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                         />
                     </OfflineWithFeedback>
                 )}
-                {(hasReceipt || !!errors) && (
+                {(hasReceipt || !isEmptyObject(errors)) && (
                     <OfflineWithFeedback
                         pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
-                        errorRowStyles={[styles.mh4]}
+                        errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}
                         onClose={() => {
                             if (!transaction?.transactionID && !linkedTransactionID) {
                                 return;
@@ -611,7 +612,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                             }
                         }}
                         dismissError={dismissReceiptError}
-                        style={styles.mv3}
+                        style={shouldShowReceiptEmptyState ? styles.mb3 : styles.mv3}
                     >
                         {hasReceipt && (
                             <View style={[styles.moneyRequestViewImage, receiptStyle]}>

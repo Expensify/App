@@ -1055,11 +1055,9 @@ const translations = {
             other: 'Escaneando recibos...',
         }),
         scanMultipleReceipts: 'Escanea varios recibos',
-        scanMultipleReceiptsDescription: 'Tome fotos de todos sus recibos a la vez y confirme los detalles usted mismo o deje que SmartScan se encargue.',
+        scanMultipleReceiptsDescription: 'Haz fotos de todos tus recibos a la vez y confirma los detalles tú mismo o nosotros lo haremos por ti.',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
-        removeFromReport: 'Eliminar del informe',
-        moveToPersonalSpace: 'Mover gastos a tu espacio personal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
@@ -1219,7 +1217,6 @@ const translations = {
         unholdExpense: 'Desbloquear gasto',
         moveUnreportedExpense: 'Mover gasto no reportado',
         addUnreportedExpense: 'Añadir gasto no reportado',
-        createNewExpense: 'Crear nuevo gasto',
         selectUnreportedExpense: 'Selecciona al menos un gasto para agregar al informe.',
         emptyStateUnreportedExpenseTitle: 'No hay gastos no reportados',
         emptyStateUnreportedExpenseSubtitle: 'Parece que no tienes gastos no reportados. Puedes crear uno a continuación.',
@@ -2179,6 +2176,11 @@ const translations = {
             title: '¿Utilizas algún software de contabilidad?',
             none: 'Ninguno',
         },
+        interestedFeatures: {
+            title: '¿Qué funciones te interesan?',
+            featuresAlreadyEnabled: 'Tu espacio de trabajo ya tiene las siguientes funciones habilitadas:',
+            featureYouMayBeInterestedIn: 'Habilita funciones adicionales que podrían interesarte:',
+        },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
         },
@@ -2241,7 +2243,7 @@ const translations = {
                 title: 'Envía un gasto',
                 description:
                     '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
-                    '1. Haz clic en el botón verde *+*.\n' +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear gasto*.\n' +
                     '3. Introduce una cantidad o escanea un recibo.\n' +
                     '4. Añade el correo o teléfono de tu jefe.\n' +
@@ -2252,7 +2254,7 @@ const translations = {
                 title: 'Envía un gasto',
                 description:
                     '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
-                    '1. Haz clic en el botón verde *+*.\n' +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear gasto*.\n' +
                     '3. Introduce una cantidad o escanea un recibo.\n' +
                     '4. Confirma los detalles.\n' +
@@ -2263,7 +2265,7 @@ const translations = {
                 title: 'Organiza un gasto',
                 description:
                     '*Organiza un gasto* en cualquier moneda, tengas recibo o no.\n\n' +
-                    '1. Haz clic en el botón verde *+*.\n' +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear gasto*.\n' +
                     '3. Introduce una cantidad o escanea un recibo.\n' +
                     '4. Elige tu espacio *personal*.\n' +
@@ -2347,7 +2349,7 @@ const translations = {
                 title: 'Inicia un chat',
                 description:
                     '*Inicia un chat* con cualquier persona usando su correo o número.\n\n' +
-                    '1. Haz clic en el botón verde *+*.\n' +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Iniciar chat*.\n' +
                     '3. Introduce un correo o teléfono.\n\n' +
                     'Si aún no usan Expensify, se les invitará automáticamente.\n\n' +
@@ -2357,7 +2359,7 @@ const translations = {
                 title: 'Divide un gasto',
                 description:
                     '*Divide gastos* con una o más personas.\n\n' +
-                    '1. Haz clic en el botón verde *+*.\n' +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Iniciar chat*.\n' +
                     '3. Introduce correos o teléfonos.\n' +
                     '4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.\n' +
@@ -2377,7 +2379,7 @@ const translations = {
                 description:
                     'Así es como puedes crear un informe:\n' +
                     '\n' +
-                    '1. Haz clic en el botón verde *+*.\n' +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear informe*.\n' +
                     '3. Haz clic en *Añadir gasto*.\n' +
                     '4. Añade tu primer gasto.\n' +
@@ -2668,6 +2670,8 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Por favor, introduce un nombre completo válido',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
+            deletePaymentBankAccount:
+                'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3809,6 +3813,18 @@ const translations = {
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
+            accountingMethods: {
+                label: 'Cuándo Exportar',
+                description: 'Elige cuándo exportar los gastos:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                },
+            },
         },
 
         sageIntacct: {
@@ -5924,11 +5940,16 @@ const translations = {
                 title: 'No hay gastos para exportar',
                 subtitle: 'Es hora de relajarse, buen trabajo.',
             },
+            emptyStatementsResults: {
+                title: 'No hay gastos para mostrar',
+                subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',
                 subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
             },
         },
+        statements: 'Extractos',
         unapproved: 'No aprobado',
         unapprovedCash: 'Efectivo no aprobado',
         unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',
@@ -6125,8 +6146,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} de ${oldValue} a ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
+                    }
+                    return `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportado a CSV`,

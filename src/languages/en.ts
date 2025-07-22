@@ -1055,11 +1055,9 @@ const translations = {
             other: 'Receipts scanning...',
         }),
         scanMultipleReceipts: 'Scan multiple receipts',
-        scanMultipleReceiptsDescription: 'Snap photos of all your receipts at once, then confirm details yourself or let SmartScan handle it.',
+        scanMultipleReceiptsDescription: "Snap photos of all your receipts at once, then confirm details yourself or we'll do it for you.",
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        removeFromReport: 'Remove from report',
-        moveToPersonalSpace: 'Move expenses to your personal space',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
@@ -1225,7 +1223,6 @@ const translations = {
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addUnreportedExpense: 'Add unreported expense',
-        createNewExpense: 'Create new expense',
         selectUnreportedExpense: 'Select at least one expense to add to the report.',
         emptyStateUnreportedExpenseTitle: 'No unreported expenses',
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
@@ -2178,6 +2175,11 @@ const translations = {
             title: 'Do you use any accounting software?',
             none: 'None',
         },
+        interestedFeatures: {
+            title: 'What features are you interested in?',
+            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
+            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
+        },
         error: {
             requiredFirstName: 'Please input your first name to continue',
         },
@@ -2245,7 +2247,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    '1. Click the green *+* button.\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     `4. Add your boss's email or phone number.\n` +
@@ -2258,7 +2260,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    '1. Click the green *+* button.\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Confirm details..\n' +
@@ -2271,7 +2273,7 @@ const translations = {
                 description:
                     '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                     '\n' +
-                    '1. Click the green *+* button.\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Choose your *personal* space.\n' +
@@ -2370,7 +2372,7 @@ const translations = {
                 description:
                     '*Start a chat* with anyone using their email or phone number.\n' +
                     '\n' +
-                    '1. Click the green *+* button.\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter an email or phone number.\n' +
                     '\n' +
@@ -2384,7 +2386,7 @@ const translations = {
                 description:
                     '*Split expenses* with one or more people.\n' +
                     '\n' +
-                    '1. Click the green *+* button.\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter emails or phone numbers..\n' +
                     '4. Click the grey *+* button in the chat > *Split expense*.\n' +
@@ -2406,7 +2408,7 @@ const translations = {
                 description:
                     'Here’s how to create a report:\n' +
                     '\n' +
-                    '1. Click the green *+* button.\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create report*.\n' +
                     '3. Click *Add expense*.\n' +
                     '4. Add your first expense.\n' +
@@ -2679,6 +2681,8 @@ const translations = {
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
             fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
+            deletePaymentBankAccount:
+                "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
         },
     },
     addPersonalBankAccount: {
@@ -3807,6 +3811,18 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
+            accountingMethods: {
+                label: 'When to Export',
+                description: 'Choose when to export the expenses:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
@@ -5902,11 +5918,16 @@ const translations = {
                 title: 'No expenses to export',
                 subtitle: 'Time to take it easy, nice work.',
             },
+            emptyStatementsResults: {
+                title: 'No expenses to display',
+                subtitle: 'No results. Please try adjusting your filters.',
+            },
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
             },
         },
+        statements: 'Statements',
         unapproved: 'Unapproved',
         unapprovedCash: 'Unapproved cash',
         unapprovedCompanyCards: 'Unapproved company cards',
@@ -6102,8 +6123,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `changed the workspace to ${toPolicyName}${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `changed the workspace${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;
+                    }
+                    return `changed the workspace to ${toPolicyName}${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported to CSV`,
