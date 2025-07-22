@@ -618,7 +618,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TestHelper.formatPhoneNumber);
             });
     });
 
@@ -1846,7 +1846,7 @@ describe('actions/Report', () => {
             };
             const policyID = '1';
             Report.buildOptimisticChangePolicyData(report, policyID, TestHelper.formatPhoneNumber);
-            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED, TestHelper.formatPhoneNumber);
         });
     });
 
