@@ -6,6 +6,7 @@ import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -80,6 +81,12 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
             },
         });
     });
+}
+
+const countryCodeByIP = 1;
+
+function formatPhoneNumber(phoneNumber: string) {
+    return formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
 }
 
 /**
@@ -363,4 +370,5 @@ export {
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,
+    formatPhoneNumber,
 };
