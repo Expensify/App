@@ -2176,6 +2176,11 @@ const translations = {
             title: '¿Utilizas algún software de contabilidad?',
             none: 'Ninguno',
         },
+        interestedFeatures: {
+            title: '¿Qué funciones te interesan?',
+            featuresAlreadyEnabled: 'Tu espacio de trabajo ya tiene las siguientes funciones habilitadas:',
+            featureYouMayBeInterestedIn: 'Habilita funciones adicionales que podrían interesarte:',
+        },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
         },
@@ -2665,6 +2670,8 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Por favor, introduce un nombre completo válido',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
+            deletePaymentBankAccount:
+                'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3806,6 +3813,18 @@ const translations = {
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
+            accountingMethods: {
+                label: 'Cuándo Exportar',
+                description: 'Elige cuándo exportar los gastos:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                },
+            },
         },
 
         sageIntacct: {
@@ -5921,11 +5940,16 @@ const translations = {
                 title: 'No hay gastos para exportar',
                 subtitle: 'Es hora de relajarse, buen trabajo.',
             },
+            emptyStatementsResults: {
+                title: 'No hay gastos para mostrar',
+                subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',
                 subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
             },
         },
+        statements: 'Extractos',
         unapproved: 'No aprobado',
         unapprovedCash: 'Efectivo no aprobado',
         unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',

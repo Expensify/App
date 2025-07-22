@@ -2,40 +2,36 @@ import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {hasAuthToken} from '@libs/actions/Session';
-import type {AppProps} from '@src/App';
 import type {Route} from '@src/ROUTES';
 
 type InitialUrlContextType = {
-    initialURL: Route | undefined;
-    setInitialURL: React.Dispatch<React.SetStateAction<Route | undefined>>;
+    initialURL: Route | null;
+    setInitialURL: React.Dispatch<React.SetStateAction<Route | null>>;
 };
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
 const InitialURLContext = createContext<InitialUrlContextType>({
-    initialURL: undefined,
+    initialURL: null,
     setInitialURL: () => {},
 });
 
-type InitialURLContextProviderProps = AppProps & {
+type InitialURLContextProviderProps = {
     /** Children passed to the context provider */
     children: ReactNode;
 };
 
-function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>();
+function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
+    const [initialURL, setInitialURL] = useState<Route | null>(null);
     const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>();
 
-    console.log('debug', {initialURL, isAuthenticatedAtStartup});
-
     useEffect(() => {
-        if (url) {
-            setInitialURL(url);
-            return;
-        }
         Linking.getInitialURL().then((initURL) => {
+            if (!initURL) {
+                return;
+            }
             setInitialURL(initURL as Route);
         });
-    }, [url]);
+    }, []);
 
     useEffect(() => {
         const isAuthenticated = hasAuthToken();
