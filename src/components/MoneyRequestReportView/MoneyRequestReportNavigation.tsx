@@ -26,6 +26,14 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
+
+    if (currentIndex >= allReportsCount - 1 && lastSearchQuery?.queryJSON) {
+        saveLastSearchParams({
+            ...lastSearchQuery,
+            previousLengthOfResults: allReports.length,
+        });
+    }
+
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
             return;
@@ -53,12 +61,7 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
                 prevReports: allReports,
             });
         }
-        if (currentIndex === allReportsCount - 1 && lastSearchQuery?.queryJSON) {
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                previousLengthOfResults: allReports.length,
-            });
-        }
+
         const nextIndex = (currentIndex + 1) % allReports.length;
         goToReportId(allReports.at(nextIndex));
     };

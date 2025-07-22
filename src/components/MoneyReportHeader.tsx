@@ -322,6 +322,10 @@ function MoneyReportHeader({
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
+    const isReportInSearch = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [rawReports] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
+    const shouldDisplayNavigationArrows = isReportInSearch && rawReports && rawReports.length > 0;
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
@@ -954,10 +958,6 @@ function MoneyReportHeader({
             )}
         </KYCWall>
     );
-
-    const shouldDisplayNavigationArrows = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [rawReports] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS);
 
     const headerNavigation = shouldDisplayNavigationArrows ? (
         <MoneyRequestReportNavigation

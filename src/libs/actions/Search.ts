@@ -23,7 +23,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import {saveLastSearchParams, setActiveReportIDs} from './ReportNavigation';
+import {saveLastSearchParams, setActiveReportsIDs} from './ReportNavigation';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -267,6 +267,7 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
     const queryWithOffset = {
         ...queryJSONWithoutFlatFilters,
         offset,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
@@ -279,7 +280,7 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
 
         if (response?.search?.offset) {
             if (prevReports) {
-                setActiveReportIDs([...reports], true);
+                setActiveReportsIDs([...prevReports, ...reports]);
                 saveLastSearchParams({
                     queryJSON,
                     offset,
@@ -288,7 +289,7 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
                 });
             }
         } else {
-            setActiveReportIDs(reports);
+            setActiveReportsIDs(reports);
             saveLastSearchParams({
                 queryJSON,
                 offset,

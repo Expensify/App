@@ -226,7 +226,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         handleSearch({queryJSON, offset, prevReports: results});
-    }, [groupBy, handleSearch, isOffline, offset, queryJSON, searchResults, status, type]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
         openSearch();
