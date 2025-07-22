@@ -23,11 +23,6 @@ type RNNavBarManagerModule = {
     getType(): NavigationBarType;
 };
 
-type PushNotificationBridge = {
-    /** Signal to native code that we're done processing a push notification. */
-    finishBackgroundProcessing: () => void;
-};
-
 declare module 'react-native' {
     interface TextInputFocusEventData extends TargetedEvent {
         text: string;
@@ -59,7 +54,6 @@ declare module 'react-native' {
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;
-        PushNotificationBridge: PushNotificationBridge;
     }
 
     namespace Animated {
