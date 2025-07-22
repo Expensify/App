@@ -2,7 +2,8 @@ import React, {useCallback, useEffect} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types'
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -12,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -155,6 +157,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         [translate],
     );
 
+    const errorMessage = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
@@ -189,6 +193,13 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />
+                {!!errorMessage && (
+                    <FormHelpMessage 
+                        style={[styles.mt3, styles.mbn1]}
+                        isError
+                        message={errorMessage}
+                    />
+                )}
             </FormProvider>
         </ScrollView>
     );
