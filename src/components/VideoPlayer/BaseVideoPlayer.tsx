@@ -1,5 +1,5 @@
 import {useEvent, useEventListener} from 'expo';
-import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer, VolumeChangeEventPayload} from 'expo-video';
+import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
 import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
@@ -213,16 +213,8 @@ function NewBaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEventListener(player1, 'volumeChange', (payload: VolumeChangeEventPayload) => {
-        if (currentVideoPlayerRef.current && isFullScreenRef.current && payload.oldVolume !== 0 && payload.volume === 0 && !player1.muted) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            currentVideoPlayerRef.current.muted = true;
-        }
-    });
-
     useEventListener(player1, 'mutedChange', (payload: MutedChangeEventPayload) => {
-        if (payload.muted) {
+        if (payload.muted || !payload.oldMuted) {
             return;
         }
         updateVolume(lastNonZeroVolume.get());
