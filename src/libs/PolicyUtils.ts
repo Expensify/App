@@ -40,7 +40,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -448,17 +448,13 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
- * Normalizes a tag string by unescaping colons, trimming leading/trailing colons, and converting internal colons to comma-separated format.
+ *  Converts a colon-delimited tag string into a comma-separated string, filtering out empty tags.
  */
-function getCommaSeparatedTagNameWithSanitizedColons(tag: string) {
-    return (
-        getCleanedTagName(tag)
-            // Remove leading and trailing colons
-            .replace(/^:+|:+$/g, '')
-
-            // Replace inner colons with comma+space
-            .replace(/:+/g, ', ')
-    );
+function getCommaSeparatedTagNameWithSanitizedColons(tag: string): string {
+    return getTagArrayFromName(tag)
+        .filter((tagItem) => tagItem !== '')
+        .map((tagItem) => getCleanedTagName(tagItem))
+        .join(', ');
 }
 
 /**
