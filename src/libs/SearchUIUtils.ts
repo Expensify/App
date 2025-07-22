@@ -231,9 +231,9 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
  *
  * These searches should be as static as possible, and should not contain conditionals, or any other logic
  */
-function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<ValueOf<typeof CONST.SEARCH.SEARCH_LIST>, SearchTypeMenuItem> {
+function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
-        [CONST.SEARCH.SEARCH_LIST.EXPENSES]: {
+        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             translationPath: 'common.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -243,7 +243,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.REPORTS]: {
+        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'common.reports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -253,7 +253,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.CHATS]: {
+        [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
             key: CONST.SEARCH.SEARCH_KEYS.CHATS,
             translationPath: 'common.chats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
@@ -263,7 +263,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.SUBMIT]: {
+        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -278,7 +278,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.APPROVE]: {
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -293,7 +293,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.PAY]: {
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: {
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -309,7 +309,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.EXPORT]: {
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -325,7 +325,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.STATEMENTS]: {
+        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             translationPath: 'search.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -339,7 +339,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH]: {
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -353,7 +353,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS]: {
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
             translationPath: 'search.unapprovedCompanyCards',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -362,34 +362,6 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : undefined,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-            }),
-            get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY]: {
-            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-            translationPath: 'search.unapproved',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                feed: defaultFeedID ? [defaultFeedID] : undefined,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-            }),
-            get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY]: {
-            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            translationPath: 'search.unapproved',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -1574,13 +1546,13 @@ function createTypeMenuSections(
         };
 
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPENSES]);
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_LIST.REPORTS]);
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_LIST.CHATS]);
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
         }
 
         if (exploreSection.menuItems.length > 0) {
@@ -1598,7 +1570,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.SUBMIT],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
@@ -1643,7 +1615,7 @@ function createTypeMenuSections(
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.APPROVE],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
@@ -1653,7 +1625,7 @@ function createTypeMenuSections(
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.PAY],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
@@ -1663,7 +1635,7 @@ function createTypeMenuSections(
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPORT],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
@@ -1686,7 +1658,7 @@ function createTypeMenuSections(
 
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.STATEMENTS],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.GenericEmptyState,
                     title: 'search.searchResults.emptyStatementsResults.title',
@@ -1694,37 +1666,19 @@ function createTypeMenuSections(
                 },
             });
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH] && suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
-            accountingSection.menuItems.push(
-                {
-                    ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH],
-                    emptyState: {
-                        headerMedia: DotLottieAnimations.Fireworks,
-                        title: 'search.searchResults.emptyUnapprovedResults.title',
-                        subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-                    },
-                },
-                {
-                    ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS],
-                    emptyState: {
-                        headerMedia: DotLottieAnimations.Fireworks,
-                        title: 'search.searchResults.emptyUnapprovedResults.title',
-                        subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-                    },
-                },
-            );
-        } else if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
             });
-        } else if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',

@@ -5929,7 +5929,6 @@ const translations = {
             },
         },
         statements: 'Statements',
-        unapproved: 'Unapproved',
         unapprovedCash: 'Unapproved cash',
         unapprovedCompanyCards: 'Unapproved company cards',
         saveSearch: 'Save search',
