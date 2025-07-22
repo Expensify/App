@@ -1,6 +1,5 @@
 import debounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -14,6 +13,7 @@ import Text from '@components/Text';
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,7 +35,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER>;
 
-function ReportAddApproverPage({report, isLoadingReportData, policies}: ReportAddApproverPageProps) {
+function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -44,8 +44,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policies}: ReportAd
 
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    const policy = policies && Object.values(policies).find((policyData) => policyData?.id === report?.policyID);
 
     const employeeList = policy?.employeeList;
     const sections = useMemo(() => {
