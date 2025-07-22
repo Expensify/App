@@ -129,11 +129,11 @@ function AnimatedCollapsible({
             accessibilityLabel="Collapse"
         >
             {({hovered}) => (
-                    <Icon
-                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                        fill={hovered ? theme.textSupporting : theme.icon}
-                        small
-                    />
+                <Icon
+                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                    fill={hovered ? theme.textSupporting : theme.icon}
+                    small
+                />
             )}
         </PressableWithFeedback>
     );
