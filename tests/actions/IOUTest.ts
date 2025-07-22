@@ -90,7 +90,6 @@ import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -541,7 +540,7 @@ describe('actions/IOU', () => {
             // Create a tracked expense
             trackExpense({
                 formatPhoneNumber,
-                    report: selfDMReport,
+                report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
@@ -651,7 +650,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             requestMoney({
                 formatPhoneNumber,
-                        report: {reportID: ''},
+                report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -882,7 +881,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     requestMoney({
                         formatPhoneNumber,
-                            report: chatReport,
+                        report: chatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
@@ -1102,7 +1101,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         requestMoney({
                             formatPhoneNumber,
-                                report: chatReport,
+                            report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -1256,7 +1255,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             requestMoney({
                 formatPhoneNumber,
-                        report: {reportID: ''},
+                report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -3087,7 +3086,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport, formatPhoneNumber  );
+                        cancelPayment(expenseReport, chatReport, formatPhoneNumber);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -3142,14 +3141,14 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(formatPhoneNumber );
+            subscribeToUserEvents(formatPhoneNumber);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             // When a submit IOU expense is made
             requestMoney({
                 formatPhoneNumber,
-                    report: chatReport,
+                report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
                     payeeAccountID: TEST_USER_ACCOUNT_ID,

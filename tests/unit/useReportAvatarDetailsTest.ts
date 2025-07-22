@@ -12,6 +12,7 @@ import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 import PropertyKeysOf = jest.PropertyKeysOf;
@@ -83,6 +84,7 @@ describe('useReportAvatarDetails', () => {
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
                     ...policiesMock,
+                    formatPhoneNumber,
                 }),
             {wrapper: OnyxListItemProvider},
         );
@@ -100,6 +102,7 @@ describe('useReportAvatarDetails', () => {
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
                     ...policiesMock,
+                    formatPhoneNumber,
                 }),
             {wrapper: OnyxListItemProvider},
         );
@@ -129,6 +132,7 @@ describe('useReportAvatarDetails', () => {
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
                     ...policiesMock,
+                    formatPhoneNumber,
                 }),
             {wrapper: OnyxListItemProvider},
         );
@@ -154,6 +158,7 @@ describe('useReportAvatarDetails', () => {
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
                     ...policiesMock,
+                    formatPhoneNumber,
                 }),
             {wrapper: OnyxListItemProvider},
         );
@@ -171,6 +176,7 @@ describe('useReportAvatarDetails', () => {
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
                     ...policiesMock,
+                    formatPhoneNumber,
                 }),
             {wrapper: OnyxListItemProvider},
         );

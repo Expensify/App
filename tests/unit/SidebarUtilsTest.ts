@@ -22,6 +22,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {
@@ -327,6 +328,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                formatPhoneNumber,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -336,6 +338,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                formatPhoneNumber,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -726,7 +729,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, formatPhoneNumber);
                         expect(result.messageText).toBe('This chat is with One and Two.');
                     })
             );
@@ -749,7 +752,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, formatPhoneNumber, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -771,7 +774,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, formatPhoneNumber, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -829,6 +832,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -886,6 +890,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should show @Hidden.
@@ -926,6 +931,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -959,6 +965,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -989,6 +996,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1107,13 +1115,17 @@ describe('SidebarUtils', () => {
                     policy,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
                 const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
 
                 expect(optionData?.alternateText).toBe(
                     formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
+                        translateLocal('iou.payerSpentAmount', {
+                            payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID, formatPhoneNumber}) ?? '',
+                            amount: formattedAmount,
+                        }),
                     ),
                 );
             });
@@ -1148,6 +1160,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1212,6 +1225,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1253,6 +1267,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1317,6 +1332,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);

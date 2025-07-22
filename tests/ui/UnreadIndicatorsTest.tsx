@@ -138,7 +138,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents();
+            subscribeToUserEvents(TestHelper.formatPhoneNumber);
             return waitForBatchedUpdates();
         })
         .then(async () => {

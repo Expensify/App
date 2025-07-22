@@ -202,7 +202,7 @@ async function signInAndGetApp(): Promise<void> {
 
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents();
+    subscribeToUserEvents(TestHelper.formatPhoneNumber);
 
     await waitForBatchedUpdates();
 

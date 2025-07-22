@@ -10,6 +10,7 @@ import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/GoogleTagManager');
@@ -84,6 +85,7 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created - categorizeTrackedExpense', () => {
         trackExpense({
+            formatPhoneNumber,
             report: {reportID: '123'},
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CATEGORIZE,

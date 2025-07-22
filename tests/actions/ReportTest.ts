@@ -116,7 +116,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents();
+                User.subscribeToUserEvents(TestHelper.formatPhoneNumber);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -191,7 +191,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT);
+                Report.clearCreateChatError(REPORT, TestHelper.formatPhoneNumber);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -294,7 +294,7 @@ describe('actions/Report', () => {
             .then(waitForNetworkPromises)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
-                User.subscribeToUserEvents();
+                User.subscribeToUserEvents(TestHelper.formatPhoneNumber);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
@@ -348,7 +348,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport(REPORT_ID);
+                Report.openReport(REPORT_ID, TestHelper.formatPhoneNumber);
                 Report.readNewestAction(REPORT_ID);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -599,7 +599,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents();
+                User.subscribeToUserEvents(TestHelper.formatPhoneNumber);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -655,7 +655,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents();
+                User.subscribeToUserEvents(TestHelper.formatPhoneNumber);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -783,7 +783,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents();
+                User.subscribeToUserEvents(TestHelper.formatPhoneNumber);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -831,7 +831,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
+            Report.openReport(REPORT_ID, TestHelper.formatPhoneNumber, undefined, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -857,7 +857,7 @@ describe('actions/Report', () => {
             if (i > 4) {
                 reportID = `${i}`;
             }
-            Report.openReport(reportID, undefined, ['test@user.com'], {
+            Report.openReport(reportID, TestHelper.formatPhoneNumber, undefined, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -1370,6 +1370,7 @@ describe('actions/Report', () => {
 
         Report.openReport(
             REPORT_ID,
+            TestHelper.formatPhoneNumber,
             undefined,
             ['test@user.com'],
             {
@@ -1531,7 +1532,7 @@ describe('actions/Report', () => {
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const reportID = Report.createNewReport({accountID}, policyID);
+        const reportID = Report.createNewReport({accountID}, TestHelper.formatPhoneNumber, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
             const connection = Onyx.connect({
@@ -1773,7 +1774,7 @@ describe('actions/Report', () => {
             });
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, '2');
+            Report.changeReportPolicy(expenseReport, '2', TestHelper.formatPhoneNumber);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1812,9 +1813,14 @@ describe('actions/Report', () => {
             });
 
             // When moving to another workspace
-            Report.changeReportPolicyAndInviteSubmitter(expenseReport, '2', {
-                [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
-            });
+            Report.changeReportPolicyAndInviteSubmitter(
+                expenseReport,
+                '2',
+                {
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                },
+                TestHelper.formatPhoneNumber,
+            );
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1839,7 +1845,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policyID = '1';
-            Report.buildOptimisticChangePolicyData(report, policyID);
+            Report.buildOptimisticChangePolicyData(report, policyID, TestHelper.formatPhoneNumber);
             expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
     });

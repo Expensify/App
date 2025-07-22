@@ -29,8 +29,8 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import {formatPhoneNumber} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -597,12 +597,13 @@ describe('OptionsListUtils', () => {
         it('should sort options alphabetically and preserves reportID for personal details with existing reports', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions()
-            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({
-                reports: OPTIONS.reports,
-                personalDetails: OPTIONS.personalDetails,
-            },
-            formatPhoneNumber,
-        );
+            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions(
+                {
+                    reports: OPTIONS.reports,
+                    personalDetails: OPTIONS.personalDetails,
+                },
+                formatPhoneNumber,
+            );
             // When we call orderOptions()
             results = orderOptions(results);
 
@@ -671,7 +672,7 @@ describe('OptionsListUtils', () => {
                 formatPhoneNumber,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-                }
+                },
             );
 
             // Then the result should include all personalDetails except the currently logged in user and Concierge
@@ -683,7 +684,9 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Chronos and a config object that excludes Chronos
             // When we call getValidOptions()
-            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, formatPhoneNumber, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
+            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, formatPhoneNumber, {
+                excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -702,7 +705,7 @@ describe('OptionsListUtils', () => {
                 formatPhoneNumber,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-                }
+                },
             );
 
             // Then the result should include all personalDetails except the currently logged in user and receipts
@@ -714,11 +717,11 @@ describe('OptionsListUtils', () => {
         it('should include Manager McTest in results by default', () => {
             // Given a set of reports and personalDetails that includes Manager McTest
             // When we call getValidOptions()
-            const result = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                formatPhoneNumber,
-                {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
-            );
+            const result = getValidOptions({reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails}, formatPhoneNumber, {
+                includeP2P: true,
+                canShowManagerMcTest: true,
+                betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+            });
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 1);
@@ -729,11 +732,11 @@ describe('OptionsListUtils', () => {
         it('should exclude Manager McTest from results if flag is set to false', () => {
             // Given a set of reports and personalDetails that includes Manager McTest and a config object that excludes Manager McTest
             // When we call getValidOptions()
-            const result = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                formatPhoneNumber,
-                {includeP2P: true, canShowManagerMcTest: false, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
-            );
+            const result = getValidOptions({reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails}, formatPhoneNumber, {
+                includeP2P: true,
+                canShowManagerMcTest: false,
+                betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Manager McTest
             expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
@@ -801,13 +804,9 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
             };
             // When we call getValidOptions with includeMultipleParticipantReports set to true
-            const results = getValidOptions(
-                {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
-                formatPhoneNumber,
-                {
-                    includeMultipleParticipantReports: true,
-                },
-            );
+            const results = getValidOptions({reports: [adminRoom], personalDetails: OPTIONS.personalDetails}, formatPhoneNumber, {
+                includeMultipleParticipantReports: true,
+            });
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
 
             // Then the result should include the admin room
@@ -850,14 +849,10 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const results = getValidOptions(
-                {reports: [workspaceChat], personalDetails: []},
-                formatPhoneNumber,
-                {
-                    includeMultipleParticipantReports: true,
-                    showRBR: true,
-                }
-            );
+            const results = getValidOptions({reports: [workspaceChat], personalDetails: []}, formatPhoneNumber, {
+                includeMultipleParticipantReports: true,
+                showRBR: true,
+            });
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
@@ -897,14 +892,10 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const results = getValidOptions(
-                {reports: [workspaceChat], personalDetails: []},
-                formatPhoneNumber,
-                {
-                    includeMultipleParticipantReports: true,
-                    showRBR: false,
-                }
-            );
+            const results = getValidOptions({reports: [workspaceChat], personalDetails: []}, formatPhoneNumber, {
+                includeMultipleParticipantReports: true,
+                showRBR: false,
+            });
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
         });
     });
@@ -985,7 +976,9 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos from the results when it is specified in excludedLogins', () => {
             // given a set of reports and personalDetails that includes Chronos
             // When we call getValidOptions() with excludeLogins param
-            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, formatPhoneNumber, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
+            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, formatPhoneNumber, {
+                excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -1298,7 +1291,7 @@ describe('OptionsListUtils', () => {
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
-                            const options = getSearchOptions(OPTIONS, formatPhoneNumber, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, formatPhoneNumber, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
@@ -1442,7 +1435,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, formatPhoneNumber                 );
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, formatPhoneNumber);
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '5005550006', formatPhoneNumber);
 
@@ -1568,7 +1561,7 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                                const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, formatPhoneNumber, REPORTS);
+                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, formatPhoneNumber, REPORTS);
                     // When we call getSearchOptions
                     const results = getSearchOptions(OPTIONS_WITH_PERIODS, formatPhoneNumber, [CONST.BETAS.ALL]);
                     // When we pass the returned options to filterAndOrderOptions with a search value
@@ -1742,7 +1735,7 @@ describe('OptionsListUtils', () => {
                 },
             });
             // When we call createOptionList
-            const reports = createOptionList(PERSONAL_DETAILS,formatPhoneNumber,  REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason

@@ -457,6 +457,7 @@ describe('SidebarLinksData', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;

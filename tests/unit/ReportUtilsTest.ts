@@ -105,6 +105,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -463,7 +464,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, formatPhoneNumber);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -485,38 +486,50 @@ describe('ReportUtils', () => {
         describe('1:1 DM', () => {
             test('with displayName', () => {
                 expect(
-                    getReportName({
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-                    }),
+                    getReportName(
+                        {
+                            reportID: '',
+                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                        },
+                        formatPhoneNumber,
+                    ),
                 ).toBe('Ragnar Lothbrok');
             });
 
             test('no displayName', () => {
                 expect(
-                    getReportName({
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
-                    }),
+                    getReportName(
+                        {
+                            reportID: '',
+                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                        },
+                        formatPhoneNumber,
+                    ),
                 ).toBe('floki@vikings.net');
             });
 
             test('SMS', () => {
                 expect(
-                    getReportName({
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
-                    }),
+                    getReportName(
+                        {
+                            reportID: '',
+                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                        },
+                        formatPhoneNumber,
+                    ),
                 ).toBe('(833) 240-3627');
             });
         });
 
         test('Group DM', () => {
             expect(
-                getReportName({
-                    reportID: '',
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
-                }),
+                getReportName(
+                    {
+                        reportID: '',
+                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
+                    },
+                    formatPhoneNumber,
+                ),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
 
@@ -536,15 +549,15 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(getReportName(baseAdminsRoom)).toBe('#admins');
+                expect(getReportName(baseAdminsRoom, formatPhoneNumber)).toBe('#admins');
             });
 
             test('Archived', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
+                expect(getReportName(baseAdminsRoom, formatPhoneNumber)).toBe('#admins (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom, formatPhoneNumber)).toBe('#admins (archivado)'));
             });
         });
 
@@ -564,7 +577,7 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
+                expect(getReportName(baseUserCreatedRoom, formatPhoneNumber)).toBe('#VikingsChat');
             });
 
             test('Archived', async () => {
@@ -574,9 +587,9 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
+                expect(getReportName(archivedPolicyRoom, formatPhoneNumber)).toBe('#VikingsChat (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom, formatPhoneNumber)).toBe('#VikingsChat (archivado)'));
             });
         });
 
@@ -584,25 +597,31 @@ describe('ReportUtils', () => {
             describe('Active', () => {
                 test('as member', () => {
                     expect(
-                        getReportName({
-                            reportID: '',
-                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                            policyID: policy.id,
-                            isOwnPolicyExpenseChat: true,
-                            ownerAccountID: 1,
-                        }),
+                        getReportName(
+                            {
+                                reportID: '',
+                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                                policyID: policy.id,
+                                isOwnPolicyExpenseChat: true,
+                                ownerAccountID: 1,
+                            },
+                            formatPhoneNumber,
+                        ),
                     ).toBe(`Ragnar Lothbrok's expenses`);
                 });
 
                 test('as admin', () => {
                     expect(
-                        getReportName({
-                            reportID: '',
-                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                            policyID: policy.id,
-                            isOwnPolicyExpenseChat: false,
-                            ownerAccountID: 1,
-                        }),
+                        getReportName(
+                            {
+                                reportID: '',
+                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                                policyID: policy.id,
+                                isOwnPolicyExpenseChat: false,
+                                ownerAccountID: 1,
+                            },
+                            formatPhoneNumber,
+                        ),
                     ).toBe(`Ragnar Lothbrok's expenses`);
                 });
             });
@@ -628,9 +647,11 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    expect(getReportName(memberArchivedPolicyExpenseChat, formatPhoneNumber)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat, formatPhoneNumber)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
 
                 test('as admin', async () => {
@@ -639,9 +660,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    expect(getReportName(adminArchivedPolicyExpenseChat, formatPhoneNumber)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat, formatPhoneNumber)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
             });
         });
@@ -664,7 +685,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted');
+                expect(getReportName(threadOfSubmittedReportAction, formatPhoneNumber, policy, submittedParentReportAction)).toBe('submitted');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -683,7 +704,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
+                expect(getReportName(threadOfRemovedRoomMemberAction, formatPhoneNumber, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
             });
         });
 
@@ -692,12 +713,12 @@ describe('ReportUtils', () => {
 
             it('Should return the text extracted from report name html', () => {
                 const report: Report = {...createRandomReport(1), type: 'task'};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual('heading with link');
+                expect(getReportName({...report, reportName: htmlTaskTitle}, formatPhoneNumber)).toEqual('heading with link');
             });
 
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({...report, reportName: htmlTaskTitle}, formatPhoneNumber)).toEqual(translateLocal('parentReportAction.deletedTask'));
             });
         });
 
@@ -724,7 +745,7 @@ describe('ReportUtils', () => {
             });
 
             test('should return report name from a derived value', () => {
-                expect(getReportName(report)).toEqual("Ragnar Lothbrok's expenses");
+                expect(getReportName(report, formatPhoneNumber)).toEqual("Ragnar Lothbrok's expenses");
             });
 
             test('should generate report name if report is not merged in the Onyx', () => {
@@ -739,7 +760,7 @@ describe('ReportUtils', () => {
                     policyID: '1',
                 };
 
-                expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
+                expect(getReportName(expenseChatReport, formatPhoneNumber)).toEqual("Ragnar Lothbrok's expenses");
             });
         });
     });
@@ -763,7 +784,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, formatPhoneNumber, policy, submittedParentReportAction)).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
         });
@@ -786,7 +807,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, formatPhoneNumber, policy, submittedParentReportAction)).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
         });
@@ -811,7 +832,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, formatPhoneNumber, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
         });
@@ -834,7 +855,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName(expenseReport, formatPhoneNumber, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
         });
@@ -1424,6 +1445,7 @@ describe('ReportUtils', () => {
                 comment: '',
                 participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
                 transactionID: NumberUtils.rand64(),
+                formatPhoneNumber,
             }) as ReportAction;
             expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
@@ -1752,7 +1774,7 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const reportPreview = buildOptimisticReportPreview(chatReport, expenseReport, '', expenseTransaction, expenseReport.reportID, reportPreviewReportActionID);
+            const reportPreview = buildOptimisticReportPreview(chatReport, expenseReport, formatPhoneNumber, '', expenseTransaction, expenseReport.reportID, reportPreviewReportActionID);
             const expenseCreatedAction = buildOptimisticIOUReportAction({
                 type: 'create',
                 amount: 100,
@@ -1761,6 +1783,7 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+                formatPhoneNumber,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
@@ -1812,7 +1835,7 @@ describe('ReportUtils', () => {
             };
 
             // Get the quick action detail
-            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
+            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs, formatPhoneNumber);
 
             // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
             expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
@@ -1916,27 +1939,27 @@ describe('ReportUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -1950,7 +1973,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
@@ -1962,7 +1985,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
@@ -1974,7 +1997,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
@@ -1986,7 +2009,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show participant names if report name is not available', async () => {
@@ -1998,7 +2021,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
     });
@@ -2042,6 +2065,7 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
 
                 iouReportID: expenseReport.reportID,
+                formatPhoneNumber,
             });
             const expenseCreatedAction2 = buildOptimisticIOUReportAction({
                 type: 'create',
@@ -2052,6 +2076,7 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
 
                 iouReportID: expenseReport.reportID,
+                formatPhoneNumber,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport);
             const currentReportId = '1';
@@ -2337,6 +2362,7 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
 
                 iouReportID: expenseReport.reportID,
+                formatPhoneNumber,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
@@ -2541,6 +2567,7 @@ describe('ReportUtils', () => {
                 transactionID: '8749701985416635400',
                 iouReportID: '8698041594589716',
                 isPersonalTrackingExpense: true,
+                formatPhoneNumber,
             });
             expect(getOriginalMessage(iouAction as ReportAction<'IOU'>)?.IOUReportID).toBe(undefined);
         });
@@ -3415,23 +3442,27 @@ describe('ReportUtils', () => {
         };
 
         it('excludes the current user from the report title', () => {
-            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2}));
+            const data = generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2});
+            const result = buildReportNameFromParticipantNames({report: data.report, personalDetails: data.personalDetails, formatPhoneNumber});
             expect(result).not.toContain('CURRENT');
         });
 
         it('limits to a maximum of 5 participants in the title', () => {
-            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 10}));
+            const data = generateFakeReportAndParticipantsPersonalDetails({count: 10});
+            const result = buildReportNameFromParticipantNames({report: data.report, personalDetails: data.personalDetails, formatPhoneNumber});
             expect(result.split(',').length).toBeLessThanOrEqual(5);
         });
 
         it('returns full name if only one participant is present (excluding current user)', () => {
-            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 1}));
+            const data = generateFakeReportAndParticipantsPersonalDetails({count: 1});
+            const result = buildReportNameFromParticipantNames({report: data.report, personalDetails: data.personalDetails, formatPhoneNumber});
             const {displayName} = fakePersonalDetails[1] ?? {};
             expect(result).toEqual(displayName);
         });
 
         it('returns an empty string if there are no participants or all are excluded', () => {
-            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1}));
+            const data = generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1});
+            const result = buildReportNameFromParticipantNames({report: data.report, personalDetails: data.personalDetails, formatPhoneNumber});
             expect(result).toEqual('');
         });
 
@@ -3442,7 +3473,7 @@ describe('ReportUtils', () => {
             const fourthUser = fakePersonalDetails[4];
 
             const incompleteDetails = {2: secondUser, 4: fourthUser};
-            const result = buildReportNameFromParticipantNames({report, personalDetails: incompleteDetails});
+            const result = buildReportNameFromParticipantNames({report, personalDetails: incompleteDetails, formatPhoneNumber});
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
@@ -3605,7 +3636,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             expect(result).toBe(report.reportName);
         });
 
@@ -3618,7 +3649,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             expect(result).toBe(report.reportName);
         });
 
@@ -3631,7 +3662,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             expect(result).toBe(report.reportName);
         });
 
@@ -3644,7 +3675,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             // Policies are empty, so the policy name is "Unavailable workspace"
             expect(result).toBe('Unavailable workspace');
         });
@@ -3658,7 +3689,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             expect(result).toBe(report.reportName);
         });
 
@@ -3671,7 +3702,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             expect(result).toBe(report.reportName);
         });
 
@@ -3684,7 +3715,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe("Ragnar Lothbrok's expenses");
         });
@@ -3698,7 +3729,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');
         });
@@ -3715,7 +3746,7 @@ describe('ReportUtils', () => {
                     1: {notificationPreference: 'hidden'},
                 },
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             // participant accountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe('Ragnar Lothbrok');
         });
@@ -3733,7 +3764,7 @@ describe('ReportUtils', () => {
                 },
                 chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, formatPhoneNumber);
             // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
             expect(result).toBe('Ragnar, floki@vikings.net');
         });
@@ -3744,7 +3775,7 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Child Report',
             };
-            const result = getMoneyReportPreviewName(action, undefined);
+            const result = getMoneyReportPreviewName(action, undefined, formatPhoneNumber);
             expect(result).toBe('Child Report');
         });
     });

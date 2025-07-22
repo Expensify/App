@@ -9,6 +9,7 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 beforeAll(() =>
@@ -59,5 +60,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction}));
+    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber}));
 });

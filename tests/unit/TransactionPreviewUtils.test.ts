@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -31,6 +32,7 @@ const basicProps = {
         transactionID: '1',
         paymentType: undefined,
         iouReportID: '1',
+        formatPhoneNumber,
     }),
     violations: [],
     transactionDetails: {},
