@@ -3,10 +3,11 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,7 +61,7 @@ function TransactionDuplicateReview() {
     const hasSettledOrApprovedTransaction = transactions?.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
 
     useEffect(() => {
-        if (!report?.reportID || !route.params.threadReportID) {
+        if (!route.params.threadReportID || report?.reportID) {
             return;
         }
         openReport(route.params.threadReportID);
@@ -72,7 +73,14 @@ function TransactionDuplicateReview() {
     const shouldShowNotFound = !isLoadingReport && !transactionID;
 
     if (isLoadingReport) {
-        return <FullscreenLoadingIndicator />;
+        return (
+            <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+                <View style={[styles.borderBottom]}>
+                    <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                </View>
+                <ReportActionsSkeletonView />
+            </ScreenWrapper>
+        );
     }
 
     return (
