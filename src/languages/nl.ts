@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1040,6 +1038,9 @@ const translations = {
         createExpense: 'Uitgave aanmaken',
         trackDistance: 'Afstand bijhouden',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Maak ${expensesNumber} uitgaven aan`,
+        removeExpense: 'Uitgave verwijderen',
+        removeThisExpense: 'Deze uitgave verwijderen',
+        removeExpenseConfirmation: 'Weet je zeker dat je dit bonnetje wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
         addExpense: 'Uitgave toevoegen',
         chooseRecipient: 'Kies ontvanger',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Maak ${amount} uitgave aan`,
@@ -1069,8 +1070,6 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
-        removeFromReport: 'Verwijder uit rapport',
-        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
@@ -1131,21 +1130,10 @@ const translations = {
         individual: 'Individuueel',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} met Expensify` : `Betaal met Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als individu` : `Betalen met persoonlijke rekening`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} met wallet` : `Betalen met wallet`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als individu` : `Betaal als individu`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Betaal ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als betaald markeren` : `Markeren als betaald`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met persoonlijke rekening`,
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betalen via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald via bankrekening ${last4Digits}` : `betaald via bankrekening ${last4Digits}`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `${amount} betaald met bankrekening eindigend op ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Persoonlijke rekening • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Zakelijke rekening • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als een bedrijf` : `Betalen als een bedrijf`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} ergens anders` : `Elders betalen`),
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
         flip: 'Omdraaien',
@@ -1181,8 +1169,8 @@ const translations = {
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} heeft een bankrekening toegevoegd. De betaling van ${amount} is gedaan.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}gemarkeerd als betaald`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}betaald met wallet`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} elders betaald`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}betaald met Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}betaald met Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
         noReimbursableExpenses: 'Dit rapport heeft een ongeldig bedrag.',
@@ -1250,7 +1238,6 @@ const translations = {
         unheldExpense: 'deblokkeer deze uitgave',
         moveUnreportedExpense: 'Verplaats niet-gerapporteerde uitgave',
         addUnreportedExpense: 'Niet-gerapporteerde uitgave toevoegen',
-        createNewExpense: 'Nieuwe uitgave aanmaken',
         selectUnreportedExpense: 'Selecteer ten minste één uitgave om aan het rapport toe te voegen.',
         emptyStateUnreportedExpenseTitle: 'Geen niet-gerapporteerde uitgaven',
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
@@ -1652,9 +1639,10 @@ const translations = {
             afterEmail: 'in andere accounts. Voeg in plaats daarvan andere accounts samen in dit account.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'in andere accounts omdat het de factuureigenaar van een gefactureerd account is. Voeg in plaats daarvan andere accounts samen in dit account.',
+            beforeEmail: 'Je kunt accounts niet samenvoegen met ',
+            afterEmail: ' omdat dit account een gefactureerde factureringsrelatie heeft.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Probeer het later opnieuw',
             description: 'Er waren te veel pogingen om accounts samen te voegen. Probeer het later opnieuw.',
@@ -1839,7 +1827,6 @@ const translations = {
         enableWallet: 'Portemonnee inschakelen',
         addBankAccountToSendAndReceive: 'Word terugbetaald voor uitgaven die je indient bij een werkruimte.',
         addBankAccount: 'Bankrekening toevoegen',
-        addDebitOrCreditCard: 'Debet- of creditcard toevoegen',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
         expensifyCard: 'Expensify Card',
@@ -2052,7 +2039,6 @@ const translations = {
         cardLastFour: 'Kaart eindigend op',
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om betalingen direct in de app te verzenden en ontvangen.',
         defaultPaymentMethod: 'Standaard',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bankrekening • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2210,6 +2196,11 @@ const translations = {
             title: 'Gebruikt u een boekhoudsoftware?',
             none: 'Geen',
         },
+        interestedFeatures: {
+            title: 'In welke functies bent u geïnteresseerd?',
+            featuresAlreadyEnabled: 'Je werkruimte heeft al het volgende ingeschakeld:',
+            featureYouMayBeInterestedIn: 'Schakel extra functies in waarin u mogelijk geïnteresseerd bent:',
+        },
         error: {
             requiredFirstName: 'Voer alstublieft uw voornaam in om door te gaan',
         },
@@ -2278,7 +2269,7 @@ const translations = {
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
@@ -2291,7 +2282,7 @@ const translations = {
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Bevestig de details.\n' +
@@ -2304,7 +2295,7 @@ const translations = {
                 description:
                     '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Kies uw *persoonlijke* ruimte.\n' +
@@ -2403,7 +2394,7 @@ const translations = {
                 description:
                     '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer een e-mailadres of telefoonnummer in.\n' +
                     '\n' +
@@ -2417,7 +2408,7 @@ const translations = {
                 description:
                     '*Splits uitgaven* met één of meer personen.\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer e-mailadressen of telefoonnummers in.\n' +
                     '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
@@ -2439,7 +2430,7 @@ const translations = {
                 description:
                     'Zo maakt u een rapport:\n' +
                     '\n' +
-                    '1. Klik op de groene *+*-knop.\n' +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Rapport aanmaken*.\n' +
                     '3. Klik op *Uitgave toevoegen*.\n' +
                     '4. Voeg uw eerste uitgave toe.\n' +
@@ -2714,6 +2705,8 @@ const translations = {
             validationAmounts: 'De ingevoerde validatiebedragen zijn onjuist. Controleer uw bankafschrift en probeer het opnieuw.',
             fullName: 'Voer een geldige volledige naam in alstublieft',
             ownershipPercentage: 'Voer een geldig percentage in.',
+            deletePaymentBankAccount:
+                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3225,6 +3218,18 @@ const translations = {
             certify: 'Verklaar alstublieft dat de informatie waar en nauwkeurig is.',
             consent: 'Gelieve in te stemmen met de privacyverklaring.',
         },
+    },
+    docusignStep: {
+        subheader: 'Docusign-formulier',
+        pleaseComplete:
+            'Vul het ACH-autorisatieformulier in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        pleaseCompleteTheBusinessAccount: 'Vul de aanvraag voor een zakelijke rekening en de automatische incassoregeling in.',
+        pleaseCompleteTheDirect:
+            'Vul de automatische incassoregeling in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        takeMeTo: 'Ga naar Docusign',
+        uploadAdditional: 'Upload extra documentatie',
+        pleaseUpload: 'Upload het DEFT-formulier en de ondertekende Docusign-pagina.',
+        pleaseUploadTheDirect: 'Upload de automatische incassoregelingen en de Docusign-handtekeningenpagina.',
     },
     finishStep: {
         connect: 'Bankrekening koppelen',
@@ -3835,6 +3840,18 @@ const translations = {
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg alstublieft het account toe in Xero en synchroniseer de verbinding opnieuw.',
+            accountingMethods: {
+                label: 'Wanneer exporteren',
+                description: 'Kies wanneer u de uitgaven wilt exporteren:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze definitief zijn goedgekeurd.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze zijn betaald.',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Voorkeurs-exporteur',
@@ -5937,11 +5954,16 @@ const translations = {
                 title: 'Geen uitgaven om te exporteren',
                 subtitle: 'Tijd om het rustig aan te doen, goed werk.',
             },
+            emptyStatementsResults: {
+                title: 'Geen uitgaven om weer te geven',
+                subtitle: 'Geen resultaten. Probeer uw filters aan te passen.',
+            },
             emptyUnapprovedResults: {
                 title: 'Geen uitgaven om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale ontspanning. Goed gedaan!',
             },
         },
+        statements: 'Verklaringen',
         unapproved: 'Niet goedgekeurd',
         unapprovedCash: 'Niet goedgekeurd contant geld',
         unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',
@@ -6138,8 +6160,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `veranderde ${fieldName} van ${oldValue} naar ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `veranderd ${fieldName} naar ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `veranderde de werkruimte naar ${toPolicyName}${fromPolicyName ? `(vroeger ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Werkruimte gewijzigd${fromPolicyName ? ` (voorheen ${fromPolicyName})` : ''}`;
+                    }
+                    return `Werkruimte gewijzigd naar ${toPolicyName}${fromPolicyName ? ` (voorheen ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `veranderde type van ${oldType} naar ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `heeft dit rapport naar ${delegateUser} gestuurd omdat ${originalManager} op vakantie is.`,
                 exportedToCSV: `geëxporteerd naar CSV`,
@@ -6444,7 +6470,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned:
-            'Uitgavendetails en bon handmatig toegevoegd. Controleer de details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer informatie</a> over automatische controle van alle bonnen.',
+            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Bon vereist';
             if (formattedLimit ?? category) {

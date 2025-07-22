@@ -89,10 +89,11 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
+        const transaction = createRandomTransaction(1);
         const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {

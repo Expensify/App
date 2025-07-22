@@ -23,7 +23,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -52,9 +51,6 @@ type MoneyRequestAmountFormProps = {
     /** The policyID of the request */
     policyID?: string;
 
-    /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: Route;
-
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
 
@@ -72,6 +68,8 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
+    /** The chatReportID of the request */
+    chatReportID?: string;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -92,12 +90,12 @@ function MoneyRequestAmountForm(
         skipConfirmation = false,
         iouType = CONST.IOU.TYPE.SUBMIT,
         policyID = '',
-        bankAccountRoute = '',
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
         allowFlippingAmount = false,
+        chatReportID,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -387,7 +385,6 @@ function MoneyRequestAmountForm(
                             pressOnEnter
                             onPress={submitAndNavigateToNextPage}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={currency ?? CONST.CURRENCY.USD}
                             policyID={policyID}
@@ -403,6 +400,7 @@ function MoneyRequestAmountForm(
                             }}
                             shouldShowPersonalBankAccountOption
                             enterKeyEventListenerPriority={1}
+                            chatReportID={chatReportID}
                         />
                     ) : (
                         <Button

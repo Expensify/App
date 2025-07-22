@@ -12,7 +12,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -323,7 +323,6 @@ function IOURequestStepAmount({
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}
-                bankAccountRoute={getBankAccountRoute(report)}
                 ref={(e) => {
                     textInput.current = e;
                 }}
@@ -332,6 +331,7 @@ function IOURequestStepAmount({
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
                 allowFlippingAmount={!isSplitBill && allowNegative}
+                chatReportID={reportID}
             />
         </StepScreenWrapper>
     );
