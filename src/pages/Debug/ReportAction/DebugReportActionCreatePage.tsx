@@ -47,6 +47,7 @@ function DebugReportActionCreatePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
@@ -108,6 +109,7 @@ function DebugReportActionCreatePage({
                             {!error ? (
                                 <ReportActionItem
                                     allReports={allReports}
+                                    policies={policies}
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
                                     report={{reportID}}
                                     reportActions={[]}

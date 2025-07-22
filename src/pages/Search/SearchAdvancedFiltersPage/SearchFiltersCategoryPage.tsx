@@ -40,7 +40,11 @@ function SearchFiltersCategoryPage() {
         } else {
             selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
         }
-        items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
+        items.push(
+            ...Array.from(uniqueCategoryNames)
+                .filter(Boolean)
+                .map((categoryName) => ({name: categoryName, value: categoryName})),
+        );
         return items;
     }, [allPolicyCategories, selectedPoliciesCategories, translate]);
 

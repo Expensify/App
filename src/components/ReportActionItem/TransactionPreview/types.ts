@@ -1,5 +1,5 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -11,6 +11,9 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<Report>;
+
     /** The active reportID linked to the transaction */
     iouReportID: string | undefined;
 
@@ -102,7 +105,7 @@ type TransactionPreviewContentProps = {
     /** Holds the transaction data entry from Onyx */
     transaction: OnyxEntry<Transaction>;
 
-    /** The original amount value on the transaction. This is used to deduce who is the sender and who is the receiver of the money request
+    /** The amount of the transaction saved in the database. This is used to deduce who is the sender and who is the receiver of the money request
      * In case of Splits the property `transaction` is actually an original transaction (for the whole split) and it does not have the data required to deduce who is the sender */
     transactionRawAmount: number;
 

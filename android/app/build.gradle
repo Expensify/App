@@ -13,7 +13,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 /* Fullstory settings */
 fullstory {
     org 'o-1WN56P-na1'
-    enabledVariants 'production'
+    enabledVariants 'all'
     logcatLevel 'debug'
     recordOnStart false
 }
@@ -114,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009017604
-        versionName "9.1.76-4"
+        versionCode 1009018401
+        versionName "9.1.84-1"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
