@@ -206,12 +206,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         [quickActionReport?.policyID],
     );
 
-    const startScanOnLongPress = useCallback(() => {
+    const startScan = useCallback(() => {
         interceptAnonymousUser(() => {
             if (shouldRedirectToExpensifyClassic) {
                 setModalVisible(true);
                 return;
             }
+
             // Start the scan flow directly
             startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false);
         });
@@ -600,7 +601,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isActive={isCreateMenuActive}
                 ref={fabRef}
                 onPress={toggleCreateMenu}
-                onLongPress={startScanOnLongPress}
+                onLongPress={startScan}
             />
         </View>
     );

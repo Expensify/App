@@ -99,6 +99,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         }
 
         hideProductTrainingTooltip();
+
         // Drop focus to avoid blue focus ring.
         fabPressable.current?.blur();
         onLongPress?.(event);
@@ -127,6 +128,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 style={[
                     styles.h100,
                     styles.navigationTabBarItem,
+
                     // Prevent text selection on touch devices (e.g. on long press)
                     canUseTouchScreen() && styles.userSelectNone,
                 ]}
