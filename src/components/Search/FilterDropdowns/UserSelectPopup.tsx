@@ -1,22 +1,18 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchParticipantsOptions from '@hooks/useSearchParticipantsOptions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {searchInServer} from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
@@ -37,13 +33,12 @@ type UserSelectPopupProps = {
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
+    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
         return value.reduce<OptionData[]>((acc, id) => {
@@ -62,63 +57,10 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     });
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
-
-    // Get a list of all options/personal details and filter them by the current search term
-    const listData = useMemo(() => {
-        const optionsList = getValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                selectedOptions,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelectedOptions: true,
-                includeCurrentUser: true,
-            },
-        );
-
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-
-        const personalDetailList = filteredOptionsList
-            .map((participant) => ({
-                ...participant,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-            }))
-            .sort((a, b) => {
-                // Put the current user at the top of the list
-                if (a.accountID === accountID) {
-                    return -1;
-                }
-                if (b.accountID === accountID) {
-                    return 1;
-                }
-                return 0;
-            });
-
-        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
-
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [
-            {
-                title: '',
-                data: listData,
-                shouldShow: !isEmpty(listData),
-            },
-        ];
-
-        const noResultsFound = isEmpty(listData);
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
-    }, [listData, translate]);
+    const {sections, headerMessage, areOptionsInitialized} = useSearchParticipantsOptions({
+        selectedOptions: selectedOptions as OptionData[],
+        cleanSearchTerm,
+    });
 
     const selectUser = useCallback(
         (option: Option) => {
@@ -152,10 +94,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         closeOverlay();
     }, [closeOverlay, onChange]);
 
-    useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
-
     const isLoadingNewOptions = !!isSearchingForReports;
     const dataLength = sections.flatMap((section) => section.data).length;
 
@@ -163,7 +101,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
-                textInputAutoFocus
+                textInputAutoFocus={shouldFocusInputOnScreenFocus}
                 shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
@@ -175,6 +113,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 onSelectRow={selectUser}
                 onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
+                showLoadingPlaceholder={!areOptionsInitialized}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>

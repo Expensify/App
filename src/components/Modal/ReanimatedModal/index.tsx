@@ -6,22 +6,26 @@ import {LayoutAnimationConfig} from 'react-native-reanimated';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import type ReanimatedModalProps from './types';
+import type {AnimationInType, AnimationOutType} from './types';
 
 function ReanimatedModal({
     testID,
     animationInDelay,
-    animationInTiming = 300,
-    animationOutTiming = 300,
+    animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
+    animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    animationIn = 'fadeIn',
+    animationOut = 'fadeOut',
     avoidKeyboard = false,
     coverScreen = true,
     children,
     hasBackdrop = true,
     backdropColor = 'black',
-    backdropOpacity = 0.72,
+    backdropOpacity = variables.overlayOpacity,
     customBackdrop = null,
     isVisible = false,
     onModalWillShow = noop,
@@ -34,6 +38,9 @@ function ReanimatedModal({
     style,
     type,
     statusBarTranslucent = false,
+    onSwipeComplete,
+    swipeDirection,
+    swipeThreshold,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -141,8 +148,12 @@ function ReanimatedModal({
             animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
+            animationIn={animationIn as AnimationInType}
+            animationOut={animationOut as AnimationOutType}
             style={style}
             type={type}
+            onSwipeComplete={onSwipeComplete}
+            swipeDirection={swipeDirection}
         >
             {children}
         </Container>
