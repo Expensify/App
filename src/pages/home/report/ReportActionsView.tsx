@@ -63,7 +63,7 @@ type ReportActionsViewProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /** If this report is a transaction thread report */
+    /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
 };
 

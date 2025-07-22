@@ -136,9 +136,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const reportActionIDFromRoute = route?.params?.reportActionID;
-    const parentReportIDFromRoute = route?.params?.parentReportID;
-    const parentReportActionIDFromRoute = route?.params?.parentReportActionID;
+    const {reportActionID: reportActionIDFromRoute, parentReportID: parentReportIDFromRoute, parentReportActionID: parentReportActionIDFromRoute} = route.params;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
@@ -219,7 +217,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
      */
     const report = useMemo(
         () =>
-            // This is required to get the transaction data from the parent report, to render the optimistic transaction thread
+            // For transaction threads, transaction data is already available in the parent report to display previews.
+            // However, when opening a thread for the first time, we rely on backend data instead of rendering optimistic data from the local transaction.
+            // To render optimistic data immediately, we need to create an optimistic report that references the parent report and parent report action.
+            // This allows us to create an optimistic report action containing the transaction details
             parentReportIDFromRoute && parentReportActionIDFromRoute
                 ? ({
                       ...reportOnyx,

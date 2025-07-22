@@ -1,5 +1,4 @@
 import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -147,8 +146,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
         onBackButtonPress();
     }, [parentReportAction, transaction, report?.parentReportID, removeTransaction, onBackButtonPress]);
 
-    const getStatusIcon: (src: IconAsset) => ReactNode = useCallback(
-        (src) => (
+    const getStatusIcon = useCallback(
+        (src: IconAsset) => (
             <Icon
                 src={src}
                 height={variables.iconSizeSmall}
@@ -295,7 +294,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
                 },
             },
         }),
-        [translate, parentReportAction, transaction, reportID, report],
+        [translate, parentReportAction, isDelegateAccessRestricted, showDelegateNoAccessModal, transaction, reportID, report],
     );
 
     const applicableSecondaryActions = useMemo(() => secondaryActions.map((action) => secondaryActionsImplementation[action]), [secondaryActions, secondaryActionsImplementation]);
