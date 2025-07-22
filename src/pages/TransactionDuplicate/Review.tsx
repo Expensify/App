@@ -22,7 +22,6 @@ import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
@@ -61,13 +60,13 @@ function TransactionDuplicateReview() {
     const hasSettledOrApprovedTransaction = transactions?.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
 
     useEffect(() => {
-        if (!isEmptyObject(report) || !route.params.threadReportID) {
+        if (!report?.reportID || !route.params.threadReportID) {
             return;
         }
         openReport(route.params.threadReportID);
     }, [report, route.params.threadReportID]);
 
-    const isLoadingReport = isEmptyObject(report) && reportMetadata?.isLoadingInitialReportActions !== false;
+    const isLoadingReport = !report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isLoadingReport && !transactionID;
