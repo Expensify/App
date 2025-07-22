@@ -430,6 +430,7 @@
         "otpauth",
         "parasharrajat",
         "Parcelable",
+        "passplus",
         "passwordless",
         "Passwordless",
         "payrollcode",
@@ -602,6 +603,8 @@
         "Transpiles",
         "trivago",
         "Typeform",
+        "uatp",
+        "UATP",
         "UBOI",
         "UBOS",
         "UDID",
@@ -736,10 +739,7 @@
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
-        "src/libs/SearchParser/*",
-        "passplus",
-        "uatp",
-        "UATP"
+        "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
