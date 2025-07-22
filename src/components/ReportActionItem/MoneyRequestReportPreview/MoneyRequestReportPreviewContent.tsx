@@ -1,8 +1,7 @@
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, FlatList, View} from 'react-native';
-import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
+import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
-import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -77,17 +76,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
-type WebLayoutNativeEvent = {
-    layout: LayoutRectangle;
-    target: Element;
-};
-
-const checkIfReportNameOverflows = <T extends LayoutChangeEvent>({nativeEvent}: T) =>
-    'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h70 : false;
-
-// Do not remove this empty view, it is a workaround for the icon padding at the end of the preview text
-const FixIconPadding = <View style={{height: variables.iconSizeNormal}} />;
-
 function MoneyRequestReportPreviewContent({
     iouReportID,
     chatReportID,
@@ -130,8 +118,6 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const [doesReportNameOverflow, setDoesReportNameOverflow] = useState(false);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -389,13 +375,6 @@ function MoneyRequestReportPreviewContent({
         carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
     };
 
-    const onTextLayoutChange = (e: LayoutChangeEvent) => {
-        const doesOverflow = checkIfReportNameOverflows(e);
-        if (doesOverflow !== doesReportNameOverflow) {
-            setDoesReportNameOverflow(doesOverflow);
-        }
-    };
-
     const renderFlatlistItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
         if (itemInfo.index > 9) {
             return (
@@ -650,17 +629,10 @@ function MoneyRequestReportPreviewContent({
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                         <Text
-                                                            onLayout={onTextLayoutChange}
-                                                            style={[styles.lh20]}
-                                                            numberOfLines={3}
+                                                            style={[styles.headerText]}
+                                                            testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {FixIconPadding}
-                                                            <Text
-                                                                style={[styles.headerText]}
-                                                                testID="MoneyRequestReportPreview-reportName"
-                                                            >
-                                                                {getMoneyReportPreviewName(action, iouReport, isInvoice)}
-                                                            </Text>
+                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
