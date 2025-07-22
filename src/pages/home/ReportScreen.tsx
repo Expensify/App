@@ -135,12 +135,13 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function useKeyboardAnimation(isModalVisible?: boolean) {
+function useKeyboardAnimation(isModalVisible?: boolean, isComposerFullSize?: boolean) {
     const progress = useSharedValue(0);
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
     const scrollY = useSharedValue(0);
     const keyboardAbsoluteHeight = useSharedValue(0);
+    const willCloseComposer = useSharedValue(false);
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -171,12 +172,22 @@ function useKeyboardAnimation(isModalVisible?: boolean) {
                     keyboardAbsoluteHeight.set(e.height);
                 }
 
+                if (isComposerFullSize) {
+                    willCloseComposer.set(true);
+                    return offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
+                }
+
+                if (willCloseComposer.get()) {
+                    willCloseComposer.set(false);
+                    return;
+                }
+
                 return offset.set(scrollYValueAtStart);
             }
 
             // When we close the keyboard we need to maintain the position that we had when the keyboard was open
             // The position is: currentScroll + keyboardHeight (as we add keyboard height to the scrollOfffset)
-            return offset.set(scrollYValueAtStart + prevHeight);
+            offset.set(scrollYValueAtStart + prevHeight);
         },
         onInteractive: (e) => {
             'worklet';
@@ -241,7 +252,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation(modal?.isPopover);
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
@@ -862,6 +873,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
 
+    const shouldEnableKeyboardAvoidingView = useMemo(() => {
+        if (Platform.OS === 'ios') {
+            return isComposerFullSize;
+        }
+
+        return isTopMostReportId || isInNarrowPaneModal;
+    }, [isComposerFullSize, isTopMostReportId, isInNarrowPaneModal]);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -879,15 +898,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             offset={composerHeight}
             interpolator="ios"
             textInputNativeID="composer"
+            enableSwipeToDismiss={!isComposerFullSize}
         >
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
                         navigation={navigation}
                         style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios' && (isTopMostReportId || isInNarrowPaneModal)}
+                        shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
                         testID={`report-screen-${reportID}`}
-                        includeSafeAreaPaddingBottom={false}
+                        includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -941,6 +961,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             keyboardOffset={keyboardOffset}
                                             composerHeight={composerHeight}
                                             keyboardHeight={keyboardHeight}
+                                            isComposerFullSize={isComposerFullSize}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (

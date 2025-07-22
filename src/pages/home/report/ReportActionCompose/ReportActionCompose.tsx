@@ -24,6 +24,7 @@ import useDebounce from '@hooks/useDebounce';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -151,6 +152,8 @@ function ReportActionCompose({
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const {isKeyboardActive} = useKeyboardState();
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -562,13 +565,15 @@ function ReportActionCompose({
         [onLayout],
     );
 
+    const paddingBottom = useMemo(() => (isKeyboardActive ? 16 : 0), [isKeyboardActive]);
+
     return (
         <View
             onLayout={onLayoutInternal}
-            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
+            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && {...styles.chatItemFullComposeRow, paddingBottom}]}
         >
             <OfflineWithFeedback pendingAction={pendingAction}>
-                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
+                {shouldShowReportRecipientLocalTime && hasReportRecipient ? <ParticipantLocalTime participant={reportRecipient} /> : <View style={styles.chatItemComposeBoxTopSpacer} />}
             </OfflineWithFeedback>
             <View
                 onLayout={measureComposer}

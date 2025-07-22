@@ -118,6 +118,8 @@ type ReportActionsListProps = {
     keyboardOffset: SharedValue<number>;
 
     composerHeight: number;
+
+    isComposerFullSize?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -159,6 +161,7 @@ function ReportActionsList({
     keyboardOffset,
     composerHeight,
     keyboardHeight,
+    isComposerFullSize,
 }: ReportActionsListProps) {
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
@@ -780,7 +783,10 @@ function ReportActionsList({
     });
 
     const safeAreaBottom = isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
-    const bottomSpacer = useMemo(() => (Platform.OS === 'ios' ? composerHeight + safeAreaBottom : 0), [composerHeight, safeAreaBottom]);
+    const bottomSpacer = useMemo(
+        () => (Platform.OS === 'ios' && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom),
+        [composerHeight, safeAreaBottom, isComposerFullSize],
+    );
 
     return (
         <>
@@ -790,7 +796,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flexGrow1, {paddingBottom: bottomSpacer}]}
+                style={[styles.flex1, {paddingBottom: bottomSpacer}]}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList

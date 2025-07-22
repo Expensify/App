@@ -204,11 +204,14 @@ function ReportFooter({
         if (Platform.OS !== 'ios') {
             return {};
         }
+
+        const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}];
+
         return {
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            transform: [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}],
+            transform,
         };
     });
 
@@ -245,7 +248,7 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <Animated.View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose, !isComposerFullSize && animatedStyle]}>
+                <Animated.View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose, animatedStyle]}>
                     <ReportActionCompose
                         onSubmit={onSubmitComment}
                         onComposerFocus={onComposerFocus}
