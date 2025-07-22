@@ -246,7 +246,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
-    MobileSelectionMode,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,

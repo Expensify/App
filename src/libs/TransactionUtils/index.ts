@@ -1199,9 +1199,6 @@ function doesTransactionSupportViolations(transaction: Transaction | undefined):
     if (!transaction) {
         return false;
     }
-    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-        return false;
-    }
     return true;
 }
 

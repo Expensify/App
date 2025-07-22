@@ -13,6 +13,7 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -3779,6 +3780,35 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.fileDropUIBG,
         },
 
+        activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
+            const browser = getBrowser();
+            const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
+
+            return {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                height: '100%',
+                opacity: isActive ? 1 : 0,
+                transition: 'opacity 0.2s ease-in',
+                ...(isSafariOrChromeBrowser && {
+                    backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
+                    backgroundSize: '100% 100%',
+                    backgroundRepeat: 'no-repeat',
+                }),
+                // fallback for the desktop and other browsers that this svg doesn't work with
+                ...(!isSafariOrChromeBrowser && {
+                    borderWidth: 2,
+                    borderStyle: 'dashed',
+                    borderColor,
+                    borderRadius: variables.componentBorderRadiusNormal,
+                }),
+            };
+        },
+
         attachmentDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
             transition: 'background-color 0.2s ease-in',
@@ -3788,11 +3818,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textAttachmentDropZone,
         },
 
-        attachmentDropInnerWrapper: (isActive?: boolean) => ({
-            borderColor: isActive ? theme.attachmentDropBorderColorActive : theme.attachmentDropBorderColor,
-            transition: '0.2s ease-in',
-        }),
-
         receiptDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
             transition: 'background-color 0.2s ease-in',
@@ -3801,11 +3826,6 @@ const styles = (theme: ThemeColors) =>
         receiptDropText: {
             color: theme.textReceiptDropZone,
         },
-
-        receiptDropInnerWrapper: (isActive?: boolean) => ({
-            borderColor: isActive ? theme.receiptDropBorderColorActive : theme.receiptDropBorderColor,
-            transition: '0.2s ease-in',
-        }),
 
         flashButtonContainer: {
             position: 'absolute',
@@ -4845,6 +4865,27 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeight,
         },
 
+        transactionListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            flex: 1,
+            userSelect: 'none',
+        },
+
+        transactionGroupListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            paddingVertical: 8,
+            flex: 1,
+            userSelect: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            flexDirection: 'row',
+        },
+
         searchQueryListItemStyle: {
             alignItems: 'center',
             flexDirection: 'row',
@@ -5056,6 +5097,20 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
             paddingHorizontal: 16,
             paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+
+            flexBasis: '35%',
+        },
+
+        onboardingInterestedFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             flexGrow: 1,
             flexShrink: 1,
             flexBasis: '35%',
