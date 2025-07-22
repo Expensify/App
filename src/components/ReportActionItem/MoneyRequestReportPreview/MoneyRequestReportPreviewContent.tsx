@@ -625,7 +625,7 @@ function MoneyRequestReportPreviewContent({
                                 <View style={[reportPreviewStyles.contentContainerStyle, styles.gap4]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
-                                            <View style={[styles.flexColumn, styles.gap1]}>
+                                            <View style={[styles.flexColumn, styles.gap1, styles.flexShrink1]}>
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                         <Text
