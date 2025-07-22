@@ -48,12 +48,12 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
         if (currentIndex > allReportsCount * 0.75 && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             search({
-                queryJSON: {...lastSearchQuery.queryJSON, filters: null},
+                queryJSON: lastSearchQuery.queryJSON,
                 offset: newOffset,
                 prevReports: allReports,
             });
         }
-        if (currentIndex === allReportsCount - 1) {
+        if (currentIndex === allReportsCount - 1 && lastSearchQuery?.queryJSON) {
             saveLastSearchParams({
                 ...lastSearchQuery,
                 previousLengthOfResults: allReports.length,

@@ -168,6 +168,7 @@ type SearchAutocompleteQueryRange = {
 type SearchParams = {
     queryJSON: SearchQueryJSON;
     offset: number;
+    prevReports?: string[];
 };
 
 export type {

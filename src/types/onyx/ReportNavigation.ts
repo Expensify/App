@@ -16,7 +16,7 @@ type LastSearchParams = {
     /**
      *
      */
-    queryJSON?: SearchQueryJSON;
+    queryJSON: SearchQueryJSON;
     /**
      *
      */

@@ -5,7 +5,6 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
-import {makeRequestWithSideEffects} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -263,15 +262,15 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
-        debugger;
         const reports = Object.keys(result?.onyxData?.[0]?.value?.data ?? {})
             .filter((key) => key.startsWith('report_'))
             .map((key) => key.replace('report_', ''));
 
         if (result?.onyxData[0]?.value?.search?.offset) {
             if (prevReports) {
-                setActiveReportIDs([...prevReports, ...reports], true);
+                setActiveReportIDs([...reports], true);
                 saveLastSearchParams({
                     queryJSON,
                     offset,
@@ -288,11 +287,6 @@ function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; o
                 previousLengthOfResults: reports.length,
             });
         }
-
-        console.log(finallyData);
-        console.log(optimisticData);
-        console.log(result);
-        debugger;
     });
 }
 

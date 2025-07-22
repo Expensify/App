@@ -15,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, search, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -43,7 +43,6 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import {saveLastSearchParams, setActiveReportIDs} from '@userActions/ReportNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -220,16 +219,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        handleSearch({queryJSON, offset});
-        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-            saveLastSearchParams({
-                hasMoreResults: searchResults.search.hasMoreResults,
-                offset,
-                queryJSON,
-                previousLengthOfResults: data.length,
-            });
+        let results: string[] = [];
+
+        if (searchResults) {
+            results = getSections(type, status, searchResults.data, searchResults.search, groupBy).map((element) => element?.reportID ?? '');
         }
-    }, [handleSearch, isOffline, offset, queryJSON]);
+
+        handleSearch({queryJSON, offset, prevReports: results});
+    }, [groupBy, handleSearch, isOffline, offset, queryJSON, searchResults, status, type]);
 
     useEffect(() => {
         openSearch();
@@ -257,13 +254,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        const result = getSections(type, status, searchResults.data, searchResults.search, groupBy);
-
-        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-            setActiveReportIDs(result.map((element) => element?.reportID ?? ''));
-        }
-
-        return result;
+        return getSections(type, status, searchResults.data, searchResults.search, groupBy);
     }, [searchResults, isDataLoaded, type, status, groupBy]);
 
     useEffect(() => {
