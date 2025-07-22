@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -121,7 +122,7 @@ function AttachmentView({
     isUploading = false,
     reportID,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 

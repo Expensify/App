@@ -107,7 +107,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
-            return [];
+            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
