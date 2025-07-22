@@ -394,7 +394,7 @@ function MoneyReportHeader({
             }
         }
         if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
+            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
         }
 
         if (hasDuplicates) {

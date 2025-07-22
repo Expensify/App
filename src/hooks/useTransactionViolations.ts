@@ -6,7 +6,7 @@ import type {TransactionViolation, TransactionViolations} from '@src/types/onyx'
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useOnyx from './useOnyx';
 
-function useTransactionViolations(transactionID?: string): TransactionViolations {
+function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true): TransactionViolations {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
@@ -21,8 +21,11 @@ function useTransactionViolations(transactionID?: string): TransactionViolations
     });
 
     return useMemo(
-        () => transactionViolations.filter((violation: TransactionViolation) => !isViolationDismissed(transaction, violation) && shouldShowViolation(iouReport, policy, violation.name)),
-        [transaction, transactionViolations, iouReport, policy],
+        () =>
+            transactionViolations.filter(
+                (violation: TransactionViolation) => !isViolationDismissed(transaction, violation) && shouldShowViolation(iouReport, policy, violation.name, shouldShowRterForSettledReport),
+            ),
+        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport],
     );
 }
 
