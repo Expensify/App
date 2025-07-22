@@ -135,11 +135,12 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function useKeyboardAnimation() {
+function useKeyboardAnimation(isModalVisible?: boolean) {
     const progress = useSharedValue(0);
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
     const scrollY = useSharedValue(0);
+    const keyboardAbsoluteHeight = useSharedValue(0);
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -151,9 +152,25 @@ function useKeyboardAnimation() {
             progress.set(e.progress);
             height.set(e.height);
 
+            const willKeyboardClose = e.progress === 0;
             const willKeyboardOpen = e.progress === 1;
 
+            if (isModalVisible && willKeyboardClose) {
+                // Since the keyboard will close immediately when the modal opens, this is to preserve the current scroll position
+                offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
+                return;
+            }
+
+            if (isModalVisible && willKeyboardOpen) {
+                // Do nothing when the keyboard opens again after the modal closes, since the current position is preserved
+                return;
+            }
+
             if (willKeyboardOpen) {
+                if (keyboardAbsoluteHeight.get() === 0) {
+                    keyboardAbsoluteHeight.set(e.height);
+                }
+
                 return offset.set(scrollYValueAtStart);
             }
 
@@ -224,7 +241,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation(modal?.isPopover);
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
