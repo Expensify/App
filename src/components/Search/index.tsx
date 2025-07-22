@@ -8,6 +8,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +31,7 @@ import {
     getListItem,
     getSections,
     getSortedSections,
+    getSuggestedSearches,
     getWideAmountIndicators,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -147,7 +149,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
-        currentSearchKey,
         setCurrentSearchHash,
         setSelectedTransactions,
         selectedTransactions,
@@ -179,6 +180,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             );
         },
     });
+    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+    const shouldCalculateTotals = useMemo(
+        () => searchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+        [searchKey],
+    );
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -187,14 +196,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 .filter((reportAction) => !!reportAction)
                 .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
-    );
-    const shouldCalculateTotals = useMemo(
-        () =>
-            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS ||
-            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH ||
-            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-
-        [currentSearchKey],
     );
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
@@ -288,8 +289,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearchKey);
-    }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
