@@ -8,15 +8,14 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {assignCurrentUserAsApprover} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getManagerAccountEmail, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getManagerAccountEmail, isControlPolicy, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -32,20 +31,29 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [selectedApproverType, setSelectedApproverType] = useState<string>();
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
             return;
         }
-
-        if (!isPolicyAdmin(policy) || !policy || !session?.accountID) {
+        if (selectedApproverType === 'addApprover') {
+            if (policy && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policy.id,
+                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
+                        ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID),
+                    ),
+                );
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
         assignCurrentUserAsApprover(report);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, policy, session?.accountID, report, reportID]);
+    }, [selectedApproverType, policy, report, reportID]);
 
     const sections = useMemo(() => {
         const data = [
