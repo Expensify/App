@@ -28,8 +28,7 @@ function HybridAppHandler() {
                 return;
             }
 
-            const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
-            setupNewDotAfterTransitionFromOldDot(parsedHybridAppSettings, tryNewDot).then(() => {
+            setupNewDotAfterTransitionFromOldDot(parseHybridAppSettings(hybridAppSettings), tryNewDot).then(() => {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
                     return;
                 }

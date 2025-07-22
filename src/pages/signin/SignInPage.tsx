@@ -302,7 +302,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
-
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
