@@ -77,7 +77,7 @@ const tripsFeatures: FeatureListItem[] = [
 function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
@@ -258,7 +258,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                           }
 
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                              const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
+                                              const createdReportID = createNewReport(currentUserPersonalDetails, formatPhoneNumber, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                   Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                               });
@@ -385,6 +385,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         viewTourReport,
         viewTourReportID,
         transactions,
+        formatPhoneNumber,
     ]);
 
     return (

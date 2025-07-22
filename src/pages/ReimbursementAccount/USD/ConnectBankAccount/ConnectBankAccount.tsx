@@ -27,13 +27,13 @@ type ConnectBankAccountProps = {
 
 function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(formatPhoneNumber);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep

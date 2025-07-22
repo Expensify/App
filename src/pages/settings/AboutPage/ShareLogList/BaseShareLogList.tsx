@@ -22,7 +22,7 @@ import type {BaseShareLogListProps} from './types';
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const betas = useBetas();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
@@ -37,7 +37,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = getShareLogOptions(options, betas ?? []);
+        const shareLogOptions = getShareLogOptions(options, formatPhoneNumber, betas ?? []);
 
         const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
@@ -45,14 +45,14 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             ...shareLogOptions,
             headerMessage: header,
         };
-    }, [areOptionsInitialized, options, betas]);
+    }, [areOptionsInitialized, options, betas, formatPhoneNumber]);
 
     const searchOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
 
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, formatPhoneNumber, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
@@ -64,7 +64,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         );
 
         return {...filteredOptions, headerMessage};
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         const sectionsList = [];

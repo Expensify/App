@@ -19,7 +19,7 @@ const anchorAlignment = {
 function TaxExemptActions() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -30,11 +30,11 @@ function TaxExemptActions() {
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
                     requestTaxExempt();
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(formatPhoneNumber);
                 },
             },
         ],
-        [translate],
+        [translate, formatPhoneNumber],
     );
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {

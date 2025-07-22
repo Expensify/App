@@ -42,7 +42,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
@@ -126,7 +126,7 @@ function TroubleshootPage() {
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
                                 <TextLink
                                     style={styles.link}
-                                    onPress={() => navigateToConciergeChat()}
+                                    onPress={() => navigateToConciergeChat(formatPhoneNumber)}
                                 >
                                     {translate('initialSettingsPage.troubleshoot.submitBug')}
                                 </TextLink>

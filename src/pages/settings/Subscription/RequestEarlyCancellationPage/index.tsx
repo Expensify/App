@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 function RequestEarlyCancellationPage() {
     const {environmentURL} = useEnvironment();
     const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +47,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
+                        <TextLink onPress={() => navigateToConciergeChat(formatPhoneNumber)}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
                     </Text>
                 </View>
@@ -61,7 +61,7 @@ function RequestEarlyCancellationPage() {
                 </FixedFooter>
             </View>
         ),
-        [styles, translate],
+        [styles, translate, formatPhoneNumber],
     );
 
     const automaticCancellationContent = useMemo(

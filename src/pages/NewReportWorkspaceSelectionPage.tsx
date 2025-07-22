@@ -35,7 +35,7 @@ function NewReportWorkspaceSelectionPage() {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -71,7 +71,7 @@ function NewReportWorkspaceSelectionPage() {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                 return;
             }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, formatPhoneNumber, policyID);
             navigateToNewReport(optimisticReportID);
         },
         [currentUserPersonalDetails, navigateToNewReport],

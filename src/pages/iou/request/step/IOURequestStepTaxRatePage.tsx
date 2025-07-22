@@ -38,7 +38,7 @@ function IOURequestStepTaxRatePage({
     transaction,
     report,
 }: IOURequestStepTaxRatePageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`);
@@ -76,6 +76,7 @@ function IOURequestStepTaxRatePage({
         if (isEditing) {
             const newTaxCode = taxes.code;
             IOU.updateMoneyRequestTaxRate({
+                formatPhoneNumber,
                 transactionID: currentTransaction?.transactionID ?? '-1',
                 optimisticReportActionID: report?.reportID ?? '-1',
                 taxCode: newTaxCode,

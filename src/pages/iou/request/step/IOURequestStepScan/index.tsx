@@ -97,7 +97,7 @@ function IOURequestStepScan({
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
@@ -372,6 +372,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        formatPhoneNumber,
                     });
                 } else {
                     requestMoney({
@@ -394,11 +395,12 @@ function IOURequestStepScan({
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
+                        formatPhoneNumber,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, formatPhoneNumber],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -409,7 +411,7 @@ function IOURequestStepScan({
             }
 
             if (isTestTransaction) {
-                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                const managerMcTestParticipant = getManagerMcTestParticipant(formatPhoneNumber) ?? {};
                 let reportIDParam = managerMcTestParticipant.reportID;
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
@@ -440,7 +442,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -462,6 +464,7 @@ function IOURequestStepScan({
                             currency: initialTransaction?.currency ?? 'USD',
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
+                            formatPhoneNumber,
                         });
                         return;
                     }
@@ -555,6 +558,7 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             selfDMReportID,
+            formatPhoneNumber,
         ],
     );
 

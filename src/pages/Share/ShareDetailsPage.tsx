@@ -44,7 +44,7 @@ function ShareDetailsPage({
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const isTextShared = currentAttachment?.mimeType === 'txt';
@@ -53,7 +53,7 @@ function ShareDetailsPage({
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
+    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, formatPhoneNumber), [report, unknownUserDetails, formatPhoneNumber]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -109,6 +109,7 @@ function ShareDetailsPage({
                 if (isDraft) {
                     openReport(
                         report.reportID,
+                        formatPhoneNumber,
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
                         report,

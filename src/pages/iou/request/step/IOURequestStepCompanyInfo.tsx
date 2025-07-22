@@ -34,7 +34,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {backTo} = route.params;
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -72,7 +72,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        sendInvoice(currentUserPersonalDetails.accountID, transaction, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
+        sendInvoice(currentUserPersonalDetails.accountID, transaction, formatPhoneNumber, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
     };
 
     return (

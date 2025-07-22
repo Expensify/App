@@ -77,7 +77,7 @@ function IOURequestStepDistance({
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -250,7 +250,7 @@ function IOURequestStepDistance({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID);
+            openReport(transaction?.reportID, formatPhoneNumber);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -304,7 +304,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -313,6 +313,7 @@ function IOURequestStepDistance({
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
                     trackExpense({
+                        formatPhoneNumber,
                         report,
                         isDraftPolicy: false,
                         participantParams: {
@@ -339,6 +340,7 @@ function IOURequestStepDistance({
                 }
 
                 createDistanceRequest({
+                    formatPhoneNumber,
                     report,
                     participants,
                     currentUserLogin: currentUserPersonalDetails.login,
@@ -387,6 +389,7 @@ function IOURequestStepDistance({
             navigateToParticipantPage(iouType, transactionID, reportID);
         }
     }, [
+        formatPhoneNumber,
         transaction,
         backTo,
         report,
@@ -475,6 +478,7 @@ function IOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
+                    formatPhoneNumber,
                     transactionID: transaction?.transactionID,
                     transactionThreadReportID: report?.reportID,
                     waypoints,
@@ -490,6 +494,7 @@ function IOURequestStepDistance({
 
         navigateToNextStep();
     }, [
+        formatPhoneNumber,
         navigateBack,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,

@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import AttachmentModal from '@components/AttachmentModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,6 +14,7 @@ import type SCREENS from '@src/SCREENS';
 type ReportAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function ReportAvatar({route}: ReportAvatarProps) {
+    const {formatPhoneNumber} = useLocalize();
     const {reportID, policyID} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -22,7 +24,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName(report),
+                headerTitle: getReportName(report, formatPhoneNumber),
                 isWorkspaceAvatar: false,
             };
         }
@@ -34,7 +36,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [report, policy]);
+    }, [report, policy, formatPhoneNumber]);
 
     return (
         <AttachmentModal

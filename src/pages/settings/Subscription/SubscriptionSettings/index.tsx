@@ -53,7 +53,7 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 ];
 
 function SubscriptionSettings() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -244,7 +244,7 @@ function SubscriptionSettings() {
                     shouldShowRightIcon
                     onPress={() => {
                         requestTaxExempt();
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(formatPhoneNumber);
                     }}
                     icon={Expensicons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}

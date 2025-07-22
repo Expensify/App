@@ -52,7 +52,7 @@ function IOURequestStepTag({
     const session = useSession();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchContext();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const tagListIndex = Number(rawTagIndex);
     const policyTagListName = getTagListName(policyTags, tagListIndex);
@@ -137,7 +137,7 @@ function IOURequestStepTag({
         }
 
         if (isEditing) {
-            updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, currentSearchHash);
+            updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, formatPhoneNumber, currentSearchHash);
             navigateBack();
             return;
         }

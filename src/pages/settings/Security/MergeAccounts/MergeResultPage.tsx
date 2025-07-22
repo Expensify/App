@@ -27,7 +27,7 @@ import SCREENS from '@src/SCREENS';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login, backTo} = params;
@@ -119,7 +119,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.afterDomain')}
                         <TextLink
                             onPress={() => {
-                                navigateToConciergeChat();
+                                navigateToConciergeChat(formatPhoneNumber);
                             }}
                         >
                             {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.linkText')}
@@ -139,7 +139,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.beforeLink')}
                         <TextLink
                             onPress={() => {
-                                navigateToConciergeChat();
+                                navigateToConciergeChat(formatPhoneNumber);
                             }}
                         >
                             {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.linkText')}
@@ -184,7 +184,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureAccountLocked.afterEmail')}
                         <TextLink
                             onPress={() => {
-                                navigateToConciergeChat();
+                                navigateToConciergeChat(formatPhoneNumber);
                             }}
                         >
                             {translate('mergeAccountsPage.mergeFailureAccountLocked.linkText')}
@@ -231,7 +231,7 @@ function MergeResultPage() {
                 illustration: Illustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles]);
+    }, [login, translate, userEmailOrPhone, styles, formatPhoneNumber]);
 
     useEffect(() => {
         /**

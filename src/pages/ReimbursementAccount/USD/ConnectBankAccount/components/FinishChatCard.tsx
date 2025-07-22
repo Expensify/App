@@ -27,12 +27,12 @@ type FinishChatCardProps = {
 };
 
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(formatPhoneNumber, true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
     return (
         <ScrollView style={[styles.flex1]}>

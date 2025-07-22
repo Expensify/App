@@ -49,7 +49,7 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
@@ -90,7 +90,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
-                action: waitForNavigate(navigateToConciergeChat),
+                action: waitForNavigate(() => navigateToConciergeChat(formatPhoneNumber)),
             },
         ];
 

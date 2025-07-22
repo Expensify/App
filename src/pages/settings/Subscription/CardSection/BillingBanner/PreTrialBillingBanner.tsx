@@ -11,14 +11,14 @@ import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
 
 function PreTrialBillingBanner() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
 
     const navigateToChat = () => {
         const reportUsedForOnboarding = ReportUtils.getChatUsedForOnboarding();
 
         if (!reportUsedForOnboarding) {
-            Report.navigateToConciergeChat();
+            Report.navigateToConciergeChat(formatPhoneNumber);
             return;
         }
 

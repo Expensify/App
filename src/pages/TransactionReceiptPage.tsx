@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import AttachmentModal from '@components/AttachmentModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
@@ -19,6 +20,7 @@ import type SCREENS from '@src/SCREENS';
 type TransactionReceiptProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
 function TransactionReceipt({route}: TransactionReceiptProps) {
+    const {formatPhoneNumber} = useLocalize();
     const reportID = route.params.reportID;
     const transactionID = route.params.transactionID;
     const action = route.params.action;
@@ -46,7 +48,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(reportID);
+        openReport(reportID, formatPhoneNumber);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);

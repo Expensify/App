@@ -36,7 +36,7 @@ function navigateToEditChatName() {
 function NewChatConfirmPage() {
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
@@ -47,12 +47,12 @@ function NewChatConfirmPage() {
             return [];
         }
         const options: Participant[] = newGroupDraft.participants.map((participant) =>
-            getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
+            getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails, formatPhoneNumber),
         );
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
     const sections: ListItem[] = useMemo(
         () =>
             selectedOptions
@@ -96,8 +96,8 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile]);
+        navigateToAndOpenReport(logins, formatPhoneNumber, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
+    }, [newGroupDraft, avatarFile, formatPhoneNumber]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
@@ -50,7 +51,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
-
+    const {formatPhoneNumber} = useLocalize();
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
@@ -75,8 +76,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
 
     const fetchReport = useCallback(() => {
-        openReport(reportID, reportActionID);
-    }, [reportID, reportActionID]);
+        openReport(reportID, formatPhoneNumber, reportActionID);
+    }, [reportID, reportActionID, formatPhoneNumber]);
 
     useEffect(() => {
         if (!reportID || !shouldFetchReport) {

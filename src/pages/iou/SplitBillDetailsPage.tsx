@@ -35,7 +35,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
 
     const reportID = report?.reportID;
@@ -53,11 +53,11 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     let participants: Array<Participant | OptionData>;
     if (isPolicyExpenseChat(report)) {
         participants = [
-            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}),
+            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, formatPhoneNumber),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, formatPhoneNumber),
         ];
     } else {
-        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
+        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, formatPhoneNumber));
     }
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const payeePersonalDetails = personalDetails?.[actorAccountID];
@@ -80,8 +80,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email);
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email]);
+        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, formatPhoneNumber, session?.email);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, formatPhoneNumber]);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>

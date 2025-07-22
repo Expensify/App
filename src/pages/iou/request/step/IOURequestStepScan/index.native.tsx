@@ -158,7 +158,7 @@ function IOURequestStepScan({
         return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -299,6 +299,7 @@ function IOURequestStepScan({
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
                     trackExpense({
+                        formatPhoneNumber,
                         report,
                         isDraftPolicy: false,
                         participantParams: {
@@ -319,6 +320,7 @@ function IOURequestStepScan({
                     });
                 } else {
                     requestMoney({
+                        formatPhoneNumber,
                         report,
                         participantParams: {
                             payeeEmail: currentUserPersonalDetails.login,
@@ -342,7 +344,7 @@ function IOURequestStepScan({
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, formatPhoneNumber],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -353,7 +355,7 @@ function IOURequestStepScan({
             }
 
             if (isTestTransaction) {
-                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                const managerMcTestParticipant = getManagerMcTestParticipant(formatPhoneNumber) ?? {};
                 let reportIDParam = managerMcTestParticipant.reportID;
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
@@ -384,7 +386,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -394,6 +396,7 @@ function IOURequestStepScan({
                         splitReceipt.source = firstReceiptFile.source;
                         splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                         startSplitBill({
+                            formatPhoneNumber,
                             participants,
                             currentUserLogin: currentUserPersonalDetails?.login ?? '',
                             currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -500,6 +503,7 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             selfDMReportID,
+            formatPhoneNumber,
         ],
     );
 

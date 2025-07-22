@@ -33,7 +33,7 @@ function IOURequestStepSplitPayer({
     transaction,
     report,
 }: IOURequestStepSplitPayerProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -50,7 +50,9 @@ function IOURequestStepSplitPayer({
     const sections = useMemo(() => {
         const participants = transaction?.participants ?? [];
         const participantOptions =
-            [currentUserOption, ...participants]?.filter((participant) => !!participant.accountID)?.map((participant) => getParticipantsOption(participant, personalDetails)) ?? [];
+            [currentUserOption, ...participants]
+                ?.filter((participant) => !!participant.accountID)
+                ?.map((participant) => getParticipantsOption(participant, personalDetails, formatPhoneNumber)) ?? [];
         return [
             {
                 title: '',
@@ -60,7 +62,7 @@ function IOURequestStepSplitPayer({
                 })),
             },
         ];
-    }, [transaction?.participants, personalDetails, transaction?.splitPayerAccountIDs, currentUserOption]);
+    }, [transaction?.participants, personalDetails, transaction?.splitPayerAccountIDs, currentUserOption, formatPhoneNumber]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

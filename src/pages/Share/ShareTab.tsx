@@ -34,7 +34,7 @@ type ShareTabRef = {
 
 function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -55,8 +55,8 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false, false);
-    }, [areOptionsInitialized, betas, options]);
+        return getSearchOptions(options, formatPhoneNumber, betas ?? [], false, false);
+    }, [areOptionsInitialized, betas, options, formatPhoneNumber]);
 
     const {search: filterOptions} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
