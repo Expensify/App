@@ -251,10 +251,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 enabled: false,
             }}
         >
-            <AppNavigator
-                authenticated={authenticated}
-                initialUrl={initialUrl}
-            />
+            <AppNavigator authenticated={authenticated} />
         </NavigationContainer>
     );
 }

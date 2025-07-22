@@ -1,6 +1,7 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
+import {hasAuthToken} from '@libs/actions/Session';
 import type {AppProps} from '@src/App';
 import type {Route} from '@src/ROUTES';
 
@@ -22,6 +23,9 @@ type InitialURLContextProviderProps = AppProps & {
 
 function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
     const [initialURL, setInitialURL] = useState<Route | undefined>();
+    const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>();
+
+    console.log('debug', {initialURL, isAuthenticatedAtStartup});
 
     useEffect(() => {
         if (url) {
@@ -33,12 +37,18 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
         });
     }, [url]);
 
+    useEffect(() => {
+        const isAuthenticated = hasAuthToken();
+        setIsAuthenticatedAtStartup(isAuthenticated);
+    }, []);
+
     const initialUrlContext = useMemo(
         () => ({
             initialURL,
             setInitialURL,
+            isAuthenticatedAtStartup,
         }),
-        [initialURL],
+        [initialURL, isAuthenticatedAtStartup],
     );
 
     return <InitialURLContext.Provider value={initialUrlContext}>{children}</InitialURLContext.Provider>;

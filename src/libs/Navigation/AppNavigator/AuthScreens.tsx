@@ -1,11 +1,12 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
@@ -89,9 +90,6 @@ type AuthScreensProps = {
 
     /** The last Onyx update ID was applied to the client */
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
-
-    /** Initial url */
-    initialUrl: string | null;
 };
 
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
@@ -226,7 +224,7 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient, initialUrl}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -246,6 +244,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
+    const {initialURL} = useContext(InitialURLContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -326,7 +325,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setIsDelegatorFromOldDotIsReady(true);
                         });
                 } else {
-                    const reportID = getReportIDFromLink(initialUrl);
+                    const reportID = getReportIDFromLink(initialURL ?? null);
                     if (reportID) {
                         Report.openReport(reportID);
                     }
@@ -789,7 +788,7 @@ const AuthScreensMemoized = memo(AuthScreens, () => true);
 // Further analysis required and more details can be seen here:
 // https://github.com/Expensify/App/issues/50560
 // eslint-disable-next-line
-export default withOnyx<AuthScreensProps, Omit<AuthScreensProps, 'initialUrl'>>({
+export default withOnyx<AuthScreensProps, AuthScreensProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },

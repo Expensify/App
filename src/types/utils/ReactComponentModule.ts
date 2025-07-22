@@ -1,3 +1,3 @@
-type ReactComponentModule<T = unknown> = {default: React.ComponentType<T>};
+type ReactComponentModule = {default: React.ComponentType};
 
 export default ReactComponentModule;
