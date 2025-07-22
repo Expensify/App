@@ -960,7 +960,7 @@ function getCurrentSearchQueryJSON() {
     return queryJSON;
 }
 
-function getTodoSearchQuery(action: 'submit' | 'approve' | 'pay' | 'export', userAccountID: number | undefined) {
+function getTodoSearchQuery(action: ValueOf<typeof CONST.SEARCH.TODO_SEARCH_KEYS>, userAccountID: number | undefined) {
     switch (action) {
         case 'submit':
             return buildQueryStringFromFilterFormValues({
