@@ -168,7 +168,7 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, formatPhoneNumber}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
+    }, [accountID, isCurrentUser, loginParams, report, formatPhoneNumber]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>

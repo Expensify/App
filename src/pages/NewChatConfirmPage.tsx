@@ -50,7 +50,7 @@ function NewChatConfirmPage() {
             getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails, formatPhoneNumber),
         );
         return options;
-    }, [allPersonalDetails, newGroupDraft?.participants]);
+    }, [allPersonalDetails, newGroupDraft?.participants, formatPhoneNumber]);
 
     const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
     const sections: ListItem[] = useMemo(

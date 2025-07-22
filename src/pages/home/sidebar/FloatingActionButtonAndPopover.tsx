@@ -173,7 +173,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
-    }, [quickAction, translate, quickActionAvatars, quickActionReport]);
+    }, [quickAction, translate, quickActionAvatars, quickActionReport, formatPhoneNumber]);
 
     const hideQABSubtitle = useMemo(() => {
         if (!isValidReport) {
@@ -375,6 +375,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isValidReport,
         selectOption,
         shouldUseNarrowLayout,
+        formatPhoneNumber,
     ]);
 
     const isTravelEnabled = useMemo(() => {

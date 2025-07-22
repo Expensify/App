@@ -74,7 +74,7 @@ function NewReportWorkspaceSelectionPage() {
             const optimisticReportID = createNewReport(currentUserPersonalDetails, formatPhoneNumber, policyID);
             navigateToNewReport(optimisticReportID);
         },
-        [currentUserPersonalDetails, navigateToNewReport],
+        [currentUserPersonalDetails, navigateToNewReport, formatPhoneNumber],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

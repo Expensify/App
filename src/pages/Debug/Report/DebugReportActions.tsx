@@ -59,7 +59,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, policy, report, isReportArchived],
+        [translate, policy, report, isReportArchived, formatPhoneNumber],
     );
 
     const searchedReportActions = useMemo(() => {

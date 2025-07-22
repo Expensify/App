@@ -287,7 +287,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
             }
             updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories, formatPhoneNumber);
         },
-        [transaction, report, policy, policyTagList, policyCategories],
+        [transaction, report, policy, policyTagList, policyCategories, formatPhoneNumber],
     );
 
     if (isCardTransaction) {
@@ -554,7 +554,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID, formatPhoneNumber]);
 
     const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
 

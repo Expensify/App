@@ -498,6 +498,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         currentUserEmail,
         reportIDFromRoute,
         reportActionIDFromRoute,
+        formatPhoneNumber,
     ]);
 
     useEffect(() => {

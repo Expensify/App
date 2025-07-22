@@ -95,7 +95,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
     const inviteOptions = useMemo(
         () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),
-        [debouncedSearchTerm, defaultOptions, excludedUsers],
+        [debouncedSearchTerm, defaultOptions, excludedUsers, formatPhoneNumber],
     );
 
     useEffect(() => {

@@ -39,7 +39,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         (validateCode: string) => {
             validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [loginList, contactMethod],
+        [loginList, contactMethod, formatPhoneNumber],
     );
 
     const clearError = useCallback(() => {

@@ -174,6 +174,7 @@ function DebugReportPage({
             </DebugDetails>
         ),
         [
+            formatPhoneNumber,
             StyleUtils,
             metadata,
             report,

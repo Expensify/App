@@ -39,7 +39,7 @@ function ConciergePage() {
             } else {
                 Navigation.navigate(ROUTES.HOME);
             }
-        }, [session, isLoadingReportData]),
+        }, [session, isLoadingReportData, formatPhoneNumber]),
     );
 
     useEffect(() => {

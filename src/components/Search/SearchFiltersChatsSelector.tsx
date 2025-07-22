@@ -118,6 +118,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         selectedOptions,
         selectedReportIDs,
         translate,
+        formatPhoneNumber,
     ]);
 
     useEffect(() => {
