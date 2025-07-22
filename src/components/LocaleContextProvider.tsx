@@ -46,11 +46,12 @@ type LocaleContextProps = {
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
 
+    /** This is a wrapper around the localeCompare function that uses the preferred locale from the user's settings. */
+    localeCompare: (a: string, b: string) => number;
+
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale | undefined;
 
-    /** The country code by IP */
-    countryCodeByIP: number;
 };
 
 const LocaleContext = createContext<LocaleContextProps>({
@@ -63,9 +64,11 @@ const LocaleContext = createContext<LocaleContextProps>({
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
+    localeCompare: () => 0,
     preferredLocale: undefined,
-    countryCodeByIP: 1,
 });
+
+const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -87,6 +90,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
+
+    const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
@@ -124,6 +129,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => fromLocaleDigitLocaleDigitUtils(currentLocale, localeDigit), [currentLocale]);
 
+    const localeCompare = useMemo<LocaleContextProps['localeCompare']>(() => (a, b) => collator.compare(a, b), [collator]);
+
     const contextValue = useMemo<LocaleContextProps>(
         () => ({
             translate,
@@ -135,8 +142,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             toLocaleDigit,
             toLocaleOrdinal,
             fromLocaleDigit,
+            localeCompare,
             preferredLocale: currentLocale,
-            countryCodeByIP,
         }),
         [
             translate,
@@ -148,8 +155,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             toLocaleDigit,
             toLocaleOrdinal,
             fromLocaleDigit,
+            localeCompare,
             currentLocale,
-            countryCodeByIP,
         ],
     );
 
