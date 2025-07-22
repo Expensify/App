@@ -185,10 +185,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
 
-    const shouldCalculateTotals = useMemo(
-        () => searchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-        [searchKey],
-    );
+    const shouldCalculateTotals = useMemo(() => {
+        if (offset !== 0) {
+            return false;
+        }
+        return searchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS;
+    }, [offset, searchKey]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
