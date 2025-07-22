@@ -343,7 +343,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 return;
             }
 
-            const requiredPage = Math.floor((index + 1) / CONST.MAX_SELECTION_LIST_PAGE_LENGTH);
+            // Calculate which page is needed to show this index
+            const requiredPage = Math.ceil((index + 1) / CONST.MAX_SELECTION_LIST_PAGE_LENGTH);
 
             // If the required page is beyond the current page, load all pages up to it,
             // then return early and let the scroll happen after the page update
