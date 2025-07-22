@@ -235,7 +235,7 @@ jobs:
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         uses: ./.github/actions/javascript/postTestCoverageComment
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           COVERAGE_ARTIFACT_NAME: coverage-report
           COVERAGE_URL: ${{ env.COVERAGE_URL }}

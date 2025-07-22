@@ -1,8 +1,8 @@
 name: 'Post Test Coverage Comment'
-description: 'Updates PR description with test coverage information and links to coverage artifacts'
+description: 'Updates PR body with test coverage information and links to coverage artifacts'
 inputs:
-  GITHUB_TOKEN:
-    description: 'GitHub token for API access'
+  OS_BOTIFY_TOKEN:
+    description: 'OS_BOTIFY_TOKEN for GitHub API access with pull request write permissions'
     required: true
   PR_NUMBER:
     description: 'Pull request number'

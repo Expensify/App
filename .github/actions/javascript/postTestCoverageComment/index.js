@@ -11755,35 +11755,43 @@ function generateCoverageSection(coverageData, artifactUrl, workflowRunId) {
     return coverageSection;
 }
 /**
- * Post or update coverage comment on PR
+ * Update PR body with coverage information
  */
-async function postCoverageComment(prNumber, coverageSection) {
+async function updatePRBody(prNumber, coverageSection) {
     try {
-        // Find existing coverage comment
-        const comments = await GithubUtils_1.default.octokit.issues.listComments({
+        // Get current PR data
+        const prResponse = await GithubUtils_1.default.octokit.pulls.get({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            issue_number: prNumber,
+            pull_number: prNumber,
         });
-        const botComment = comments.data.find((comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes('<!-- END_COVERAGE_SECTION -->'));
-        if (botComment) {
-            // Update existing comment
-            await GithubUtils_1.default.octokit.issues.updateComment({
-                owner: CONST_1.default.GITHUB_OWNER,
-                repo: CONST_1.default.APP_REPO,
-                comment_id: botComment.id,
-                body: coverageSection,
-            });
-            console.log(`Successfully updated coverage comment #${botComment.id} on PR #${prNumber}`);
+        const currentBody = prResponse.data.body ?? '';
+        // Check if coverage section already exists
+        const coverageStartIndex = currentBody.indexOf('<!-- START_COVERAGE_SECTION -->');
+        const coverageEndIndex = currentBody.indexOf(COVERAGE_SECTION_END);
+        let newBody;
+        if (coverageStartIndex !== -1 && coverageEndIndex !== -1) {
+            // Replace existing coverage section
+            const beforeCoverage = currentBody.substring(0, coverageStartIndex);
+            const afterCoverage = currentBody.substring(coverageEndIndex + COVERAGE_SECTION_END.length);
+            newBody = `${beforeCoverage}\n<!-- START_COVERAGE_SECTION -->\n${coverageSection}\n${afterCoverage}`;
         }
         else {
-            // Create new comment
-            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, prNumber, coverageSection);
-            console.log(`Successfully posted new coverage comment on PR #${prNumber}`);
+            // Add coverage section at the end
+            const separator = currentBody.trim() ? '\n\n---\n\n' : '';
+            newBody = `${currentBody + separator}\n<!-- START_COVERAGE_SECTION -->\n${coverageSection}`;
         }
+        // Update PR body
+        await GithubUtils_1.default.octokit.pulls.update({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: prNumber,
+            body: newBody,
+        });
+        console.log(`Successfully updated PR #${prNumber} body with coverage information`);
     }
     catch (error) {
-        console.error('Error posting coverage comment:', error);
+        console.error('Error updating PR body:', error);
         throw error;
     }
 }
@@ -11803,6 +11811,8 @@ function getCoverageUrl(coverageUrl, artifactName, workflowRunId) {
  */
 async function run() {
     try {
+        const osBotifyToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
+        GithubUtils_1.default.initOctokitWithToken(osBotifyToken);
         const prNumber = parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
         const coverageArtifactName = core.getInput('COVERAGE_ARTIFACT_NAME', { required: false }) || 'coverage-report';
         const baseCoveragePath = core.getInput('BASE_COVERAGE_PATH', { required: false });
@@ -11830,12 +11840,12 @@ async function run() {
         const reportUrl = getCoverageUrl(coverageUrl, coverageArtifactName, workflowRunId);
         // Generate coverage section
         const coverageSection = generateCoverageSection(coverageData, reportUrl, workflowRunId);
-        // Post or update coverage comment
-        await postCoverageComment(prNumber, coverageSection);
+        // Update PR body with coverage information
+        await updatePRBody(prNumber, coverageSection);
         // Set outputs
         core.setOutput('coverage-summary', JSON.stringify(coverageData.overall));
         core.setOutput('coverage-changed', changedFiles.length > 0);
-        console.log('Test coverage comment posted successfully');
+        console.log('Test coverage information added to PR body successfully');
     }
     catch (error) {
         console.error('Error in postTestCoverageComment:', error);
