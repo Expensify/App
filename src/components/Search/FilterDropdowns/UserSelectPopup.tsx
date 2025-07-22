@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import memoize from '@libs/memoize';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -32,6 +33,8 @@ type UserSelectPopupProps = {
     /** Function to call when changes are applied */
     onChange: (value: string[]) => void;
 };
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
     const styles = useThemeStyles();
@@ -65,7 +68,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     // Get a list of all options/personal details and filter them by the current search term
     const listData = useMemo(() => {
-        const optionsList = getValidOptions(
+        const optionsList = memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
