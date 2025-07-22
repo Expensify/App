@@ -385,10 +385,8 @@ function PopoverMenu({
         if (menuItems.length === 0) {
             return;
         }
-        if (!deepEqual(CONST.EMPTY_ARRAY, enteredSubMenuIndexes)) {
-            setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
-        }
-        if (!deepEqual(currentMenuItems, menuItems)) {
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+        if (!deepEqual(JSON.stringify(currentMenuItems), JSON.stringify(menuItems))) {
             setCurrentMenuItems(menuItems);
         }
 
@@ -398,10 +396,8 @@ function PopoverMenu({
         if (isVisible) {
             return;
         }
-        const newFocusedIndex = getSelectedItemIndex(menuItems);
-        if (newFocusedIndex !== focusedIndex) {
-            setFocusedIndex(newFocusedIndex);
-        }
+        setFocusedIndex(getSelectedItemIndex(menuItems));
+
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
