@@ -65,7 +65,7 @@ function TransactionDuplicateReview() {
             return;
         }
         openReport(route.params.threadReportID);
-    }, [report, route.params.threadReportID]);
+    }, [report?.reportID, route.params.threadReportID]);
 
     const isLoadingReport = !report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false;
 
