@@ -136,7 +136,6 @@ import {
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
-    getIconsForParticipants,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
@@ -1294,7 +1293,7 @@ function PureReportActionItem({
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered || isContextMenuActive}
-                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
+                            accountIDs={oldestFourAccountIDs}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
                         />

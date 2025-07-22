@@ -2,8 +2,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReportAvatar from '@components/ReportAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -107,9 +107,9 @@ function TableListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {!!item.icons && (
-                        <MultipleAvatars
-                            icons={item.icons ?? []}
+                    {!!item.accountID && (
+                        <ReportAvatar
+                            accountIDs={[item.accountID]}
                             shouldShowTooltip={showTooltip}
                             secondAvatarStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),

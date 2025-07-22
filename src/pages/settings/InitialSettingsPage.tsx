@@ -343,9 +343,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                floatRightAvatars={item.floatRightAvatars}
                                 shouldStackHorizontally={item.shouldStackHorizontally}
-                                floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}

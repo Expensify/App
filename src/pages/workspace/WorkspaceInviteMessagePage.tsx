@@ -6,8 +6,8 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportAvatar from '@components/ReportAvatar';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -26,7 +26,6 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -63,7 +62,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         canBeMissing: true,
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
     const welcomeNoteSubject = useMemo(
@@ -187,9 +185,10 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     }
                 >
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <MultipleAvatars
+                        <ReportAvatar
                             size={CONST.AVATAR_SIZE.LARGE}
-                            icons={getAvatarsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {}, invitedEmailsToAccountIDsDraft ?? {})}
+                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                            convertSubscriptToMultiple
                             shouldStackHorizontally
                             shouldDisplayAvatarsInRows
                             secondAvatarStyle={[styles.secondAvatarInline]}

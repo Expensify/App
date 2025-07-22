@@ -152,7 +152,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 label={assignee?.displayName ? translate('task.assignee') : ''}
                                 title={assignee?.displayName ?? ''}
                                 description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
-                                icon={assignee?.icons}
+                                iconAccountID={task?.assigneeAccountID}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE.getRoute(backTo))}
                                 shouldShowRightIcon
                                 titleWithTooltips={assigneeTooltipDetails}
@@ -161,7 +161,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 label={shareDestination?.displayName ? translate('common.share') : ''}
                                 title={shareDestination?.displayName ?? ''}
                                 description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
-                                icon={shareDestination?.icons}
+                                iconReportID={task?.shareDestination}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}

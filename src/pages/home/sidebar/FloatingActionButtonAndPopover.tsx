@@ -302,8 +302,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             label: translate('quickAction.header'),
             labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
-            floatRightAvatars: quickActionAvatars,
-            floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
             numberOfLinesDescription: 1,
             tooltipAnchorAlignment: {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -326,6 +324,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
+                    rightIconAccountID: quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID,
                     description: quickActionSubtitle,
                     onSelected,
                     shouldCallAfterModalHide: shouldUseNarrowLayout,

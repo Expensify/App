@@ -121,6 +121,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                     hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                 ]}
                                 reportID={item.reportID}
+                                accountIDs={!item.reportID && item.accountID ? [item.accountID] : undefined}
                             />
                         )}
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
