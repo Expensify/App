@@ -62,7 +62,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         cleanSearchTerm,
     });
 
-
     const selectUser = useCallback(
         (option: Option) => {
             const optionIndex = selectedOptions.findIndex((selectedOption: Option) => {

@@ -6149,7 +6149,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
 }
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>, formatPhoneNumber: FormatPhoneNumberType) {
-    const reportName = getReportName(report) ?? report?.reportName ?? '';
+    const reportName = getReportName(report, formatPhoneNumber) ?? report?.reportName ?? '';
     const reportUrl = `${environmentURL}/r/${report?.reportID}`;
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,

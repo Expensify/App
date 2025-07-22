@@ -1,3 +1,4 @@
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import localeCompare from './LocaleCompare';
@@ -23,8 +24,8 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
     return availableHeight > menuHeight;
 }
 
-function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
+function getDisplayName(details: PersonalDetails, formatPhoneNumber: FormatPhoneNumberType) {
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID, formatPhoneNumber});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
@@ -34,12 +35,12 @@ function getDisplayName(details: PersonalDetails) {
 /**
  * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
  */
-function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}, formatPhoneNumber: FormatPhoneNumberType) {
     if (first.weight !== second.weight) {
         return first.weight - second.weight;
     }
 
-    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    const displayNameLoginOrder = localeCompare(getDisplayName(first, formatPhoneNumber), getDisplayName(second, formatPhoneNumber));
     if (displayNameLoginOrder !== 0) {
         return displayNameLoginOrder;
     }

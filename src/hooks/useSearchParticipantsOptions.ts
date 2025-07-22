@@ -19,7 +19,7 @@ const defaultListOptions = {
 function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldInitialize = true}: {selectedOptions: OptionData[]; cleanSearchTerm: string; shouldInitialize?: boolean}) {
     const {options, areOptionsInitialized} = useOptionsList({shouldInitialize});
     const isReady = !!areOptionsInitialized;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
 
     const defaultOptions = useMemo(() => {
@@ -32,21 +32,22 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            formatPhoneNumber,
             {
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [isReady, options.personalDetails, options.reports, selectedOptions]);
+    }, [isReady, options.personalDetails, options.reports, selectedOptions, formatPhoneNumber]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions, formatPhoneNumber]);
 
     const {sections, headerMessage} = useMemo<{
         sections: Section[];
@@ -58,7 +59,15 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
 
         const newSections: Section[] = [];
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            formatPhoneNumber,
+            personalDetails,
+            true,
+        );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
@@ -67,6 +76,7 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
+                formatPhoneNumber,
             });
             if (selectedCurrentUser) {
                 selectedCurrentUser.text = formattedName;
@@ -97,7 +107,7 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
             sections: newSections,
             headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
         };
-    }, [isReady, cleanSearchTerm, selectedOptions, chatOptions, translate, personalDetails]);
+    }, [isReady, cleanSearchTerm, selectedOptions, chatOptions, translate, personalDetails, formatPhoneNumber]);
 
     return {sections, headerMessage, areOptionsInitialized};
 }

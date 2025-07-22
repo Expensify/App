@@ -40,7 +40,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         shouldInitialize: didScreenTransitionEnd,
     });
 
-
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
     }, []);
