@@ -46,14 +46,7 @@ type LocaleContextProps = {
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
 
-    /**
-     * This is a wrapper around the localeCompare function that uses the preferred locale from the user's settings.
-     *
-     * It re-uses Intl.Collator with static options for performance reasons. See https://github.com/facebook/hermes/issues/867 for more details.
-     * @param a
-     * @param b
-     * @returns -1 if a < b, 1 if a > b, 0 if a === b
-     */
+    /** This is a wrapper around the localeCompare function that uses the preferred locale from the user's settings. */
     localeCompare: (a: string, b: string) => number;
 
     /** The user's preferred locale e.g. 'en', 'es' */
