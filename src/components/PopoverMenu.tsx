@@ -385,8 +385,12 @@ function PopoverMenu({
         if (menuItems.length === 0) {
             return;
         }
-        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
-        setCurrentMenuItems(menuItems);
+        if (!deepEqual(CONST.EMPTY_ARRAY, enteredSubMenuIndexes)) {
+            setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+        }
+        if (!deepEqual(currentMenuItems, menuItems)) {
+            setCurrentMenuItems(menuItems);
+        }
 
         // Update the focused item to match the selected item, but only when the popover is not visible.
         // This ensures that if the popover is visible, highlight from the keyboard navigation is not overridden
@@ -394,8 +398,10 @@ function PopoverMenu({
         if (isVisible) {
             return;
         }
-        setFocusedIndex(getSelectedItemIndex(menuItems));
-
+        const newFocusedIndex = getSelectedItemIndex(menuItems);
+        if (newFocusedIndex !== focusedIndex) {
+            setFocusedIndex(newFocusedIndex);
+        }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
