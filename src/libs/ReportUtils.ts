@@ -9968,7 +9968,7 @@ function getOutstandingReportsForUser(
     }
     return Object.values(reports)
         .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
-        .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
+        .sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
 }
 
 /**
@@ -9984,7 +9984,7 @@ function sortOutstandingReportsBySelected(report1: OnyxEntry<Report>, report2: O
     if (report2?.reportID === selectedReportID) {
         return 1;
     }
-    return report1?.reportName?.localeCompare(report2?.reportName?.toLowerCase() ?? '') ?? 0;
+    return localeCompare(report1?.reportName?.toLowerCase() ?? '', report2?.reportName?.toLowerCase() ?? '');
 }
 
 /**
