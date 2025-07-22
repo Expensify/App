@@ -22,12 +22,6 @@ type UseContactsImporterResult = {
  * Custom hook that handles importing device contacts,
  * managing permissions, and transforming contact data
  * into a format suitable for use in the app.
- *
- * @returns {UseContactsImporterResult} An object containing:
- * - the current list of contacts,
- * - the contact permission state,
- * - a method to import and save contacts,
- * - and the state setter for permission status (useful for manual control).
  */
 function useContactsImporter(): UseContactsImporterResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);

@@ -6,7 +6,6 @@ import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
@@ -27,17 +26,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import contactImport from '@libs/ContactImport';
-import type {ContactImportResult} from '@libs/ContactImport/types';
-import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import useContactsImporter from '@libs/ContactPermission/useContactsImporter';
-import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -59,7 +54,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
