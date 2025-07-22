@@ -1032,7 +1032,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
-                    const parentReportName = getReportName(parentReport,formatPhoneNumber,policy, undefined, undefined);
+                    const parentReportName = getReportName(parentReport, formatPhoneNumber, policy, undefined, undefined);
                     const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
                     const parentReportIcon = icons?.at(0);
 

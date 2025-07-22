@@ -6,6 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -20,7 +21,6 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -1368,7 +1368,11 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 }
 
 // We pass getReportName as a param to avoid cyclic dependency.
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName, formatPhoneNumber: FormatPhoneNumberType): readonly MemberChangeMessageElement[] {
+function getMemberChangeMessageElements(
+    reportAction: OnyxEntry<ReportAction>,
+    getReportNameCallback: typeof getReportName,
+    formatPhoneNumber: FormatPhoneNumberType,
+): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
@@ -1847,7 +1851,10 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
  * @param reportAction
  * @returns the actionable mention whisper message.
  */
-function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>, formatPhoneNumber: FormatPhoneNumberType): string {
+function getActionableMentionWhisperMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>,
+    formatPhoneNumber: FormatPhoneNumberType,
+): string {
     if (!reportAction) {
         return '';
     }
