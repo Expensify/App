@@ -3,6 +3,7 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openReport} from '@libs/actions/Report';
@@ -38,6 +39,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+        const {formatPhoneNumber} = useLocalize();
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -76,7 +78,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            openReport(props.route.params.reportID);
+            openReport(props.route.params.reportID, formatPhoneNumber);
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 

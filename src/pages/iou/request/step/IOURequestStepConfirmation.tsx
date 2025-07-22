@@ -141,7 +141,7 @@ function IOURequestStepConfirmation({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -208,9 +208,9 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber);
             }) ?? [],
-        [transaction?.participants, personalDetails, iouType],
+        [transaction?.participants, personalDetails, iouType, formatPhoneNumber],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
@@ -492,6 +492,7 @@ function IOURequestStepConfirmation({
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,
+                    formatPhoneNumber,
                 });
             });
         },
@@ -511,6 +512,7 @@ function IOURequestStepConfirmation({
             backToReport,
             viewTourReport,
             viewTourReportID,
+            formatPhoneNumber,
         ],
     );
 
@@ -546,9 +548,10 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     attendees: transaction.comment?.attendees,
                 },
+                formatPhoneNumber,
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, formatPhoneNumber],
     );
 
     const trackExpense = useCallback(
@@ -599,6 +602,7 @@ function IOURequestStepConfirmation({
                         accountant: item.accountant,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    formatPhoneNumber,
                 });
             });
         },
@@ -616,6 +620,7 @@ function IOURequestStepConfirmation({
             action,
             customUnitRateID,
             isDraftPolicy,
+            formatPhoneNumber,
         ],
     );
 
@@ -653,6 +658,7 @@ function IOURequestStepConfirmation({
                     attendees: transaction.comment?.attendees,
                 },
                 backToReport,
+                formatPhoneNumber,
             });
         },
         [
@@ -668,6 +674,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
+            formatPhoneNumber,
         ],
     );
 
@@ -719,6 +726,7 @@ function IOURequestStepConfirmation({
                         currency: transaction.currency,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        formatPhoneNumber,
                     });
                 }
                 return;
@@ -746,6 +754,7 @@ function IOURequestStepConfirmation({
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        formatPhoneNumber,
                     });
                 }
                 return;
@@ -771,13 +780,14 @@ function IOURequestStepConfirmation({
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        formatPhoneNumber,
                     });
                 }
                 return;
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                sendInvoice(currentUserPersonalDetails.accountID, transaction, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
+                sendInvoice(currentUserPersonalDetails.accountID, transaction, formatPhoneNumber, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
@@ -892,6 +902,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             submitPerDiemExpense,
             userLocation,
+            formatPhoneNumber,
         ],
     );
 
@@ -910,16 +921,16 @@ function IOURequestStepConfirmation({
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant, formatPhoneNumber);
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant, formatPhoneNumber);
             }
         },
-        [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
+        [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report, formatPhoneNumber],
     );
 
     const setBillable = useCallback(

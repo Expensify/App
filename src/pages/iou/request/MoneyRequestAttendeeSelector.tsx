@@ -57,7 +57,7 @@ type MoneyRequestAttendeesSelectorProps = {
 };
 
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
@@ -84,7 +84,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             getEmptyOptions();
         }
-        const optionList = getAttendeeOptions(options.reports, options.personalDetails, betas, attendees, recentAttendees ?? [], iouType === CONST.IOU.TYPE.SUBMIT, true, false, action);
+        const optionList = getAttendeeOptions(
+            options.reports,
+            options.personalDetails,
+            betas,
+            attendees,
+            recentAttendees ?? [],
+            formatPhoneNumber,
+            iouType === CONST.IOU.TYPE.SUBMIT,
+            true,
+            false,
+            action,
+        );
         if (isPaidGroupPolicy) {
             const orderedOptions = orderOptions(optionList, searchTerm, {
                 preferChatRoomsOverThreads: true,
@@ -95,7 +106,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             optionList.personalDetails = orderedOptions.personalDetails;
         }
         return optionList;
-    }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        betas,
+        attendees,
+        recentAttendees,
+        iouType,
+        action,
+        isPaidGroupPolicy,
+        searchTerm,
+        formatPhoneNumber,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -107,7 +131,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
@@ -120,7 +144,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             })),
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees]);
+    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees, formatPhoneNumber]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -146,6 +170,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             })),
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            formatPhoneNumber,
             personalDetails,
             true,
         );
@@ -171,7 +196,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, formatPhoneNumber) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });
@@ -195,6 +220,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         personalDetails,
         translate,
         cleanSearchTerm,
+        formatPhoneNumber,
     ]);
 
     const addAttendeeToSelection = useCallback(

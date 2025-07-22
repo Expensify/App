@@ -1074,7 +1074,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action, formatPhoneNumber)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -1133,7 +1133,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultTitleEnforcedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeLogAddEmployeeMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogAddEmployeeMessage(action, formatPhoneNumber)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogUpdateEmployee(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
@@ -1408,7 +1408,7 @@ function PureReportActionItem({
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
-    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, formatPhoneNumber) : [];
 
     const renderSearchHeader = (children: React.ReactNode) => {
         if (!isOnSearch) {
@@ -1427,7 +1427,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {getChatListItemReportName(action, report as SearchReport, formatPhoneNumber)}
                         </TextLink>
                     </View>
                     {children}
@@ -1523,7 +1523,7 @@ function PureReportActionItem({
                                                     &nbsp;
                                                 </Text>
                                                 <DisplayNames
-                                                    fullTitle={getWhisperDisplayNames(whisperedTo) ?? ''}
+                                                    fullTitle={getWhisperDisplayNames(formatPhoneNumber, whisperedTo) ?? ''}
                                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                                     tooltipEnabled
                                                     numberOfLines={1}

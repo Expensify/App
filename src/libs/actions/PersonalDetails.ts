@@ -1,7 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
-import {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,

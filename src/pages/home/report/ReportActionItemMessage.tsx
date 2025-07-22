@@ -48,7 +48,7 @@ type ReportActionItemMessageProps = {
 
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
 
@@ -56,7 +56,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
-        const fragment = getMemberChangeMessageFragment(action, getReportName);
+        const fragment = getMemberChangeMessageFragment(action, getReportName, formatPhoneNumber);
 
         return (
             <View style={[styles.chatItemMessage, style]}>

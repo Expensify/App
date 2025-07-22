@@ -47,7 +47,7 @@ function DebugReportPage({
         params: {reportID},
     },
 }: DebugReportPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -132,7 +132,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, formatPhoneNumber, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >

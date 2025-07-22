@@ -48,7 +48,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
@@ -91,12 +91,15 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, formatPhoneNumber, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, formatPhoneNumber]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, formatPhoneNumber],
+    );
 
     useEffect(() => {
         if (!areOptionsInitialized) {

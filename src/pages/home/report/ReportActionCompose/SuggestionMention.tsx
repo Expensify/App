@@ -5,6 +5,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -58,8 +59,8 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
-function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
+function getDisplayName(details: PersonalDetails, formatPhoneNumber: FormatPhoneNumberType) {
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID, formatPhoneNumber});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
@@ -69,12 +70,12 @@ function getDisplayName(details: PersonalDetails) {
 /**
  * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
  */
-function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}, formatPhoneNumber: FormatPhoneNumberType) {
     if (first.weight !== second.weight) {
         return first.weight - second.weight;
     }
 
-    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    const displayNameLoginOrder = localeCompare(getDisplayName(first, formatPhoneNumber), getDisplayName(second, formatPhoneNumber));
     if (displayNameLoginOrder !== 0) {
         return displayNameLoginOrder;
     }
@@ -328,7 +329,7 @@ function SuggestionMention(
             }) as Array<PersonalDetails & {weight: number}>;
 
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
-            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
+            const sortedPersonalDetails = filteredPersonalDetails.sort((a, b) => compareUserInList(a, b, formatPhoneNumber));
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({

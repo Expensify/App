@@ -152,7 +152,7 @@ function ReportActionsList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -483,14 +483,14 @@ function ReportActionsList({
 
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            openReport(report.reportID);
+            openReport(report.reportID, formatPhoneNumber);
             reportScrollManager.scrollToBottom();
             return;
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, formatPhoneNumber]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on

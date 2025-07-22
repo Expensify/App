@@ -42,7 +42,7 @@ type ReportActionItemThreadProps = {
 function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, reportID, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
@@ -55,7 +55,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, report
                 onPress={() => {
                     Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
                     Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
-                    navigateToAndOpenChildReport(reportAction.childReportID, reportAction, reportID);
+                    navigateToAndOpenChildReport(reportAction.childReportID, formatPhoneNumber, reportAction, reportID);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

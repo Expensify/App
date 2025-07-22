@@ -127,7 +127,7 @@ function AttachmentPickerWithMenuItems({
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -187,7 +187,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: [
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.SEND),
-                    text: translate('iou.paySomeone', {name: getPayeeName(report)}),
+                    text: translate('iou.paySomeone', {name: getPayeeName(report, formatPhoneNumber)}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => {
                         if (isDelegateAccessRestricted) {
@@ -242,10 +242,10 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
+                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, formatPhoneNumber, report?.policyID, true), true),
             },
         ];
-    }, [currentUserPersonalDetails, report, selectOption, translate]);
+    }, [currentUserPersonalDetails, report, selectOption, translate, formatPhoneNumber]);
 
     /**
      * Determines if we can show the task option

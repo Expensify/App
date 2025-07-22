@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,7 +82,7 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-
+    const {formatPhoneNumber} = useLocalize();
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
         const unsubscribeReportActions: Array<() => void> = [];
@@ -132,7 +133,7 @@ function ReportActionItemParentAction({
                         pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
                         errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
                         errorRowStyles={[styles.ml10, styles.mr2]}
-                        onClose={() => navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
+                        onClose={() => navigateToConciergeChatAndDeleteReport(ancestor.report.reportID, formatPhoneNumber)}
                     >
                         {shouldDisplayThreadDivider && (
                             <ThreadDivider

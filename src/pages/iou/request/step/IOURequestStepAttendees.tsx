@@ -44,7 +44,7 @@ function IOURequestStepAttendees({
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
 
     const saveAttendees = useCallback(() => {
@@ -54,12 +54,12 @@ function IOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
+                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined, formatPhoneNumber);
             }
         }
 
         Navigation.goBack(backTo);
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
+    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations, formatPhoneNumber]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

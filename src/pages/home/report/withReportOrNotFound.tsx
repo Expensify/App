@@ -4,6 +4,7 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -63,6 +64,7 @@ export default function (
 ): <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) => React.ComponentType<TProps & React.RefAttributes<TRef>> {
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+            const {formatPhoneNumber} = useLocalize();
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -84,7 +86,7 @@ export default function (
                     return;
                 }
 
-                openReport(props.route.params.reportID);
+                openReport(props.route.params.reportID, formatPhoneNumber);
                 // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 

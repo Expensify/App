@@ -36,6 +36,7 @@ import type {Report} from '@src/types/onyx';
 
 function useOptions() {
     const betas = useBetas();
+    const {formatPhoneNumber} = useLocalize();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
@@ -46,6 +47,7 @@ function useOptions() {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
+            formatPhoneNumber,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -66,10 +68,10 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading, formatPhoneNumber]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -83,7 +85,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, formatPhoneNumber]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -91,7 +93,7 @@ function useOptions() {
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const session = useSession();
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -176,7 +178,7 @@ function TaskAssigneeSelectorModal() {
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
                     );
                     // Pass through the selected assignee
-                    editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', formatPhoneNumber, option?.accountID, assigneeChatReport);
                 }
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.dismissModalWithReport({reportID: report?.reportID});
@@ -195,7 +197,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report, backTo],
+        [session?.accountID, task?.shareDestination, report, backTo, formatPhoneNumber],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);

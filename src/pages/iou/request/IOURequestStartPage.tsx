@@ -51,7 +51,7 @@ function IOURequestStartPage({
     defaultSelectedTab = CONST.TAB_REQUEST.SCAN,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -70,8 +70,8 @@ function IOURequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report)}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report)}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report, formatPhoneNumber)}),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report, formatPhoneNumber)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),

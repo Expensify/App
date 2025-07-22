@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SystemChatReportFooterMessage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -51,12 +51,12 @@ function SystemChatReportFooterMessage() {
                 return (
                     <>
                         {translate('systemChatFooterMessage.default.phrase1')}
-                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
+                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat(formatPhoneNumber)}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
                         {translate('systemChatFooterMessage.default.phrase2')}
                     </>
                 );
         }
-    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate]);
+    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate, formatPhoneNumber]);
 
     return (
         <Banner

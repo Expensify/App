@@ -26,7 +26,7 @@ type ReportActionItemCreatedProps = {
 function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -39,7 +39,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         return null;
     }
 
-    let icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    let icons = getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
 
     if (isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report)) {
@@ -51,7 +51,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report)}
+            onClose={() => clearCreateChatError(report, formatPhoneNumber)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />

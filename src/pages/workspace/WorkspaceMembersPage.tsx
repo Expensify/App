@@ -169,10 +169,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
         });
-    }, [selectedEmployees, translate, policy, currentUserAccountID]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID, formatPhoneNumber]);
     /**
      * Get filtered personalDetails list with current employeeList
      */

@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -75,6 +76,7 @@ function ReportActionsView({
     hasNewerActions,
     hasOlderActions,
 }: ReportActionsViewProps) {
+    const {formatPhoneNumber} = useLocalize();
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
@@ -164,6 +166,7 @@ function ReportActionsView({
                 transactionID: rand64(),
                 iouReportID: report.reportID,
                 created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
+                formatPhoneNumber,
             }) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
@@ -177,7 +180,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
+    }, [allReportActions, report, transactionThreadReport, reportPreviewAction, formatPhoneNumber]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view

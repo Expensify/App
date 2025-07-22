@@ -55,7 +55,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     });
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
@@ -84,10 +84,13 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return getEmptyOptions();
         }
 
-        return getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
+        return getMemberInviteOptions(options.personalDetails, formatPhoneNumber, betas ?? [], excludedUsers, false, options.reports, true);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports, formatPhoneNumber]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, formatPhoneNumber],
+    );
 
     useEffect(() => {
         // Update selectedOptions with the latest personalDetails information
@@ -179,7 +182,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
 
     const reportID = report.reportID;
-    const reportName = useMemo(() => getGroupChatName(undefined, true, report), [report]);
+    const reportName = useMemo(() => getGroupChatName(formatPhoneNumber, undefined, true, report), [report]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
@@ -198,9 +201,9 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             }
             invitedEmailsToAccountIDs[login] = accountID;
         });
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
+        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate]);
+    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();

@@ -134,7 +134,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
@@ -484,10 +484,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
+            openReport(reportIDFromRoute, formatPhoneNumber, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
             return;
         }
-        openReport(reportIDFromRoute, reportActionIDFromRoute);
+        openReport(reportIDFromRoute, formatPhoneNumber, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
         report?.type,
@@ -582,7 +582,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport(reportID);
+        openReport(reportID, formatPhoneNumber);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
@@ -645,7 +645,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat();
+                navigateToConciergeChat(formatPhoneNumber);
             });
             return;
         }

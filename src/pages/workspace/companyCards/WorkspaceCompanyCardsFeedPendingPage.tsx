@@ -12,7 +12,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 function WorkspaceCompanyCardsFeedPendingPage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
 
     return (
@@ -28,7 +28,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat()}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
+                    <TextLink onPress={() => navigateToConciergeChat(formatPhoneNumber)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
                 </Text>
             </EmptyStateComponent>
         </ScrollView>

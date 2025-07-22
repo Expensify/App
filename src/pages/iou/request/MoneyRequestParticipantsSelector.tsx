@@ -99,7 +99,7 @@ function MoneyRequestParticipantsSelector(
     }: MoneyRequestParticipantsSelectorProps,
     ref: Ref<InputFocusRef>,
 ) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
@@ -135,10 +135,10 @@ function MoneyRequestParticipantsSelector(
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
+            const usersFromContact = getContacts(contactList, formatPhoneNumber);
             setContacts(usersFromContact);
         });
-    }, []);
+    }, [formatPhoneNumber]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -173,6 +173,7 @@ function MoneyRequestParticipantsSelector(
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            formatPhoneNumber,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -217,6 +218,7 @@ function MoneyRequestParticipantsSelector(
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        formatPhoneNumber,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -232,7 +234,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -241,7 +243,7 @@ function MoneyRequestParticipantsSelector(
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, formatPhoneNumber]);
 
     const inputHelperText = useMemo(
         () =>
@@ -278,6 +280,7 @@ function MoneyRequestParticipantsSelector(
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            formatPhoneNumber,
             personalDetails,
             true,
         );
@@ -321,7 +324,7 @@ function MoneyRequestParticipantsSelector(
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, formatPhoneNumber) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });
@@ -348,6 +351,7 @@ function MoneyRequestParticipantsSelector(
         showImportContacts,
         inputHelperText,
         isPerDiemRequest,
+        formatPhoneNumber,
     ]);
 
     /**

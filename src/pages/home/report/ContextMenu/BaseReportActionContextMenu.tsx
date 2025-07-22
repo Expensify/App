@@ -130,7 +130,7 @@ function BaseReportActionContextMenu({
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const menuItemRefs = useRef<MenuItemRefs>({});
@@ -375,7 +375,12 @@ function BaseReportActionContextMenu({
                                 key={contextAction.textTranslateKey}
                                 onPress={(event) =>
                                     interceptAnonymousUser(
-                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
+                                        () =>
+                                            contextAction.onPress?.(
+                                                closePopup,
+                                                {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})},
+                                                formatPhoneNumber,
+                                            ),
                                         contextAction.isAnonymousAction,
                                     )
                                 }
