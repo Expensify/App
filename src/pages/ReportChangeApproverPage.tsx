@@ -61,15 +61,7 @@ function ReportChangeApproverPage({report, policies, isLoadingReportData}: Repor
     }, [selectedApproverType, reportPolicy, reportID, session?.accountID, report.reportID]);
 
     const sections = useMemo(() => {
-        const data = [
-            {
-                text: translate('iou.changeApprover.actions.addApprover'),
-                keyForList: 'addApprover',
-                value: 'addApprover',
-                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-                isSelected: selectedApproverType === 'addApprover',
-            },
-        ];
+        const data = [];
 
         if (!isUserPolicyAdmin(reportPolicy, getManagerAccountEmail(reportPolicy, report))) {
             data.push({
