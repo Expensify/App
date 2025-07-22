@@ -1,6 +1,7 @@
 import type {ViewStyle} from 'react-native';
 import {Easing} from 'react-native-reanimated';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
+import variables from '@styles/variables';
 import type {AnimationInType, AnimationOutType} from './types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -27,7 +28,7 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
             return {
                 from: {opacity: 0},
                 to: {
-                    opacity: 0.72,
+                    opacity: variables.overlayOpacity,
                     easing,
                 },
             };
@@ -72,7 +73,7 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
             };
         case 'fadeOut':
             return {
-                from: {opacity: 0.72},
+                from: {opacity: variables.overlayOpacity},
                 to: {
                     opacity: 0,
                     easing,
@@ -83,4 +84,4 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
     }
 }
 
-export {getModalInAnimation, getModalInAnimationStyle, getModalOutAnimation, easing};
+export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing};

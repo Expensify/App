@@ -22,6 +22,9 @@ type SharedTooltipProps = {
     /** Number of pixels to set max-width on tooltip  */
     maxWidth?: number;
 
+    /** Minimum width for a tooltip */
+    minWidth?: number;
+
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent?: () => ReactNode;
 

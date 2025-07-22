@@ -71,7 +71,6 @@ function useSidePanel() {
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
-    const modalTranslateX = useRef(new Animated.Value(shouldApplySidePanelOffset ? -variables.sideBarWidth : 0));
     useEffect(() => {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
@@ -82,11 +81,6 @@ function useSidePanel() {
             }),
             Animated.timing(sidePanelTranslateX.current, {
                 toValue: shouldHideSidePanel ? sidePanelWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: true,
-            }),
-            Animated.timing(modalTranslateX.current, {
-                toValue: shouldApplySidePanelOffset ? -variables.sideBarWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
@@ -121,7 +115,6 @@ function useSidePanel() {
         shouldHideToolTip,
         sidePanelOffset,
         sidePanelTranslateX,
-        modalTranslateX,
         openSidePanel,
         closeSidePanel,
     };

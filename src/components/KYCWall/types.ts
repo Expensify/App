@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
@@ -23,7 +23,7 @@ type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
 type KYCWallProps = {
     /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute: Route;
+    addBankAccountRoute?: Route;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
@@ -63,9 +63,6 @@ type KYCWallProps = {
 
     /** Children to build the KYC */
     children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View | null>) => void;
-
-    /** The policy used for payment */
-    policy?: Policy;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};

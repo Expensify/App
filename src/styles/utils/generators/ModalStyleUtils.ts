@@ -57,7 +57,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         shouldUseModalPaddingStyle = true,
         shouldUseReanimatedModal = false,
     ): GetModalStyles => {
-        const {windowWidth, isSmallScreenWidth, shouldUseNarrowLayout} = windowDimensions;
+        const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
