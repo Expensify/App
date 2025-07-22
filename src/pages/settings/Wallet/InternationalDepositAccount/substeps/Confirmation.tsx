@@ -13,7 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -157,7 +157,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         [translate],
     );
 
-    const errorMessage = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const errorMessage = getLatestErrorMessage(reimbursementAccount);
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
