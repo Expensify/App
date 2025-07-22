@@ -1,5 +1,5 @@
 ---
-title: book-a-flight.md
+title: Book a Flight
 description: Learn how to book flights in Expensify using the built-in travel portal, with platform-specific steps for Classic and New Expensify.
 keywords: [book a flight, travel booking, flight reservations, expensify travel, classic, new expensify]
 ---
@@ -15,7 +15,7 @@ Book flights through Expensify's integrated travel portal—available in both Cl
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
@@ -23,7 +23,7 @@ Book flights through Expensify's integrated travel portal—available in both Cl
 
 1. Click the **Flight** tab.
 2. Enter your trip details:
-   - Trip type: one way, round trip, or multi city
+   - Trip type: one way, round trip, or multi-city
    - Origin and destination
    - Travel dates
 3. Click **Search flights** to see available options.
@@ -46,7 +46,7 @@ Book flights through Expensify's integrated travel portal—available in both Cl
 
 - Your company’s travel policy may require approval before confirmation.
 - You’ll receive a confirmation email after your flight is booked.
-- The booking syncs with your Expensify account for easy expense tracking.
+- The booking receipt will sync with your Expensify account automatically for easy expense tracking.
 - If the payment card is connected to Expensify, the receipt will automatically merge with the credit card expense.
 
 ---
