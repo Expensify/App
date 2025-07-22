@@ -268,7 +268,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalStyle = {
                     ...modalStyle,
                     ...{
-                        marginLeft: isSmallScreenWidth || (shouldUseReanimatedModal && shouldUseNarrowLayout) ? 0 : windowWidth - variables.sideBarWidth,
+                        marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
                         width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
