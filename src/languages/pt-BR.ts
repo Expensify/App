@@ -1891,7 +1891,7 @@ const translations = {
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
-        connectBankAccount: 'Conectar conta bancária',
+        addBankAccount: 'Adicionar conta bancária',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         makeOrTrackPaymentsTitle: 'Fazer ou rastrear pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',

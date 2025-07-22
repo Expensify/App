@@ -1899,7 +1899,7 @@ const translations = {
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, es sei denn, es existiert ein spezifischerer Workflow.',
         approver: 'Genehmiger',
-        connectBankAccount: 'Bankkonto verbinden',
+        addBankAccount: 'Bankkonto hinzufügen',
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
         makeOrTrackPaymentsDescription: 'Fügen Sie einen autorisierten Zahler für Zahlungen in Expensify hinzu oder verfolgen Sie Zahlungen, die anderswo getätigt wurden.',

@@ -1892,7 +1892,7 @@ const translations = {
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
         approver: 'Approvante',
-        connectBankAccount: 'Collega conto bancario',
+        addBankAccount: 'Aggiungi conto bancario',
         addApprovalsDescription: "Richiedi un'approvazione aggiuntiva prima di autorizzare un pagamento.",
         makeOrTrackPaymentsTitle: 'Effettua o traccia pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o traccia i pagamenti effettuati altrove.',

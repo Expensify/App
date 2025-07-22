@@ -261,7 +261,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             )}
                             <MenuItem
-                                title={shouldShowBankAccount ? addressName : translate('workflowsPage.connectBankAccount')}
+                                title={shouldShowBankAccount ? addressName : translate('workflowsPage.addBankAccount')}
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {

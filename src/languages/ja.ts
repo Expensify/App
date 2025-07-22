@@ -1887,7 +1887,7 @@ const translations = {
         addApprovalButton: '承認ワークフローを追加',
         addApprovalTip: 'このデフォルトのワークフローは、より具体的なワークフローが存在しない限り、すべてのメンバーに適用されます。',
         approver: '承認者',
-        connectBankAccount: '銀行口座を接続',
+        addBankAccount: '銀行口座を追加',
         addApprovalsDescription: '支払いを承認する前に追加の承認が必要です。',
         makeOrTrackPaymentsTitle: '支払いを行うまたは追跡する',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いのために認可された支払者を追加するか、他の場所で行われた支払いを追跡します。',

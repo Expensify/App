@@ -1871,7 +1871,7 @@ const translations = {
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
-        connectBankAccount: '连接银行账户',
+        addBankAccount: '添加银行账户',
         addApprovalsDescription: '在授权付款之前需要额外批准。',
         makeOrTrackPaymentsTitle: '进行或跟踪付款',
         makeOrTrackPaymentsDescription: '添加授权付款人以便在Expensify中进行付款或跟踪在其他地方进行的付款。',

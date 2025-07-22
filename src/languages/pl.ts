@@ -1889,7 +1889,7 @@ const translations = {
         addApprovalButton: 'Dodaj przepływ pracy zatwierdzania',
         addApprovalTip: 'Ten domyślny przepływ pracy dotyczy wszystkich członków, chyba że istnieje bardziej szczegółowy przepływ pracy.',
         approver: 'Aprobujący',
-        connectBankAccount: 'Połącz konto bankowe',
+        addBankAccount: 'Dodaj konto bankowe',
         addApprovalsDescription: 'Wymagaj dodatkowej zgody przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Dokonuj lub śledź płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika do płatności dokonywanych w Expensify lub śledź płatności dokonane gdzie indziej.',

@@ -1892,7 +1892,7 @@ const translations = {
         addApprovalButton: 'Goedkeuringsworkflow toevoegen',
         addApprovalTip: 'Deze standaard workflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Goedkeurder',
-        connectBankAccount: 'Bankrekening koppelen',
+        addBankAccount: 'Koppel een bankrekening',
         addApprovalsDescription: 'Vereis extra goedkeuring voordat een betaling wordt geautoriseerd.',
         makeOrTrackPaymentsTitle: 'Betalingen maken of volgen',
         makeOrTrackPaymentsDescription: 'Voeg een geautoriseerde betaler toe voor betalingen gedaan in Expensify of volg betalingen die elders zijn gedaan.',
