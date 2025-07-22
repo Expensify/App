@@ -310,11 +310,15 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
             InteractionManager.runAfterInteractions(() => {
-                proceedWithFilesAction(sortedFiles);
+                if (sortedFiles.length !== 0) {
+                    proceedWithFilesAction(sortedFiles);
+                }
                 resetValidationState();
             });
         } else {
-            proceedWithFilesAction(sortedFiles);
+            if (sortedFiles.length !== 0) {
+                proceedWithFilesAction(sortedFiles);
+            }
             hideModalAndReset();
         }
     };
