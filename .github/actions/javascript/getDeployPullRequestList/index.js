@@ -11991,6 +11991,10 @@ async function getPullRequestsDeployedBetween(fromTag, toTag) {
     core.startGroup('[api] Parsed PRs:');
     core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
+    // Print diff between git log and API results for debugging
+    const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
+    const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
+    core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
     return apiPullRequestNumbers;
 }
 exports["default"] = {
