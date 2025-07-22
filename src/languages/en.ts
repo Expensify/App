@@ -2175,6 +2175,11 @@ const translations = {
             title: 'Do you use any accounting software?',
             none: 'None',
         },
+        interestedFeatures: {
+            title: 'What features are you interested in?',
+            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
+            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
+        },
         error: {
             requiredFirstName: 'Please input your first name to continue',
         },
