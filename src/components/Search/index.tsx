@@ -512,31 +512,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [shouldShowLoadingState, isFocused],
     );
 
-    // If a column was previously shown, keep it shown
-    const previousColumnsRef = useRef<SearchColumnType[] | null>(null);
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
         const columns = getColumnsToShow(searchResults?.data);
 
-        (Object.keys(columns) as SearchColumnType[]).forEach((col) => {
-            if (!previousColumnsRef.current?.includes(col)) {
-                return;
-            }
-            columns[col] = true;
-        });
-
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [searchResults?.data]);
-
-    // Only update if columns actually changed
-    useEffect(() => {
-        if (previousColumnsRef.current && arraysEqual(currentColumns, previousColumnsRef.current)) {
-            return;
-        }
-        previousColumnsRef.current = [...currentColumns];
-    }, [currentColumns]);
 
     // Custom animation for fade effect
     const opacity = useSharedValue(1);
@@ -556,9 +539,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         opacity.set(
-            withTiming(0, {duration: window.animationDuration || 200}, () => {
+            withTiming(0, {duration: 200}, () => {
                 setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, {duration: window.animationDuration || 200}));
+                opacity.set(withTiming(1, {duration: 200}));
             }),
         );
     }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset]);
