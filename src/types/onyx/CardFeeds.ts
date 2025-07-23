@@ -67,7 +67,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay?: string;
 
-    /** Indicates the day when the statement period for this card ends */
+    /** Plaid access token */
     plaidAccessToken?: string;
 }>;
 
@@ -92,6 +92,9 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     pending?: boolean;
 
     /** Indicates the day when the statement period for this card ends */
+    statementPeriodEndDay?: string;
+
+    /** Plaid access token */
     plaidAccessToken?: string;
 }>;
 
@@ -134,7 +137,7 @@ type AddNewCardFeedData = {
     cardTitle: string;
 
     /** Selected bank */
-    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
     /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;

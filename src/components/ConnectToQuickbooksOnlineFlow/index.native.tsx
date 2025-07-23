@@ -17,48 +17,47 @@ const renderLoading = () => <FullScreenLoadingIndicator />;
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [isWebViewOpen, setWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isWebViewOpen, setIsWebViewOpen] = useState(false);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const authToken = session?.authToken ?? null;
 
     useEffect(() => {
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         enablePolicyTaxes(policyID, false);
-        setWebViewOpen(true);
+        setIsWebViewOpen(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    if (isWebViewOpen) {
-        return (
-            <Modal
-                onClose={() => setWebViewOpen(false)}
-                fullscreen
-                isVisible
-                type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.accounting.title')}
-                    onBackButtonPress={() => setWebViewOpen(false)}
-                    shouldDisplayHelpButton={false}
+    return (
+        <Modal
+            onClose={() => setIsWebViewOpen(false)}
+            fullscreen
+            isVisible={isWebViewOpen}
+            type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+            shouldUseReanimatedModal
+        >
+            <HeaderWithBackButton
+                title={translate('workspace.accounting.title')}
+                onBackButtonPress={() => setIsWebViewOpen(false)}
+                shouldDisplayHelpButton={false}
+            />
+            <FullPageOfflineBlockingView>
+                <WebView
+                    ref={webViewRef}
+                    source={{
+                        uri: getQuickbooksOnlineSetupLink(policyID),
+                        headers: {
+                            Cookie: `authToken=${authToken}`,
+                        },
+                    }}
+                    incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                    startInLoadingState
+                    renderLoading={renderLoading}
                 />
-                <FullPageOfflineBlockingView>
-                    <WebView
-                        ref={webViewRef}
-                        source={{
-                            uri: getQuickbooksOnlineSetupLink(policyID),
-                            headers: {
-                                Cookie: `authToken=${authToken}`,
-                            },
-                        }}
-                        incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-                        startInLoadingState
-                        renderLoading={renderLoading}
-                    />
-                </FullPageOfflineBlockingView>
-            </Modal>
-        );
-    }
+            </FullPageOfflineBlockingView>
+        </Modal>
+    );
 }
 
 ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';

@@ -67,7 +67,7 @@ const States = {
     POPOVER_CLOSED: 'popoverClosed',
     KEYBOARD_POPOVER_CLOSED: 'keyboardPopoverClosed',
     KEYBOARD_POPOVER_OPEN: 'keyboardPopoverOpen',
-    KEYBOARD_CLOSING_POPOVER: 'keyboardClosingPopover',
+    KEYBOARD_CLOSED_POPOVER: 'keyboardClosingPopover',
     POPOVER_MEASURED: 'popoverMeasured',
     MODAL_WITH_KEYBOARD_OPEN_DELETED: 'modalWithKeyboardOpenDeleted',
 } as const;
@@ -97,13 +97,13 @@ const STATE_MACHINE: StateMachine<ValueOf<typeof States>, ValueOf<typeof Actions
     },
     [States.KEYBOARD_POPOVER_OPEN]: {
         [Actions.MEASURE_POPOVER]: States.KEYBOARD_POPOVER_OPEN,
-        [Actions.CLOSE_POPOVER]: States.KEYBOARD_CLOSING_POPOVER,
+        [Actions.CLOSE_POPOVER]: States.KEYBOARD_CLOSED_POPOVER,
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
     },
     [States.KEYBOARD_POPOVER_CLOSED]: {
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
     },
-    [States.KEYBOARD_CLOSING_POPOVER]: {
+    [States.KEYBOARD_CLOSED_POPOVER]: {
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
         [Actions.END_TRANSITION]: States.KEYBOARD_OPEN,
     },

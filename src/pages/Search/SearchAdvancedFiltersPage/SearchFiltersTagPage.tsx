@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
@@ -13,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyTagLists} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 function SearchFiltersTagPage() {
     const styles = useThemeStyles();
@@ -26,7 +28,7 @@ function SearchFiltersTagPage() {
         return {name: getCleanedTagName(tag), value: tag};
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
         ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
@@ -36,7 +38,7 @@ function SearchFiltersTagPage() {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
         const uniqueTagNames = new Set<string>();
 
-        if (!selectedPoliciesTagLists) {
+        if (!selectedPoliciesTagLists || selectedPoliciesTagLists.length === 0) {
             const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
             tagListsUnpacked
                 .map(getTagNamesFromTagsLists)

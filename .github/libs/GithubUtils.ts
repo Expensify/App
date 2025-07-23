@@ -11,9 +11,9 @@ import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/di
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arrayDifference from '@src/utils/arrayDifference';
+import arrayDifference from './arrayDifference';
 import CONST from './CONST';
+import {isEmptyObject} from './isEmptyObject';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
@@ -53,6 +53,8 @@ type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
 
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
+
+type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
 
 type StagingDeployCashData = {
     title: string;
@@ -454,6 +456,19 @@ class GithubUtils {
         );
     }
 
+    static getAllCommentDetails(issueNumber: number): Promise<ListCommentsResponse['data']> {
+        return this.paginate(
+            this.octokit.issues.listComments,
+            {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                issue_number: issueNumber,
+                per_page: 100,
+            },
+            (response) => response.data,
+        );
+    }
+
     /**
      * Create comment on pull request
      */
@@ -571,6 +586,25 @@ class GithubUtils {
     }
 
     /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path: string, ref = 'main'): Promise<string> {
+        const {data} = await this.octokit.repos.getContent({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+
+    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
@@ -639,4 +673,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData, CommitType};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, ListCommentsResponse, StagingDeployCashData, CommitType};

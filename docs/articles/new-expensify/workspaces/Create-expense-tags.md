@@ -61,6 +61,7 @@ You can use one of the following template files to build your tags list:
 - [Independent tags without GL codes](https://help.expensify.com/assets/Files/Independent+without+GL+codes+format.csv)
 
 **Notes:**
+- We currently only support uploading CSV and TSV files for multi-level tag files.
 - We currently only support up to 50,000 tags in a single file.
 - Each time you upload a list of tags, it will override your previous list. To avoid losing tags, update the original spreadsheet and re-import it into Expensify.
 

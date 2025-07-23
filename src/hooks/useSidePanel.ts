@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -72,16 +71,9 @@ function useSidePanel() {
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
-    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
 
     useEffect(() => {
-        if (shouldHideSidePanel && prevShouldHideSidePanel) {
-            sidePanelTranslateX.current.setValue(sidePanelWidth);
-            sidePanelOffset.current.setValue(shouldApplySidePanelOffset ? variables.sideBarWidth : 0);
-            return;
-        }
         setIsSidePanelTransitionEnded(false);
-
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
@@ -94,7 +86,9 @@ function useSidePanel() {
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth, prevShouldHideSidePanel]);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- sidePanelWidth dependency caused the help panel content to slide in on window resize
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);

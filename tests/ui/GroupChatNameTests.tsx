@@ -127,6 +127,7 @@ describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
+        global.fetch = TestHelper.getGlobalFetchMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
 

@@ -62,7 +62,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
                 columnNames={columnNames}
                 importFunction={importTags}
                 isButtonLoading={isImportingTags}
-                learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}
                 shouldShowColumnHeader={false}
                 shouldShowDropdownMenu={false}
                 customHeaderText={translate('workspace.tags.importMultiLevelTagsSupportingText')}

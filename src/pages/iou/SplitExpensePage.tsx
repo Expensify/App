@@ -18,6 +18,7 @@ import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransac
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -40,11 +41,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = React.useState<string>('');
     const {currentSearchHash} = useSearchContext();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
@@ -56,7 +57,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isCardTransaction(transaction);
 
     useEffect(() => {
-        setErrorMessage(null);
+        setErrorMessage('');
     }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
 
     const onAddSplitExpense = useCallback(() => {
@@ -147,13 +148,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     );
 
     const footerContent = useMemo(() => {
+        const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
+        const warningMessage = shouldShowWarningMessage
+            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
+            : '';
         return (
             <>
-                {!!errorMessage && (
+                {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={errorMessage}
+                        isError={!!errorMessage}
+                        isInfo={!errorMessage && shouldShowWarningMessage}
+                        message={errorMessage || warningMessage}
                     />
                 )}
                 <Button
@@ -167,7 +173,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </>
         );
-    }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,

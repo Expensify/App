@@ -1,73 +1,56 @@
 ---
 layout: product
-title: Bank Accounts
+title: Wallet
 ---
 
-# Business Bank Accounts
+# Wallet
 
-Connect a verified business bank account to unlock payment features like reimbursements, bill pay, invoice collections, and Expensify Card issuance. Supported currencies: USD, CAD, GBP, EUR, and AUD.
-
-## Getting Started
-
-### Enable Payment Features
-
-1. Go to **Workspaces > [Workspace Name] > More Features**
-2. Click **Enable Workflows**
-3. Turn on **Make or Track Payments**
-4. Click **Connect Bank Account** to start setup
-
-## Connect Your Bank Account
-
-1. Choose to **Connect online with Plaid** (recommended) or **Connect manually**
-2. Pick your bank and sign in or enter details manually
-3. Upload a valid U.S.-issued photo ID (front and back) and take a live selfie
-4. Enter your company details:
-   - Name and physical address (no PO boxes)
-   - Tax Identification Number (TIN)
-   - Company website (required for most features)
-   - Industry classification code
-5. Submit everything for verification
-6. Validate your connection with test transactions
-
-## What You Can Do
-
-Once your account is verified, you’ll be able to:
-
-- **Reimburse employees** via ACH
-- **Pay vendors and suppliers**
-- **Issue Expensify Cards** to your team
-- **Collect invoice payments** from clients
-
-## Sharing Access
-
-1. Go to **Settings > Account > Wallet**
-2. Click **Share** next to the bank account
-3. Enter the admin’s email
-4. The new admin will need to revalidate the account (takes 1–2 business days)
+Your Wallet is the hub for all things money in Expensify. This is where you connect and manage your business and personal bank accounts, view company card details, and control how money moves in and out of your organization. Whether you're reimbursing employees, collecting payments, or issuing Expensify Cards, it all starts here.
 
 ---
 
-**Heads up:** Your bank account must be fully verified before any payment features go live. The process usually takes 1–2 business days.
+## Business Bank Accounts
+Connect a verified business bank account to unlock smart features like reimbursements, bill pay, invoice collection, and the Expensify Card.
+
+- **Turn on payments:** Head to **Workspaces > [Workspace Name] > More features**, click **Enable workflows**, then toggle on **Make or track payments**. From there, hit **Connect bank account** to get started.
+
+- **Connect your account:** Use Plaid to link your account in seconds, or enter your details manually. You’ll need to upload an ID, add your company info, and verify the account with a few test transactions.
+
+- **Once your account is verified, you can:**
+     - Reimburse employees via ACH
+     - Pay vendors and suppliers
+     - Issue Expensify Cards to your team
+     - Collect invoice payments from clients
+
+- **Share access to the bank account with another admin:** Under **Settings > Account > Wallet**, click **Share** next to the bank account, and enter the admin’s email. They’ll just need to revalidate the bank account on their end before they can issue payments.
 
 ---
 
-# Personal Bank Accounts
+## Personal Bank Accounts
 
-Add your personal bank account to get reimbursed or paid — no paper checks, no waiting around. Expensify supports banks in over 190 countries.
+If you want to get reimbursed or paid directly in Expensify, add a personal bank account — Expensify supports banks in over 190 countries.
 
-## Adding a Personal Bank Account
 
-1. Go to **Settings > Wallet > Bank Accounts**
-2. Click **Add Bank Account**
-3. Select your **country** from the dropdown
-4. Connect with **Plaid** (for banks located in the U.S.) or enter your details manually
+- **Add your bank account**: Under **Settings > Wallet > Bank accounts**, click **Add bank account**, choose your country, and connect via Plaid or enter your info manually.
 
-## What You Can Do
-
-- **Get reimbursed** for expense reports
-- **Receive invoice payments**
-- **Use multi-currency support** to get paid in your local currency
+- **Note:** Personal bank accounts are for receiving funds only. You’ll need a verified business bank account to send payments or issue Expensify Cards.
 
 ---
 
-**Heads up:** Personal accounts are for receiving funds only. If you want to send payments or issue Expensify Cards, you’ll need to connect a verified business bank account.
+## Assigned Cards
+
+Company cards are assigned at the workspace level, but are visible to the individual cardholder in their **Wallet**. The cards sync automatically, so you can skip manually entering credit card expenses.
+
+- **See card details (Expensify Card):** Click **Reveal details** to check your card number, expiration date, and security code for online purchases.
+
+- **Track expenses smarter:** Transactions pull in automatically and match with SmartScanned receipts to keep records audit-ready.
+
+- **View transactions:** Click on a connected card and then **View transactions** to see all of the imported expenses from that company card. 
+
+---
+
+## Learn More
+
+- [Connect a Business Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account)
+- [Connect a Personal Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account)
+- [Expensify Cardholder Settings and Features](https://help.expensify.com/articles/new-expensify/expensify-card/Cardholder-Settings-and-Features)

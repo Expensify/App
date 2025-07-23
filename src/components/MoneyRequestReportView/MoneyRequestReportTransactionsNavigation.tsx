@@ -5,17 +5,17 @@ import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
 };
 
 function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
+    const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
 
@@ -31,8 +31,6 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
 
         return {prevReportID: prevID, nextReportID: nextID};
     }, [currentReportID, reportIDsList]);
-
-    const backTo = Navigation.getActiveRoute();
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -57,10 +55,12 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
             onNext={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
