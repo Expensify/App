@@ -674,7 +674,6 @@ describe('PolicyUtils', () => {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
@@ -684,7 +683,7 @@ describe('PolicyUtils', () => {
                 managerID: approverAccountID,
             };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(false);
         });
 
@@ -700,7 +699,6 @@ describe('PolicyUtils', () => {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
@@ -710,7 +708,7 @@ describe('PolicyUtils', () => {
                 managerID: currentUserAccountID,
             };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(true);
         });
 
@@ -723,7 +721,6 @@ describe('PolicyUtils', () => {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
@@ -733,7 +730,7 @@ describe('PolicyUtils', () => {
                 managerID: approverAccountID,
             };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(false);
         });
 
@@ -749,7 +746,6 @@ describe('PolicyUtils', () => {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
@@ -759,7 +755,7 @@ describe('PolicyUtils', () => {
                 managerID: currentUserAccountID,
             };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(false);
         });
     });
