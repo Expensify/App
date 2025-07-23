@@ -39,6 +39,7 @@ import {
     isTaskListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
+    SearchKey,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -189,7 +190,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (offset !== 0) {
             return false;
         }
-        return searchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH || searchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS;
+        if (!searchKey) {
+            return false;
+        }
+        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS];
+        return eligibleSearchKeys.includes(searchKey);
     }, [offset, searchKey]);
 
     const previousReportActions = usePrevious(reportActions);
