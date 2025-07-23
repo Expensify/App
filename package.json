@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.84-1",
+  "version": "9.1.84-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -90,7 +90,7 @@
     "@expensify/react-native-live-markdown": "0.1.294",
     "@expensify/react-native-wallet": "^0.1.5",
     "@expo/metro-runtime": "^5.0.4",
-    "@firebase/app": "^0.10.10",
+    "@firebase/app": "^0.13.2",
     "@firebase/performance": "^0.6.8",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
