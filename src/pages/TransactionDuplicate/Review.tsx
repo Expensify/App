@@ -67,12 +67,12 @@ function TransactionDuplicateReview() {
         openReport(route.params.threadReportID);
     }, [report?.reportID, route.params.threadReportID]);
 
-    const isLoadingReport = !report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false;
+    const isLoadingPage = !report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false || !reportAction?.reportActionID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isLoadingReport && !transactionID;
+    const shouldShowNotFound = !isLoadingPage && !transactionID;
 
-    if (isLoadingReport) {
+    if (isLoadingPage) {
         return (
             <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
                 <View style={[styles.borderBottom]}>
