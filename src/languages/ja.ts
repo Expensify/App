@@ -3137,7 +3137,7 @@ const translations = {
         termsAndConditions: '利用規約',
     },
     connectBankAccountStep: {
-        connectBankAccount: '銀行口座を接続',
+        addBankAccount: '銀行口座を追加する',
         finishButtonText: 'セットアップを完了する',
         validateYourBankAccount: '銀行口座を確認してください',
         validateButtonText: '検証する',
@@ -3422,7 +3422,7 @@ const translations = {
             plan: '計画',
             profile: '概要',
             bankAccount: '銀行口座',
-            connectBankAccount: '銀行口座を接続',
+            addBankAccount: '銀行口座を追加',
             testTransactions: 'トランザクションをテストする',
             issueAndManageCards: 'カードの発行と管理',
             reconcileCards: 'カードを照合する',

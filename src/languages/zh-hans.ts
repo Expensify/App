@@ -3103,7 +3103,7 @@ const translations = {
         termsAndConditions: '条款和条件',
     },
     connectBankAccountStep: {
-        connectBankAccount: '连接银行账户',
+        addBankAccount: '添加银行账户',
         finishButtonText: '完成设置',
         validateYourBankAccount: '验证您的银行账户',
         validateButtonText: '验证',
@@ -3383,7 +3383,7 @@ const translations = {
             plan: '计划',
             profile: '概述',
             bankAccount: '银行账户',
-            connectBankAccount: '连接银行账户',
+            addBankAccount: '添加银行账户',
             testTransactions: '测试交易',
             issueAndManageCards: '发行和管理卡片',
             reconcileCards: '对账卡片',

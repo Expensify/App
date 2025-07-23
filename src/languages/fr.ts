@@ -3124,7 +3124,7 @@ const translations = {
         termsAndConditions: 'termes et conditions',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Connecter un compte bancaire',
+        addBankAccount: 'Ajouter un compte bancaire',
         finishButtonText: 'Terminer la configuration',
         validateYourBankAccount: 'Validez votre compte bancaire',
         validateButtonText: 'Valider',
@@ -3415,7 +3415,7 @@ const translations = {
             plan: 'Planification',
             profile: 'Aperçu',
             bankAccount: 'Compte bancaire',
-            connectBankAccount: 'Connecter un compte bancaire',
+            addBankAccount: 'Ajouter un compte bancaire',
             testTransactions: 'Tester les transactions',
             issueAndManageCards: 'Émettre et gérer des cartes',
             reconcileCards: 'Rapprocher les cartes',

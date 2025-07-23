@@ -3133,7 +3133,7 @@ const translations = {
         termsAndConditions: 'warunki i zasady',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Połącz konto bankowe',
+        addBankAccount: 'Dodaj konto bankowe',
         finishButtonText: 'Zakończ konfigurację',
         validateYourBankAccount: 'Zwaliduj swoje konto bankowe',
         validateButtonText: 'Zatwierdź',
@@ -3421,7 +3421,7 @@ const translations = {
             plan: 'Plan',
             profile: 'Przegląd',
             bankAccount: 'Konto bankowe',
-            connectBankAccount: 'Połącz konto bankowe',
+            addBankAccount: 'Dodaj konto bankowe',
             testTransactions: 'Przetestuj transakcje',
             issueAndManageCards: 'Wydawaj i zarządzaj kartami',
             reconcileCards: 'Uzgodnij karty',

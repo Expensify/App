@@ -69,7 +69,7 @@ function ConnectedVerifiedBankAccount({
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectBankAccount')}
+                title={translate('workspace.common.addBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>

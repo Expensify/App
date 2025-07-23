@@ -62,7 +62,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('connectBankAccountStep.connectBankAccount')}
+                title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('connectBankAccountStep.addBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />
             {maxAttemptsReached && (
