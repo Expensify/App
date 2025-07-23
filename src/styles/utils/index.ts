@@ -1834,13 +1834,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }, {} as Nullable<K>) as K,
     getScrollableFeatureTrainingModalStyles: (
         insets: EdgeInsets,
+        isKeyboardOpen = false,
     ): {
         style?: ViewStyle;
         containerStyle?: ViewStyle;
     } => {
         const {paddingBottom: safeAreaPaddingBottom} = getPlatformSafeAreaPadding(insets);
-
-        const paddingBottom = getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, true);
+        // When keyboard is open and we want to disregard safeAreaPaddingBottom.
+        const paddingBottom = getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, !isKeyboardOpen);
         // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
         return {
             style: isMobileChrome()
