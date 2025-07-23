@@ -3,7 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
-import {formatPhoneNumber as formatPhoneNumberLocalePhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
 import IntlStore from '@src/languages/IntlStore';
@@ -46,6 +46,9 @@ type LocaleContextProps = {
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
 
+    /** This is a wrapper around the localeCompare function that uses the preferred locale from the user's settings. */
+    localeCompare: (a: string, b: string) => number;
+
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale | undefined;
 };
@@ -60,12 +63,16 @@ const LocaleContext = createContext<LocaleContextProps>({
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
+    localeCompare: () => 0,
     preferredLocale: undefined,
 });
 
+const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
+
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: true, canBeMissing: true});
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
 
     useEffect(() => {
@@ -82,6 +89,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
+
+    const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
@@ -106,7 +115,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         [currentLocale, selectedTimezone],
     );
 
-    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberLocalePhoneNumber(phoneNumber), []);
+    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP), [countryCodeByIP]);
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit), [currentLocale]);
 
@@ -119,6 +128,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => fromLocaleDigitLocaleDigitUtils(currentLocale, localeDigit), [currentLocale]);
 
+    const localeCompare = useMemo<LocaleContextProps['localeCompare']>(() => (a, b) => collator.compare(a, b), [collator]);
+
     const contextValue = useMemo<LocaleContextProps>(
         () => ({
             translate,
@@ -130,9 +141,22 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             toLocaleDigit,
             toLocaleOrdinal,
             fromLocaleDigit,
+            localeCompare,
             preferredLocale: currentLocale,
         }),
-        [translate, numberFormat, getLocalDateFromDatetime, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, currentLocale],
+        [
+            translate,
+            numberFormat,
+            getLocalDateFromDatetime,
+            datetimeToRelative,
+            datetimeToCalendarTime,
+            formatPhoneNumber,
+            toLocaleDigit,
+            toLocaleOrdinal,
+            fromLocaleDigit,
+            localeCompare,
+            currentLocale,
+        ],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
