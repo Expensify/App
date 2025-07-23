@@ -11,13 +11,13 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
-import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {changeReportPolicy, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -54,14 +54,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 moveIOUReportToPolicy(reportID, policyID);
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
-            } else if (isExpenseReport(report) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
-                const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policyID, employeeList);
             } else {
                 changeReportPolicy(report, policyID, reportNextStep);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies],
+        [session?.email, route.params, report, reportID, reportNextStep],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -70,7 +67,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report),
     });
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
