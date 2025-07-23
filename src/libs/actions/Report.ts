@@ -361,26 +361,6 @@ Onyx.connect({
     },
 });
 
-// This value is used inside openReportFromDeepLink function, which triggered inside setup/hybridApp -> Linking.addEventListener method
-let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
-Onyx.connect({
-    key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    callback: (value) => {
-        currentOnboardingPurposeSelected = value;
-    },
-});
-
-// This value is used inside openReportFromDeepLink function, which triggered inside setup/hybridApp -> Linking.addEventListener method
-let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
-Onyx.connect({
-    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
-    callback: (value) => {
-        currentOnboardingCompanySize = value;
-    },
-});
-
 let onboardingInitialPath: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
@@ -3389,7 +3369,7 @@ function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
-function openReportFromDeepLink(url: string) {
+function openReportFromDeepLink(url: string, currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>, currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>) {
     const reportID = getReportIDFromLink(url);
     const isAuthenticated = hasAuthToken();
 
