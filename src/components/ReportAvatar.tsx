@@ -359,7 +359,7 @@ function ReportAvatar({
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
     overlapDivider = 3,
-}: Omit<ReportAvatarProps, 'icons'>) {
+}: ReportAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -501,7 +501,7 @@ function ReportAvatar({
         return (
             <View
                 style={[containerStyle, subscriptNoMargin ? styles.mr0 : {}]}
-                testID="SubscriptAvatar"
+                testID="ReportAvatar-Subscript"
             >
                 <UserDetailsTooltip
                     shouldRender={shouldShowTooltip}
@@ -511,7 +511,7 @@ function ReportAvatar({
                         displayName: mainAvatar?.name,
                     }}
                 >
-                    <View>
+                    <View testID={`ReportAvatar-Subscript-MainAvatar--${mainAvatar?.id}`}>
                         <Avatar
                             containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                             source={mainAvatar?.source}
@@ -534,6 +534,7 @@ function ReportAvatar({
                             // Hover on overflowed part of icon will not work on Electron if dragArea is true
                             // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                             dataSet={{dragArea: false}}
+                            testID={`ReportAvatar-Subscript-SecondaryAvatar--${secondaryAvatar.id}`}
                         >
                             <Avatar
                                 iconAdditionalStyles={[
@@ -565,6 +566,7 @@ function ReportAvatar({
                         // Hover on overflowed part of icon will not work on Electron if dragArea is true
                         // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                         dataSet={{dragArea: false}}
+                        testID="ReportAvatar-Subscript-SubIcon"
                     >
                         <Icon
                             src={subIcon.source}
@@ -595,7 +597,10 @@ function ReportAvatar({
                     }}
                     shouldRender={shouldShowTooltip}
                 >
-                    <View style={avatarContainerStyles}>
+                    <View
+                        style={avatarContainerStyles}
+                        testID={`ReportAvatar-MultipleAvatars-OneIcon--${icons.at(0)?.id}`}
+                    >
                         <Avatar
                             source={icons.at(0)?.source}
                             size={size}
@@ -625,6 +630,7 @@ function ReportAvatar({
                     style={avatarContainerStyles}
                     /* eslint-disable-next-line react/no-array-index-key */
                     key={`avatarRow-${rowIndex}`}
+                    testID="ReportAvatar-MultipleAvatars-StackedHorizontally-Row"
                 >
                     {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                         <UserDetailsTooltip
@@ -636,7 +642,10 @@ function ReportAvatar({
                             }}
                             shouldRender={shouldShowTooltip}
                         >
-                            <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
+                            <View
+                                style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}
+                                testID={`ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar--${icon.id}`}
+                            >
                                 <Avatar
                                     iconAdditionalStyles={[
                                         StyleUtils.getHorizontalStackedAvatarBorderStyle({
@@ -666,6 +675,7 @@ function ReportAvatar({
                             shouldRender={shouldShowTooltip}
                         >
                             <View
+                                testID="ReportAvatar-MultipleAvatars-StackedHorizontally-LimitReached"
                                 style={[
                                     styles.alignItemsCenter,
                                     styles.justifyContentCenter,
@@ -698,7 +708,10 @@ function ReportAvatar({
             ))
         ) : (
             <View style={avatarContainerStyles}>
-                <View style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}>
+                <View
+                    style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}
+                    testID="ReportAvatar-MultipleAvatars"
+                >
                     <UserDetailsTooltip
                         accountID={Number(icons.at(0)?.id)}
                         icon={icons.at(0)}
@@ -708,7 +721,7 @@ function ReportAvatar({
                         shouldRender={shouldShowTooltip}
                     >
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
-                        <View>
+                        <View testID={`ReportAvatar-MultipleAvatars-MainAvatar--${icons.at(0)?.id}`}>
                             <Avatar
                                 source={icons.at(0)?.source ?? fallbackIconForMultipleAvatars}
                                 size={avatarSize}
@@ -730,7 +743,7 @@ function ReportAvatar({
                                 }}
                                 shouldRender={shouldShowTooltip}
                             >
-                                <View>
+                                <View testID="ReportAvatar-MultipleAvatars-SecondaryAvatar">
                                     <Avatar
                                         source={icons.at(1)?.source ?? fallbackIconForMultipleAvatars}
                                         size={avatarSize}
@@ -747,7 +760,10 @@ function ReportAvatar({
                                 text={tooltipTexts.slice(1).join(', ')}
                                 shouldRender={shouldShowTooltip}
                             >
-                                <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                <View
+                                    style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}
+                                    testID="ReportAvatar-MultipleAvatars-LimitReached"
+                                >
                                     <Text
                                         style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -769,7 +785,7 @@ function ReportAvatar({
             delegateAccountID={action?.delegateAccountID}
             icon={primaryAvatar}
         >
-            <View>
+            <View testID={`ReportAvatar-SingleAvatar--${primaryAvatar.id}`}>
                 <Avatar
                     containerStyles={singleAvatarContainerStyle}
                     source={primaryAvatar.source}
