@@ -42,13 +42,13 @@ describe('PersonalDetailsUtils', () => {
             ],
             finallyData: [
                 {
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST, 
-                    onyxMethod: Onyx.METHOD.MERGE, 
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     value: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1': null,
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '2': null, 
+                        '2': null,
                     },
                 },
             ],
