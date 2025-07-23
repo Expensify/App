@@ -470,6 +470,7 @@ const translations = {
         message: 'Bericht',
         leaveThread: 'Verlaat thread',
         you: 'Jij',
+        me: 'mij',
         youAfterPreposition: 'jij',
         your: 'uw',
         conciergeHelp: 'Neem contact op met Concierge voor hulp.',
@@ -1525,6 +1526,8 @@ const translations = {
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
             invalidateWithDelay: 'Ongeldig maken met vertraging',
             recordTroubleshootData: 'Probleemoplossingsgegevens opnemen',
+            softKillTheApp: 'Soft kill de app',
+            kill: 'Dood',
         },
         debugConsole: {
             saveLog: 'Log opslaan',
@@ -2194,6 +2197,11 @@ const translations = {
         accounting: {
             title: 'Gebruikt u een boekhoudsoftware?',
             none: 'Geen',
+        },
+        interestedFeatures: {
+            title: 'In welke functies bent u geïnteresseerd?',
+            featuresAlreadyEnabled: 'Je werkruimte heeft al het volgende ingeschakeld:',
+            featureYouMayBeInterestedIn: 'Schakel extra functies in waarin u mogelijk geïnteresseerd bent:',
         },
         error: {
             requiredFirstName: 'Voer alstublieft uw voornaam in om door te gaan',
@@ -6154,8 +6162,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `veranderde ${fieldName} van ${oldValue} naar ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `veranderd ${fieldName} naar ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `veranderde de werkruimte naar ${toPolicyName}${fromPolicyName ? `(vroeger ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Werkruimte gewijzigd${fromPolicyName ? ` (voorheen ${fromPolicyName})` : ''}`;
+                    }
+                    return `Werkruimte gewijzigd naar ${toPolicyName}${fromPolicyName ? ` (voorheen ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `veranderde type van ${oldType} naar ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `heeft dit rapport naar ${delegateUser} gestuurd omdat ${originalManager} op vakantie is.`,
                 exportedToCSV: `geëxporteerd naar CSV`,

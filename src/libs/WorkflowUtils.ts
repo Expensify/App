@@ -6,6 +6,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import localeCompare from './LocaleCompare';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -158,7 +159,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return 1;
         }
 
-        return (a.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString().localeCompare((b.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString());
+        return localeCompare(a.approvers.at(0)?.displayName ?? '', b.approvers.at(0)?.displayName ?? '');
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
