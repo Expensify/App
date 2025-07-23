@@ -61,6 +61,7 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
             contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
+            shouldCloseOnConfirm={false}
             onClose={onClose}
             onConfirm={onConfirm}
         >

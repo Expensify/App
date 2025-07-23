@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -86,7 +86,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
-    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {initialValue: false, canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: false});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -226,14 +225,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
     }, [parentReport, policy, transaction]);
 
+    const hasUseDeclineDismissedRef = useRef(false);
     const dismissModalAndUpdateUseDecline = () => {
         setIsDeclineEducationalModalVisible(false);
-        
+        if (!hasUseDeclineDismissedRef.current) {
             dismissDeclineUseExplanation();
-        
+            hasUseDeclineDismissedRef.current = true;
+            console.log('dismissModalAndUpdateUseDecline', parentReportAction);
             if (parentReportAction) {
                 declineMoneyRequestReason(parentReportAction);
             }
+        }
     };
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
@@ -283,13 +285,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE,
             onSelected: () => {
-                if (dismissedDeclineUseExplanation) {
-                    if (parentReportAction) {
-                        declineMoneyRequestReason(parentReportAction);
-                    }
-                } else {
-                    setIsDeclineEducationalModalVisible(true);
-                }
+                setIsDeclineEducationalModalVisible(true);
             },
         },
     };
