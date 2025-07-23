@@ -95,7 +95,6 @@ function getInitialPersonalDetailsValues(privatePersonalDetails: OnyxEntry<Priva
 function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayFieldsMap = {}) {
     for (const fieldName in fieldsMap) {
         if (!fieldName) {
-            // eslint-disable-next-line no-continue
             continue;
         }
         if (fieldsMap[fieldName].isRequired && (values[fieldName] ?? '') === '') {

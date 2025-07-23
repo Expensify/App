@@ -149,10 +149,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
                         isLoading={reportItem.isActionLoading}
-                        policyID={reportItem.policyID}
-                        reportID={reportItem.reportID}
-                        hash={reportItem.hash}
-                        amount={reportItem.total}
                     />
                 </View>
             )}
@@ -173,7 +169,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
@@ -183,7 +179,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple);
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
     };
     return !isLargeScreenWidth ? (
         <View>
