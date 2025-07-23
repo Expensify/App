@@ -183,6 +183,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -470,6 +471,7 @@ const translations = {
         message: 'Messaggio',
         leaveThread: 'Abbandona discussione',
         you: 'Tu',
+        me: 'me',
         youAfterPreposition: 'tu/voi (depending on the context)',
         your: 'tuo/tuoi/tuoi/tuo (depending on context and gender/number)',
         conciergeHelp: 'Si prega di contattare Concierge per assistenza.',
@@ -552,6 +554,7 @@ const translations = {
         userID: 'User ID',
         disable: 'Disabilita',
         export: 'Esporta',
+        basicExport: 'Esportazione basica',
         initialValue: 'Valore iniziale',
         currentDate: 'La data odierna',
         value: 'Valore',
@@ -1523,6 +1526,8 @@ const translations = {
             invalidFileDescription: 'Il file che stai cercando di importare non è valido. Per favore riprova.',
             invalidateWithDelay: 'Invalidare con ritardo',
             recordTroubleshootData: 'Registrazione dei dati di risoluzione dei problemi',
+            softKillTheApp: "Disattivare l'applicazione",
+            kill: 'Uccidere',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2193,6 +2198,11 @@ const translations = {
         accounting: {
             title: 'Usi qualche software di contabilità?',
             none: 'Nessuno',
+        },
+        interestedFeatures: {
+            title: 'Quali funzionalità ti interessano?',
+            featuresAlreadyEnabled: 'Il tuo spazio di lavoro ha già abilitato quanto segue:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
         },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
@@ -3251,10 +3261,8 @@ const translations = {
         termsAndConditions: {
             header: 'Prima di continuare...',
             title: 'Termini e condizioni',
-            subtitle: 'Si prega di accettare Expensify Travel',
-            termsAndConditions: 'termini e condizioni',
-            travelTermsAndConditions: 'termini e condizioni',
-            agree: 'Accetto i',
+            label: 'Accetto i termini e le condizioni',
+            subtitle: `Accettate <a href="${CONST.TRAVEL_TERMS_URL}">i termini e le condizioni</a> di Expensify Travel.`,
             error: 'Devi accettare i termini e le condizioni di Expensify Travel per continuare',
             defaultWorkspaceError:
                 "Devi impostare un'area di lavoro predefinita per abilitare Expensify Travel. Vai su Impostazioni > Aree di lavoro > clicca sui tre punti verticali accanto a un'area di lavoro > Imposta come area di lavoro predefinita, quindi riprova!",
@@ -3448,7 +3456,7 @@ const translations = {
             welcomeNote: 'Per favore, usa Expensify per inviare le tue ricevute per il rimborso, grazie!',
             subscription: 'Abbonamento',
             markAsEntered: 'Segna come inserito manualmente',
-            markAsExported: 'Segna come esportato manualmente',
+            markAsExported: 'Segna come esportato',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Esporta in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
             lineItemLevel: 'Livello voce di dettaglio',
@@ -4397,9 +4405,8 @@ const translations = {
             addNewBankAccount: 'Aggiungi un nuovo conto bancario',
             settlementAccount: 'Conto di regolamento',
             settlementAccountDescription: 'Scegli un account per pagare il saldo della tua Expensify Card.',
-            settlementAccountInfoPt1: 'Assicurati che questo account corrisponda al tuo',
-            settlementAccountInfoPt2: 'quindi il Riconciliazione Continua funziona correttamente.',
-            reconciliationAccount: 'Conto di riconciliazione',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Assicurarsi che questo conto corrisponda al <a href="${reconciliationAccountSettingsLink}">conto Riconciliazione</a> (${accountNumber}) in modo che la Riconciliazione continua funzioni correttamente.`,
             settlementFrequency: 'Frequenza di liquidazione',
             settlementFrequencyDescription: 'Scegli la frequenza con cui pagherai il saldo della tua Expensify Card.',
             settlementFrequencyInfo: 'Se desideri passare al regolamento mensile, dovrai collegare il tuo conto bancario tramite Plaid e avere uno storico del saldo positivo di 90 giorni.',
@@ -6162,8 +6169,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} in ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `cambiato l'area di lavoro in ${toPolicyName}${fromPolicyName ? `(in precedenza ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Spazio di lavoro modificato${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
+                    }
+                    return `Spazio di lavoro modificato in ${toPolicyName}${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambiato tipo da ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `inviato questo rapporto a ${delegateUser} poiché ${originalManager} è in vacanza`,
                 exportedToCSV: `esportato in CSV`,
