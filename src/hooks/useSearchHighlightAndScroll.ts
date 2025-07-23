@@ -115,7 +115,20 @@ function useSearchHighlightAndScroll({
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-    }, [isFocused, transactions, previousTransactions, queryJSON, offset, shouldCalculateTotals, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
+    }, [
+        isFocused,
+        transactions,
+        previousTransactions,
+        queryJSON,
+        searchKey,
+        offset,
+        shouldCalculateTotals,
+        reportActions,
+        previousReportActions,
+        isChat,
+        searchResults?.data,
+        existingSearchResultIDs,
+    ]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
