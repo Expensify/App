@@ -183,6 +183,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -1526,6 +1527,8 @@ const translations = {
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
             invalidateWithDelay: 'Ongeldig maken met vertraging',
             recordTroubleshootData: 'Probleemoplossingsgegevens opnemen',
+            softKillTheApp: 'Soft kill de app',
+            kill: 'Dood',
         },
         debugConsole: {
             saveLog: 'Log opslaan',
@@ -3263,10 +3266,8 @@ const translations = {
         termsAndConditions: {
             header: 'Voordat we verder gaan...',
             title: 'Algemene voorwaarden',
-            subtitle: 'Ga akkoord met de Expensify Travel',
-            termsAndConditions: 'voorwaarden en condities',
-            travelTermsAndConditions: 'voorwaarden en condities',
-            agree: 'Ik ga akkoord met de',
+            label: 'Ik ga akkoord met de algemene voorwaarden',
+            subtitle: `Ga akkoord met de <a href="${CONST.TRAVEL_TERMS_URL}">algemene voorwaarden</a> van Expensify Travel.`,
             error: 'U moet akkoord gaan met de Expensify Travel voorwaarden om door te gaan.',
             defaultWorkspaceError:
                 'U moet een standaard werkruimte instellen om Expensify Travel in te schakelen. Ga naar Instellingen > Werkruimtes > klik op de drie verticale stippen naast een werkruimte > Stel in als standaard werkruimte, en probeer het opnieuw!',
@@ -4406,9 +4407,8 @@ const translations = {
             addNewBankAccount: 'Een nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
             settlementAccountDescription: 'Kies een account om uw saldo van de Expensify Card te betalen.',
-            settlementAccountInfoPt1: 'Zorg ervoor dat dit account overeenkomt met dat van jou',
-            settlementAccountInfoPt2: 'zodat Continuous Reconciliation correct werkt.',
-            reconciliationAccount: 'Rekening voor afstemming',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Zorg ervoor dat deze account overeenkomt met je <a href="${reconciliationAccountSettingsLink}">Afstemmingsaccount</a> (${accountNumber}) zodat Doorlopende Afstemming goed werkt.`,
             settlementFrequency: 'Afwikkelingsfrequentie',
             settlementFrequencyDescription: 'Kies hoe vaak je je Expensify Card-saldo wilt betalen.',
             settlementFrequencyInfo:
