@@ -782,7 +782,7 @@ function ReportActionsList({
         };
     });
 
-    const safeAreaBottom = isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
+    const safeAreaBottom = Platform.OS !== 'ios' || isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
     const bottomSpacer = useMemo(
         () => (Platform.OS === 'ios' && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom),
         [composerHeight, safeAreaBottom, isComposerFullSize],
