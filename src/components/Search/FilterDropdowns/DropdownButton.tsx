@@ -143,7 +143,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 }}
                 shouldSkipRemeasurement
             >
-                {PopoverComponent({closeOverlay: toggleOverlay})}
+                <PopoverComponent closeOverlay={toggleOverlay} />
             </PopoverWithMeasuredContent>
         </>
     );
