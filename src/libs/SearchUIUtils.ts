@@ -57,6 +57,7 @@ import {formatPhoneNumber as formatPhoneNumberUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';

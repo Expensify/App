@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
