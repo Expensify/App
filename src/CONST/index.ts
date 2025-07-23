@@ -1063,6 +1063,7 @@ const CONST = {
             SPLIT: 'split',
             REOPEN: 'reopen',
             PAY: 'pay',
+            MERGE: 'merge',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',

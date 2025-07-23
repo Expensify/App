@@ -515,6 +515,11 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    // Do not show merge action if there are multiple transactions
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -611,6 +616,10 @@ function getSecondaryReportActions({
 
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
+    }
+
+    if (isMergeAction(report, reportTransactions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
