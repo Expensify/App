@@ -640,7 +640,7 @@ function MoneyRequestReportPreviewContent({
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
                                                     <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                        {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.ml0]}>{approvedOrSettledIcon}</View>}
+                                                        {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.ml1]}>{approvedOrSettledIcon}</View>}
                                                         <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
                                                     </View>
                                                 )}
