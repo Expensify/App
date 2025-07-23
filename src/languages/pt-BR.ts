@@ -553,7 +553,7 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
-        basicExport: 'Exporta\u00E7\u00E3o b\u00E1sica',
+        basicExport: 'Exportação básica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',

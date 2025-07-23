@@ -3417,7 +3417,7 @@ const translations = {
             welcomeNote: '请使用Expensify提交您的报销收据，谢谢！',
             subscription: '订阅',
             markAsEntered: '标记为手动输入',
-            markAsExported: '标记为手动导出',
+            markAsExported: '标记为已出口',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `导出到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: '让我们仔细检查一下，确保一切都正确。',
             lineItemLevel: '逐项级别',

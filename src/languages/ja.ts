@@ -3456,7 +3456,7 @@ const translations = {
             welcomeNote: '領収書の払い戻し申請にはExpensifyを使用してください。ありがとうございます！',
             subscription: 'サブスクリプション',
             markAsEntered: '手動入力としてマーク',
-            markAsExported: '手動でエクスポート済みとしてマーク',
+            markAsExported: '輸出マーク',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}にエクスポート`,
             letsDoubleCheck: 'すべてが正しいかどうかをもう一度確認しましょう。',
             lineItemLevel: 'ラインアイテムレベル',
