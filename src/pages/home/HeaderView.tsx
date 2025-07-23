@@ -26,7 +26,6 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,7 +36,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getOneTransactionThreadReportID, getReportActions} from '@libs/ReportActionsUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -50,7 +48,6 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
-    getReportOrDraftReport,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -143,22 +140,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
-    const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
-    const {isOffline} = useNetwork();
-    const reportHeaderData =
-        ((!isTaskReport && !isChatThread) ||
-            (parentOfParentReport &&
-                !!getOneTransactionThreadReportID(
-                    parentOfParentReport,
-                    getReportOrDraftReport(parentOfParentReport?.chatReportID),
-                    getReportActions(parentOfParentReport),
-                    isOffline,
-                    undefined,
-                    true,
-                ))) &&
-        report?.parentReportID
-            ? parentReport
-            : report;
+    const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = getChatRoomSubtitle(reportHeaderData);
