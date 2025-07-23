@@ -183,7 +183,7 @@ function PolicyDistanceRatesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return rateText.includes(normalizedSearchInput);
     }, []);
-    const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0)), []);
+    const sortRates = useCallback((rates: RateForList[]) => rates, []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
 
     const addRate = () => {

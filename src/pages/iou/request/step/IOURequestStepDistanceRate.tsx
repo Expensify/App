@@ -61,21 +61,19 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
-    const sections = Object.values(rates)
-        .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
-        .map((rate) => {
-            const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
-            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
-            return {
-                text: rate.name ?? rateForDisplay,
-                alternateText: rate.name ? rateForDisplay : '',
-                keyForList: rate.customUnitRateID,
-                value: rate.customUnitRateID,
-                isDisabled: !rate.enabled,
-                isSelected,
-            };
-        });
+    const sections = Object.values(rates).map((rate) => {
+        const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
+        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
+        return {
+            text: rate.name ?? rateForDisplay,
+            alternateText: rate.name ? rateForDisplay : '',
+            keyForList: rate.customUnitRateID,
+            value: rate.customUnitRateID,
+            isDisabled: !rate.enabled,
+            isSelected,
+        };
+    });
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
