@@ -142,6 +142,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
 
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
+    const metadata = searchResults?.search;
+    const shouldShowFooter = !!metadata?.count;
 
     return (
         <ScreenWrapper
@@ -224,7 +226,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                         />
                     </View>
                 )}
-                <SearchPageFooter metadata={searchResults?.search} />
+                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
             </View>
         </ScreenWrapper>
     );
