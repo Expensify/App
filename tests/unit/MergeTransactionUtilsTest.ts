@@ -1,9 +1,294 @@
-import {buildMergedTransactionData, getMergeableDataAndConflictFields, selectTargetAndSourceTransactionIDsForMerge} from '@libs/MergeTransactionUtils';
+import {
+    buildMergedTransactionData,
+    getMergeableDataAndConflictFields,
+    getMergeFieldTranslationKey,
+    getMergeFieldValue,
+    getSourceTransaction,
+    isEmptyMergeValue,
+    selectTargetAndSourceTransactionIDsForMerge,
+    shouldNavigateToReceiptReview,
+} from '@libs/MergeTransactionUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
 
 describe('MergeTransactionUtils', () => {
+    describe('getSourceTransaction', () => {
+        it('should return undefined when mergeTransaction is undefined', () => {
+            // Given a null merge transaction
+            const mergeTransaction = undefined;
+
+            // When we try to get the source transaction
+            const result = getSourceTransaction(mergeTransaction);
+
+            // Then it should return undefined because the merge transaction is undefined
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when sourceTransactionID is not found in eligibleTransactions', () => {
+            // Given a merge transaction with a sourceTransactionID that doesn't match any eligible transactions
+            const transaction1 = createRandomTransaction(0);
+            const transaction2 = createRandomTransaction(1);
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(0),
+                sourceTransactionID: 'nonexistent',
+                eligibleTransactions: [transaction1, transaction2],
+            };
+
+            // When we try to get the source transaction
+            const result = getSourceTransaction(mergeTransaction);
+
+            // Then it should return undefined because the source transaction ID doesn't match any eligible transaction
+            expect(result).toBeUndefined();
+        });
+
+        it('should return the correct transaction when sourceTransactionID matches an eligible transaction', () => {
+            // Given a merge transaction with a sourceTransactionID that matches one of the eligible transactions
+            const sourceTransaction = createRandomTransaction(0);
+            const otherTransaction = createRandomTransaction(1);
+            sourceTransaction.transactionID = 'source123';
+
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(0),
+                sourceTransactionID: 'source123',
+                eligibleTransactions: [sourceTransaction, otherTransaction],
+            };
+
+            // When we try to get the source transaction
+            const result = getSourceTransaction(mergeTransaction);
+
+            // Then it should return the matching transaction from the eligible transactions
+            expect(result).toBe(sourceTransaction);
+            expect(result?.transactionID).toBe('source123');
+        });
+    });
+
+    describe('shouldNavigateToReceiptReview', () => {
+        it('should return false when any transaction has no receipt', () => {
+            // Given transactions where one has no receipt
+            const transaction1 = createRandomTransaction(0);
+            const transaction2 = createRandomTransaction(1);
+            transaction1.receipt = {receiptID: 123};
+            transaction2.receipt = undefined;
+            const transactions = [transaction1, transaction2];
+
+            // When we check if should navigate to receipt review
+            const result = shouldNavigateToReceiptReview(transactions);
+
+            // Then it should return false because not all transactions have receipts
+            expect(result).toBe(false);
+        });
+
+        it('should return true when all transactions have receipts with receiptIDs', () => {
+            // Given transactions where all have receipts with receiptIDs
+            const transaction1 = createRandomTransaction(0);
+            const transaction2 = createRandomTransaction(1);
+            transaction1.receipt = {receiptID: 123};
+            transaction2.receipt = {receiptID: 456};
+            const transactions = [transaction1, transaction2];
+
+            // When we check if should navigate to receipt review
+            const result = shouldNavigateToReceiptReview(transactions);
+
+            // Then it should return true because all transactions have valid receipts
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getMergeFieldValue', () => {
+        it('should return empty string when transaction is undefined', () => {
+            // Given an undefined transaction
+            const transaction = undefined;
+
+            // When we try to get a merge field value
+            const result = getMergeFieldValue(transaction, 'merchant');
+
+            // Then it should return an empty string because the transaction is undefined
+            expect(result).toBe('');
+        });
+
+        it('should return merchant value from transaction', () => {
+            // Given a transaction with a merchant value
+            const transaction = createRandomTransaction(0);
+            transaction.merchant = 'Test Merchant';
+            transaction.modifiedMerchant = 'Test Merchant';
+
+            // When we get the merchant field value
+            const result = getMergeFieldValue(transaction, 'merchant');
+
+            // Then it should return the merchant value from the transaction
+            expect(result).toBe('Test Merchant');
+        });
+
+        it('should return category value from transaction', () => {
+            // Given a transaction with a category value
+            const transaction = createRandomTransaction(0);
+            transaction.category = 'Food';
+
+            // When we get the category field value
+            const result = getMergeFieldValue(transaction, 'category');
+
+            // Then it should return the category value from the transaction
+            expect(result).toBe('Food');
+        });
+
+        it('should return currency value from transaction', () => {
+            // Given a transaction with a currency value
+            const transaction = createRandomTransaction(0);
+            transaction.currency = CONST.CURRENCY.EUR;
+
+            // When we get the currency field value
+            const result = getMergeFieldValue(transaction, 'currency');
+
+            // Then it should return the currency value from the transaction
+            expect(result).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('should handle amount field for unreported expense correctly', () => {
+            // Given a transaction that is an unreported expense (no reportID or unreported reportID)
+            const transaction = createRandomTransaction(0);
+            transaction.amount = 1000;
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+
+            // When we get the amount field value
+            const result = getMergeFieldValue(transaction, 'amount');
+
+            // Then it should return the amount as positive because it's an unreported expense
+            expect(result).toBe(1000);
+        });
+
+        it('should handle amount field for reported expense correctly', () => {
+            // Given a transaction that is part of a report
+            const transaction = createRandomTransaction(0);
+            transaction.amount = 1000;
+            transaction.reportID = 'report123';
+
+            // When we get the amount field value
+            const result = getMergeFieldValue(transaction, 'amount');
+
+            // Then it should return the amount as negative because it's a reported expense
+            expect(result).toBe(-1000);
+        });
+    });
+
+    describe('getMergeFieldTranslationKey', () => {
+        it('should return correct translation key for amount field', () => {
+            // When we get the translation key for amount field
+            const result = getMergeFieldTranslationKey('amount');
+
+            // Then it should return the correct translation key for amount
+            expect(result).toBe('iou.amount');
+        });
+
+        it('should return correct translation key for merchant field', () => {
+            // When we get the translation key for merchant field
+            const result = getMergeFieldTranslationKey('merchant');
+
+            // Then it should return the correct translation key for merchant
+            expect(result).toBe('common.merchant');
+        });
+
+        it('should return correct translation key for category field', () => {
+            // When we get the translation key for category field
+            const result = getMergeFieldTranslationKey('category');
+
+            // Then it should return the correct translation key for category
+            expect(result).toBe('common.category');
+        });
+
+        it('should return correct translation key for description field', () => {
+            // When we get the translation key for description field
+            const result = getMergeFieldTranslationKey('description');
+
+            // Then it should return the correct translation key for description
+            expect(result).toBe('common.description');
+        });
+
+        it('should return correct translation key for reimbursable field', () => {
+            // When we get the translation key for reimbursable field
+            const result = getMergeFieldTranslationKey('reimbursable');
+
+            // Then it should return the correct translation key for reimbursable
+            expect(result).toBe('common.reimbursable');
+        });
+
+        it('should return correct translation key for billable field', () => {
+            // When we get the translation key for billable field
+            const result = getMergeFieldTranslationKey('billable');
+
+            // Then it should return the correct translation key for billable
+            expect(result).toBe('common.billable');
+        });
+    });
+
+    describe('isEmptyMergeValue', () => {
+        it('should return true for null value', () => {
+            // Given a null value
+            const value = null;
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return true because null is considered empty
+            expect(result).toBe(true);
+        });
+
+        it('should return true for undefined value', () => {
+            // Given an undefined value
+            const value = undefined;
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return true because undefined is considered empty
+            expect(result).toBe(true);
+        });
+
+        it('should return true for empty string', () => {
+            // Given an empty string
+            const value = '';
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return true because empty string is considered empty
+            expect(result).toBe(true);
+        });
+
+        it('should return false for false boolean value', () => {
+            // Given a false boolean value
+            const value = false;
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return false because false is a valid value, not empty
+            expect(result).toBe(false);
+        });
+
+        it('should return false for zero number', () => {
+            // Given a zero number value
+            const value = 0;
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return false because zero is a valid number, not empty
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non-empty string', () => {
+            // Given a non-empty string
+            const value = 'test';
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return false because the string has content
+            expect(result).toBe(false);
+        });
+    });
+
     describe('getMergeableDataAndConflictFields', () => {
         it('should merge matching values and identify conflicts for different ones', () => {
             // When target and source have some same, and some different values
