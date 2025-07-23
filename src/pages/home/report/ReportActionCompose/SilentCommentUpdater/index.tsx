@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type SilentCommentUpdaterProps from './types';
 
 /**
@@ -11,19 +12,16 @@ import type SilentCommentUpdaterProps from './types';
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
 function SilentCommentUpdater({commentRef, reportID, value, updateComment, isCommentPendingSaved}: SilentCommentUpdaterProps) {
-    const [comment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [comment = '', commentResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(reportID);
     const {preferredLocale} = useLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
-        updateComment(comment);
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We need to run this on mount
-    }, []);
-
-    useEffect(() => {
+        if (isLoadingOnyxValue(commentResult)) {
+            return;
+        }
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
         const shouldSyncComment = prevCommentProp !== comment && value !== comment && !isCommentPendingSaved.current;
@@ -35,7 +33,7 @@ function SilentCommentUpdater({commentRef, reportID, value, updateComment, isCom
         }
 
         updateComment(comment ?? '');
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef, isCommentPendingSaved]);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef, isCommentPendingSaved, commentResult]);
 
     return null;
 }
