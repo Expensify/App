@@ -361,14 +361,6 @@ Onyx.connect({
     },
 });
 
-let onboardingInitialPath: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
-    callback: (value) => {
-        onboardingInitialPath = value;
-    },
-});
-
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -3369,7 +3361,12 @@ function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
-function openReportFromDeepLink(url: string, currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>, currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>) {
+function openReportFromDeepLink(
+    url: string,
+    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
+    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
+    onboardingInitialPath: OnyxEntry<string>,
+) {
     const reportID = getReportIDFromLink(url);
     const isAuthenticated = hasAuthToken();
 
