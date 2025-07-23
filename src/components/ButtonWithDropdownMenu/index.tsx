@@ -278,6 +278,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,
+                        subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
                     }))}
                 />
             )}

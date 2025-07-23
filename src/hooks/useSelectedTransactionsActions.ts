@@ -170,18 +170,26 @@ function useSelectedTransactionsActions({
         }
 
         options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-            text: translate('common.downloadAsCSV'),
-            icon: Expensicons.Download,
-            onSelected: () => {
-                if (!report) {
-                    return;
-                }
-                exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                    onExportFailed?.();
-                });
-                clearSelectedTransactions(true);
-            },
+            value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            icon: Expensicons.Export,
+            subMenuItems: [
+                {
+                    text: translate('common.basicExport'),
+                    icon: Expensicons.Table,
+                    value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
+                    onSelected: () => {
+                        if (!report) {
+                            return;
+                        }
+                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
+                            onExportFailed?.();
+                        });
+                        clearSelectedTransactions(true);
+                    },
+                },
+            ],
         });
 
         const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
