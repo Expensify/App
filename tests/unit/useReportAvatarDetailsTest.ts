@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import CONST from '@src/CONST';
+import {formatPhoneNumber} from '@src/libs/LocalePhoneNumber';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
