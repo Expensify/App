@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -119,7 +120,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {

@@ -8,6 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -1812,7 +1813,7 @@ describe('ReportUtils', () => {
             };
 
             // Get the quick action detail
-            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
+            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs, formatPhoneNumber);
 
             // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
             expect(quickActionDetails.quickActionAvatars.length).toEqual(0);

@@ -122,7 +122,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -495,7 +495,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
-                                    icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
+                                    icon={getIcons(currentUserPolicyExpenseChat, formatPhoneNumber, personalDetails)}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
