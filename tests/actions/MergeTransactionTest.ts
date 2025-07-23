@@ -2,8 +2,9 @@ import Onyx from 'react-native-onyx';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction as MergeTransactionType, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -43,17 +44,23 @@ describe('mergeTransactionRequest', () => {
     it('should update target transaction with merged values optimistically', async () => {
         // Given:
         // - Target transaction with original merchant and category values
-        // - Source transaction that will be deleted after merge
+        // - Source transaction that will be deleted after merge (only transaction in its report)
         // - Merge transaction containing the final values to keep
         const targetTransaction = {
             ...createRandomTransaction(1),
             transactionID: 'target123',
             merchant: 'Original Merchant',
             category: 'Original Category',
+            reportID: 'target-report-456',
+        };
+        const sourceExpenseReport = {
+            ...createExpenseReport(1),
+            reportID: 'source-report-123',
         };
         const sourceTransaction = {
             ...createRandomTransaction(2),
             transactionID: 'source456',
+            reportID: sourceExpenseReport.reportID,
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
@@ -68,6 +75,7 @@ describe('mergeTransactionRequest', () => {
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
         mockFetch?.pause?.();
@@ -100,6 +108,16 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
+        const updatedSourceReport = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
         const updatedMergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`,
@@ -119,6 +137,9 @@ describe('mergeTransactionRequest', () => {
         // Verify source transaction is deleted
         expect(updatedSourceTransaction).toBeNull();
 
+        // Verify source report is deleted (since it only had one transaction)
+        expect(updatedSourceReport).toBeNull();
+
         // Verify merge transaction is cleaned up
         expect(updatedMergeTransaction).toBeNull();
     });
@@ -126,18 +147,25 @@ describe('mergeTransactionRequest', () => {
     it('should restore original state when API returns error', async () => {
         // Given:
         // - Target transaction with original data that should be restored on failure
-        // - Source transaction that should be restored if merge fails
+        // - Source transaction that should be restored if merge fails (only transaction in its report)
+        // - Source report that should be restored if merge fails
         // - Transaction violations are set up in Onyx for both transactions
+        const sourceReport = {
+            ...createExpenseReport(1),
+            reportID: 'source-report-123',
+        };
         const targetTransaction = {
             ...createRandomTransaction(1),
             transactionID: 'target123',
             merchant: 'Original Merchant',
             category: 'Original Category',
+            reportID: 'target-report-456',
         };
         const sourceTransaction = {
             ...createRandomTransaction(2),
             transactionID: 'source456',
             merchant: 'Source Merchant',
+            reportID: sourceReport.reportID,
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
@@ -155,6 +183,7 @@ describe('mergeTransactionRequest', () => {
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`, mockViolations);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${sourceTransaction.transactionID}`, mockViolations);
@@ -192,6 +221,16 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
+        const restoredSourceReport = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
         // Verify target transaction is restored to original state
         expect(restoredTargetTransaction?.merchant).toBe('Original Merchant');
         expect(restoredTargetTransaction?.category).toBe('Original Category');
@@ -199,6 +238,10 @@ describe('mergeTransactionRequest', () => {
         // Verify source transaction is restored (not deleted)
         expect(restoredSourceTransaction?.transactionID).toBe('source456');
         expect(restoredSourceTransaction?.merchant).toBe('Source Merchant');
+
+        // Verify source report is restored (not deleted)
+        expect(restoredSourceReport?.reportID).toBe(sourceReport.reportID);
+        expect(restoredSourceReport).toEqual(sourceReport);
     });
 
     it('should handle transaction violations correctly during merge', async () => {
@@ -262,5 +305,65 @@ describe('mergeTransactionRequest', () => {
 
         // Should not contain duplicate transaction violations
         expect(updatedTargetViolations?.some((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeFalsy();
+    });
+
+    describe('Report deletion logic', () => {
+        it('should NOT delete source report optimistically when it contains multiple transactions', async () => {
+            // Given: A source transaction that is one of multiple transactions in its report
+            const sourceReport = {
+                ...createExpenseReport(1),
+                reportID: 'source-report-123',
+            };
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'target123',
+                reportID: 'target-report-456',
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'source456',
+                reportID: sourceReport.reportID,
+            };
+            const otherTransaction = {
+                ...createRandomTransaction(3),
+                transactionID: 'other789',
+                reportID: sourceReport.reportID,
+            };
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(1),
+                targetTransactionID: 'target123',
+                sourceTransactionID: 'source456',
+            };
+            const mergeTransactionID = 'merge789';
+
+            // Set up initial state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+
+            mockFetch?.pause?.();
+
+            // When: The merge request is executed
+            mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then: The source report should NOT be deleted (should still exist)
+            const updatedSourceReport = await new Promise<Report | null>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report ?? null);
+                    },
+                });
+            });
+
+            expect(updatedSourceReport).toEqual(sourceReport);
+            expect(updatedSourceReport?.reportID).toBe(sourceReport.reportID);
+        });
     });
 });

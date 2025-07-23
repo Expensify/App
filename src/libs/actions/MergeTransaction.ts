@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,6 +151,28 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
         value: sourceTransaction,
     };
+    const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
+    const optimisticSourceReportData: OnyxUpdate[] =
+        transactionsOfSourceReport.length === 1
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                      value: null,
+                  },
+              ]
+            : [];
+
+    const failureSourceReportData: OnyxUpdate[] =
+        transactionsOfSourceReport.length === 1
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                      value: getReportOrDraftReport(sourceTransaction.reportID),
+                  },
+              ]
+            : [];
 
     // Optimistic delete the merge transaction
     const optimisticMergeTransactionData: OnyxUpdate = {
@@ -179,9 +201,15 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         };
     });
 
-    const optimisticData: OnyxUpdate[] = [optimisticTargetTransactionData, optimisticSourceTransactionData, optimisticMergeTransactionData, ...optimisticTransactionViolations];
+    const optimisticData: OnyxUpdate[] = [
+        optimisticTargetTransactionData,
+        optimisticSourceTransactionData,
+        ...optimisticSourceReportData,
+        optimisticMergeTransactionData,
+        ...optimisticTransactionViolations,
+    ];
 
-    const failureData: OnyxUpdate[] = [failureTargetTransactionData, failureSourceTransactionData, ...failureTransactionViolations];
+    const failureData: OnyxUpdate[] = [failureTargetTransactionData, failureSourceTransactionData, ...failureSourceReportData, ...failureTransactionViolations];
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData});
 }
