@@ -40,10 +40,8 @@ type FormData = {
     entries: () => Array<[string, string | Blob]>;
 };
 
-const countryCodeByIP = 1;
-
 function formatPhoneNumber(phoneNumber: string) {
-    return formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
+    return formatPhoneNumberWithCountryCode(phoneNumber, 1);
 }
 
 function setupApp() {
