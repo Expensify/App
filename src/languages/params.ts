@@ -793,6 +793,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type QBDSetupErrorBodyParams = {
+    conciergeLink: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1070,4 +1074,5 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    QBDSetupErrorBodyParams,
 };
