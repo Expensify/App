@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
@@ -491,27 +491,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [hash, isMobileSelectionModeEnabled, toggleTransaction],
     );
 
-    const onViewableItemsChanged = useCallback(
-        ({viewableItems}: {viewableItems: ViewToken[]}) => {
-            if (!isFocused) {
-                return;
-            }
-
-            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
-            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
-            if (shouldShowLoadingState || !isFirstItemVisible) {
-                return;
-            }
-
-            // This line makes sure the app refreshes the search results when the user scrolls to the top.
-            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
-            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
-            // Therefore, when the user scrolls to the top, we need to refresh the search results.
-            setOffset(0);
-        },
-        [shouldShowLoadingState, isFocused],
-    );
-
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
@@ -728,7 +707,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    onViewableItemsChanged={onViewableItemsChanged}
                     onLayout={onLayoutWithScrollRestore}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 />
