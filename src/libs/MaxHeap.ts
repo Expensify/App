@@ -3,46 +3,46 @@ import {Heap} from './Heap';
 type GetCompareValue<T> = (item: T) => number | string;
 
 /**
- * Comparison function for a min-heap based on the provided `getCompareValue` function.
+ * Comparison function for a max-heap based on the provided `getCompareValue` function.
  * @param getCompareValue
  */
-function getMinCompare<T>(getCompareValue?: GetCompareValue<T>): (a: T, b: T) => number {
+function getMaxCompare<T>(getCompareValue?: GetCompareValue<T>): (a: T, b: T) => number {
     return (a, b) => {
         const aVal = typeof getCompareValue === 'function' ? getCompareValue(a) : a;
         const bVal = typeof getCompareValue === 'function' ? getCompareValue(b) : b;
-        return aVal <= bVal ? -1 : 1;
+        return aVal >= bVal ? -1 : 1;
     };
 }
 
 /**
- * MinHeap is a priority queue that always keeps the smallest element at the top.
+ * MaxHeap is a priority queue that always keeps the largest element at the top.
  * Internally, it uses a binary heap structure to ensure that insertion (`push`)
- * and removal of the minimum element (`pop`) are efficient, both operating in O(log n) time.
+ * and removal of the maximum element (`pop`) are efficient, both operating in O(log n) time.
  *
  * The heap is constructed using a comparator derived from an optional `getCompareValue` function,
  * which allows comparing complex objects based on a specific property.
  * If no comparison function is provided, direct value comparison is used.
  *
  * Typical use cases include:
- * - Finding the smallest element in a dynamic dataset
- * - Implementing efficient top-k queries (e.g., 10 smallest items from a large list)
+ * - Finding the largest element in a dynamic dataset
+ * - Implementing efficient top-k queries (e.g., 10 largest items from a large list)
  * - Scheduling or prioritizing tasks based on weight or priority value
  *
  * Elements can be added via `push`, removed with `pop`, and inspected with `peek`.
- * The heap also supports iteration, which destructively yields elements in ascending order.
+ * The heap also supports iteration, which destructively yields elements in descending order.
  *
  * Example:
  * ```ts
- * const heap = new MinHeap<number>();
+ * const heap = new MaxHeap<number>();
  * heap.push(4).push(1).push(3);
- * console.log(heap.pop()); // 1
+ * console.log(heap.pop()); // 4
  * ```
  */
-class MinHeap<T = number> {
+class MaxHeap<T = number> {
     private heap: Heap<T>;
 
     constructor(getCompareValue?: GetCompareValue<T>) {
-        this.heap = new Heap<T>(getMinCompare(getCompareValue));
+        this.heap = new Heap<T>(getMaxCompare(getCompareValue));
     }
 
     push(value: T): this {
@@ -83,4 +83,4 @@ class MinHeap<T = number> {
 }
 
 export type {GetCompareValue};
-export {MinHeap};
+export {MaxHeap};
