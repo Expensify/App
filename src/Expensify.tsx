@@ -106,7 +106,7 @@ function Expensify() {
     useDebugShortcut();
     usePriorityMode();
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
