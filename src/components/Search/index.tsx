@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
@@ -148,6 +147,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
+        currentSearchKey,
         setCurrentSearchHash,
         setSelectedTransactions,
         selectedTransactions,
@@ -163,7 +163,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
-    const {currentSearch} = useSearchTypeMenuSections(hash);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
@@ -273,8 +272,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearch?.key);
-    }, [currentSearch?.key, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+        // Group-by option cannot be used for chats or tasks
+        const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+        const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+        if (groupBy && (isChat || isTask)) {
+            return [];
+        }
+
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearchKey);
+    }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -520,8 +526,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = baseKey === newSearchResultKey;
+
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
@@ -529,6 +537,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                         return transactionKey === newSearchResultKey;
                     });
+
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
