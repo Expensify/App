@@ -33,41 +33,24 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = selectedItems
-            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString()))
+        const itemsSection = items
+            .filter((item) => item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .sort((a, b) => sortOptionsWithEmptyValue(a.value as string, b.value as string))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
-                isSelected: true,
+                isSelected: selectedItems.some((selectedItem) => selectedItem.value === item.value),
                 value: item.value,
             }));
-        const remainingItemsSection = items
-            .filter(
-                (item) =>
-                    !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
-            )
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString()))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: false,
-                value: item.value,
-            }));
-        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+        const isEmpty = !itemsSection.length;
         return {
             sections: isEmpty
                 ? []
                 : [
                       {
-                          title: undefined,
-                          data: selectedItemsSection,
-                          shouldShow: selectedItemsSection.length > 0,
-                      },
-                      {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
+                          data: itemsSection,
+                          shouldShow: itemsSection.length > 0,
                       },
                   ],
             noResultsFound: isEmpty,
