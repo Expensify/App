@@ -1796,7 +1796,7 @@ function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAcco
  * Returns true if the report is an expense report or a group policy and the iouType is not split.
  */
 function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
-    return (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || iouType === CONST.IOU.TYPE.CREATE) && iouType !== CONST.IOU.TYPE.SPLIT;
+    return (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || iouType === CONST.IOU.TYPE.CREATE) && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.INVOICE;
 }
 
 /**
@@ -3703,8 +3703,8 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to "offset" future expenses
-            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : nonReimbursableSpend;
-            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : totalSpend;
+            nonReimbursableSpend = isExpenseReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport) ? nonReimbursableSpend * -1 : nonReimbursableSpend;
+            totalSpend = isExpenseReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport) ? totalSpend * -1 : totalSpend;
 
             const totalDisplaySpend = totalSpend;
             const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
