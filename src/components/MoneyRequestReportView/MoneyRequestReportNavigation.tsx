@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
@@ -27,12 +27,15 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
 
-    if (currentIndex >= allReportsCount - 1 && lastSearchQuery?.queryJSON) {
+    useEffect(() => {
+        if (currentIndex < allReportsCount - 1 || !lastSearchQuery?.queryJSON) {
+            return;
+        }
         saveLastSearchParams({
             ...lastSearchQuery,
             previousLengthOfResults: allReports.length,
         });
-    }
+    }, [currentIndex, allReportsCount, allReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
