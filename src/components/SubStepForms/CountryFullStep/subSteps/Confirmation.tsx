@@ -96,8 +96,9 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                     style={[styles.label]}
                     onPress={handleSettingsPress}
                 >
-                    {translate('common.settings').toLowerCase()}.
+                    {translate('common.settings').toLowerCase()}
                 </TextLink>
+                .
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}

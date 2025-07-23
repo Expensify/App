@@ -145,16 +145,16 @@ function VerifiedBankAccountFlowEntryPoint({
         if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             if (isNonUSDWorkspace) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
-                setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.EMPTY);
+                setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
 
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.EMPTY);
+            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             openPlaidView();
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.EMPTY);
+            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
     }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, setNonUSDBankAccountStep]);
 

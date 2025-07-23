@@ -98,10 +98,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
 
     /**
-     currentStep determines the step that is displayed in the USD flow. In the majority of the cases it is based on the
-     achData?.current step with one exception - the beginning of the flow. There is a step where user confirms the currency
-     and the country, and it exists purely from FE perspective. We return early in getInitialCurrentStep and ignore
-     achData?.currentStep value to display very first step.
+     We main rely on `achData.currentStep` to determine the step to display in USD flow.
+     This data is synchronized with the BE to know which step to resume/start from.
+     Except for the CountryStep which exists purely in the FE.
+     This function is to decide if we should start from the CountryStep.
      */
     const getInitialCurrentStep = () => {
         if (!hasConfirmedUSDCurrency) {

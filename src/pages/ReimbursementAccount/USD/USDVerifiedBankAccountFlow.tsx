@@ -8,7 +8,7 @@ import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
-import Country from './Country/Country';
+import Country from './Country';
 import RequestorStep from './Requestor/RequestorStep';
 
 type USDVerifiedBankAccountFlowProps = {

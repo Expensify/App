@@ -505,7 +505,7 @@ const CONST = {
         SETUP_TYPE: {
             MANUAL: 'manual',
             PLAID: 'plaid',
-            EMPTY: '',
+            NONE: '',
         },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,

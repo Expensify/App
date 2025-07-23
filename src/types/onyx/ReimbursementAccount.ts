@@ -190,7 +190,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 type ReimbursementAccountStep = BankAccountStep | '';
 
 /** The sub step in an reimbursement account's ach data */
-type ReimbursementAccountSubStep = BankAccountSubStep | '';
+type ReimbursementAccountSubStep = BankAccountSubStep;
 
 /** The ACHData for an reimbursement account */
 type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {

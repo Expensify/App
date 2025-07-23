@@ -1,5 +1,5 @@
 import React from 'react';
-import CountryFullStep from '@components/SubStepForms/CountryFullStep/CountryFullStep';
+import CountryFullStep from '@components/SubStepForms/CountryFullStep';
 import {goToWithdrawalAccountSetupStep} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 

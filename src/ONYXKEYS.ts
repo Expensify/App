@@ -304,7 +304,7 @@ const ONYXKEYS = {
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 
-    /** Stores information about type of connection user wants to perform before showing him validation code modal */
+    /** Stores the bank connection type user wants to set up before validation code modal */
     REIMBURSEMENT_ACCOUNT_OPTION_PRESSED: 'reimbursementAccountOptionPressed',
 
     /** Set when we are loading payment methods */
