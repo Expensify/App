@@ -337,7 +337,7 @@ function PolicyDistanceRatesPage({
                     <ButtonWithDropdownMenu
                         success={false}
                         onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
+                        shouldUseOptionIcon
                         customText={translate('common.more')}
                         options={secondaryActions}
                         isSplitButton={false}

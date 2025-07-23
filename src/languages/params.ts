@@ -801,6 +801,11 @@ type EmptyTagsSubtitleWithAccountingParams = {
     accountingPageURL: string;
 };
 
+type SettlementAccountInfoParams = {
+    reconciliationAccountSettingsLink: string;
+    accountNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1080,4 +1085,5 @@ export type {
     BusinessTaxIDParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    SettlementAccountInfoParams,
 };
