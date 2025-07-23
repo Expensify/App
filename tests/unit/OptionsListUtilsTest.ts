@@ -2,6 +2,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
@@ -11,6 +12,7 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getLastActorDisplayName,
     getMemberInviteOptions,
     getSearchOptions,
@@ -1931,6 +1933,40 @@ describe('OptionsListUtils', () => {
             expect(result.at(0)!.reportID).toBe('1');
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(1)!.reportID).toBe('3');
+        });
+    });
+
+    describe('getIOUConfirmationOptionsFromPayeePersonalDetail()', () => {
+        it('should return the payee option with the formatted phone number', () => {
+            const formattedMember: PersonalDetails = {
+                accountID: 1,
+                firstName: 'John',
+                lastName: 'Doe',
+                displayName: 'John Doe',
+                login: 'john@doe.com',
+                phoneNumber: '1234567890',
+                validated: true,
+                avatar: 'https://example.com/avatar.png',
+            };
+            const result = getIOUConfirmationOptionsFromPayeePersonalDetail(formattedMember, formatPhoneNumber);
+
+            expect(result.login).toBe(formattedMember.login);
+        });
+
+        it('should return the payee option with the formatted phone number', () => {
+            const formattedMember: PersonalDetails = {
+                accountID: 1,
+                firstName: 'John',
+                lastName: 'Doe',
+                displayName: 'John Doe',
+                login: '1234567890@expensify.sms',
+                phoneNumber: '1234567890',
+                validated: true,
+                avatar: 'https://example.com/avatar.png',
+            };
+            const result = getIOUConfirmationOptionsFromPayeePersonalDetail(formattedMember, formatPhoneNumber);
+
+            expect(result.alternateText).toBe(formattedMember.phoneNumber);
         });
     });
 });
