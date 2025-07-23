@@ -40,6 +40,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {MinHeap} from './MinHeap';
+import {MaxHeap} from './MaxHeap';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -1325,7 +1326,7 @@ const recentReportComparator = (option: OptionData) => {
  */
 function optionsOrderBy<T = OptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
-    const heap = new MinHeap<T>(comparator, reversed);
+    const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
