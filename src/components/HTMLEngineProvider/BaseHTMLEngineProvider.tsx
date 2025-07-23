@@ -116,7 +116,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
                 contentModel: HTMLContentModel.block,
             }),
-            'no-style-link': HTMLElementModel.fromCustomModel({tagName: 'no-style-link', contentModel: HTMLContentModel.textual}),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),

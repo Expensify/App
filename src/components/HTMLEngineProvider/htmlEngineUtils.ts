@@ -85,20 +85,6 @@ function isChildOfRBR(tnode: TNode): boolean {
     return isChildOfRBR(tnode.parent);
 }
 
-/**
- * @returns Whether the node is a child of No Style Link
- * This is used to identify links that should not have any styles applied to them.
- */
-function isChildOfNoStyleLink(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'no-style-link') {
-        return true;
-    }
-    return isChildOfNoStyleLink(tnode.parent);
-}
-
 function getFontSizeOfRBRChild(tnode: TNode): number {
     if (!tnode.parent) {
         return 0;
@@ -112,4 +98,4 @@ function getFontSizeOfRBRChild(tnode: TNode): number {
     return 0;
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isChildOfNoStyleLink, isCommentTag, getFontSizeOfRBRChild};
+export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild};

@@ -829,7 +829,7 @@ const translations = {
     },
     reportActionsView: {
         beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
-            `你错过了 <strong><no-style-link><a href="${reportDetailsLink}">${reportName}</a></no-style-link></strong> 的派对，这里没什么好看的。`,
+            `你错过了 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 的派对，这里没什么好看的。`,
         beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
             `此聊天是与 <strong>${domainRoom}</strong> 域名上的所有 Expensify 会员进行的。使用它与同事聊天、分享技巧和提问。`,
         beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
@@ -837,7 +837,7 @@ const translations = {
         beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
             `此聊天室面向 <strong>${workspaceName}</strong> 的所有人。最重要的公告请使用此聊天室。`,
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
-            `本聊天室用于与 <strong><no-style-link><a href="${reportDetailsLink}">${reportName}</a></no-style-link></strong> 有关的任何内容。`,
+            `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',

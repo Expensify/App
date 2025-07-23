@@ -830,7 +830,7 @@ const translations = {
     },
     reportActionsView: {
         beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
-            `Je hebt het feest in <strong><no-style-link><a href="${reportDetailsLink}">${reportName}</a></no-style-link></strong> gemist, er is hier niets te zien.`,
+            `Je hebt het feest in <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> gemist, er is hier niets te zien.`,
         beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
             `Deze chat is voor alle Expensify-leden op het <strong>${domainRoom}</strong>-domein. Gebruik het om te chatten met collega's, tips te delen en vragen te stellen.`,
         beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
@@ -838,7 +838,7 @@ const translations = {
         beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
             `Deze chat is voor iedereen in <strong>${workspaceName}</strong>. Gebruik het voor de belangrijkste aankondigingen.`,
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
-            `Deze chatroom is voor alles wat met <strong><no-style-link><a href="${reportDetailsLink}">${reportName}</a></no-style-link></strong> te maken heeft.`,
+            `Deze chatroom is voor alles wat met <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> te maken heeft.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Deze chat is voor facturen tussen <strong>${invoicePayer}</strong> en <strong>${invoiceReceiver}</strong>. Gebruik de + knop om een factuur te sturen.`,
         beginningOfChatHistory: 'Deze chat is met',
