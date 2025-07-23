@@ -771,6 +771,7 @@ describe('getSecondaryAction', () => {
             id: OLD_POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             approver: MANAGER_EMAIL,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -781,6 +782,7 @@ describe('getSecondaryAction', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -825,6 +827,7 @@ describe('getSecondaryAction', () => {
             id: OLD_POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             approver: APPROVER_EMAIL,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -851,6 +854,7 @@ describe('getSecondaryAction', () => {
             type: CONST.POLICY.TYPE.TEAM,
             approver: APPROVER_EMAIL,
             isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
