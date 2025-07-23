@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
+import {mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -364,6 +364,83 @@ describe('mergeTransactionRequest', () => {
 
             expect(updatedSourceReport).toEqual(sourceReport);
             expect(updatedSourceReport?.reportID).toBe(sourceReport.reportID);
+        });
+    });
+});
+
+describe('setupMergeTransactionData', () => {
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it('should initialize merge transaction data with target transaction ID', async () => {
+        // Given a transaction ID
+        const transactionID = 'test-transaction-123';
+
+        // When we setup merge transaction data
+        setupMergeTransactionData(transactionID);
+        await waitForBatchedUpdates();
+
+        // Then merge transaction should be created with the target transaction ID
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (transaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(transaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: transactionID,
+        });
+    });
+});
+
+describe('setMergeTransactionKey', () => {
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it('should merge values into existing merge transaction data', async () => {
+        // Given an existing merge transaction
+        const transactionID = 'test-transaction-789';
+        const existingMergeTransaction = {
+            targetTransactionID: transactionID,
+            merchant: 'Original Merchant',
+            amount: 1000,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, existingMergeTransaction);
+
+        // When we set new merge transaction values
+        const newValues = {
+            merchant: 'Updated Merchant',
+            category: 'New Category',
+            description: 'New Description',
+        };
+
+        setMergeTransactionKey(transactionID, newValues);
+        await waitForBatchedUpdates();
+
+        // Then it should merge the new values with existing data
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (transaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(transaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: transactionID,
+            merchant: 'Updated Merchant', // Updated
+            amount: 1000, // Preserved
+            category: 'New Category', // Added
+            description: 'New Description', // Added
         });
     });
 });
