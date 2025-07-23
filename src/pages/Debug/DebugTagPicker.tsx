@@ -52,7 +52,7 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
         <View style={styles.gap5}>
             <View style={styles.gap5}>
                 {policyTagLists.map(({name}, index) => (
-                    <View>
+                    <View key={name}>
                         {policyTagLists.length > 1 && <Text style={[styles.textLabelSupportingNormal, styles.ph5, styles.mb3]}>{name}</Text>}
                         <TagPicker
                             policyID={policyID}
