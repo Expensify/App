@@ -826,12 +826,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Called when the current page is changed */
-    onCurrentPageChange?: () => void;
-
-    /** Called when the focus is changed if user has typed somehting */
-    onFocusReset?: () => void;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

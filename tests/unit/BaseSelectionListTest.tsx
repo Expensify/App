@@ -35,8 +35,6 @@ describe('BaseSelectionList', () => {
         jest.clearAllMocks();
     });
 
-    const onCurrentPageChange = jest.fn();
-    const onFocusReset = jest.fn();
     const onSelectRowMock = jest.fn();
 
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
@@ -50,8 +48,6 @@ describe('BaseSelectionList', () => {
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={canSelectMultiple}
                 initiallyFocusedOptionKey={focusedKey}
-                onCurrentPageChange={onCurrentPageChange}
-                onFocusReset={onFocusReset}
                 textInputValue={textInputValue}
                 shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
             />
@@ -98,119 +94,5 @@ describe('BaseSelectionList', () => {
         );
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
-    });
-
-    it('does not reset page when only selectedOptions changes', () => {
-        const {rerender} = render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
-        expect(onCurrentPageChange).not.toHaveBeenCalled();
-        expect(onFocusReset).not.toHaveBeenCalled();
-
-        // simulate selection-only change
-        const updated = mockSections.map((item, i) => ({
-            ...item,
-            isSelected: i === 2,
-        }));
-
-        rerender(<BaseListItemRenderer sections={[{data: updated}]} />);
-        expect(onFocusReset).not.toHaveBeenCalled();
-        expect(onCurrentPageChange).not.toHaveBeenCalled();
-
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: updated}]}
-                textInputValue="Test"
-            />,
-        );
-        expect(onFocusReset).toHaveBeenCalled();
-        expect(onCurrentPageChange).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reset current page and call onCurrentPageChange when text input changes', () => {
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: mockSections}]}
-                textInputValue="abc"
-            />,
-        );
-
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: mockSections}]}
-                textInputValue="abcd"
-            />,
-        );
-        expect(onCurrentPageChange).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reset focus when text input becomes empty after having a value', () => {
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: mockSections}]}
-                textInputValue="abc"
-            />,
-        );
-
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: mockSections}]}
-                textInputValue=""
-            />,
-        );
-        expect(onFocusReset).toHaveBeenCalled();
-    });
-
-    it('should reset focus when selected options change but all options remain same', () => {
-        const initialSections = mockSections.map((item, i) => ({
-            ...item,
-            isSelected: i === 1,
-        }));
-        const updatedSections = mockSections.map((item, i) => ({
-            ...item,
-            isSelected: i === 2 || i === 3,
-        }));
-
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: initialSections}]}
-                textInputValue=""
-            />,
-        );
-
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: updatedSections}]}
-                textInputValue=""
-            />,
-        );
-        expect(onFocusReset).toHaveBeenCalled();
-    });
-
-    it('should not reset focus when shouldUpdateFocusedIndex is true', () => {
-        const initialSections = mockSections.map((item, i) => ({
-            ...item,
-            isSelected: i === 1,
-        }));
-        const updatedSections = mockSections.map((item, i) => ({
-            ...item,
-            isSelected: i === 2 || i === 3,
-        }));
-
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: initialSections}]}
-                textInputValue=""
-                shouldUpdateFocusedIndex
-            />,
-        );
-        onFocusReset.mockClear();
-
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: updatedSections}]}
-                textInputValue=""
-                shouldUpdateFocusedIndex
-            />,
-        );
-        expect(onFocusReset).not.toHaveBeenCalled();
     });
 });
