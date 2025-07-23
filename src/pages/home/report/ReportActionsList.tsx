@@ -821,6 +821,9 @@ function ReportActionsList({
                                     ...props,
                                     onScroll,
                                 },
+                                default: {
+                                    ...props,
+                                },
                             }),
                         )
                     }

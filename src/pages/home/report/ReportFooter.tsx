@@ -24,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
+import {isChromeIOS, isMobileSafari} from '@libs/Browser';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -237,7 +238,7 @@ function ReportFooter({
             return unmodifiedPaddingBottom;
         };
 
-        if (Platform.OS !== 'ios') {
+        if (Platform.OS === 'android') {
             return {
                 height: getHeight(),
                 paddingBottom: getPaddingBottom(),
@@ -246,13 +247,25 @@ function ReportFooter({
 
         const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}];
 
+        if (Platform.OS === 'ios') {
+            return {
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
+                transform,
+                height: getHeight(),
+                paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
+            };
+        }
+
+        if (isChromeIOS() || isMobileSafari()) {
+            return {
+                height: getHeight(),
+            };
+        }
+
         return {
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            transform,
-            height: getHeight(),
-            paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
+            height: isComposerFullSize ? '100%' : 'auto',
         };
     });
 

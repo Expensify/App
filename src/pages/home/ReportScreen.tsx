@@ -900,7 +900,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <KeyboardGestureArea
-            style={styles.flexGrow1}
+            style={styles.flex1}
             offset={composerHeight}
             interpolator="ios"
             textInputNativeID="composer"
