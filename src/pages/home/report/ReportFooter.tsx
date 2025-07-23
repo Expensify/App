@@ -218,7 +218,7 @@ function ReportFooter({
                 return windowHeight - correctedHeaderHeight;
             }
 
-            return composerHeight;
+            return Platform.OS === 'ios' ? composerHeight : 'auto';
         };
 
         const getPaddingBottom = () => {
