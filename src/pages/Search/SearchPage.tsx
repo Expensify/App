@@ -465,7 +465,19 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults.current;
+
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current;
+    const metadata = searchResults?.search;
+    const shouldShowOfflineIndicator = !!searchResults?.data;
+    const shouldShowFooter = !!metadata?.count;
+
+    const offlineIndicatorStyle = useMemo(() => {
+        if (shouldShowFooter) {
+            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
+        }
+
+        return [styles.mtAuto];
+    }, [shouldShowFooter, styles]);
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -502,7 +514,7 @@ function SearchPage({route}: SearchPageProps) {
                     <SearchPageNarrow
                         queryJSON={queryJSON}
                         headerButtonsOptions={headerButtonsOptions}
-                        searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
+                        searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
@@ -572,7 +584,7 @@ function SearchPage({route}: SearchPageProps) {
                         <ScreenWrapper
                             testID={Search.displayName}
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
-                            offlineIndicatorStyle={styles.mtAuto}
+                            offlineIndicatorStyle={offlineIndicatorStyle}
                         >
                             <DragAndDropProvider>
                                 {PDFValidationComponent}
@@ -590,11 +602,11 @@ function SearchPage({route}: SearchPageProps) {
                                 <Search
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
-                                    searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
+                                    searchResults={searchResults}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
-                                <SearchPageFooter metadata={currentSearchResults?.data ? currentSearchResults.search : lastNonEmptySearchResults.current?.search} />
+                                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
                                         icon={Expensicons.SmartScan}
