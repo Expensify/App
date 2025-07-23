@@ -201,7 +201,7 @@ function ReportActionsList({
         () => (isTransactionThread(parentReportAction) ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
         [parentReportAction, sortedVisibleReportActions],
     );
-    const lastAction = visibleReportActions.at(0);
+    const lastAction = visibleReportActions.at(isTransactionThread(parentReportAction) ? -1 : 0);
     const visibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
             visibleReportActions.reduce((actions, action) => {
@@ -364,11 +364,15 @@ function ReportActionsList({
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+            if (isTransactionThread(parentReportAction)) {
+                reportScrollManager.scrollToEnd();
+            } else {
+                reportScrollManager.scrollToBottom();
+            }
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = visibleReportActions.length;
-    }, [lastActionIndex, visibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+    }, [lastActionIndex, visibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible, parentReportAction]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -403,7 +407,9 @@ function ReportActionsList({
         }
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+            if (!isTransactionThread(parentReportAction)) {
+                reportScrollManager.scrollToBottom();
+            }
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -417,10 +423,14 @@ function ReportActionsList({
         const prevSorted = lastAction?.reportActionID ? prevVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
             InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
+                if (isTransactionThread(parentReportAction)) {
+                    reportScrollManager.scrollToEnd();
+                } else {
+                    reportScrollManager.scrollToBottom();
+                }
             });
         }
-    }, [lastAction, prevVisibleReportActionsObjects, reportScrollManager]);
+    }, [lastAction, parentReportAction, prevVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
@@ -441,11 +451,15 @@ function ReportActionsList({
                     return;
                 }
 
-                reportScrollManager.scrollToBottom();
+                if (isTransactionThread(parentReportAction)) {
+                    reportScrollManager.scrollToEnd();
+                } else {
+                    reportScrollManager.scrollToBottom();
+                }
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
+        [parentReportAction, report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -487,7 +501,11 @@ function ReportActionsList({
             return;
         }
         InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+            if (isTransactionThread(parentReportAction)) {
+                reportScrollManager.scrollToEnd();
+            } else {
+                reportScrollManager.scrollToBottom();
+            }
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction]);
@@ -498,13 +516,21 @@ function ReportActionsList({
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             openReport(report.reportID);
-            reportScrollManager.scrollToBottom();
+            if (isTransactionThread(parentReportAction)) {
+                reportScrollManager.scrollToEnd();
+            } else {
+                reportScrollManager.scrollToBottom();
+            }
             return;
         }
-        reportScrollManager.scrollToBottom();
+        if (isTransactionThread(parentReportAction)) {
+            reportScrollManager.scrollToEnd();
+        } else {
+            reportScrollManager.scrollToBottom();
+        }
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, parentReportAction]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -654,11 +680,15 @@ function ReportActionsList({
         (event: LayoutChangeEvent) => {
             onLayout(event);
             if (isScrollToBottomEnabled) {
-                reportScrollManager.scrollToBottom();
+                if (isTransactionThread(parentReportAction)) {
+                    reportScrollManager.scrollToEnd();
+                } else {
+                    reportScrollManager.scrollToBottom();
+                }
                 setIsScrollToBottomEnabled(false);
             }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager],
+        [isScrollToBottomEnabled, onLayout, parentReportAction, reportScrollManager],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
