@@ -268,7 +268,7 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Should now show items from second page
+        // Should not show the items from second page
         expect(screen.queryByText(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeFalsy();
 
         // Should show, Show more button as current page is reset
