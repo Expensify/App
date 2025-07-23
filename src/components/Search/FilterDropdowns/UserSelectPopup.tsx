@@ -115,7 +115,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             });
 
         return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [optionsList, cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, selectedAccountIDs, accountID]);
+    }, [optionsList, cleanSearchTerm, selectedAccountIDs, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [

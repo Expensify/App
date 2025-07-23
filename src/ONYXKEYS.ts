@@ -16,7 +16,6 @@ import type DeepValueOf from './types/utils/DeepValueOf';
  */
 const ONYXKEYS = {
     /** Holds information about the users account that is logging in */
-
     ACCOUNT: 'account',
 
     /** Holds the reportID for the report between the user and their account manager */
