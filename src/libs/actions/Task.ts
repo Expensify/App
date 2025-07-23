@@ -1001,7 +1001,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
     }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
-        displayName: ReportUtils.getReportName(report),
+        displayName: ReportUtils.getReportName(report, LocalePhoneNumber.formatPhoneNumber),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

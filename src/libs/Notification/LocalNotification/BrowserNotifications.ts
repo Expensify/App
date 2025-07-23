@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -114,7 +115,7 @@ export default {
         }
 
         if (isChatRoom) {
-            const roomName = ReportUtils.getReportName(report);
+            const roomName = ReportUtils.getReportName(report, formatPhoneNumber);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {

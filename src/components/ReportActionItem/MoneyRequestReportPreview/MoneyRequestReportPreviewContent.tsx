@@ -124,7 +124,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -245,7 +245,7 @@ function MoneyRequestReportPreviewContent({
         if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName({report: chatReport, policy});
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
             payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
         }
@@ -657,7 +657,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
+                                                            {getMoneyReportPreviewName(action, iouReport, formatPhoneNumber, isInvoice)}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>

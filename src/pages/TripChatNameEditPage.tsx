@@ -28,11 +28,11 @@ type TripChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigat
 
 function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const reportID = report?.reportID;
-    const currentChatName = getReportName(report);
+    const currentChatName = getReportName(report, formatPhoneNumber);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {

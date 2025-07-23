@@ -123,7 +123,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
@@ -147,9 +147,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             ? parentReport
             : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
+    const title = getReportName(reportHeaderData, formatPhoneNumber, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData, formatPhoneNumber);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);

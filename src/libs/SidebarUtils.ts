@@ -17,6 +17,7 @@ import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
@@ -372,7 +373,7 @@ function sortReportsToDisplayInLHN(
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
-            displayName: getReportName(report),
+            displayName: getReportName(report, formatPhoneNumber),
             lastVisibleActionCreated: report?.lastVisibleActionCreated,
         };
 
@@ -684,7 +685,7 @@ function getOptionData({
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`], formatPhoneNumber) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -815,7 +816,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, formatPhoneNumber, policy, undefined, undefined, invoiceReceiverPolicy);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -942,7 +943,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = ensureSingleSpacing(`${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`);
+    welcomeMessage.messageText = ensureSingleSpacing(
+        `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? getReportName(report, formatPhoneNumber) : ''} ${welcomeMessage.phrase2 ?? ''}`,
+    );
 
     return welcomeMessage;
 }

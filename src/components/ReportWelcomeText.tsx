@@ -44,7 +44,7 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -81,7 +81,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, formatPhoneNumber);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -178,7 +178,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     onPress={navigateToReport}
                                     suppressHighlighting
                                 >
-                                    {getReportName(report)}
+                                    {getReportName(report, formatPhoneNumber)}
                                 </Text>
                             )}
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}

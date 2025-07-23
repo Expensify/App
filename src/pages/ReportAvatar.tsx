@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import AttachmentModal from '@components/AttachmentModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,12 +18,12 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-
+    const {formatPhoneNumber} = useLocalize();
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName(report),
+                headerTitle: getReportName(report, formatPhoneNumber),
                 isWorkspaceAvatar: false,
             };
         }
@@ -34,7 +35,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [report, policy]);
+    }, [report, policy, formatPhoneNumber]);
 
     return (
         <AttachmentModal

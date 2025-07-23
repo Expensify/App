@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -146,7 +147,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportName(report, policy));
+        await measureFunction(() => getReportName(report, formatPhoneNumber, policy));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
