@@ -183,6 +183,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -4394,9 +4395,8 @@ const translations = {
             addNewBankAccount: 'Dodaj nowe konto bankowe',
             settlementAccount: 'Konto rozliczeniowe',
             settlementAccountDescription: 'Wybierz konto do spłaty salda na karcie Expensify.',
-            settlementAccountInfoPt1: 'Upewnij się, że to konto pasuje do Twojego',
-            settlementAccountInfoPt2: 'więc Ciągła Rekoncyliacja działa poprawnie.',
-            reconciliationAccount: 'Konto uzgadniające',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Upewnij się, że to konto jest zgodne z <a href="${reconciliationAccountSettingsLink}">kontem Reconciliation</a> (${accountNumber}), aby Continuous Reconciliation działało poprawnie.`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             settlementFrequencyDescription: 'Wybierz, jak często będziesz spłacać saldo swojej karty Expensify.',
             settlementFrequencyInfo:
