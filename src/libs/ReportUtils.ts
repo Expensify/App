@@ -3933,10 +3933,12 @@ function getMoneyRequestReportName({
     report,
     policy,
     invoiceReceiverPolicy,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy> | SearchPolicy;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
@@ -3951,7 +3953,7 @@ function getMoneyRequestReportName({
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
-        payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
+        payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: report?.managerID}) ?? '';
     }
@@ -4861,7 +4863,12 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
  */
-function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
+function getInvoicePayerName(
+    report: OnyxEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy,
+    invoiceReceiverPersonalDetail?: PersonalDetails | null,
+): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
@@ -5041,7 +5048,7 @@ function generateReportName(report: OnyxEntry<Report>, countryCode: number): str
         return '';
     }
     const formatPhoneNumber = (phoneNumber: string) => formatPhoneNumberWithCountryCode(phoneNumber, countryCode);
-    return getReportNameInternal({report, formatPhoneNumber});
+    return getReportNameInternal({formatPhoneNumber, report});
 }
 
 /**
@@ -5074,8 +5081,13 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+function getInvoiceReportName(
+    report: OnyxEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    policy?: OnyxEntry<Policy | SearchPolicy>,
+    invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>,
+): string {
+    const moneyRequestReportName = getMoneyRequestReportName({formatPhoneNumber, report, policy, invoiceReceiverPolicy});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -5258,6 +5270,7 @@ function getReportNameInternal({
 
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
+            formatPhoneNumber,
             reportAction: parentReportAction,
             reportID: report?.parentReportID,
             childReportID: report?.reportID,
@@ -5314,11 +5327,11 @@ function getReportNameInternal({
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy});
+        formattedName = getMoneyRequestReportName({formatPhoneNumber, report, policy});
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, formatPhoneNumber, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -5445,7 +5458,7 @@ function getParentNavigationSubtitle(
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport, invoiceReceiverPolicy)}`;
+        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport, formatPhoneNumber, invoiceReceiverPolicy)}`;
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
@@ -11065,7 +11078,7 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
 
-        return getInvoiceReportName(properInvoiceReport);
+        return getInvoiceReportName(properInvoiceReport, formatPhoneNumber);
     }
 
     if (action?.reportName) {
