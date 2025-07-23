@@ -226,12 +226,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                         />
                     </View>
                 )}
-                {shouldShowFooter && (
-                    <SearchPageFooter
-                        metadata={metadata}
-                        style={styles.justifyContentStart}
-                    />
-                )}
+                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
             </View>
         </ScreenWrapper>
     );
