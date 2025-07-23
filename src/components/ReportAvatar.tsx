@@ -196,12 +196,18 @@ function getPrimaryAndSecondaryAvatar({
 
     const {avatar, fallbackIcon} = personalDetails?.[accountID] ?? {};
 
-    const isWorkspaceChat = isPolicyExpenseChat(chatReport) || (!chatReport && policy?.type !== CONST.POLICY.TYPE.PERSONAL);
+    const isATripRoom = isTripRoom(chatReport);
+    const isWorkspaceWithoutChatReportProp = !chatReport && policy?.type !== CONST.POLICY.TYPE.PERSONAL;
+    const isWorkspaceChat = isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp;
+    const isChatReportOnlyProp = !iouReport && chatReport;
+    const isWorkspaceChatWithoutChatReport = !chatReport && isWorkspaceChat;
+    const isTripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
+    const isReportPreviewOrNoAction = !action || action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const isReportPreviewInTripRoom = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isATripRoom;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const usePersonalDetailsAvatars = ((!iouReport && chatReport) || (!chatReport && isWorkspaceChat)) && (!action || action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isTripPreview;
 
-    const isATripRoom = isTripRoom(chatReport);
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
     const displayAllActors = isReportPreviewAction && !isATripRoom && !isWorkspaceChat && !reportPreviewSenderID;
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
@@ -262,6 +268,16 @@ function getPrimaryAndSecondaryAvatar({
     };
 
     const getSecondaryAvatar = () => {
+        if (isTripPreview || isReportPreviewInTripRoom) {
+            return {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name),
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: policy?.name,
+                id: policy?.id,
+            };
+        }
+
         // If this is a report preview, display names and avatars of both people involved
         if (displayAllActors) {
             const secondaryAccountId = ownerAccountID === actorAccountID || isAInvoiceReport ? actorAccountID : ownerAccountID;
@@ -315,7 +331,7 @@ function getPrimaryAndSecondaryAvatar({
 }
 
 function ReportAvatar({
-    reportID,
+    reportID: potentialReportID,
     singleAvatarContainerStyle,
     singleAvatarSize,
     subscriptBorderColor,
@@ -348,6 +364,10 @@ function ReportAvatar({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const reportID =
+        potentialReportID ??
+        ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === passedAction?.actionName) ? passedAction?.childReportID : undefined);
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
     const [potentialChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
@@ -357,15 +377,18 @@ function ReportAvatar({
     });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
-    const iouReport = isChatReport(report) ? undefined : report;
-    const chatReport = isChatReport(report) ? report : potentialChatReport;
+    const iouReport = isChatReport(report) && report?.chatType !== 'tripRoom' ? undefined : report;
+    const chatReport = isChatReport(report) && report?.chatType !== 'tripRoom' ? report : potentialChatReport;
 
     const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID;
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-    const isWorkspaceChat = isPolicyExpenseChat(chatReport) || (!chatReport && policy?.type !== CONST.POLICY.TYPE.PERSONAL);
-
     const action = passedAction ?? (iouReport?.parentReportActionID ? getReportAction(chatReport?.reportID ?? iouReport?.chatReportID, iouReport?.parentReportActionID) : undefined);
+
+    const isATripRoom = isTripRoom(chatReport);
+    const isWorkspaceChat = isPolicyExpenseChat(chatReport) || (!chatReport && policy?.type !== CONST.POLICY.TYPE.PERSONAL);
+    const isTripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
+    const isReportPreviewInTripRoom = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isATripRoom;
 
     const reportPreviewSenderID = useReportPreviewSenderID({action, iouReport, chatReport});
 
@@ -378,11 +401,16 @@ function ReportAvatar({
 
     const {fallbackIcon} = personalDetails?.[accountID] ?? {};
 
-    const isATripRoom = isTripRoom(chatReport);
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
+    const isReportArchived = useReportIsArchived(reportID);
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
     const shouldDisplayAllActors = isReportPreviewAction && !isATripRoom && !isWorkspaceChat && !reportPreviewSenderID;
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isAInvoiceReport || (isWorkspaceChat && (!actorAccountID || shouldDisplayAllActors));
+    const shouldShowAllActors = shouldDisplayAllActors && !reportPreviewSenderID;
+    const shouldShowConvertedSubscriptAvatar = convertSubscriptToMultiple && shouldShowSubscriptAvatar && !reportPreviewSenderID;
+    const isReportPreviewOrNoAction = !action || action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
 
     const [primaryAvatar, secondaryAvatar] = getPrimaryAndSecondaryAvatar({
         chatReport,
@@ -392,9 +420,6 @@ function ReportAvatar({
         reportPreviewSenderID,
         policies,
     });
-
-    const isReportArchived = useReportIsArchived(reportID);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
@@ -466,7 +491,7 @@ function ReportAvatar({
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
-    if (shouldShowSubscriptAvatar && !shouldStackHorizontally && !isChatThread(chatReport)) {
+    if (((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isTripPreview) && !shouldStackHorizontally && !isChatThreadOutsideTripRoom) {
         const isSmall = size === CONST.AVATAR_SIZE.SMALL;
         const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
         const containerStyle = StyleUtils.getContainerStyles(size);
@@ -555,7 +580,7 @@ function ReportAvatar({
     }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (passedAccountIDs || (shouldDisplayAllActors && !reportPreviewSenderID) || (convertSubscriptToMultiple && shouldShowSubscriptAvatar && !reportPreviewSenderID)) {
+    if (passedAccountIDs || shouldShowAllActors || shouldShowConvertedSubscriptAvatar) {
         if (!icons.length) {
             return null;
         }
