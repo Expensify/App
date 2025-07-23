@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
+    filterSelectedOptions,
     formatSectionsFromSearchTerm,
     getFirstKeyForList,
     getHeaderMessage,
@@ -68,21 +69,22 @@ function useOptions() {
             },
             {
                 betas: betas ?? [],
-                selectedOptions,
                 includeSelfDM: true,
             },
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    }, [betas, listOptions.personalDetails, listOptions.reports]);
+
+    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, selectedOptions), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
+    }, [debouncedSearchTerm, unselectedOptions, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
