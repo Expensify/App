@@ -687,7 +687,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
                 value: allTransactionViolation?.[transaction.transactionID],
             });
             const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
-            if (transactionHasViolations) {
+            const hasOtherViolationsBesideDuplicates = Array.isArray(violationData.value) && !violationData.value.every((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            if (transactionHasViolations && hasOtherViolationsBesideDuplicates) {
                 shouldFixViolations = true;
             }
         }
@@ -919,7 +920,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             return;
         }
         const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
-        if (Array.isArray(violationData.value) && violationData.value.length > 0) {
+        const hasOtherViolationsBesideDuplicates = Array.isArray(violationData.value) && !violationData.value.every((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        if (Array.isArray(violationData.value) && violationData.value.length > 0 && hasOtherViolationsBesideDuplicates) {
             shouldFixViolations = true;
         }
     });
