@@ -44,7 +44,7 @@ import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeF
 
 type SignInPageProps = {
     shouldEnableMaxHeight?: boolean;
-    ref: Ref<SignInPageRef | null>;
+    ref?: Ref<SignInPageRef>;
 };
 
 type SignInPageRef = {
