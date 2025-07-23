@@ -1,4 +1,4 @@
-import * as NativeNavigation from '@react-navigation/native';
+import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -13,13 +13,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@react-navigation/native');
-const mockUseIsFocused = jest.fn(() => true);
-const mockUseRoute = jest.fn(() => ({
-    params: {},
-}));
-(NativeNavigation as any).useIsFocused = mockUseIsFocused;
-(NativeNavigation as any).useRoute = mockUseRoute;
+const mockUseIsFocused = jest.fn().mockReturnValue(false);
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        useIsFocused: () => mockUseIsFocused(),
+        useRoute: jest.fn(),
+        useNavigationState: jest.fn(),
+        createNavigationContainerRef: () => ({
+            getState: () => jest.fn(),
+        }),
+    };
+});
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
@@ -40,7 +47,7 @@ jest.mock('@hooks/useLoadReportActions', () =>
 jest.mock('@hooks/usePrevious', () => jest.fn());
 
 jest.mock('@pages/home/report/ReportActionsList', () =>
-    jest.fn(({sortedReportActions}) => {
+    jest.fn(({sortedReportActions}: {sortedReportActions: OnyxTypes.ReportAction[]}) => {
         if (sortedReportActions && sortedReportActions.length > 0) {
             return null; // Simulate normal content
         }
@@ -51,10 +58,6 @@ jest.mock('@pages/home/report/UserTypingEventListener', () => jest.fn(() => null
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
-}));
-
-jest.mock('@libs/Performance', () => ({
-    withRenderTrace: jest.fn(() => (Component: any) => Component),
 }));
 
 // Mock report data
@@ -115,6 +118,7 @@ const renderReportActionsView = (
         ...props,
     };
 
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return render(<ReportActionsView {...defaultProps} />);
 };
 
