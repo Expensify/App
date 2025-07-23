@@ -74,7 +74,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelectedOptions: true,
                 includeCurrentUser: true,
