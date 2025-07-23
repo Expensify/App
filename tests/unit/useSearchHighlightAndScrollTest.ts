@@ -60,6 +60,8 @@ describe('useSearchHighlightAndScroll', () => {
             hash: 123,
             recentSearchHash: 456,
         },
+        searchKey: undefined,
+        shouldCalculateTotals: false,
         offset: 0,
     };
 
