@@ -12,6 +12,7 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -100,9 +101,11 @@ function ReportFooter({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const {isKeyboardActive} = useKeyboardState();
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
@@ -204,20 +207,62 @@ function ReportFooter({
     const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
 
     const animatedStyle = useAnimatedStyle(() => {
+        const correctedHeaderHeight = Platform.OS === 'ios' ? (unmodifiedPaddings.top ?? 0) + headerHeight : headerHeight;
+
+        const getHeight = () => {
+            if (isComposerFullSize) {
+                if (isKeyboardActive) {
+                    return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
+                }
+
+                return windowHeight - correctedHeaderHeight;
+            }
+
+            return composerHeight;
+        };
+
+        const getPaddingBottom = () => {
+            if (isComposerFullSize) {
+                if (isKeyboardActive) {
+                    return 16;
+                }
+
+                return unmodifiedPaddingBottom + 16;
+            }
+
+            if (isKeyboardActive) {
+                return 0;
+            }
+
+            return unmodifiedPaddingBottom;
+        };
+
         if (Platform.OS !== 'ios') {
-            return {};
+            return {
+                height: getHeight(),
+                paddingBottom: getPaddingBottom(),
+            };
         }
 
         const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}];
 
         return {
             position: 'absolute',
-            // Ensures the composer does not overlap the header
-            bottom: isComposerFullSize ? -headerHeight : 0,
+            bottom: 0,
             width: '100%',
             transform,
+            height: getHeight(),
+            paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
         };
     });
+
+    const onLayoutInternal = useCallback(
+        (height: number) => {
+            setComposerHeight(height);
+            onLayout(height);
+        },
+        [onLayout],
+    );
 
     return (
         <>
@@ -252,7 +297,7 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <Animated.View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose, animatedStyle]}>
+                <Animated.View style={[chatFooterStyles, animatedStyle]}>
                     <ReportActionCompose
                         onSubmit={onSubmitComment}
                         onComposerFocus={onComposerFocus}
@@ -265,7 +310,7 @@ function ReportFooter({
                         didHideComposerInput={didHideComposerInput}
                         reportTransactions={reportTransactions}
                         nativeID={nativeID}
-                        onLayout={onLayout}
+                        onLayout={onLayoutInternal}
                     />
                 </Animated.View>
             )}
