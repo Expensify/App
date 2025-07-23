@@ -14,13 +14,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import localeCompare from '@libs/LocaleCompare';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, getDisplayNameForParticipant, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
+import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {trimLeadingSpace} from '@libs/SuggestionUtils';
+import {compareUserInList, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -57,30 +56,6 @@ type SuggestionPersonalDetailsList = Record<
       })
     | null
 >;
-
-function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
-    if (!displayNameFromAccountID) {
-        return details.login?.length ? details.login : '';
-    }
-    return displayNameFromAccountID;
-}
-
-/**
- * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
- */
-function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
-    if (first.weight !== second.weight) {
-        return first.weight - second.weight;
-    }
-
-    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
-    if (displayNameLoginOrder !== 0) {
-        return displayNameLoginOrder;
-    }
-
-    return first.accountID - second.accountID;
-}
 
 function SuggestionMention(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
@@ -506,5 +481,3 @@ function SuggestionMention(
 SuggestionMention.displayName = 'SuggestionMention';
 
 export default forwardRef(SuggestionMention);
-
-export {compareUserInList};
