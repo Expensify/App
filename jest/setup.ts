@@ -110,23 +110,7 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     switchAccount: jest.fn(),
 }));
 
-jest.mock(
-    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
-    () =>
-        class SyncRenderTaskQueue {
-            private handler: (info: unknown) => void = () => {};
 
-            add(info: unknown) {
-                this.handler(info);
-            }
-
-            setHandler(handler: () => void) {
-                this.handler = handler;
-            }
-
-            cancel() {}
-        },
-);
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
