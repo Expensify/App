@@ -90,14 +90,14 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
 
     const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
-        const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
         const dateAfter = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+        const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
 
         return {
             // dateOn could be a preset e.g. Last month which should not be displayed as the On field
             [CONST.SEARCH.DATE_MODIFIERS.ON]: isSearchDatePreset(dateOn) ? undefined : dateOn,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
         };
     }, [dateValues]);
 
@@ -176,16 +176,16 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
             <MenuItem
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
-                title={translate('common.before')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
-                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
+                title={translate('common.after')}
+                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
+                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
             />
             <MenuItem
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
-                title={translate('common.after')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
-                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
+                title={translate('common.before')}
+                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
+                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
             />
         </>
     ) : (
