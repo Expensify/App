@@ -7931,8 +7931,13 @@ function hasViolations(
 /**
  * Checks to see if a report contains a violation of type `warning`
  */
-function hasWarningTypeViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = getReportTransactions(reportID);
+function hasWarningTypeViolations(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    shouldShowInReview?: boolean,
+    reportTransactions?: SearchTransaction[],
+): boolean {
+    const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, shouldShowInReview));
 }
 
@@ -7959,8 +7964,13 @@ function hasReceiptErrors(reportID: string | undefined): boolean {
 /**
  * Checks to see if a report contains a violation of type `notice`
  */
-function hasNoticeTypeViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = getReportTransactions(reportID);
+function hasNoticeTypeViolations(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    shouldShowInReview?: boolean,
+    reportTransactions?: SearchTransaction[],
+): boolean {
+    const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, shouldShowInReview));
 }
 
@@ -7970,8 +7980,8 @@ function hasNoticeTypeViolations(reportID: string | undefined, transactionViolat
 function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: SearchTransaction[]) {
     return (
         hasViolations(reportID, transactionViolations, undefined, reportTransactions) ||
-        hasNoticeTypeViolations(reportID, transactionViolations, true) ||
-        hasWarningTypeViolations(reportID, transactionViolations, true)
+        hasNoticeTypeViolations(reportID, transactionViolations, true, reportTransactions) ||
+        hasWarningTypeViolations(reportID, transactionViolations, true, reportTransactions)
     );
 }
 
