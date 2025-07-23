@@ -4,9 +4,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
 describe('PersonalDetailsUtils', () => {
-    beforeAll(() => {
-        Onyx.merge(ONYXKEYS.COUNTRY_CODE, 1);
+    beforeAll(async () => {
+        await Onyx.merge(ONYXKEYS.COUNTRY_CODE, 1);
     });
+    
     test('getPersonalDetailsOnyxDataForOptimisticUsers should return correct optimistic and finally data', () => {
         const newLogins = ['3322076524', 'test2@test.com'];
         const newAccountIDs = [1, 2];
