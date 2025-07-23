@@ -29,7 +29,12 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    const totalMembers = allIds.length;
+    const totalMembers = Object.keys(allIds).length;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
+    const totalTags = Object.keys(policyTags ?? {}).length ?? 0;
+    const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const categoriesCount = Object.keys(policyCategories ?? {}).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
@@ -41,6 +46,10 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const items = useMemo(() => {
         const result = [
             {
+                translation: translate('workspace.common.selectAll'),
+                value: 'selectAll',
+            },
+            {
                 translation: translate('workspace.common.profile'),
                 value: 'overview',
                 alternateText: `${policy?.name}, ${policy?.outputCurrency} ${translate('common.currency')}, ${formattedAddress}`,
@@ -48,11 +57,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             {
                 translation: translate('workspace.common.members'),
                 value: 'members',
-                alternateText: 'eqwewq',
+                alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members')}` : undefined,
             },
             {
-                translation: translate('workspace.common.members'),
-                value: 'members',
+                translation: translate('workspace.common.reports'),
+                value: 'reports',
                 alternateText: 'eqwewq',
             },
             {
@@ -63,12 +72,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             {
                 translation: translate('workspace.common.tags'),
                 value: 'tags',
-                alternateText: 'eqwewq',
+                alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags')}` : undefined,
+            },
+            {
+                translation: translate('workspace.common.categories'),
+                value: 'categories',
+                alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.common.categories')}` : undefined,
             },
             {
                 translation: translate('workspace.common.taxes'),
                 value: 'taxes',
-                alternateText: 'eqwewq',
+                alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes')}` : undefined,
             },
             {
                 translation: translate('workspace.common.workflows'),
@@ -86,16 +100,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 alternateText: 'eqwewq',
             },
             {
-                translation: translate('workspace.common.expensifyCard'),
-                value: 'expensifyCard',
-                alternateText: 'eqwewq',
-            },
-            {
-                translation: translate('workspace.common.companyCards'),
-                value: 'companyCards',
-                alternateText: 'eqwewq',
-            },
-            {
                 translation: translate('workspace.common.perDiem'),
                 value: 'perDiem',
                 alternateText: 'eqwewq',
@@ -108,7 +112,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         ];
 
         return result;
-    }, [formattedAddress, policy?.name, policy?.outputCurrency, translate]);
+    }, [categoriesCount, formattedAddress, policy?.name, policy?.outputCurrency, taxesLength, totalMembers, totalTags, translate]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((option) => ({
@@ -123,8 +127,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!policyID) {
             return;
         }
-        openWorkspaceMembersPage(policyID, Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList)));
-    }, [policyID, policy?.employeeList]);
+        openWorkspaceMembersPage(policyID, Object.keys(allIds ?? {}));
+    }, [policyID, allIds]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
@@ -133,14 +137,30 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
             if (listItem.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
+                if (listItem.keyForList === 'selectAll') {
+                    setSelectedItems([]);
+                    return;
+                }
+                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList && i !== 'selectAll'));
+                return;
+            }
+            if (listItem.keyForList === 'selectAll') {
+                setSelectedItems(items.map((i) => i.value));
                 return;
             }
 
             const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
 
             if (newItem) {
-                setSelectedItems([...selectedItems, newItem]);
+                const newSelectedItems = [...selectedItems, newItem];
+                const featuresOptions = items.filter((i) => i.value !== 'selectAll');
+                const allItemsSelected = featuresOptions.length === newSelectedItems.length;
+
+                if (allItemsSelected) {
+                    setSelectedItems([...newSelectedItems, 'selectAll']);
+                } else {
+                    setSelectedItems(newSelectedItems);
+                }
             }
         },
         [items, selectedItems],
@@ -168,6 +188,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
                         isAlternateTextMultilineSupported
+                        showConfirmButton
+                        confirmButtonText={translate('common.next')}
+                        onConfirm={() => setIsDuplicateModalOpen(true)}
                     />
                 </View>
             </ScrollView>
@@ -179,7 +202,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 prompt={
                     <View>
                         <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
-                            {translate('workspace.duplicateWorkspace.confirmTitle', {newWorkspaceName: duplicateWorkspace?.name, oldWorkspaceName: policy?.name, totalMembers})}
+                            {translate('workspace.duplicateWorkspace.confirmTitle', {
+                                newWorkspaceName: duplicateWorkspace?.name,
+                                oldWorkspaceName: policy?.name,
+                                totalMembers,
+                            })}
                         </Text>
                         <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.confirmDuplicate')}</Text>
                     </View>

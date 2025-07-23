@@ -3429,6 +3429,7 @@ const translations = {
             testTransactions: 'Transazioni di prova',
             issueAndManageCards: 'Emetti e gestisci carte',
             reconcileCards: 'Riconcilia carte',
+            selectAll: 'Seleziona tutto',
             selected: () => ({
                 one: '1 selezionato',
                 other: (count: number) => `${count} selezionati`,

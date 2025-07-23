@@ -3391,6 +3391,7 @@ const translations = {
             testTransactions: '测试交易',
             issueAndManageCards: '发行和管理卡片',
             reconcileCards: '对账卡片',
+            selectAll: '全选',
             selected: () => ({
                 one: '1 已选择',
                 other: (count: number) => `已选择${count}个`,

@@ -3400,6 +3400,7 @@ const translations = {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            selectAll: 'Seleccionar todo',
             selected: () => ({
                 one: '1 seleccionado',
                 other: (count: number) => `${count} seleccionados`,
