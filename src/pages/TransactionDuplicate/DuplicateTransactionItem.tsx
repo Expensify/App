@@ -4,13 +4,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, ReportActionsDrafts} from '@src/types/onyx';
-import { getOriginalReportID } from '@libs/ReportUtils';
-
-
+import type {Policy, Report, ReportActionsDrafts, Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
@@ -38,13 +36,14 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
     const originalReportID = getOriginalReportID(report?.reportID, action);
 
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
-        canBeMissing: true});
+        canBeMissing: true,
+    });
 
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`, {
         canBeMissing: true,
     });
 
-     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
         canBeMissing: true,
         selector: (transactionItem) => transactionItem?.errorFields?.route ?? null,
     });
@@ -74,7 +73,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
                 draftMessage={draftMessage as OnyxEntry<string & ReportActionsDrafts>}
                 emojiReactions={emojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
-                userBillingFundID={userBillingFundID ?? 0}
+                userBillingFundID={userBillingFundID}
             />
         </View>
     );
