@@ -4,6 +4,7 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -38,6 +39,11 @@ type QueueItem = {
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
 };
+
+const countryCodeByIP = 1;
+function formatPhoneNumber(phoneNumber: string) {
+    return formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
+}
 
 function setupApp() {
     beforeAll(() => {
@@ -363,4 +369,5 @@ export {
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,
+    formatPhoneNumber,
 };

@@ -1,13 +1,14 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {formatPhoneNumber} from './LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -228,7 +229,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            displayName: formatPhoneNumber(login),
+            displayName: formatPhoneNumberUtils(login),
             isOptimisticPersonalDetail: true,
         };
 
@@ -325,7 +326,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  */
 function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
-        return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
+        return formatPhoneNumberUtils(personalDetail?.login ?? '') || personalDetail.displayName;
     }
 
     return undefined;
@@ -334,7 +335,11 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
+function createDisplayName(
+    login: string,
+    passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>,
+    formatPhoneNumber: FormatPhoneNumberType,
+): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = formatPhoneNumber(login);
