@@ -43,7 +43,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {clearDeleteWorkspaceError, clearErrors, openPolicyInitialPage, removeWorkspace, setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -390,16 +390,28 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+    const hasDeleteWorkspaceAnnualSubscriptionError = isDeleteWorkspaceAnnualSubscriptionError(policy);
     // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
 
     useEffect(() => {
-        if (isEmptyObject(prevPolicy) || prevIsPendingDelete || !isPendingDelete) {
+        if (isEmptyObject(prevPolicy)) {
             return;
         }
-        goBackFromInvalidPolicy();
-    }, [isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
+        if (isOffline && !prevIsPendingDelete && isPendingDelete) {
+            goBackFromInvalidPolicy();
+            return;
+        }
+        if (prevIsPendingDelete && !isPendingDelete) {
+            if (hasDeleteWorkspaceAnnualSubscriptionError) {
+                clearDeleteWorkspaceError(policyID);
+                setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
+                return;
+            }
+            goBackFromInvalidPolicy();
+        }
+    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, hasDeleteWorkspaceAnnualSubscriptionError, policyID]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -462,7 +474,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
                         errors={policy?.errors}
-                        shouldShowErrorMessages={!isDeleteWorkspaceAnnualSubscriptionError(policy)}
+                        shouldShowErrorMessages={!hasDeleteWorkspaceAnnualSubscriptionError}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}

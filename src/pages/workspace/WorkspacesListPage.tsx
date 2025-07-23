@@ -36,7 +36,16 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    calculateBillNewDot,
+    clearDeleteWorkspaceError,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removeWorkspace,
+    setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen,
+    updateDefaultPolicy,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -116,6 +125,7 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen] = useOnyx(ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
@@ -124,7 +134,6 @@ function WorkspacesListPage() {
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen, setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen] = useState(false);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
     const isFocused = useIsFocused();
     const {lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -156,9 +165,6 @@ function WorkspacesListPage() {
     const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
     const hideSupportalModal = () => {
         setIsSupportalActionRestrictedModalOpen(false);
-    };
-    const hideDeleteWorkspaceAnnualSubscriptionErrorModal = () => {
-        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(false);
     };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -523,16 +529,6 @@ function WorkspacesListPage() {
             <SupportalActionRestrictedModal
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
-            />
-            <ConfirmModal
-                title={translate('workspace.common.delete')}
-                isVisible={!!isDeleteWorkspaceAnnualSubscriptionErrorModalOpen}
-                onConfirm={hideDeleteWorkspaceAnnualSubscriptionErrorModal}
-                onCancel={hideDeleteWorkspaceAnnualSubscriptionErrorModal}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('workspace.common.cannotDeleteWorkspaceAnnualSubscriptionError')}
-                shouldShowCancelButton={false}
-                success={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>

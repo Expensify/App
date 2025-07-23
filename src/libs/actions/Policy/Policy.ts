@@ -5527,6 +5527,10 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
+function setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN, value);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5637,4 +5641,5 @@ export {
     setPolicyAttendeeTrackingEnabled,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
+    setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen,
 };
