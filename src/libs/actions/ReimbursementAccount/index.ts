@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
@@ -16,7 +16,7 @@ export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './e
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  */
-function setBankAccountSubStep(subStep: BankAccountSubStep | null): Promise<void | void[]> {
+function setBankAccountSubStep(subStep: ReimbursementAccountSubStep | null): Promise<void | void[]> {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 

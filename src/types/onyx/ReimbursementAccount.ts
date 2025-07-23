@@ -11,7 +11,7 @@ import type * as OnyxCommon from './OnyxCommon';
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 /** Substeps to setup a reimbursement bank account */
-type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
+type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
 /** Model of Corpay data */
 type Corpay = {
@@ -190,7 +190,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 type ReimbursementAccountStep = BankAccountStep | '';
 
 /** The sub step in an reimbursement account's ach data */
-type ReimbursementAccountSubStep = BankAccountSubStep;
+type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 /** The ACHData for an reimbursement account */
 type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {

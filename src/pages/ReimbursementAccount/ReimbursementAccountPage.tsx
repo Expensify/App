@@ -255,13 +255,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = useCallback(() => {
-        const subStep = achData?.subStep !== undefined ? achData.subStep : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
-
-        setBankAccountSubStep(subStep).then(() => {
+        // If user comes back to the flow we never want to allow him to go through plaid again
+        // so we're always showing manual setup with locked numbers he can not change
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
             setUSDBankAccountStep(currentStep);
         });
-    }, [achData?.subStep, currentStep]);
+    }, [currentStep]);
 
     const continueNonUSDVBBASetup = () => {
         const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;

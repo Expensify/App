@@ -486,6 +486,10 @@ const CONST = {
             ENABLE: 'EnableStep',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        SUBSTEP: {
+            MANUAL: 'manual',
+            PLAID: 'plaid',
+        },
         STEPS_HEADER_HEIGHT: 40,
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
