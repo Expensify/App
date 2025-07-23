@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
@@ -180,7 +181,7 @@ function getIconDetails({
         if (!isWorkspaceActor) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const avatarIconIndex = report?.isOwnPolicyExpenseChat || isPolicyExpenseChat(report) ? 0 : 1;
-            const reportIcons = getIcons(report, personalDetails, undefined, undefined, undefined, policy);
+            const reportIcons = getIcons(report, formatPhoneNumber, personalDetails, undefined, undefined, undefined, policy);
 
             return reportIcons.at(avatarIconIndex) ?? defaultAvatar;
         }
@@ -224,6 +225,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
         canBeMissing: true,
         selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
     });
+    const {formatPhoneNumber} = useLocalize();
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(action?.childReportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, iouActions ?? []), [reportTransactions, iouActions]);
@@ -283,6 +285,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
             report,
             iouReport,
             reportPreviewSenderID,
+            formatPhoneNumber,
         }),
     };
 }

@@ -186,7 +186,7 @@ function RoomInvitePage({
     const backRoute = useMemo(() => {
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo]);
-    const reportName = useMemo(() => getReportName(report), [report]);
+    const reportName = useMemo(() => getReportName(report, formatPhoneNumber), [report, formatPhoneNumber]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 

@@ -18,6 +18,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {formatPhoneNumber} from '@src/libs/LocalePhoneNumber';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
@@ -119,7 +120,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -146,7 +147,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportName(report, policy));
+        await measureFunction(() => getReportName(report, formatPhoneNumber, policy));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
