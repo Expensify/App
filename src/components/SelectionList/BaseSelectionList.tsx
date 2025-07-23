@@ -824,10 +824,6 @@ function BaseSelectionList<TItem extends ListItem>(
         ) {
             return;
         }
-        // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
 
         // When clearing the search, scroll to the selected item if one exists
         if (prevTextInputValue !== '' && textInputValue === '') {
