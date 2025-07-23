@@ -167,10 +167,34 @@ function BaseSelectionList<TItem extends ListItem>(
     const {isKeyboardShown} = useKeyboardState();
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [currentPage, setCurrentPage] = useState(1);
+    const isItemSelected = useCallback(
+        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
+        [isSelected, selectedItems, canSelectMultiple],
+    );
+    /** Calculates on which page is selected item so we can scroll to it on first render  */
+    const calculateInitialCurrentPage = useCallback(() => {
+        if (canSelectMultiple || sections.length === 0) {
+            return 1;
+        }
+
+        let currentIndex = 0;
+        for (const section of sections) {
+            if (section.data) {
+                for (const item of section.data) {
+                    if (isItemSelected(item)) {
+                        return Math.floor(currentIndex / CONST.MAX_SELECTION_LIST_PAGE_LENGTH) + 1;
+                    }
+                    currentIndex++;
+                }
+            }
+        }
+        return 1;
+    }, [canSelectMultiple, isItemSelected, sections]);
+    const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const pendingScrollIndexRef = useRef<number | null>(null);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -187,43 +211,9 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
-    const isItemSelected = useCallback(
-        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
-        [isSelected, selectedItems, canSelectMultiple],
-    );
-
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
     }, [canShowProductTrainingTooltip, isFocused]);
-
-    // Calculate initial page count so selected item is loaded
-    const initialPageCount = useMemo(() => {
-        if (canSelectMultiple || sections.length === 0) {
-            return 1;
-        }
-
-        let currentIndex = 0;
-        for (const section of sections) {
-            if (section.data) {
-                for (const item of section.data) {
-                    if (isItemSelected(item)) {
-                        return Math.floor(currentIndex / CONST.MAX_SELECTION_LIST_PAGE_LENGTH) + 1;
-                    }
-                    currentIndex++;
-                }
-            }
-        }
-
-        return 1;
-    }, [sections, canSelectMultiple, isItemSelected]);
-
-    useEffect(() => {
-        if (initialPageCount < 1) {
-            return;
-        }
-
-        setCurrentPage(initialPageCount);
-    }, [initialPageCount]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
@@ -353,6 +343,17 @@ function BaseSelectionList<TItem extends ListItem>(
                 return;
             }
 
+            // Calculate which page is needed to show this index
+            const requiredPage = Math.ceil((index + 1) / CONST.MAX_SELECTION_LIST_PAGE_LENGTH);
+
+            // If the required page is beyond the current page, load all pages up to it,
+            // then return early and let the scroll happen after the page update
+            if (requiredPage > currentPage) {
+                pendingScrollIndexRef.current = index;
+                setCurrentPage(requiredPage);
+                return;
+            }
+
             const itemIndex = item.index ?? -1;
             const sectionIndex = item.sectionIndex ?? -1;
             let viewOffsetToKeepFocusedItemAtTopOfViewableArea = 0;
@@ -369,10 +370,11 @@ function BaseSelectionList<TItem extends ListItem>(
             }
 
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            pendingScrollIndexRef.current = null;
         },
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [flattenedSections.allOptions],
+        [flattenedSections.allOptions, currentPage],
     );
 
     const [disabledArrowKeyIndexes, setDisabledArrowKeyIndexes] = useState(flattenedSections.disabledArrowKeyOptionsIndexes);
@@ -384,6 +386,21 @@ function BaseSelectionList<TItem extends ListItem>(
         setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
+
+    /** Check whether there is a need to scroll to an item and if all items are loaded */
+    useEffect(() => {
+        if (pendingScrollIndexRef.current === null) {
+            return;
+        }
+
+        const indexToScroll = pendingScrollIndexRef.current;
+        const targetItem = flattenedSections.allOptions.at(indexToScroll);
+
+        if (targetItem && indexToScroll < CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            pendingScrollIndexRef.current = null;
+            scrollToIndex(indexToScroll, true);
+        }
+    }, [currentPage, scrollToIndex, flattenedSections.allOptions]);
 
     const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
 
@@ -799,18 +816,27 @@ function BaseSelectionList<TItem extends ListItem>(
         ) {
             return;
         }
-        // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
-        // else focus on the first non disabled item
-        const newSelectedIndex =
-            (isEmpty(prevTextInputValue) && textInputValue === '') ||
-            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
-                ? -1
-                : 0;
-
         // Reset the current page to 1 when the user types something
         if (prevTextInputValue !== textInputValue) {
             setCurrentPage(1);
         }
+
+        // When clearing the search, scroll to the selected item if one exists
+        if (prevTextInputValue !== '' && textInputValue === '') {
+            const foundSelectedItemIndex = flattenedSections.allOptions.findIndex(isItemSelected);
+            if (foundSelectedItemIndex !== -1) {
+                updateAndScrollToFocusedIndex(foundSelectedItemIndex);
+                return;
+            }
+        }
+
+        // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
+        // else focus on the first non disabled item
+        const newSelectedIndex =
+            (prevTextInputValue !== '' && textInputValue === '') ||
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
+                ? -1
+                : 0;
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
@@ -823,6 +849,8 @@ function BaseSelectionList<TItem extends ListItem>(
         prevSelectedOptionsLength,
         prevAllOptionsLength,
         shouldUpdateFocusedIndex,
+        flattenedSections.allOptions,
+        isItemSelected,
     ]);
 
     useEffect(

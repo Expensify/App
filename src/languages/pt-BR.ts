@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -185,6 +183,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -472,6 +471,7 @@ const translations = {
         message: 'Mensagem',
         leaveThread: 'Sair do tópico',
         you: 'Você',
+        me: 'mim',
         youAfterPreposition: 'você',
         your: 'seu/sua/seus/suas (dependendo do contexto)',
         conciergeHelp: 'Por favor, entre em contato com o Concierge para obter ajuda.',
@@ -554,6 +554,7 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
+        basicExport: 'Exportação básica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -1040,6 +1041,9 @@ const translations = {
         createExpense: 'Criar despesa',
         trackDistance: 'Rastrear distância',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Criar ${expensesNumber} despesas`,
+        removeExpense: 'Remover despesa',
+        removeThisExpense: 'Remover esta despesa',
+        removeExpenseConfirmation: 'Tem certeza de que deseja remover este recibo? Esta ação não pode ser desfeita.',
         addExpense: 'Adicionar despesa',
         chooseRecipient: 'Escolher destinatário',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Criar despesa de ${amount}`,
@@ -1069,8 +1073,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tire fotos de todos os seus recibos de uma vez, depois confirme os detalhes você mesmo ou deixe o SmartScan cuidar disso.',
         receiptScanInProgress: 'Digitalização de recibo em andamento',
         receiptScanInProgressDescription: 'Digitalização do recibo em andamento. Verifique mais tarde ou insira os detalhes agora.',
-        removeFromReport: 'Remover do relatório',
-        moveToPersonalSpace: 'Mover despesas para o espaço pessoal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Despesas duplicadas potenciais identificadas. Revise as duplicatas para permitir o envio.'
@@ -1131,20 +1133,10 @@ const translations = {
         individual: 'Individual',
         business: 'Negócio',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} com Expensify` : `Pague com Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar com conta pessoal`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} com carteira` : `Pagar com carteira`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar como indivíduo`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como empresa` : `Pagar com conta empresarial`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta empresarial ${last4Digits}` : `Pago com conta empresarial`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} como uma empresa` : `Pagar como empresa`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} em outro lugar` : `Pague em outro lugar`),
         nextStep: 'Próximos passos',
         finished: 'Concluído',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
@@ -1179,8 +1171,8 @@ const translations = {
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi realizado.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcado como pago`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pago com carteira`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} pago em outro lugar`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagou com Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} pagou com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         noReimbursableExpenses: 'Este relatório possui um valor inválido',
@@ -1246,7 +1238,6 @@ const translations = {
         unheldExpense: 'liberou esta despesa',
         moveUnreportedExpense: 'Mover despesa não relatada',
         addUnreportedExpense: 'Adicionar despesa não relatada',
-        createNewExpense: 'Criar nova despesa',
         selectUnreportedExpense: 'Selecione pelo menos uma despesa para adicionar ao relatório.',
         emptyStateUnreportedExpenseTitle: 'Nenhuma despesa não relatada',
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
@@ -1534,6 +1525,8 @@ const translations = {
             invalidFileDescription: 'O arquivo que você está tentando importar não é válido. Por favor, tente novamente.',
             invalidateWithDelay: 'Invalidar com atraso',
             recordTroubleshootData: 'Registro de dados de solução de problemas',
+            softKillTheApp: 'Eliminar suavemente o aplicativo',
+            kill: 'Matar',
         },
         debugConsole: {
             saveLog: 'Salvar log',
@@ -1837,7 +1830,6 @@ const translations = {
         enableWallet: 'Ativar carteira',
         addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
         addBankAccount: 'Adicionar conta bancária',
-        addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -2050,7 +2042,6 @@ const translations = {
         cardLastFour: 'Cartão terminando em',
         addFirstPaymentMethod: 'Adicione um método de pagamento para enviar e receber pagamentos diretamente no aplicativo.',
         defaultPaymentMethod: 'Padrão',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conta bancária • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2207,6 +2198,11 @@ const translations = {
             title: 'Você usa algum software de contabilidade?',
             none: 'Nenhum',
         },
+        interestedFeatures: {
+            title: 'Quais recursos você está interessado?',
+            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+        },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
         },
@@ -2275,7 +2271,7 @@ const translations = {
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
@@ -2288,7 +2284,7 @@ const translations = {
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Confirme os detalhes.\n' +
@@ -2301,7 +2297,7 @@ const translations = {
                 description:
                     '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Escolha seu espaço *pessoal*.\n' +
@@ -2400,7 +2396,7 @@ const translations = {
                 description:
                     '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira um e-mail ou número de telefone.\n' +
                     '\n' +
@@ -2414,7 +2410,7 @@ const translations = {
                 description:
                     '*Divida despesas* com uma ou mais pessoas.\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira e-mails ou números de telefone.\n' +
                     '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
@@ -2436,7 +2432,7 @@ const translations = {
                 description:
                     'Veja como criar um relatório:\n' +
                     '\n' +
-                    '1. Clique no botão verde *+*.\n' +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar relatório*.\n' +
                     '3. Clique em *Adicionar despesa*.\n' +
                     '4. Adicione sua primeira despesa.\n' +
@@ -2711,6 +2707,8 @@ const translations = {
             validationAmounts: 'Os valores de validação que você inseriu estão incorretos. Por favor, verifique novamente seu extrato bancário e tente novamente.',
             fullName: 'Por favor, insira um nome completo válido.',
             ownershipPercentage: 'Por favor, insira um número percentual válido',
+            deletePaymentBankAccount:
+                'Este banco conta não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim deseja excluir essa conta, entre em contato com o Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3268,10 +3266,8 @@ const translations = {
         termsAndConditions: {
             header: 'Antes de continuarmos...',
             title: 'Termos e condições',
-            subtitle: 'Por favor, concorde com o Expensify Travel',
-            termsAndConditions: 'termos e condições',
-            travelTermsAndConditions: 'termos e condições',
-            agree: 'Eu concordo com o',
+            label: 'Eu concordo com os termos e condições',
+            subtitle: `Por favor, concorde com os <a href="${CONST.TRAVEL_TERMS_URL}">termos e condições</a> da Expensify Travel.`,
             error: 'Você deve concordar com os termos e condições do Expensify Travel para continuar.',
             defaultWorkspaceError:
                 'Você precisa definir um espaço de trabalho padrão para habilitar o Expensify Travel. Vá para Configurações > Espaços de Trabalho > clique nos três pontos verticais ao lado de um espaço de trabalho > Definir como espaço de trabalho padrão, depois tente novamente!',
@@ -3464,7 +3460,7 @@ const translations = {
             welcomeNote: 'Por favor, use o Expensify para enviar seus recibos para reembolso, obrigado!',
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos verificar se tudo está correto.',
             lineItemLevel: 'Nível de item linha',
@@ -3843,6 +3839,18 @@ const translations = {
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Por favor, adicione a conta no Xero e sincronize a conexão novamente.',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
@@ -4394,9 +4402,8 @@ const translations = {
             addNewBankAccount: 'Adicionar uma nova conta bancária',
             settlementAccount: 'Conta de liquidação',
             settlementAccountDescription: 'Escolha uma conta para pagar o saldo do seu Cartão Expensify.',
-            settlementAccountInfoPt1: 'Certifique-se de que esta conta corresponde à sua',
-            settlementAccountInfoPt2: 'para que a Reconciliação Contínua funcione corretamente.',
-            reconciliationAccount: 'Conta de reconciliação',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Certifique-se de que essa conta corresponda à sua <a href="${reconciliationAccountSettingsLink}">conta de Reconciliação</a> (${accountNumber}) para que a Reconciliação Contínua funcione corretamente.`,
             settlementFrequency: 'Frequência de liquidação',
             settlementFrequencyDescription: 'Escolha com que frequência você pagará o saldo do seu Cartão Expensify.',
             settlementFrequencyInfo: 'Se você quiser mudar para liquidação mensal, precisará conectar sua conta bancária via Plaid e ter um histórico de saldo positivo de 90 dias.',
@@ -5946,11 +5953,16 @@ const translations = {
                 title: 'Nenhuma despesa para exportar',
                 subtitle: 'Hora de relaxar, bom trabalho.',
             },
+            emptyStatementsResults: {
+                title: 'Nenhuma despesa a ser exibida',
+                subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
                 subtitle: 'Zero despesas. Máximo relaxamento. Bem feito!',
             },
         },
+        statements: 'Declarações',
         unapproved: 'Não aprovado',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCompanyCards: 'Cartões corporativos não aprovados',
@@ -6147,8 +6159,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} de ${oldValue} para ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} para ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `alterou o espaço de trabalho para ${toPolicyName}${fromPolicyName ? `(anteriormente ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Espaço de trabalho alterado${fromPolicyName ? ` (anteriormente ${fromPolicyName})` : ''}`;
+                    }
+                    return `Espaço de trabalho alterado para ${toPolicyName}${fromPolicyName ? ` (anteriormente ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `alterado o tipo de ${oldType} para ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `enviei este relatório para ${delegateUser} já que ${originalManager} está de férias`,
                 exportedToCSV: `exportado para CSV`,
@@ -6452,7 +6468,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
         receiptNotSmartScanned:
-            'Detalhes da despesa e recibo adicionados manualmente. Por favor, verifique os detalhes. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais</a> sobre auditoria automática para todos os recibos.',
+            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais.</a>',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo necessário';
             if (formattedLimit ?? category) {

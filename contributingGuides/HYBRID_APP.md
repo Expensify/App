@@ -232,6 +232,22 @@ This error may appear after execution of `npm run pod-install`. In this case you
 1. cd to `Mobile-Expensify/ios`
 2. run `pod repo remove trunk`
 
+### Error: `Build service could not create build operation`
+This might also appear when trying to clean build folder.
+1. Manually clean `rm -rf ~/Library/Developer/Xcode/DerivedData`
+2. Quit XCode and macOS build services:
+    1. Close XCode
+    2. `sudo pkill -9 -f xcodebuild`
+    3. `sudo pkill -9 -f XCBBuildService`
+    4. `sudo pkill -9 -f com.apple.dt.Xcode`
+    5. Restart XCode
+3. Further cleaning:
+    1. `rm -rf ~/Library/Developer/Xcode/ModuleCache.noindex`
+    2. `rm -rf ~/Library/Caches/com.apple.dt.Xcode`
+    3. `rm -rf NewExpensify.xcodeproj/project.xcworkspace/xcuserdata`
+    4. `rm -rf NewExpensify.xcodeproj/project.xcworkspace/xcshareddata`
+4. Restart your Mac
+
 ### How to build a `release` iOS app?
 If you'd like to build HybridApp in `release` configuration, the best way to do it is to:
 1. open XCode

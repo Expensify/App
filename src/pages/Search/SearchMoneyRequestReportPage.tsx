@@ -56,7 +56,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportID = report?.reportID;
 
     useEffect(() => {
-        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
+        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
     }, [reportIDFromRoute]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
