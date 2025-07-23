@@ -4921,7 +4921,7 @@ function parseReportActionHtmlToText(
     accountIDs.forEach((id, index) => {
         const login = logins.at(index);
         const user = allPersonalDetails?.[id];
-        const displayName = formatPhoneNumberPhoneUtils(login ?? '') || getDisplayNameOrDefault(user);
+        const displayName = formatPhoneNumber(login ?? '') || getDisplayNameOrDefault(user);
         accountIDToName[id] = getShortMentionIfFound(displayName, id.toString(), currentUserPersonalDetails, login) ?? '';
     });
 
@@ -5016,7 +5016,7 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(getDisplayNameOrDefault((personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID]));
+        return formatPhoneNumber(getDisplayNameOrDefault((personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID]));
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, policies});
