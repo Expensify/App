@@ -27,7 +27,7 @@ function SearchPageFooter({metadata}: SearchPageFooterProps) {
             return [styles.justifyContentStart, styles.borderTop, styles.ph5, styles.pv3, styles.flexRow, styles.gap3, StyleUtils.getBackgroundColorStyle(theme.appBG)];
         }
         return [styles.justifyContentEnd, styles.borderTop, styles.ph5, styles.pv3, styles.flexRow, styles.gap3, StyleUtils.getBackgroundColorStyle(theme.appBG)];
-    }, [shouldUseNarrowLayout, isOffline, styles, theme]);
+    }, [shouldUseNarrowLayout, isOffline, StyleUtils, styles, theme]);
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
 
