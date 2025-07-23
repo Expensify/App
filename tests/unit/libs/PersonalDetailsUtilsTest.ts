@@ -61,7 +61,6 @@ describe('PersonalDetailsUtils', () => {
     test('should return undefined when personalDetail is undefined', () => {
         const result = getEffectiveDisplayName(formatPhoneNumber, undefined);
         expect(result).toBeUndefined();
-        expect(result).toBe(undefined);
     });
 
     test('should return undefined when personalDetail has neither login nor displayName', () => {
