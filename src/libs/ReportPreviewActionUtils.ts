@@ -37,13 +37,7 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function canSubmit(
-    report: Report,
-    violations: OnyxCollection<TransactionViolation[]>,
-    isReportArchived: boolean,
-    policy?: Policy,
-    transactions?: Transaction[],
-) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
         return false;
     }
