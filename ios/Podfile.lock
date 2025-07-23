@@ -2016,7 +2016,32 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.16.7):
+  - react-native-keyboard-controller (1.18.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - react-native-keyboard-controller/common (= 1.18.1)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-keyboard-controller/common (1.18.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3811,7 +3836,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 39ed0f7fb573661bf4922bc55a7d81fe5410a10d
   react-native-image-picker: 93ea6f8f49d30fe03f69a565665ea60b2278d4da
   react-native-key-command: d59da9dbb2dd5855091333aede38aa481bd7037d
-  react-native-keyboard-controller: 98971543d6c70d5232f4122aa04483d2dfa9c970
+  react-native-keyboard-controller: 2602bca1715435e3742c5a69d45ff42c1d97e1b9
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6aa96b58130ce8de834c2f6c00878b69703d9e10
   react-native-pager-view: 21fa9c2dc9ba43370132b0c996eaeaefd2be4be0
