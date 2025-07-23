@@ -25,8 +25,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
-import localeCompare from '@libs/LocaleCompare';
+import {clearPolicyTitleFieldError, enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -59,10 +59,10 @@ function WorkspaceReportFieldsPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const {environmentURL} = useEnvironment();
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -111,7 +111,7 @@ function WorkspaceReportFieldsPage({
                 isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type))),
             }));
-    }, [filteredPolicyFieldList, policy, translate]);
+    }, [filteredPolicyFieldList, policy, translate, localeCompare]);
 
     const navigateToReportFieldsSettings = useCallback(
         (reportField: ReportFieldForList) => {
@@ -157,7 +157,14 @@ function WorkspaceReportFieldsPage({
         [shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong, navigateToReportFieldsSettings],
     );
 
+    const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
+
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
+
+    const clearTitleFieldError = () => {
+        clearPolicyTitleFieldError(policyID);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -205,7 +212,13 @@ function WorkspaceReportFieldsPage({
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                         >
-                            <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                            <OfflineWithFeedback
+                                pendingAction={reportTitlePendingFields.defaultValue}
+                                shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
+                                errors={reportTitleErrors}
+                                errorRowStyles={styles.mh0}
+                                onClose={clearTitleFieldError}
+                            >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
