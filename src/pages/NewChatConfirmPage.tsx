@@ -36,7 +36,7 @@ function navigateToEditChatName() {
 function NewChatConfirmPage() {
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
@@ -52,7 +52,7 @@ function NewChatConfirmPage() {
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
     const sections: ListItem[] = useMemo(
         () =>
             selectedOptions

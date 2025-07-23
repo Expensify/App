@@ -1080,8 +1080,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
-                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                    const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
+                    const parentReportName = getReportName(parentReport, formatPhoneNumber, policy, undefined, undefined);
+                    const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
                     const parentReportIcon = icons?.at(0);
 
                     result.parentReportName = parentReportName;
@@ -1144,7 +1144,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
+                    reportName: getSearchReportName({formatPhoneNumber, report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

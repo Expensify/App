@@ -55,7 +55,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     });
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
@@ -179,7 +179,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
 
     const reportID = report.reportID;
-    const reportName = useMemo(() => getGroupChatName(undefined, true, report), [report]);
+    const reportName = useMemo(() => getGroupChatName(formatPhoneNumber, undefined, true, report), [report, formatPhoneNumber]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
