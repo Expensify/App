@@ -84,12 +84,6 @@ type Message = {
 
     /** The time this report action was deleted */
     deleted?: string;
-
-    /** The bank account id that was used to pay the invoice */
-    bankAccountID?: number | undefined;
-
-    /** Whether the invoice was paid with business account or not */
-    payAsBusiness?: boolean;
 };
 
 /** Model of image */

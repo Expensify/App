@@ -141,11 +141,6 @@ type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
 
-type BusinessBankAccountParams = {
-    amount?: string;
-    last4Digits?: string;
-};
-
 type WorkspaceRouteParams = {
     workspaceRoute: string;
 };
@@ -209,8 +204,6 @@ type EnterMagicCodeParams = {contactMethod: string};
 type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
-
-type BankAccountLastFourParams = {lastFour: string};
 
 type NotYouParams = {user: string};
 
@@ -800,6 +793,11 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type SettlementAccountInfoParams = {
+    reconciliationAccountSettingsLink: string;
+    accountNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1053,7 +1051,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
-    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1067,7 +1064,6 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
-    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,
@@ -1079,4 +1075,5 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    SettlementAccountInfoParams,
 };
