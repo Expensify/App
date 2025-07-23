@@ -188,7 +188,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useFocusEffect(
@@ -279,7 +279,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearchKey);
+        return getSections(type, searchResults.data, searchResults.search, formatPhoneNumber, groupBy, exportReportActions, currentSearchKey);
     }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
