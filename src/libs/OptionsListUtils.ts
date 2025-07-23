@@ -2567,6 +2567,21 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     };
 }
 
+/**
+ * Filter out selected options from personal details and recent reports
+ * @param options - The options to filter
+ * @param selectedOptions - The selected options to filter out. Keeping it as an array because it is unlikely to become big enough for Set to make a difference.
+ * @returns The filtered options
+ */
+function filterSelectedOptions(options: Options, selectedOptions: {accountID?: number}[]): Options {
+    const filteredOptions = {
+        ...options,
+        personalDetails: options.personalDetails.filter((detail) => !selectedOptions.some((selectedOption) => selectedOption.accountID === detail.accountID)),
+        recentReports: options.recentReports.filter((report) => !selectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID)),
+    };
+    return filteredOptions;
+}
+
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
     return items.sort((a, b) => (a[key] ?? '').toLowerCase().localeCompare((b[key] ?? '').toLowerCase()));
 }
@@ -2676,6 +2691,7 @@ export {
     shallowOptionsListCompare,
     optionsOrderBy,
     recentReportComparator,
+    filterSelectedOptions,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
