@@ -18,6 +18,13 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn((key: string) => key),
+        formatPhoneNumber: jest.fn((phoneNumber: string) => phoneNumber),
+    })),
+);
+
 describe('HeaderView', () => {
     afterEach(() => {
         jest.clearAllMocks();
