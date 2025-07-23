@@ -1,8 +1,8 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData, ViewStyle} from 'react-native';
-import {Platform, View} from 'react-native';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -24,12 +24,10 @@ import useDebounce from '@hooks/useDebounce';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -158,9 +156,6 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-
-    const {isKeyboardActive} = useKeyboardState();
-    const {unmodifiedPaddings} = useSafeAreaPaddings();
 
     /**
      * Updates the Highlight state of the composer
@@ -569,26 +564,10 @@ function ReportActionCompose({
         [onLayout],
     );
 
-    const composerFullSizeContainerStyles: ViewStyle = useMemo(() => {
-        const paddingBottom = isKeyboardActive ? 16 : unmodifiedPaddings.bottom;
-
-        if (Platform.OS === 'ios') {
-            return {
-                flex: isKeyboardActive ? 0.8 : 0.9,
-                paddingBottom,
-            };
-        }
-
-        return {
-            ...styles.chatItemFullComposeRow,
-            paddingBottom,
-        };
-    }, [isKeyboardActive, unmodifiedPaddings.bottom, styles.chatItemFullComposeRow]);
-
     return (
         <View
             onLayout={onLayoutInternal}
-            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && composerFullSizeContainerStyles]}
+            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient ? <ParticipantLocalTime participant={reportRecipient} /> : <View style={styles.chatItemComposeBoxTopSpacer} />}

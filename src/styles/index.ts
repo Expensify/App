@@ -2183,10 +2183,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        chatFooterFullCompose: {
-            height: Platform.OS === 'ios' ? '100%' : '90%',
-        },
-
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',
