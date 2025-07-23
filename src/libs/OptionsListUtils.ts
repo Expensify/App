@@ -2573,11 +2573,11 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
  * @param selectedOptions - The selected options to filter out. Keeping it as an array because it is unlikely to become big enough for Set to make a difference.
  * @returns The filtered options
  */
-function filterSelectedOptions(options: Options, selectedOptions: {accountID?: number}[]): Options {
+function filterSelectedOptions(options: Options, selectedOptions: Set<number | undefined>): Options {
     const filteredOptions = {
         ...options,
-        personalDetails: options.personalDetails.filter((detail) => !selectedOptions.some((selectedOption) => selectedOption.accountID === detail.accountID)),
-        recentReports: options.recentReports.filter((report) => !selectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID)),
+        personalDetails: options.personalDetails.filter(({accountID}) => !selectedOptions.has(accountID)),
+        recentReports: options.recentReports.filter(({accountID}) => !selectedOptions.has(accountID)),
     };
     return filteredOptions;
 }

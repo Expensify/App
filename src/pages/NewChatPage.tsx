@@ -75,7 +75,7 @@ function useOptions() {
         return filteredOptions;
     }, [betas, listOptions.personalDetails, listOptions.reports]);
 
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, selectedOptions), [defaultOptions, selectedOptions]);
+    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {
