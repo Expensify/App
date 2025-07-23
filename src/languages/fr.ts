@@ -470,6 +470,7 @@ const translations = {
         message: 'Message',
         leaveThread: 'Quitter le fil de discussion',
         you: 'Vous',
+        me: 'moi',
         youAfterPreposition: 'vous',
         your: 'votre',
         conciergeHelp: "Veuillez contacter Concierge pour obtenir de l'aide.",
@@ -1529,6 +1530,8 @@ const translations = {
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
             invalidateWithDelay: 'Invalider avec délai',
             recordTroubleshootData: 'Enregistrement des données de dépannage',
+            softKillTheApp: "Supprimer l'application",
+            kill: 'Tuer',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',

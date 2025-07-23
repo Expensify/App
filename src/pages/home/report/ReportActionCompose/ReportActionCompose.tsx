@@ -35,6 +35,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -230,7 +231,7 @@ function ReportActionCompose({
 
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
@@ -582,6 +583,7 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
+                            report={report}
                         >
                             {({displayFilesInModal}) => {
                                 const handleAttachmentDrop = (event: DragEvent) => {
