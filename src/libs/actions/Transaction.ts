@@ -112,6 +112,11 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
+// Helper to safely check for a string 'name' property
+function isViolationWithName(violation: unknown): violation is {name: string} {
+    return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
+}
+
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
@@ -687,7 +692,14 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
                 value: allTransactionViolation?.[transaction.transactionID],
             });
             const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
-            const hasOtherViolationsBesideDuplicates = Array.isArray(violationData.value) && !violationData.value.every((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            const hasOtherViolationsBesideDuplicates =
+                Array.isArray(violationData.value) &&
+                !violationData.value.every((violation) => {
+                    if (!isViolationWithName(violation)) {
+                        return false;
+                    }
+                    return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
+                });
             if (transactionHasViolations && hasOtherViolationsBesideDuplicates) {
                 shouldFixViolations = true;
             }
@@ -920,7 +932,14 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             return;
         }
         const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
-        const hasOtherViolationsBesideDuplicates = Array.isArray(violationData.value) && !violationData.value.every((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        const hasOtherViolationsBesideDuplicates =
+            Array.isArray(violationData.value) &&
+            !violationData.value.every((violation) => {
+                if (!isViolationWithName(violation)) {
+                    return false;
+                }
+                return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
+            });
         if (Array.isArray(violationData.value) && violationData.value.length > 0 && hasOtherViolationsBesideDuplicates) {
             shouldFixViolations = true;
         }
