@@ -637,7 +637,12 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
         },
     ];
 
-    const transactions = Object.values(allTransactions ?? {}).filter((transaction) => transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID);
+    const transactions = Object.values(allTransactions ?? {}).filter(
+        (transaction) =>
+            transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
+            transaction?.comment?.customUnit?.customUnitRateID &&
+            rateIDsToDelete.includes(transaction?.comment?.customUnit?.customUnitRateID),
+    );
     const optimisticTransactionsViolations: OnyxUpdate[] = [];
 
     transactions.forEach((transaction) => {
