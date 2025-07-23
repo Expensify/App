@@ -10,8 +10,6 @@ import CONST from '@src/CONST';
 type BaseSelectionListSections<TItem extends ListItem> = {
     sections: SelectionListProps<TItem>['sections'];
     canSelectMultiple?: boolean;
-    textInputValue?: string;
-    shouldUpdateFocusedIndex?: boolean;
 };
 
 const mockSections = Array.from({length: 10}, (_, index) => ({
@@ -38,7 +36,7 @@ describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
-        const {sections, canSelectMultiple, textInputValue = '', shouldUpdateFocusedIndex} = props;
+        const {sections, canSelectMultiple} = props;
         const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
         return (
             <BaseSelectionList
@@ -48,8 +46,6 @@ describe('BaseSelectionList', () => {
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={canSelectMultiple}
                 initiallyFocusedOptionKey={focusedKey}
-                textInputValue={textInputValue}
-                shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
             />
         );
     }
