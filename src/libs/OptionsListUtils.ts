@@ -1956,8 +1956,6 @@ function getValidOptions(
 
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
-            includeP2P,
-            includeDomainEmail,
             selectedOptions,
             loginsToExclude,
             shouldBoldTitleByDefault,
