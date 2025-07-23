@@ -183,6 +183,7 @@ function AvatarWithDisplayName({
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,

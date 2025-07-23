@@ -1,5 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {
     getIcons,
