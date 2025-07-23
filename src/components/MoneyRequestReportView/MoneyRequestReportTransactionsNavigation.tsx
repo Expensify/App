@@ -38,9 +38,6 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
      */
     useEffect(() => {
         return () => {
-            if (!navigationRef.isReady()) {
-                return;
-            }
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
             if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
                 return;

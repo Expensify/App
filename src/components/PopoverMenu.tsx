@@ -386,7 +386,7 @@ function PopoverMenu({
             return;
         }
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
-        if (!deepEqual(JSON.stringify(currentMenuItems), JSON.stringify(menuItems))) {
+        if (JSON.stringify(currentMenuItems) !== JSON.stringify(menuItems)) {
             setCurrentMenuItems(menuItems);
         }
 

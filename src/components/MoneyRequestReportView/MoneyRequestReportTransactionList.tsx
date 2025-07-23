@@ -157,9 +157,6 @@ function MoneyRequestReportTransactionList({
     useFocusEffect(
         useCallback(() => {
             return () => {
-                if (!navigationRef.isReady()) {
-                    return;
-                }
                 if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return;
                 }
