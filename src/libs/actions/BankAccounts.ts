@@ -954,6 +954,7 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
                     isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
