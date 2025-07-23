@@ -596,7 +596,7 @@ function ReportActionsList({
                     allReports={allReports}
                     policies={policies}
                     reportAction={reportAction}
-                    reportActions={reportActions}
+                    reportActions={sortedReportActions}
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     index={index}
@@ -604,8 +604,11 @@ function ReportActionsList({
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                        isConsecutiveActionMadeByPreviousActor(visibleReportActions, index)
+                        !isConsecutiveChronosAutomaticTimerAction(
+                            sortedVisibleReportActions,
+                            isTransactionThread(parentReportAction) ? sortedVisibleReportActions.length - index : index,
+                            chatIncludesChronosWithID(reportAction?.reportID),
+                        ) && isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, isTransactionThread(parentReportAction) ? sortedVisibleReportActions.length - index : index)
                     }
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
@@ -619,20 +622,21 @@ function ReportActionsList({
         },
         [
             allReports,
-            reportActions,
+            policies,
+            sortedReportActions,
             parentReportAction,
             parentReportActionForTransactionThread,
             report,
             transactionThreadReport,
-            policies,
-            transactions,
             linkedReportActionID,
-            visibleReportActions,
+            sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
+            visibleReportActions.length,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
+            transactions,
         ],
     );
 
