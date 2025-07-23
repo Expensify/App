@@ -470,6 +470,7 @@ const translations = {
         message: 'Messaggio',
         leaveThread: 'Abbandona discussione',
         you: 'Tu',
+        me: 'me',
         youAfterPreposition: 'tu/voi (depending on the context)',
         your: 'tuo/tuoi/tuoi/tuo (depending on context and gender/number)',
         conciergeHelp: 'Si prega di contattare Concierge per assistenza.',
@@ -1523,6 +1524,8 @@ const translations = {
             invalidFileDescription: 'Il file che stai cercando di importare non è valido. Per favore riprova.',
             invalidateWithDelay: 'Invalidare con ritardo',
             recordTroubleshootData: 'Registrazione dei dati di risoluzione dei problemi',
+            softKillTheApp: "Disattivare l'applicazione",
+            kill: 'Uccidere',
         },
         debugConsole: {
             saveLog: 'Salva registro',
