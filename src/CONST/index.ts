@@ -6449,12 +6449,6 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
         },
-        TODO_SEARCH_KEYS: {
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
-            EXPORT: 'export',
-        },
     },
 
     EXPENSE: {
