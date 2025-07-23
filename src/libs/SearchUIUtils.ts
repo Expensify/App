@@ -2,7 +2,7 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -466,7 +466,7 @@ function getTransactionItemCommonFormattedProperties(
     from: SearchPersonalDetails,
     to: SearchPersonalDetails,
     policy: SearchPolicy,
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
@@ -754,7 +754,7 @@ function getTransactionsSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -1047,7 +1047,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: FormatPhoneNumberType): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1171,7 +1171,7 @@ function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1296,7 +1296,7 @@ function getSections(
     type: SearchDataTypes,
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
