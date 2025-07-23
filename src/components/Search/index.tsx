@@ -280,7 +280,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         return getSections(type, searchResults.data, searchResults.search, formatPhoneNumber, groupBy, exportReportActions, currentSearchKey);
-    }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+    }, [currentSearchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, formatPhoneNumber]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
