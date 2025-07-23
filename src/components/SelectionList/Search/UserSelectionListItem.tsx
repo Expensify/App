@@ -63,7 +63,7 @@ function UserSelectionListItem<TItem extends ListItem>({
             formatPhoneNumber,
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
         });
-    }, [item.accountID]);
+    }, [item.accountID, formatPhoneNumber]);
 
     return (
         <BaseListItem
