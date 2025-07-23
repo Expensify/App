@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -29,8 +28,6 @@ const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 function SettingsSplitNavigator() {
     const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-
-    usePreloadFullScreenNavigators();
 
     return (
         <FocusTrapForScreens>
