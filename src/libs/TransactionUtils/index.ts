@@ -1002,7 +1002,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 /**
  * Check if the user should see the violation
  */
-function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
+function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName, shouldShowRterForSettledReport = true): boolean {
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
     const isReportOpen = isOpenExpenseReport(iouReport);
@@ -1016,7 +1016,7 @@ function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
-        return isSubmitter || isInstantSubmitEnabled(policy);
+        return (isSubmitter || isInstantSubmitEnabled(policy)) && (shouldShowRterForSettledReport || !isSettled(iouReport));
     }
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {

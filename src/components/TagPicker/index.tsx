@@ -58,7 +58,7 @@ function TagPicker({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
@@ -117,10 +117,10 @@ function TagPicker({
         return shouldOrderListByTagName
             ? tagSections.map((option) => ({
                   ...option,
-                  data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
+                  data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
               }))
             : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName, localeCompare]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 
