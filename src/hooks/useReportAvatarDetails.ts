@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -46,7 +46,7 @@ type AvatarDetailsProps = {
     report: OnyxEntry<Report>;
     iouReport?: OnyxEntry<Report>;
     policies?: OnyxCollection<Policy>;
-    formatPhoneNumber: FormatPhoneNumberType;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
