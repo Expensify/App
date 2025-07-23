@@ -29,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -159,6 +160,7 @@ function ReportActionCompose({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
 
     const {isKeyboardActive} = useKeyboardState();
+    const {unmodifiedPaddings} = useSafeAreaPaddings();
 
     /**
      * Updates the Highlight state of the composer
@@ -567,7 +569,7 @@ function ReportActionCompose({
         [onLayout],
     );
 
-    const paddingBottom = useMemo(() => (isKeyboardActive ? 16 : 0), [isKeyboardActive]);
+    const paddingBottom = useMemo(() => (isKeyboardActive ? 16 : unmodifiedPaddings.bottom), [isKeyboardActive, unmodifiedPaddings.bottom]);
 
     return (
         <View
