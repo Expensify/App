@@ -7,6 +7,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
@@ -1206,9 +1207,9 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
-function goBackWhenEnableFeature(policyID: string) {
+function goBackWhenEnableFeature(policyID: string, backTo?: Route) {
     setTimeout(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 

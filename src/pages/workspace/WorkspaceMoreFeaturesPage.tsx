@@ -74,6 +74,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const backTo = route.params.backTo;
     const {translate} = useLocalize();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
@@ -128,7 +129,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyDistanceRates(policyID, isEnabled);
+                enablePolicyDistanceRates(policyID, isEnabled, backTo);
             },
         },
         {
@@ -142,7 +143,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enableExpensifyCard(policyID, isEnabled);
+                enableExpensifyCard(policyID, isEnabled, undefined, backTo);
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
@@ -161,7 +162,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             if (!policyID) {
                 return;
             }
-            enableCompanyCards(policyID, isEnabled, true);
+            enableCompanyCards(policyID, isEnabled, true, backTo);
         },
         disabledAction: () => {
             setIsDisableCompanyCardsWarningModalOpen(true);
@@ -182,7 +183,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
-            enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true);
+            enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, backTo);
         },
     });
 
@@ -197,7 +198,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyWorkflows(policyID, isEnabled);
+                enablePolicyWorkflows(policyID, isEnabled, backTo);
             },
             disabled: isSmartLimitEnabled,
             disabledAction: onDisabledWorkflowPress,
@@ -217,7 +218,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePolicyRules(policyID, isEnabled);
+                enablePolicyRules(policyID, isEnabled, undefined, backTo);
             },
         },
     ];
@@ -233,7 +234,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyInvoicing(policyID, isEnabled);
+                enablePolicyInvoicing(policyID, isEnabled, backTo);
             },
         },
     ];
@@ -251,7 +252,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyCategories(policyID, isEnabled, policyTagLists, allTransactionViolations, true);
+                enablePolicyCategories(policyID, isEnabled, policyTagLists, allTransactionViolations, true, backTo);
             },
         },
         {
@@ -266,7 +267,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTags(policyID, isEnabled);
+                enablePolicyTags(policyID, isEnabled, backTo);
             },
         },
         {
@@ -281,7 +282,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTaxes(policyID, isEnabled);
+                enablePolicyTaxes(policyID, isEnabled, backTo);
             },
         },
     ];
@@ -303,7 +304,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyConnections(policyID, isEnabled);
+                enablePolicyConnections(policyID, isEnabled, backTo);
             },
             disabled: hasAccountingConnection,
             errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
