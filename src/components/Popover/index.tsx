@@ -28,6 +28,7 @@ function Popover(props: PopoverProps) {
         animationIn = 'fadeIn',
         animationOut = 'fadeOut',
         shouldCloseWhenBrowserNavigationChanged = true,
+        shouldCloseOnOutsideClick = false,
     } = props;
 
     // We need to use isSmallScreenWidth to apply the correct modal type and popoverAnchorPosition
@@ -72,7 +73,7 @@ function Popover(props: PopoverProps) {
                 popoverAnchorPosition={anchorPosition}
                 animationInTiming={disableAnimation ? 1 : animationInTiming}
                 animationOutTiming={disableAnimation ? 1 : animationOutTiming}
-                shouldCloseOnOutsideClick
+                shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
                 onLayout={onLayout}
                 animationIn={animationIn}
                 animationOut={animationOut}

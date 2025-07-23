@@ -57,6 +57,7 @@ function BaseModal(
     {
         isVisible,
         onClose,
+        shouldCloseOnOutsideClick,
         shouldSetModalVisibility = true,
         onModalHide = () => {},
         type,
@@ -199,7 +200,7 @@ function BaseModal(
 
         if (onBackdropPress) {
             onBackdropPress();
-        } else {
+        } else if (shouldCloseOnOutsideClick !== false) {
             onClose?.();
         }
     };

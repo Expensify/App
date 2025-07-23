@@ -487,7 +487,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -506,7 +505,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -524,7 +522,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -544,7 +541,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -563,7 +559,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -582,7 +577,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -601,7 +595,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -620,7 +613,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -639,7 +631,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -658,7 +649,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -677,7 +667,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -696,7 +685,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -715,7 +703,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -734,7 +721,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -3776,7 +3762,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 659ae318c09de0477fd27bbc9e140071c7ea5c93
   React: c2d3aa44c49bb34e4dfd49d3ee92da5ebacc1c1c
   React-callinvoker: 1bdfb7549b5af266d85757193b5069f60659ef9d
-  React-Core: 7e3642ef83e1032df3d25ebc840868c0c54381ca
+  React-Core: 7150cf9b6a5af063b37003062689f1691e79c020
   React-CoreModules: 15a85e6665d61678942da6ae485b351f4c699049
   React-cxxreact: 74f9de59259ac951923f5726aa14f0398f167af9
   React-debug: e74e76912b91e08d580c481c34881899ccf63da9
@@ -3825,7 +3811,7 @@ SPEC CHECKSUMS:
   react-native-webview: 0f56a0e7348f945abdc92546dc62ce93d083fa75
   React-NativeModulesApple: 452b86b29fae99ed0a4015dca3ad9cd222f88abf
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
-  React-perflogger: 005c6dfd4aa335fd527c94cc4591ed9b509f0486
+  React-perflogger: 6fd2f6811533e9c19a61e855c3033eecbf4ad2a0
   React-performancetimeline: abf31259d794c9274b3ea19c5016186925eec6c4
   React-RCTActionSheet: a499b0d6d9793886b67ba3e16046a3fef2cdbbc3
   React-RCTAnimation: 2595dcb10a82216a511b54742f8c28d793852ac6
@@ -3840,7 +3826,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: a060c7e381a3896104761b8eed7e284d95e37df3
   React-RCTText: 4f272b72dbb61f390d8c8274528f9fdbff983806
   React-RCTVibration: 0e5326220719aca12473d703aa46693e3b4ce67a
-  React-rendererconsistency: 3a8c9e0828a14d477b44958581034915d86c1517
+  React-rendererconsistency: 351fdbc5c1fe4da24243d939094a80f0e149c7a1
   React-renderercss: d333f2ada83969591100d91ec6b23ca2e17e1507
   React-rendererdebug: 039e5949b72ba63c703de020701e3fd152434c61
   React-rncore: 57ed480649bb678d8bdc386d20fee8bf2b0c307c
