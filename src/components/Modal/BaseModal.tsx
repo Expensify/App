@@ -223,7 +223,19 @@ function BaseModal(
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
         const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
         setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && Math.floor(availableHeight) <= 0);
-    }, [StyleUtils, insets, keyboardStateContextValue.isKeyboardActive, keyboardStateContextValue.isKeyboardAnimatingRef, keyboardStateContextValue.keyboardActiveHeight, modalHeight, type, windowHeight, modalOverlapsWithTopSafeArea, canUseTouchScreen, isSmallScreenWidth]);
+    }, [
+        StyleUtils,
+        insets,
+        keyboardStateContextValue.isKeyboardActive,
+        keyboardStateContextValue.isKeyboardAnimatingRef,
+        keyboardStateContextValue.keyboardActiveHeight,
+        modalHeight,
+        type,
+        windowHeight,
+        modalOverlapsWithTopSafeArea,
+        canUseTouchScreen,
+        isSmallScreenWidth,
+    ]);
 
     const onViewLayout = (e: LayoutChangeEvent) => {
         setModalHeight(e.nativeEvent.layout.height);
