@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import CONST from '@src/CONST';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +16,6 @@ import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 import PropertyKeysOf = jest.PropertyKeysOf;
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 
 const reportActions = [{[actionR14932.reportActionID]: actionR14932}];
 const transactions = [transactionR14932];
