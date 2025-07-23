@@ -2193,7 +2193,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatFooterFullCompose: {
-            height: '100%',
+            height: Platform.OS === 'ios' ? '100%' : '90%',
         },
 
         chatItemDraft: {
