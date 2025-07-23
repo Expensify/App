@@ -485,6 +485,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
         const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
