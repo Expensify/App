@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {FlatList, ViewStyle} from 'react-native';
+import type {FlatList, LayoutChangeEvent, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import {KeyboardController, KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -374,6 +374,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro device. It's used on iOS only.
+    const [headerHeight, setHeaderHeight] = useState<number>(73);
 
     const wasReportAccessibleRef = useRef(false);
 
@@ -457,6 +459,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         Navigation.goBack();
     }, [isInNarrowPaneModal, backTo]);
+
+    const onHeaderLayout = useCallback((e: LayoutChangeEvent) => {
+        setHeaderHeight(e.nativeEvent.layout.height);
+    }, []);
 
     let headerView = (
         <HeaderView
@@ -927,7 +933,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 shouldShowErrorMessages={false}
                                 needsOffscreenAlphaCompositing
                             >
-                                {headerView}
+                                <View onLayout={onHeaderLayout}>{headerView}</View>
                             </OfflineWithFeedback>
                             {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
                                 <Banner

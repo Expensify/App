@@ -1,8 +1,8 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
-import {View} from 'react-native';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData, ViewStyle} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -567,12 +567,26 @@ function ReportActionCompose({
         [onLayout],
     );
 
-    const paddingBottom = useMemo(() => (isKeyboardActive ? 16 : unmodifiedPaddings.bottom), [isKeyboardActive, unmodifiedPaddings.bottom]);
+    const composerFullSizeContainerStyles: ViewStyle = useMemo(() => {
+        const paddingBottom = isKeyboardActive ? 16 : unmodifiedPaddings.bottom;
+
+        if (Platform.OS === 'ios') {
+            return {
+                flex: isKeyboardActive ? 0.8 : 0.9,
+                paddingBottom,
+            };
+        }
+
+        return {
+            ...styles.chatItemFullComposeRow,
+            paddingBottom,
+        };
+    }, [isKeyboardActive, unmodifiedPaddings.bottom, styles.chatItemFullComposeRow]);
 
     return (
         <View
             onLayout={onLayoutInternal}
-            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && {...styles.chatItemFullComposeRow, paddingBottom}]}
+            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && composerFullSizeContainerStyles]}
         >
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient ? <ParticipantLocalTime participant={reportRecipient} /> : <View style={styles.chatItemComposeBoxTopSpacer} />}
