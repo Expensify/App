@@ -170,6 +170,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -537,6 +538,7 @@ const translations = {
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
         export: 'Exportar',
+        basicExport: 'Exportar básico',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -1508,6 +1510,8 @@ const translations = {
             invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
             invalidateWithDelay: 'Invalidar con retraso',
             recordTroubleshootData: 'Registrar datos de resolución de problemas',
+            softKillTheApp: 'Desactivar la aplicación',
+            kill: 'Matar',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -3229,10 +3233,8 @@ const translations = {
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Términos y condiciones de Expensify Travel',
-            subtitle: 'Por favor, acepta los ',
-            termsAndConditions: 'términos y condiciones',
-            travelTermsAndConditions: 'términos y condiciones',
-            agree: 'Acepto los ',
+            label: 'Acepto los términos y condiciones',
+            subtitle: `Por favor, acepta los <a href="${CONST.TRAVEL_TERMS_URL}">términos y condiciones</a> de Expensify Travel.`,
             error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
             defaultWorkspaceError:
                 'Debes establecer un espacio de trabajo predeterminado para habilitar Expensify Travel. Ve a Configuración > Espacios de trabajo > haz clic en los tres puntos verticales junto a un espacio de trabajo > Establecer como espacio de trabajo predeterminado y luego inténtalo de nuevo.',
@@ -3425,7 +3427,7 @@ const translations = {
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsEntered: 'Marcar como introducido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -4380,9 +4382,8 @@ const translations = {
             addNewBankAccount: 'Añadir nueva cuenta bancaria',
             settlementAccount: 'Cuenta de liquidación',
             settlementAccountDescription: 'Elige una cuenta para pagar el saldo de tu Tarjeta Expensify.',
-            settlementAccountInfoPt1: 'Asegúrate de que esta cuenta coincide con tu',
-            settlementAccountInfoPt2: 'para que Reconciliación Continua funcione correctamente.',
-            reconciliationAccount: 'Cuenta de conciliación',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Asegúrate de que esta cuenta coincide con tu <a href="${reconciliationAccountSettingsLink}">Cuenta de conciliación</a> (${accountNumber}) para que Reconciliación Continua funcione correctamente.`,
             settlementFrequency: 'Frecuencia de liquidación',
             settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
             settlementFrequencyInfo:
