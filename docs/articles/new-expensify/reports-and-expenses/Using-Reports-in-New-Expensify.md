@@ -59,7 +59,7 @@ Using search formats allows you to define complex report parameters using simple
 - **Locate unapproved reports:** `status:unapproved`
 - **Unapproved employee expenses:** `type:expense status:outstanding`
 - **Unpaid employee expenses:** `type:expense status:approved`
-- **All card spend from December 2024:** `type:expense status:all expense-type:card posted<=2024-12-31 posted>=2024-12-01`
+- **All card spend from December 2024:** `type:expense expense-type:card posted<=2024-12-31 posted>=2024-12-01`
 
 ## Access Search Commands:
 - **Option 1:** Click Reports at the bottom of the left-hand navigation bar.

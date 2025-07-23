@@ -7,7 +7,7 @@ import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListProps} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
-    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
+    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect' | 'canShowProductTrainingTooltip'> & {
         index: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
@@ -44,6 +44,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    canShowProductTrainingTooltip = true,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -94,6 +95,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                canShowProductTrainingTooltip={canShowProductTrainingTooltip}
             />
             {item.footerContent && item.footerContent}
         </>

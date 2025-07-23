@@ -4,20 +4,31 @@ import type {TransactionPreviewStyleType} from '@components/ReportActionItem/Tra
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
-type TransactionPreviewStyle = {
+type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
+};
+
+type TransactionPreviewStandaloneStyle = {
+    [key in keyof TransactionPreviewStyleType]: string;
 };
 
 type MoneyRequestReportPreviewStyleType = {
     flatListStyle: StyleProp<ViewStyle>;
     wrapperStyle: ViewStyle;
     contentContainerStyle: ViewStyle;
-    transactionPreviewStyle: TransactionPreviewStyle;
+    transactionPreviewCarouselStyle: TransactionPreviewCarouselStyle;
+    transactionPreviewStandaloneStyle: TransactionPreviewStandaloneStyle;
     componentStyle: StyleProp<ViewStyle>;
     expenseCountVisible: boolean;
 };
 
 type MoneyRequestReportPreviewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<Report>;
+
+    /** All the data of the policy collection */
+    policies: OnyxCollection<Policy>;
+
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
@@ -65,12 +76,12 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     transactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
     policy: OnyxEntry<Policy>;
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
+    Omit<MoneyRequestReportPreviewProps, 'allReports' | 'policies' | 'policyID'> & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 

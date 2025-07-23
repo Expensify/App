@@ -224,9 +224,6 @@ type SearchReportAction = {
 
     /** The name of the report */
     reportName: string;
-
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
 };
 
 /** Model of policy search result */
@@ -458,6 +455,9 @@ type SearchTask = {
 /** Model of card search result */
 // s77rt sync with BE
 type SearchCard = {
+    /** Bank name */
+    bank: string;
+
     /** Last four Primary Account Number digits */
     lastFourPAN: string;
 

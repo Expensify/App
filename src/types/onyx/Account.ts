@@ -80,9 +80,6 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
-
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 

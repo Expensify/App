@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -89,6 +90,7 @@ type AttachmentViewProps = Attachment & {
 
 function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+
     const isFileNameImage = fileName && Str.isImage(fileName);
 
     return isSourceImage || isFileNameImage;
@@ -120,7 +122,7 @@ function AttachmentView({
     isUploading = false,
     reportID,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
@@ -249,9 +251,14 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isFileImage = checkIsFileImage(source, file?.name);
 
-    if (isFileImage) {
+    // isLocalSource checks if the source is blob as that's the type of the temp image coming from mobile web
+    const isFileImage = checkIsFileImage(source, file?.name);
+    const isLocalSourceImage = typeof source === 'string' && source.startsWith('blob:');
+
+    const isImage = isFileImage ?? isLocalSourceImage;
+
+    if (isImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -298,7 +305,7 @@ function AttachmentView({
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}
                         loadComplete={loadComplete}
-                        isImage={isFileImage}
+                        isImage={isImage}
                         onPress={onPress}
                         onError={() => {
                             if (isOffline) {
