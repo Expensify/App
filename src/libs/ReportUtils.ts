@@ -4229,6 +4229,17 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+            return (
+                getOutstandingReportsForUser(
+                    moneyRequestReport?.policyID,
+                    moneyRequestReport?.ownerAccountID,
+                    reportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                ).length > 0
+            );
+        }
+
         return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
