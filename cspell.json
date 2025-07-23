@@ -123,6 +123,7 @@
         "creditamount",
         "CREDS",
         "crios",
+        "csvg",
         "customairshipextender",
         "customfield",
         "customise",
@@ -430,6 +431,7 @@
         "otpauth",
         "parasharrajat",
         "Parcelable",
+        "passplus",
         "passwordless",
         "Passwordless",
         "payrollcode",
@@ -602,6 +604,8 @@
         "Transpiles",
         "trivago",
         "Typeform",
+        "uatp",
+        "UATP",
         "UBOI",
         "UBOS",
         "UDID",
@@ -688,8 +692,11 @@
         "zxcv",
         "zxldvw",
         "مثال",
+        "pkill",
         "pnrs",
-        "POLICYCHANGELOG_ADD_EMPLOYEE"
+        "POLICYCHANGELOG_ADD_EMPLOYEE",
+        "xcshareddata",
+        "xcuserdata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

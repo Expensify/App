@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -178,7 +179,8 @@ function MoneyReportHeader({
         selector: (_transactions) => reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
         canBeMissing: true,
     });
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`, {
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {
         canBeMissing: true,
     });
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
@@ -188,8 +190,14 @@ function MoneyReportHeader({
         {canBeMissing: true},
     );
 
-    const isExported = isExportedUtils(reportActions);
-    const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
+    const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
+    // wrapped in useMemo to improve performance because this is an operation on array
+    const integrationNameFromExportMessage = useMemo(() => {
+        if (!isExported) {
+            return null;
+        }
+        return getIntegrationNameFromExportMessageUtils(reportActions);
+    }, [isExported, reportActions]);
 
     const [reportPreviewAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`, {
         canBeMissing: true,
@@ -248,7 +256,8 @@ function MoneyReportHeader({
     }, [reportPDFFilename, translate]);
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
+    // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
+    const hasAllPendingRTERViolations = useMemo(() => allHavePendingRTERViolation(transactions, violations), [transactions, violations]);
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
@@ -358,14 +367,13 @@ function MoneyReportHeader({
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
         const reportID = transactionThreadReport?.reportID;
 
         if (!iouTransactionID || !reportID) {
             return;
         }
         markAsCashAction(iouTransactionID, reportID);
-    }, [requestParentReportAction, transactionThreadReport?.reportID]);
+    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon
@@ -386,7 +394,7 @@ function MoneyReportHeader({
             }
         }
         if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
+            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
         }
 
         if (hasDuplicates) {
