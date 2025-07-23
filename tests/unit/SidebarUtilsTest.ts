@@ -23,6 +23,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber'; 
 
 describe('SidebarUtils', () => {
     beforeAll(() => {
@@ -1113,7 +1114,7 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(
                     formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
+                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
                     ),
                 );
             });

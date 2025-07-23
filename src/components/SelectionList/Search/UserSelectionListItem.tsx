@@ -9,6 +9,7 @@ import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, UserSelectionListItemProps} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +37,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const {formatPhoneNumber} = useLocalize();
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
@@ -59,6 +60,7 @@ function UserSelectionListItem<TItem extends ListItem>({
 
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
+            formatPhoneNumber,
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
         });
     }, [item.accountID]);

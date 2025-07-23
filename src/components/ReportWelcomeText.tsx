@@ -44,7 +44,7 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -134,7 +134,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.ownerAccountID})}</Text>
+                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({formatPhoneNumber, accountID: report?.ownerAccountID})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
                             <Text style={[styles.textStrong]}>{getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
@@ -151,7 +151,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text>
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
+                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({formatPhoneNumber, accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
                                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                                     // eslint-disable-next-line deprecation/deprecation
