@@ -18,7 +18,6 @@ describe('PersonalDetailsUtils', () => {
         const personalDetail: PersonalDetails = {accountID: 123};
         const result = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         expect(result).toBeUndefined();
-        expect(result).toBe(undefined);
     });
 
     test('should return displayName when login is empty or null but displayName exists', () => {
