@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,9 +11,10 @@ import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 type SearchPageFooterProps = {
     metadata: SearchResultsInfo;
+    style?: StyleProp<ViewStyle>;
 };
 
-function SearchPageFooter({metadata}: SearchPageFooterProps) {
+function SearchPageFooter({metadata, style}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -23,7 +24,7 @@ function SearchPageFooter({metadata}: SearchPageFooterProps) {
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
 
     return (
-        <View style={[styles.borderTop, styles.ph5, styles.pv3, styles.justifyContentEnd, styles.flexRow, styles.gap3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+        <View style={[styles.borderTop, styles.ph5, styles.pv3, styles.justifyContentEnd, styles.flexRow, styles.gap3, StyleUtils.getBackgroundColorStyle(theme.appBG), style]}>
             <View style={[styles.flexRow, styles.gap1]}>
                 <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
                 <Text style={valueTextStyle}>{metadata.count}</Text>
