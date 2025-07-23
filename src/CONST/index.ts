@@ -5140,10 +5140,13 @@ const CONST = {
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
+    ICON_TEST_ID: 'Icon',
     IMAGE_TEST_ID: 'Image',
     IMAGE_SVG_TEST_ID: 'ImageSVG',
     VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
     LOTTIE_VIEW_TEST_ID: 'LottieView',
+
+    DOT_INDICATOR_TEST_ID: 'DotIndicator',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -6423,7 +6426,7 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-        SUGGESTED_SEARCH_KEYS: {
+        SEARCH_LIST: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
             CHATS: 'chats',
@@ -6432,7 +6435,20 @@ const CONST = {
             PAY: 'pay',
             EXPORT: 'export',
             STATEMENTS: 'statements',
-            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CASH_ONLY: 'unapprovedCashOnly',
+            UNAPPROVED_COMPANY_CARDS_ONLY: 'unapprovedCompanyCardsOnly',
+        },
+        SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
         },
