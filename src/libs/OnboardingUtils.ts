@@ -12,7 +12,7 @@ const supportedIntegrationsInNewDot = ['quickbooksOnline', 'quickbooksDesktop', 
  * @returns boolean - True if user should be redirected to old dot
  */
 function shouldOnboardingRedirectToOldDot(companySize: OnboardingCompanySize | undefined, userReportedIntegration: OnboardingAccounting | undefined): boolean {
-    const isSupportedIntegration = (!!userReportedIntegration && supportedIntegrationsInNewDot.includes(userReportedIntegration)) || userReportedIntegration === null;
+    const isSupportedIntegration = (!!userReportedIntegration && supportedIntegrationsInNewDot.includes(userReportedIntegration)) || userReportedIntegration === undefined;
     return getPlatform() !== CONST.PLATFORM.DESKTOP && (!isSupportedIntegration || companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO);
 }
 
