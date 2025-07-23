@@ -2,17 +2,16 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
-import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
-import useDebouncedState from '@hooks/useDebouncedState';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage, setWorkspaceErrors} from '@libs/actions/Policy/Policy';
@@ -23,8 +22,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import type {MemberForList} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -37,10 +35,10 @@ import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
+type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
@@ -49,33 +47,17 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
-    const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
-    const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const firstRenderRef = useRef(true);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
-    const {options, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: didScreenTransitionEnd,
-    });
 
-    useEffect(() => {
-        clearErrors(route.params.policyID);
-        openWorkspaceInvitePage();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
-    }, []);
-
-    useNetwork({onReconnect: openWorkspaceInvitePage});
-
-    const excludedUsers = useMemo(() => {
+    const excludeLogins = useMemo(() => {
         const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
         return ineligibleInvites.reduce(
             (acc, login) => {
@@ -86,82 +68,41 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         );
     }, [policy?.employeeList]);
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
-        }
-
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
-
-        return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
-
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleOption, areOptionsInitialized} = useSearchSelector({
+        selectionMode: 'multi',
+        maxResults: 50,
+        getOptionsFunction: 'getMemberInviteOptions',
+        includeUserToInvite: true,
+        excludeLogins,
+        onSelectionChange: () => {
+            clearErrors(route.params.policyID);
+        },
+    });
 
     useEffect(() => {
-        if (!areOptionsInitialized) {
+        clearErrors(route.params.policyID);
+        openWorkspaceInvitePage();
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
+    }, []);
+
+    useNetwork({onReconnect: openWorkspaceInvitePage});
+
+    useEffect(() => {
+        if (!(firstRenderRef.current && invitedEmailsToAccountIDsDraft)) {
             return;
         }
-
-        const newUsersToInviteDict: Record<number, OptionData> = {};
-        const newPersonalDetailsDict: Record<number, OptionData> = {};
-        const newSelectedOptionsDict: Record<number, MemberForList> = {};
-
-        // Update selectedOptions with the latest personalDetails and policyEmployeeList information
-        const detailsMap: Record<string, MemberForList> = {};
-        inviteOptions.personalDetails.forEach((detail) => {
-            if (!detail.login) {
-                return;
-            }
-
-            detailsMap[detail.login] = formatMemberForList(detail);
+        firstRenderRef.current = false;
+        const savedOptions = Object.keys(invitedEmailsToAccountIDsDraft).map((login) => {
+            const accountID = invitedEmailsToAccountIDsDraft[login];
+            return {
+                login,
+                accountID,
+                text: login,
+                selected: true,
+            } as OptionData;
         });
-
-        const newSelectedOptions: MemberForList[] = [];
-        if (firstRenderRef.current) {
-            // We only want to add the saved selected user on first render
-            firstRenderRef.current = false;
-            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-                if (!(login in detailsMap)) {
-                    return;
-                }
-                newSelectedOptions.push({...detailsMap[login], isSelected: true});
-            });
-        }
-        selectedOptions.forEach((option) => {
-            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
-        });
-
-        const userToInvite = inviteOptions.userToInvite;
-
-        // Only add the user to the invites list if it is valid
-        if (typeof userToInvite?.accountID === 'number') {
-            newUsersToInviteDict[userToInvite.accountID] = userToInvite;
-        }
-
-        // Add all personal details to the new dict
-        inviteOptions.personalDetails.forEach((details) => {
-            if (typeof details.accountID !== 'number') {
-                return;
-            }
-            newPersonalDetailsDict[details.accountID] = details;
-        });
-
-        // Add all selected options to the new dict
-        newSelectedOptions.forEach((option) => {
-            if (typeof option.accountID !== 'number') {
-                return;
-            }
-            newSelectedOptionsDict[option.accountID] = option;
-        });
-
-        // Strip out dictionary keys and update arrays
-        setUsersToInvite(Object.values(newUsersToInviteDict));
-        setPersonalDetails(Object.values(newPersonalDetailsDict));
-        setSelectedOptions(Object.values(newSelectedOptionsDict));
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
+        setSelectedOptions(savedOptions);
+    }, [invitedEmailsToAccountIDsDraft, setSelectedOptions]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
@@ -170,66 +111,44 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option.accountID;
-                const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
+        // Selected options section
+        if (selectedOptions.length > 0) {
+            sectionsArr.push({
+                title: undefined,
+                data: selectedOptions,
+                shouldShow: true,
             });
         }
 
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
-        });
-
-        // Filtering out selected users from the search results
-        const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
-
-        sectionsArr.push({
-            title: translate('common.contacts'),
-            data: personalDetailsFormatted,
-            shouldShow: !isEmptyObject(personalDetailsFormatted),
-        });
-
-        Object.values(usersToInvite).forEach((userToInvite) => {
-            const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
-
-            if (hasUnselectedUserToInvite) {
-                sectionsArr.push({
-                    title: undefined,
-                    data: [formatMemberForList(userToInvite)],
-                    shouldShow: true,
-                });
-            }
-        });
-
-        return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
-
-    const toggleOption = (option: MemberForList) => {
-        clearErrors(route.params.policyID);
-
-        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
-
-        let newSelectedOptions: MemberForList[];
-        if (isOptionInList) {
-            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-        } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+        // Contacts section (excluding selected users)
+        if (availableOptions.personalDetails.length > 0) {
+            sectionsArr.push({
+                title: translate('common.contacts'),
+                data: availableOptions.personalDetails,
+                shouldShow: true,
+            });
         }
 
-        setSelectedOptions(newSelectedOptions);
-    };
+        // User to invite section
+        if (availableOptions.userToInvite) {
+            sectionsArr.push({
+                title: undefined,
+                data: [availableOptions.userToInvite],
+                shouldShow: true,
+            });
+        }
+
+        return sectionsArr;
+    }, [areOptionsInitialized, selectedOptions, availableOptions, translate]);
+
+    const handleToggleOption = useCallback(
+        (option: OptionData) => {
+            clearErrors(route.params.policyID);
+            toggleOption(option);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
+        [toggleOption],
+    );
 
     const inviteUser = useCallback(() => {
         const errors: Errors = {};
@@ -261,18 +180,18 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        const searchValue = searchTerm.trim().toLowerCase();
+        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
-            usersToInvite.length === 0 &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            !availableOptions.userToInvite &&
+            excludeLogins[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
+        return getHeaderMessage(availableOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue);
+    }, [excludeLogins, translate, searchTerm, policyName, availableOptions]);
 
     const footerContent = useMemo(
         () => (
@@ -290,8 +209,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+        searchInServer(searchTerm);
+    }, [searchTerm]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -324,7 +243,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                         setSearchTerm(value);
                     }}
                     headerMessage={headerMessage}
-                    onSelectRow={toggleOption}
+                    onSelectRow={handleToggleOption}
                     onConfirm={inviteUser}
                     showScrollIndicator
                     showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

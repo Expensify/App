@@ -57,7 +57,6 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
         return getSearchOptions(options, betas ?? [], false, false, textInputValue, 20, true);
     }, [areOptionsInitialized, betas, options, textInputValue]);
 
-
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
             return optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
