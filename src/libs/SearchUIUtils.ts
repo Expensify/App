@@ -268,7 +268,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Pencil,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.SUBMIT, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
@@ -278,7 +278,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.ThumbsUp,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.APPROVE, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
@@ -288,7 +288,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyBag,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.PAY, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.PAY, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
@@ -298,7 +298,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CheckCircle,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.EXPORT, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.EXPORT, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
