@@ -28,12 +28,14 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -137,6 +139,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -228,7 +231,7 @@ function ReportActionCompose({
 
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
@@ -580,6 +583,7 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
+                            report={report}
                         >
                             {({displayFilesInModal}) => {
                                 const handleAttachmentDrop = (event: DragEvent) => {
@@ -678,7 +682,7 @@ function ReportActionCompose({
                                                     dropTitle={translate('dropzone.addAttachments')}
                                                     dropStyles={styles.attachmentDropOverlay(true)}
                                                     dropTextStyles={styles.attachmentDropText}
-                                                    dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(true)}
+                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
                                                 />
                                             </DragAndDropConsumer>
                                         )}
