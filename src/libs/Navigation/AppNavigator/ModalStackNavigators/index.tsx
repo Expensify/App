@@ -1,5 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import React from 'react';
+import React, {useCallback, useContext} from 'react';
+import {View} from 'react-native';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -74,22 +80,54 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
  * @param screens key/value pairs where the key is the name of the screen and the value is a function that returns the lazy-loaded component
  */
 function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens): React.ComponentType {
+    // const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
     const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
 
     function ModalStack() {
+        const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay} = useContext(WideRHPContext);
+        const route = useRoute();
+
+        // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout.
+        // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+        const {isSmallScreenWidth} = useResponsiveLayout();
+
+        const getScreenOptions = useCallback<typeof screenOptions>(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            ({route}) => {
+                // Extend common options if they are defined for the screen.
+                if (OPTIONS_PER_SCREEN[route.name as Screen]) {
+                    return {...screenOptions({route}), ...OPTIONS_PER_SCREEN[route.name as Screen]};
+                }
+                return screenOptions({route});
+            },
+            [screenOptions],
+        );
 
         return (
-            <ModalStackNavigator.Navigator screenOptions={screenOptions}>
-                {Object.keys(screens as Required<Screens>).map((name) => (
-                    <ModalStackNavigator.Screen
-                        key={name}
-                        name={name}
-                        getComponent={(screens as Required<Screens>)[name as Screen]}
-                        options={OPTIONS_PER_SCREEN[name as Screen]}
+            // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
+            <View style={styles.modalStackNavigatorContainer(isSmallScreenWidth)}>
+                <ModalStackNavigator.Navigator>
+                    {Object.keys(screens as Required<Screens>).map((name) => (
+                        <ModalStackNavigator.Screen
+                            key={name}
+                            name={name}
+                            getComponent={(screens as Required<Screens>)[name as Screen]}
+                            // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
+                            options={getScreenOptions}
+                            // options={screenOptions}
+                        />
+                    ))}
+                </ModalStackNavigator.Navigator>
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
+                    // This overlay is necessary to cover the gap under the narrow format RHP screen
+                    <Overlay
+                        progress={secondOverlayProgress}
+                        marginLeft
                     />
-                ))}
-            </ModalStackNavigator.Navigator>
+                ) : null}
+            </View>
         );
     }
 

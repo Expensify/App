@@ -1,6 +1,9 @@
-import React, {useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+// We use animated because it is used in the react-navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import {expandedRHPProgress, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -25,9 +28,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
-
     const screenOptions = useRHPScreenOptions();
-    const screenListeners = React.useMemo(
+    const {shouldRenderSecondaryOverlay, secondOverlayProgress} = useContext(WideRHPContext);
+
+    const screenListeners = useMemo(
         () => ({
             blur: () => {
                 if (
@@ -47,24 +51,24 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         [navigation, route],
     );
 
+    const handleOverlayPress = useCallback(() => {
+        if (isExecutingRef.current) {
+            return;
+        }
+        isExecutingRef.current = true;
+        navigation.goBack();
+        setTimeout(() => {
+            isExecutingRef.current = false;
+        }, CONST.ANIMATED_TRANSITION);
+    }, [navigation]);
+
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
-                {!shouldUseNarrowLayout && (
-                    <Overlay
-                        onPress={() => {
-                            if (isExecutingRef.current) {
-                                return;
-                            }
-                            isExecutingRef.current = true;
-                            navigation.goBack();
-                            setTimeout(() => {
-                                isExecutingRef.current = false;
-                            }, CONST.ANIMATED_TRANSITION);
-                        }}
-                    />
-                )}
-                <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
+                {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
+                {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
+                {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
+                <Animated.View style={styles.animatedRHPNavigatorContainer(shouldUseNarrowLayout, expandedRHPProgress)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={screenListeners}
@@ -245,7 +249,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                     </Stack.Navigator>
-                </View>
+                </Animated.View>
+                {/* The second overlay is here to cover the wide rhp screen underneath */}
+                {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
+                    <Overlay
+                        marginRight
+                        progress={secondOverlayProgress}
+                        onPress={handleOverlayPress}
+                    />
+                )}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

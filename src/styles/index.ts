@@ -68,7 +68,7 @@ type WebViewStyle = {
 
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
-type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
+type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -1785,6 +1785,21 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             }) satisfies ViewStyle,
 
+        modalStackNavigatorContainer: (isSmallScreenWidth: boolean) => ({
+            width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+            height: '100%',
+            right: 0,
+            position: 'fixed',
+        }),
+
+        animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) => ({
+            height: '100%',
+            width: shouldUseNarrowLayout ? '100%' : expandedRHPProgress.interpolate({inputRange: [0, 1], outputRange: [variables.sideBarWidth, 2 * variables.sideBarWidth]}),
+            right: 0,
+            position: 'absolute',
+            overflow: 'hidden',
+        }),
+
         onboardingNavigatorOuterView: {
             flex: 1,
             justifyContent: 'center',
@@ -2024,16 +2039,16 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
+        overlayStyles: ({progress, marginRight = false, marginLeft = false}: {progress: OverlayStylesParams; marginRight?: boolean; marginLeft?: boolean}) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
+                left: marginLeft ? variables.sideBarWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
+                right: marginRight ? variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
-                opacity: current.progress.interpolate({
+                opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
@@ -2903,7 +2918,6 @@ const styles = (theme: ThemeColors) =>
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
             ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
         avatarInnerTextChat: {
             color: theme.text,
@@ -3101,8 +3115,13 @@ const styles = (theme: ThemeColors) =>
             transform: `rotate(180deg)`,
         },
 
-        navigationScreenCardStyle: {
+        screenWrapperContainer: (minHeight: number | undefined) => ({
+            flex: 1,
+            minHeight,
             backgroundColor: theme.appBG,
+        }),
+
+        navigationScreenCardStyle: {
             height: '100%',
         },
 
@@ -5768,4 +5787,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};
