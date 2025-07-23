@@ -4,7 +4,7 @@ import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtil
 import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import type {FormatPhoneNumberType, LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
@@ -363,7 +363,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return [...feedNames, ...cardNames].join(', ');
 }
 
-function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: FormatPhoneNumberType) {
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
 
     return selectedPersonalDetails

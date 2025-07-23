@@ -5,7 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -27,7 +27,7 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>, formatPhoneNumber: FormatPhoneNumberType) => {
+const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
     updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber);
     Navigation.goBack();
 };

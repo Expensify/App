@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +22,7 @@ import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const updateLegalName = (values: PrivatePersonalDetails, formatPhoneNumber: FormatPhoneNumberType) => {
+const updateLegalName = (values: PrivatePersonalDetails, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
     updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber);
 };
 
