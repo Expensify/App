@@ -81,6 +81,8 @@ type ReportFooterProps = {
     keyboardHeight: SharedValue<number>;
 
     onLayout: (height: number) => void;
+
+    headerHeight: number;
 };
 
 function ReportFooter({
@@ -97,6 +99,7 @@ function ReportFooter({
     nativeID,
     keyboardHeight,
     onLayout,
+    headerHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -213,7 +216,8 @@ function ReportFooter({
 
         return {
             position: 'absolute',
-            bottom: 0,
+            // Ensures the composer does not overlap the header
+            bottom: isComposerFullSize ? -headerHeight : 0,
             width: '100%',
             transform,
         };
