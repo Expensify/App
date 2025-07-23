@@ -35,7 +35,7 @@ const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
