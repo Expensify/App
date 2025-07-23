@@ -78,7 +78,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -268,12 +268,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Pencil,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                from: [`${accountID}`],
-            }),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.SUBMIT, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
@@ -283,12 +278,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.ThumbsUp,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                to: [`${accountID}`],
-            }),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.APPROVE, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
@@ -298,13 +288,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyBag,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                payer: `${accountID}`,
-            }),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.PAY, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
@@ -314,13 +298,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CheckCircle,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                exporter: [`${accountID}`],
-                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-            }),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.EXPORT, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
