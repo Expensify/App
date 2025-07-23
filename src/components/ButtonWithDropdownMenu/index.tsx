@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 type ButtonWithDropdownMenuRef = {
@@ -82,7 +82,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
 
-    const {paddingBottom} = useSafeAreaPaddings(true)
+    const {paddingBottom} = useSafeAreaPaddings(true);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
