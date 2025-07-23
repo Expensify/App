@@ -70,9 +70,10 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
+            hideModalContentWhileAnimating
+            useNativeDriver
             onBackdropPress={onBackdropPress}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includePaddingTop={false}
