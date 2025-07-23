@@ -183,6 +183,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -554,6 +555,7 @@ const translations = {
         userID: 'ID utilisateur',
         disable: 'Désactiver',
         export: 'Exportation',
+        basicExport: 'Exportation basique',
         initialValue: 'Valeur initiale',
         currentDate: 'Current date',
         value: 'Valeur',
@@ -1531,6 +1533,8 @@ const translations = {
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
             invalidateWithDelay: 'Invalider avec délai',
             recordTroubleshootData: 'Enregistrement des données de dépannage',
+            softKillTheApp: "Supprimer l'application",
+            kill: 'Tuer',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -3251,10 +3255,8 @@ const translations = {
         termsAndConditions: {
             header: 'Avant de continuer...',
             title: 'Termes et conditions',
-            subtitle: 'Veuillez accepter les conditions de Expensify Travel.',
-            termsAndConditions: 'termes et conditions',
-            travelTermsAndConditions: 'termes et conditions',
-            agree: "J'accepte les",
+            label: "J'accepte les termes et conditions",
+            subtitle: `Veuillez accepter les <a href="${CONST.TRAVEL_TERMS_URL}">conditions générales</a> d'Expensify Travel.`,
             error: 'Vous devez accepter les conditions générales de Expensify Travel pour continuer.',
             defaultWorkspaceError:
                 "Vous devez définir un espace de travail par défaut pour activer Expensify Travel. Allez dans Paramètres > Espaces de travail > cliquez sur les trois points verticaux à côté d'un espace de travail > Définir comme espace de travail par défaut, puis réessayez !",
@@ -3449,7 +3451,7 @@ const translations = {
             welcomeNote: 'Veuillez utiliser Expensify pour soumettre vos reçus pour remboursement, merci !',
             subscription: 'Abonnement',
             markAsEntered: 'Marquer comme saisi manuellement',
-            markAsExported: 'Marquer comme exporté manuellement',
+            markAsExported: 'Marquer comme exporté',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporter vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vérifions que tout est correct.',
             lineItemLevel: 'Niveau des postes de dépense',
@@ -4399,9 +4401,8 @@ const translations = {
             addNewBankAccount: 'Ajouter un nouveau compte bancaire',
             settlementAccount: 'Compte de règlement',
             settlementAccountDescription: 'Choisissez un compte pour payer le solde de votre carte Expensify.',
-            settlementAccountInfoPt1: 'Assurez-vous que ce compte correspond au vôtre',
-            settlementAccountInfoPt2: 'afin que la Réconciliation Continue fonctionne correctement.',
-            reconciliationAccount: 'Compte de réconciliation',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Assurez-vous que ce compte correspond à votre <a href="${reconciliationAccountSettingsLink}">compte de réconciliation</a> (${accountNumber}) afin que le réconciliation continu fonctionne correctement.`,
             settlementFrequency: 'Fréquence de règlement',
             settlementFrequencyDescription: 'Choisissez la fréquence à laquelle vous paierez le solde de votre Expensify Card.',
             settlementFrequencyInfo:
