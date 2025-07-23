@@ -8,6 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -36,6 +37,7 @@ import {
     getApprovalChain,
     getChatByParticipants,
     getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
@@ -4800,4 +4802,21 @@ describe('ReportUtils', () => {
             });
         });
     });
+
+    describe('getDisplayNameForParticipant', () => {
+        it('should return the display name for a participant', () => {
+            expect(getDisplayNameForParticipant({formatPhoneNumber, accountID: currentUserAccountID, personalDetailsData: participantsPersonalDetails})).toBe(participantsPersonalDetails[currentUserAccountID]?.displayName);
+        });
+
+        it('should return the display name for a participant with a domain', () => {
+            const currentAccountIDOfUser = 4
+            expect(getDisplayNameForParticipant({formatPhoneNumber, accountID: currentAccountIDOfUser, personalDetailsData: participantsPersonalDetails, shouldRemoveDomain: true})).toBe(participantsPersonalDetails[currentAccountIDOfUser]?.displayName);
+        });
+
+        it('should return an empty string if the accountID is not in the personal details', () => {
+            const accountID = 123456;
+            expect(getDisplayNameForParticipant({formatPhoneNumber, accountID, personalDetailsData: participantsPersonalDetails})).toBe('');
+        })
+    });
+    
 });
