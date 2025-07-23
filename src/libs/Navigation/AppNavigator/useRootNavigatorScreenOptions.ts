@@ -1,4 +1,8 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
+// We use Animated from react-native because it is used in the react-navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
+import {expandedRHPProgress} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,7 +30,8 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
 
     return {
@@ -38,7 +43,10 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePanel: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) =>
+                    // Add 1 to change range from [0, 1] to [1, 2]
+                    // Don't use outputMultiplier for the narrow layout
+                    modalCardStyleInterpolator({props, shouldAnimateSidePanel: true, outputRangeMultiplier: isSmallScreenWidth ? undefined : Animated.add(expandedRHPProgress, 1)}),
             },
         },
         basicModalNavigator: {
