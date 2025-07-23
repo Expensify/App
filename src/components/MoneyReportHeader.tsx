@@ -1016,7 +1016,7 @@ function MoneyReportHeader({
                     {!!applicableSecondaryActions.length && KYCMoreDropdown}
                 </View>
             )}
-            <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5]}>
+            <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={[styles.flexRow, styles.gap2, {flexWrap: 'nowrap', alignItems: 'flex-start'}]}>
                     <View style={{flexShrink: 1, flexGrow: 1, minWidth: 0, flexWrap: 'wrap'}}>
                         {shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
