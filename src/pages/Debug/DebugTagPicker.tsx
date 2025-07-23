@@ -7,9 +7,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOUUtils from '@libs/IOUUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
+import {getTagLists} from '@libs/PolicyUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type DebugTagPickerProps = {
@@ -27,15 +27,15 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [newTagName, setNewTagName] = useState(tagName);
-    const selectedTags = useMemo(() => TransactionUtils.getTagArrayFromName(newTagName), [newTagName]);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const selectedTags = useMemo(() => getTagArrayFromName(newTagName), [newTagName]);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const updateTagName = useCallback(
         (index: number) =>
             ({text}: ListItem) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
-                const updatedTagName = IOUUtils.insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index);
+                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index);
                 if (policyTagLists.length === 1) {
                     return onSubmit({text: updatedTagName});
                 }
