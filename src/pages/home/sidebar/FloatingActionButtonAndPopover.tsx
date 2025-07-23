@@ -206,6 +206,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         [quickActionReport?.policyID],
     );
 
+    const startScan = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                setModalVisible(true);
+                return;
+            }
+
+            // Start the scan flow directly
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false);
+        });
+    }, [shouldRedirectToExpensifyClassic]);
+
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
@@ -589,6 +601,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isActive={isCreateMenuActive}
                 ref={fabRef}
                 onPress={toggleCreateMenu}
+                onLongPress={startScan}
             />
         </View>
     );

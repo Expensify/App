@@ -31,11 +31,13 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
+import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -238,7 +240,6 @@ type GetValidReportsReturnTypeCombined = {
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
-    includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
@@ -762,7 +763,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
+        const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
+        const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+        const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        lastMessageTextFromReport = getMovedTransactionMessage(toReport);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -1945,7 +1949,7 @@ function getValidOptions(
         if (currentUserLogin) {
             personalDetailLoginsToExclude = {
                 ...loginsToExclude,
-                [currentUserLogin]: !config.includeCurrentUser,
+                [currentUserLogin]: true,
             };
         }
 
@@ -2298,11 +2302,11 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
-    return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+    return [item.participantsList?.[0]?.displayName ?? item?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
 function getCurrentUserSearchTerms(item: OptionData) {
-    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
 /**
@@ -2544,7 +2548,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 }
 
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
-    return items.sort((a, b) => (a[key] ?? '').toLowerCase().localeCompare((b[key] ?? '').toLowerCase()));
+    return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
 function getEmptyOptions(): Options {
