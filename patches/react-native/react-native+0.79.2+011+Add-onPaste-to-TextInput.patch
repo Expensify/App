@@ -513,7 +513,7 @@ index 42f2383..9a98163 100644
 +          }
 +        }
 +
-+        if (clipData.getDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
++        if (clipData.getDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) && item.getText() != null) {
 +          type = ClipDescription.MIMETYPE_TEXT_PLAIN;
 +          data = item.getText().toString();
 +          if (mPasteWatcher != null) {
