@@ -1,7 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import type {Ref} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
@@ -42,8 +42,9 @@ import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type SignInPageInnerProps = {
+type SignInPageProps = {
     shouldEnableMaxHeight?: boolean;
+    ref: Ref<SignInPageRef | null>;
 };
 
 type SignInPageRef = {
@@ -146,7 +147,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -363,18 +364,14 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     );
 }
 
-type SignInPageProps = SignInPageInnerProps;
-const SignInPageWithRef = forwardRef(SignInPage);
-
-function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageWrapper(props: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
                     <LoginProvider>
-                        <SignInPageWithRef
-                            ref={ref}
+                        <SignInPage
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...props}
                         />
@@ -387,6 +384,6 @@ function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageR
 
 SignInPageWrapper.displayName = 'SignInPage';
 
-export default forwardRef(SignInPageWrapper);
+export default SignInPageWrapper;
 
 export type {SignInPageRef};
