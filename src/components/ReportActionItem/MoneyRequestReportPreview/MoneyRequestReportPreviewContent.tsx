@@ -639,11 +639,10 @@ function MoneyRequestReportPreviewContent({
                                                 {shouldShowEmptyPlaceholder ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter, isIconNeeded && styles.gap1]}>
-                                                        <Text style={[styles.alignItemsCenter, styles.lh16]}>{approvedOrSettledIcon}</Text>
+                                                    <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
+                                                        {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.ml0]}>{approvedOrSettledIcon}</View>}
                                                         <Text
                                                             style={[styles.textLabelSupporting, styles.lh16]}
-                                                            numberOfLines={1}
                                                         >
                                                             {`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}
                                                         </Text>
@@ -745,7 +744,7 @@ function MoneyRequestReportPreviewContent({
                                                         style={[styles.textLabelSupporting]}
                                                         numberOfLines={1}
                                                     >
-                                                        Total
+                                                        {translate('common.total')}
                                                     </Text>
                                                     <Text style={[styles.headerText]}>{convertToDisplayString(totalDisplaySpend, iouReport?.currency)}</Text>
                                                 </View>
