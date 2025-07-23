@@ -572,14 +572,6 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
-    }
-
-    if (isMarkAsExportedAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
-    }
-
     if (isRetractAction(report, policy, betas)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
