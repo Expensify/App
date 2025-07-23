@@ -1364,14 +1364,20 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     if (shouldDismissModal) {
-        if (getIsNarrowLayout() && report?.reportID) {
-            Navigation.dismissModalWithReport({reportID: report.reportID});
-            return;
-        }
+        Navigation.onModalDismissedOnce(() => {
+            Navigation.onModalDismissedOnce(() => {
+                if (!report?.reportID) {
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            });
+        });
 
         Navigation.dismissModal();
+    } else if (report?.reportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
-
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID)));
