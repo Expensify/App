@@ -5147,6 +5147,7 @@ const CONST = {
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
+    ICON_TEST_ID: 'Icon',
     IMAGE_TEST_ID: 'Image',
     IMAGE_SVG_TEST_ID: 'ImageSVG',
     VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
