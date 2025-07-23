@@ -53,6 +53,8 @@ type LocaleContextProps = {
     preferredLocale: Locale | undefined;
 };
 
+type FormatPhoneNumberType = LocaleContextProps['formatPhoneNumber'];
+
 const LocaleContext = createContext<LocaleContextProps>({
     translate: () => '',
     numberFormat: () => '',
@@ -166,4 +168,4 @@ LocaleContextProvider.displayName = 'LocaleContextProvider';
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps};
+export type {Locale, LocaleContextProps, FormatPhoneNumberType};
