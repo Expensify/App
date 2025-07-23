@@ -95,6 +95,16 @@ type Comment = {
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /** Whether the transaction was rejected by RTER */
+    rterRjectedExpense?: {
+        /** The comment of the rejected expense */
+        comment: string;
+        /** Who rejected the expense */
+        rejectedBy?: string;
+        /** When the expense was rejected */
+        rejectedDate?: string;
+    };
 };
 
 /** Model of transaction custom unit */
@@ -551,6 +561,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The inserted time of the transaction */
         inserted?: string;
+
+        /** The transactionThreadReportID associated with the transaction */
+        transactionThreadReportID?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
