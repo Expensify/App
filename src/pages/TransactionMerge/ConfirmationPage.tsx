@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getSourceTransaction} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getReportIDForExpense, getSourceTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -35,7 +35,8 @@ function Confirmation({route}: ConfirmationProps) {
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
 
-    const iouActionOfTargetTransaction = getIOUActionForReportID(targetTransaction?.reportID, targetTransaction?.transactionID);
+    // Get the report ID for an unreported expense so we can navigate to the receipt review page
+    const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(targetTransaction), targetTransaction?.transactionID);
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionOfTargetTransaction?.childReportID}`];
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 

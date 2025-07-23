@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import {findSelfDMReportID} from './ReportUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
 // Define the specific merge fields we want to handle
@@ -142,6 +143,25 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 }
 
 /**
+ * Get the report ID for an expense, if it's unreported, we'll return the self DM report ID
+ * @param transaction - The transaction to get the report ID for
+ * @returns The report ID for the expense
+ */
+function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
+    if (!transaction) {
+        return undefined;
+    }
+
+    const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    if (isUnreportedExpense) {
+        return findSelfDMReportID();
+    }
+
+    return transaction.reportID;
+}
+
+/**
  * Build the merged transaction data for display by combining target transaction with merge transaction updates
  * @param targetTransaction - The target transaction to merge into
  * @param mergeTransaction - The merge transaction containing the updates
@@ -201,6 +221,7 @@ export {
     buildMergedTransactionData,
     selectTargetAndSourceTransactionIDsForMerge,
     isEmptyMergeValue,
+    getReportIDForExpense,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};
