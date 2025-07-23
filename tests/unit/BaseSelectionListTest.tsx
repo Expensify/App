@@ -241,7 +241,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}50`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
 
-        // Should not show, Show more button as we rendered whole list
+        // Should not show, Show more button as we rendered whole list and search text was not changed
         expect(screen.queryByText('common.showMore')).toBeFalsy();
     });
 
