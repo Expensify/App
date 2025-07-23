@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -324,7 +324,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(formatPhoneNumber: FormatPhoneNumberType, personalDetail?: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
         return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
