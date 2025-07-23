@@ -1,7 +1,7 @@
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -879,7 +879,7 @@ function buildAddMembersToWorkspaceOnyxData(
     policyID: string,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
@@ -980,7 +980,7 @@ function addMembersToWorkspace(
     policyID: string,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,

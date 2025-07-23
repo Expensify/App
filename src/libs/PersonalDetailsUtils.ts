@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {FormatPhoneNumberType} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -223,7 +223,7 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
 function getPersonalDetailsOnyxDataForOptimisticUsers(
     newLogins: string[],
     newAccountIDs: number[],
-    formatPhoneNumber: FormatPhoneNumberType,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
