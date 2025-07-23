@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -18,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -55,7 +55,9 @@ function useOptions() {
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -92,6 +94,16 @@ function useOptions() {
             selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
     }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                setDidScreenTransitionEnd(true);
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
