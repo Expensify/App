@@ -229,6 +229,8 @@ function AttachmentPicker({
             allowMultiSelection: fileLimit !== 1,
         });
 
+        console.log(pickedFiles);
+
         const localCopies = await keepLocalCopy({
             files: pickedFiles.map((file) => {
                 return {
@@ -239,9 +241,13 @@ function AttachmentPicker({
             destination: 'cachesDirectory',
         });
 
-        return pickedFiles.map((file, index) => {
-            const localCopy = localCopies[index];
-            if (localCopy.status !== 'success') {
+        return pickedFiles.map((file) => {
+            // Match by sourceUri to prevent race condition mix-ups
+            const localCopy = localCopies.find((copy) =>
+                copy.status === 'success' && copy.sourceUri === file.uri
+            );
+
+            if (!localCopy || localCopy.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
 
