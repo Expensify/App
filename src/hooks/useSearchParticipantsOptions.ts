@@ -19,7 +19,7 @@ const defaultListOptions = {
 function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldInitialize = true}: {selectedOptions: OptionData[]; cleanSearchTerm: string; shouldInitialize?: boolean}) {
     const {options, areOptionsInitialized} = useOptionsList({shouldInitialize});
     const isReady = !!areOptionsInitialized;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
 
     const defaultOptions = useMemo(() => {
@@ -64,6 +64,7 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
 
         if (chatOptions.currentUserOption) {
             const formattedName = getDisplayNameForParticipant({
+                formatPhoneNumber,
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
@@ -97,7 +98,7 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
             sections: newSections,
             headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
         };
-    }, [isReady, cleanSearchTerm, selectedOptions, chatOptions, translate, personalDetails]);
+    }, [isReady, cleanSearchTerm, selectedOptions, chatOptions, translate, personalDetails, formatPhoneNumber]);
 
     return {sections, headerMessage, areOptionsInitialized};
 }

@@ -13,7 +13,7 @@ type ReportTypingIndicatorProps = {
 };
 
 function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
 
     const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
@@ -31,7 +31,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
     const firstUserTypingDisplayName = isUserTypingADisplayName
         ? firstUserTyping
-        : ReportUtils.getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false});
+        : ReportUtils.getDisplayNameForParticipant({formatPhoneNumber, accountID: Number(firstUserTyping), shouldFallbackToHidden: false});
 
     if (usersTyping.length === 1) {
         return (

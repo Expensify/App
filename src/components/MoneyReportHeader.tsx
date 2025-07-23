@@ -221,7 +221,7 @@ function MoneyReportHeader({
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const isOnHold = isOnHoldTransactionUtils(transaction);
 
@@ -244,7 +244,15 @@ function MoneyReportHeader({
         [allViolations, transactionIDs],
     );
 
-    const details = useReportAvatarDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
+    const details = useReportAvatarDetails({
+        formatPhoneNumber,
+        report: chatReport,
+        iouReport: moneyRequestReport,
+        action: reportPreviewAction,
+        policy,
+        innerPolicies: policies,
+        personalDetails,
+    });
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {

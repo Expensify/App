@@ -15,6 +15,7 @@ import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 import PropertyKeysOf = jest.PropertyKeysOf;
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 
 const reportActions = [{[actionR14932.reportActionID]: actionR14932}];
 const transactions = [transactionR14932];
@@ -79,6 +80,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: actionR14932,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -96,6 +98,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: {...validAction, childMoneyRequestCount: 0},
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -125,6 +128,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -150,6 +154,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -167,6 +172,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
