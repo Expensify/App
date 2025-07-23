@@ -183,7 +183,6 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // Reset collected errors for new validation
         collectedErrors.current = [];
 
-        // Store original file order using URI as key
         files.forEach((file, index) => {
             originalFileOrder.current.set(file.uri ?? '', index);
         });
@@ -199,7 +198,6 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                     setIsLoaderVisible(true);
 
                     return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
-                        // Update originalFileOrder map with converted files
                         convertedImages.forEach((convertedFile, index) => {
                             updateFileOrderMapping(otherFiles.at(index), convertedFile);
                         });
@@ -207,7 +205,6 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                             return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                                // Update originalFileOrder map with resized files
                                 processedFiles.forEach((resizedFile, index) => {
                                     updateFileOrderMapping(convertedImages.at(index), resizedFile);
                                 });
@@ -226,7 +223,6 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 if (otherFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                     setIsLoaderVisible(true);
                     return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                        // Update originalFileOrder map with resized files
                         processedFiles.forEach((resizedFile, index) => {
                             updateFileOrderMapping(otherFiles.at(index), resizedFile);
                         });
