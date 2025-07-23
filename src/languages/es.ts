@@ -3231,10 +3231,8 @@ const translations = {
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Términos y condiciones de Expensify Travel',
-            subtitle: 'Por favor, acepta los ',
-            termsAndConditions: 'términos y condiciones',
-            travelTermsAndConditions: 'términos y condiciones',
-            agree: 'Acepto los ',
+            label: 'Acepto los términos y condiciones',
+            subtitle: `Por favor, acepta los <a href="${CONST.TRAVEL_TERMS_URL}">términos y condiciones</a> de Expensify Travel.`,
             error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
             defaultWorkspaceError:
                 'Debes establecer un espacio de trabajo predeterminado para habilitar Expensify Travel. Ve a Configuración > Espacios de trabajo > haz clic en los tres puntos verticales junto a un espacio de trabajo > Establecer como espacio de trabajo predeterminado y luego inténtalo de nuevo.',

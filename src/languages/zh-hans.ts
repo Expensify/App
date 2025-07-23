@@ -3226,10 +3226,8 @@ const translations = {
         termsAndConditions: {
             header: '在我们继续之前...',
             title: '条款和条件',
-            subtitle: '请同意Expensify Travel',
-            termsAndConditions: '条款和条件',
-            travelTermsAndConditions: '条款和条件',
-            agree: '我同意',
+            label: '我同意条款和条件',
+            subtitle: `请同意 Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">条款和条件</a>。`,
             error: '您必须同意Expensify Travel的条款和条件才能继续',
             defaultWorkspaceError: '您需要设置一个默认工作区以启用Expensify Travel。请前往设置 > 工作区 > 点击工作区旁边的三个竖点 > 设为默认工作区，然后重试！',
         },

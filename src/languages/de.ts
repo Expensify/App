@@ -3246,10 +3246,8 @@ const translations = {
         termsAndConditions: {
             header: 'Bevor wir fortfahren...',
             title: 'Allgemeine Geschäftsbedingungen',
-            subtitle: 'Bitte stimmen Sie den Expensify Travel zu',
-            termsAndConditions: 'Allgemeine Geschäftsbedingungen',
-            travelTermsAndConditions: 'Allgemeine Geschäftsbedingungen',
-            agree: 'Ich stimme den',
+            label: 'Ich stimme den Bedingungen und Konditionen zu',
+            subtitle: `Bitte stimmen Sie den <a href="${CONST.TRAVEL_TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> von Expensify Travel zu.`,
             error: 'Sie müssen den Expensify Travel Geschäftsbedingungen zustimmen, um fortzufahren.',
             defaultWorkspaceError:
                 'Sie müssen einen Standard-Arbeitsbereich festlegen, um Expensify Travel zu aktivieren. Gehen Sie zu Einstellungen > Arbeitsbereiche > klicken Sie auf die drei vertikalen Punkte neben einem Arbeitsbereich > Als Standard-Arbeitsbereich festlegen und versuchen Sie es dann erneut!',
