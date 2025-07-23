@@ -13,8 +13,8 @@ import type GoogleError from './types';
  */
 function googleSignInRequest() {
     GoogleSignin.configure({
-        webClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_WEB_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-        iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
+        webClientId: '240677659774-86pov3adub93cv4b8uj13g7varolmk2l.apps.googleusercontent.com',
+        iosClientId: '1008697809946-sh04nqq0hea396s1qdqqbj6ia649odb2.apps.googleusercontent.com',
         offlineAccess: false,
     });
 
