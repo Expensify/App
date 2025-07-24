@@ -331,9 +331,9 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-            translationPath: 'search.unapprovedCompanyCards',
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS,
+            translationPath: 'search.unapprovedCards',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCardHourglass,
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -359,7 +359,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
-    let showShowUnapprovedCompanyCardsSuggestion = false;
+    let showShowUnapprovedCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
     Object.values(policies ?? {}).some((policy) => {
@@ -384,7 +384,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCompanyCardsSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCardsSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = isPaidPolicy && false; // s77rt TODO
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
@@ -393,7 +393,7 @@ function getSuggestedSearchesVisibility(
         shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
         showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
-        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        showShowUnapprovedCardsSuggestion ||= isEligibleForUnapprovedCardsSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
@@ -404,7 +404,7 @@ function getSuggestedSearchesVisibility(
             shouldShowExportSuggestion &&
             shouldShowStatementsSuggestion &&
             showShowUnapprovedCashSuggestion &&
-            showShowUnapprovedCompanyCardsSuggestion &&
+            showShowUnapprovedCardsSuggestion &&
             shouldShowReconciliationSuggestion
         );
     });
@@ -421,7 +421,7 @@ function getSuggestedSearchesVisibility(
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion && isDevelopment(),
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
         // s77rt remove DEV lock
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: showShowUnapprovedCompanyCardsSuggestion && isDevelopment(),
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS]: showShowUnapprovedCardsSuggestion && isDevelopment(),
     };
 }
 
@@ -1654,9 +1654,9 @@ function createTypeMenuSections(
                 },
             });
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',

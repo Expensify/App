@@ -5932,7 +5932,7 @@ const translations = {
         },
         statements: 'Statements',
         unapprovedCash: 'Unapproved cash',
-        unapprovedCompanyCards: 'Unapproved company cards',
+        unapprovedCards: 'Unapproved cards',
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',

@@ -193,7 +193,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!searchKey) {
             return false;
         }
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS];
+        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS];
         return eligibleSearchKeys.includes(searchKey);
     }, [offset, searchKey]);
 
