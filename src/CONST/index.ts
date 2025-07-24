@@ -3283,9 +3283,9 @@ const CONST = {
             ALLOW: 'personal',
         },
         STATEMENT_CLOSE_DATE: {
-            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
-            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
-            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
+            LAST_DAY_OF_MONTH: 'LAST_DAY_OF_MONTH',
+            LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
+            CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
