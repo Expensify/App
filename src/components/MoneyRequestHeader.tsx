@@ -236,7 +236,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             text: translate('iou.viewDetails'),
             icon: Expensicons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(report, Navigation.getActiveRoute());
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
