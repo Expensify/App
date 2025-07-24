@@ -233,7 +233,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            displayName: formatPhoneNumberUtils(login),
+            displayName: formatPhoneNumber(login),
             isOptimisticPersonalDetail: true,
         };
 
