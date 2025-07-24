@@ -3228,7 +3228,6 @@ const translations = {
         pleaseUploadTheDirect: 'Por favor, envie os Acordos de Débito Direto e a página de assinatura do Docusign.',
     },
     finishStep: {
-        connect: 'Conectar conta bancária',
         letsFinish: 'Vamos terminar no chat!',
         thanksFor:
             'Obrigado por esses detalhes. Um agente de suporte dedicado agora revisará suas informações. Entraremos em contato se precisarmos de mais alguma coisa de você, mas, enquanto isso, sinta-se à vontade para nos contatar caso tenha alguma dúvida.',

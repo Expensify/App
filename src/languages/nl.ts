@@ -3229,7 +3229,6 @@ const translations = {
         pleaseUploadTheDirect: 'Upload de automatische incassoregelingen en de Docusign-handtekeningenpagina.',
     },
     finishStep: {
-        connect: 'Bankrekening koppelen',
         letsFinish: 'Laten we in de chat afronden!',
         thanksFor:
             'Bedankt voor deze details. Een toegewijde supportmedewerker zal nu uw informatie bekijken. We nemen contact met u op als we nog iets van u nodig hebben, maar in de tussentijd kunt u gerust contact met ons opnemen als u vragen heeft.',

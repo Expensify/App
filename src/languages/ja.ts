@@ -3226,7 +3226,6 @@ const translations = {
         pleaseUploadTheDirect: '口座振替契約およびDocusign署名ページをアップロードしてください。',
     },
     finishStep: {
-        connect: '銀行口座を接続',
         letsFinish: 'チャットで終わらせましょう！',
         thanksFor:
             'これらの詳細をありがとうございます。専任のサポートエージェントがあなたの情報を確認します。追加で必要な情報がある場合はご連絡しますが、その間に質問があればお気軽にお問い合わせください。',

@@ -3223,7 +3223,6 @@ const translations = {
         pleaseUploadTheDirect: 'Carica l’accordo di addebito diretto e la pagina di firma Docusign.',
     },
     finishStep: {
-        connect: 'Collega conto bancario',
         letsFinish: 'Finisciamo in chat!',
         thanksFor:
             'Grazie per questi dettagli. Un agente di supporto dedicato esaminerà ora le tue informazioni. Ti ricontatteremo se avremo bisogno di ulteriori informazioni da parte tua, ma nel frattempo, non esitare a contattarci per qualsiasi domanda.',

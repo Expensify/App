@@ -3191,7 +3191,6 @@ const translations = {
         pleaseUploadTheDirect: '请上传直接借记协议和 Docusign 签名页。',
     },
     finishStep: {
-        connect: '连接银行账户',
         letsFinish: '让我们在聊天中完成！',
         thanksFor: '感谢您提供这些详细信息。专属客服人员将会审核您的信息。如果我们需要其他信息，会再联系您。同时，如果您有任何问题，请随时联系我们。',
         iHaveA: '我有一个问题',

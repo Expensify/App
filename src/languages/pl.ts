@@ -3223,7 +3223,6 @@ const translations = {
         pleaseUploadTheDirect: 'Proszę przesłać Umowy Polecenia Zapłaty oraz stronę z podpisem Docusign.',
     },
     finishStep: {
-        connect: 'Połącz konto bankowe',
         letsFinish: 'Zakończmy na czacie!',
         thanksFor:
             'Dziękujemy za te szczegóły. Dedykowany agent wsparcia teraz przejrzy Twoje informacje. Skontaktujemy się ponownie, jeśli będziemy potrzebować od Ciebie czegoś więcej, ale w międzyczasie, nie wahaj się z nami skontaktować, jeśli masz jakiekolwiek pytania.',

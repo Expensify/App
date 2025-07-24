@@ -3203,7 +3203,6 @@ const translations = {
         pleaseUploadTheDirect: 'Please upload the Direct Debit Arrangements and Docusign signature page',
     },
     finishStep: {
-        connect: 'Connect bank account',
         letsFinish: "Let's finish in chat!",
         thanksFor:
             "Thanks for those details. A dedicated support agent will now review your information. We'll circle back if we need anything else from you, but in the meantime, feel free to reach out to us with any questions.",

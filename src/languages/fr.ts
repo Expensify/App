@@ -3216,7 +3216,6 @@ const translations = {
         pleaseUploadTheDirect: 'Veuillez téléverser les accords de prélèvement automatique et la page de signature Docusign.',
     },
     finishStep: {
-        connect: 'Connecter un compte bancaire',
         letsFinish: 'Terminons dans le chat !',
         thanksFor:
             "Merci pour ces détails. Un agent de support dédié va maintenant examiner vos informations. Nous reviendrons vers vous si nous avons besoin de quelque chose d'autre, mais en attendant, n'hésitez pas à nous contacter si vous avez des questions.",
