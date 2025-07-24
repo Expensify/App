@@ -589,6 +589,7 @@ const ONYXKEYS = {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_PAGES: 'reportActionsPages_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
+        /** @deprecated */
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',

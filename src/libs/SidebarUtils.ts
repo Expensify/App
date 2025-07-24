@@ -24,7 +24,6 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
-import {isValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
@@ -248,7 +247,7 @@ function shouldDisplayReportInLHN(
     const isSystemChat = isSystemChatUtil(report);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldOverrideHidden =
-        isValidDraftComment(draftReportComments?.[report.reportID]) ||
+        !!draftReportComments?.[report.reportID] ||
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
         isSystemChat ||
@@ -401,7 +400,7 @@ function sortReportsToDisplayInLHN(
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
-        } else if (isValidDraftComment(draftReportComments?.[report?.reportID])) {
+        } else if (draftReportComments?.[report?.reportID]) {
             draftReports.push(miniReport);
         } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
             archivedReports.push(miniReport);

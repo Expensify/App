@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey, OnyxMultiSetInput} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DraftReportComments} from '@src/types/onyx';
@@ -7,6 +7,7 @@ import type {DraftReportComments} from '@src/types/onyx';
 // moves individual drafts from `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}` to ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS
 export default function (): Promise<void> {
     return new Promise<void>((resolve) => {
+        // eslint-disable-next-line rulesdir/no-onyx-connect
         const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
             waitForCollectionCallback: true,
@@ -19,17 +20,20 @@ export default function (): Promise<void> {
                 }
 
                 const newDrafts: DraftReportComments = {};
-                Object.entries(drafts).forEach(([reportOnyxKey, draft]) => {
+                const draftsToClear: OnyxMultiSetInput = {};
+                for (const [reportOnyxKey, draft] of Object.entries(drafts)) {
                     if (!draft) {
-                        return;
+                        continue;
                     }
                     newDrafts[reportOnyxKey.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '')] = draft;
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.set(reportOnyxKey as OnyxKey, null);
-                });
+                    draftsToClear[reportOnyxKey as OnyxKey] = null;
+                }
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.set(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, newDrafts);
+
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.multiSet(draftsToClear);
                 resolve();
             },
         });

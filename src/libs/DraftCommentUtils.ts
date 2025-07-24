@@ -22,18 +22,10 @@ function getDraftComment(reportID: string): OnyxEntry<string> | null | undefined
 
 /**
  * Returns true if the report has a valid draft comment.
- * A valid draft comment is a non-empty string.
- */
-function isValidDraftComment(comment?: string | null): boolean {
-    return !!comment;
-}
-
-/**
- * Returns true if the report has a valid draft comment.
  * NOTE: please prefer useOnyx when possible
  */
 function hasValidDraftComment(reportID: string): boolean {
-    return isValidDraftComment(getDraftComment(reportID));
+    return !!getDraftComment(reportID);
 }
 
 /**
@@ -45,4 +37,4 @@ function prepareDraftComment(comment: string | null) {
     return comment || null;
 }
 
-export {getDraftComment, isValidDraftComment, hasValidDraftComment, prepareDraftComment};
+export {getDraftComment, hasValidDraftComment, prepareDraftComment};
