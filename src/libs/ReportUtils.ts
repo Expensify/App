@@ -2809,7 +2809,7 @@ function getDisplayNameForParticipant({
     // Check if the phone number is already cached
     let formattedLogin = phoneNumberCache[login];
     if (!formattedLogin) {
-        formattedLogin = formatPhoneNumber(login);
+        formattedLogin = formatPhoneNumberPhoneUtils(login);
         // Store the formatted phone number in the cache
         phoneNumberCache[login] = formattedLogin;
     }
