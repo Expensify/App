@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -284,6 +285,25 @@ function isPolicyMember(currentUserLogin: string | undefined, policyID: string |
     return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
 }
 
+function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isReimburser = policy.reimburser === currentUserLogin;
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return policy.reimburser ? isReimburser : isAdmin;
+    }
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        return isAdmin;
+    }
+
+    return false;
+}
+
 function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
@@ -410,6 +430,23 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
             orderWeight: 0,
         }
     );
+}
+
+/**
+ * Gets a tag list of a policy by a tag's orderWeight.
+ */
+function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): ValueOf<PolicyTagLists> {
+    const tagListEmpty = {
+        name: '',
+        required: false,
+        tags: {},
+        orderWeight: 0,
+    };
+    if (isEmptyObject(policyTagList)) {
+        return tagListEmpty;
+    }
+
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
 }
 
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
@@ -1045,7 +1082,7 @@ function getNetSuiteImportCustomFieldLabel(
 
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet)
-        .sort((a, b) => b.localeCompare(a))
+        .sort((a, b) => localeCompare(b, a))
         .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
@@ -1154,7 +1191,7 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
     if (workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
         return 1;
     }
-    return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
+    return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
 };
 
 /**
@@ -1466,6 +1503,7 @@ export {
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
+    getTagListByOrderWeight,
     getTagListName,
     getTagLists,
     getTaxByID,
@@ -1496,6 +1534,7 @@ export {
     isPolicyFeatureEnabled,
     isPolicyOwner,
     isPolicyMember,
+    isPolicyPayer,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,

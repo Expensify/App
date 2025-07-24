@@ -1,7 +1,8 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
@@ -27,12 +28,21 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-function ShareTab() {
+type ShareTabRef = {
+    focus?: () => void;
+};
+
+function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: selectionListRef.current?.focusTextInput,
+    }));
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -115,8 +125,10 @@ function ShareTab() {
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
+            textInputAutoFocus={false}
+            ref={selectionListRef}
         />
     );
 }
 
-export default ShareTab;
+export default forwardRef(ShareTab);

@@ -20,7 +20,7 @@ To connect Xero with Expensify, you must:
 
 Follow these steps to set up the Xero integration:
 
-1. Click **Settings** in the bottom left menu.
+1. Click **Settings** in the left-side navigation menu.
 2. Navigate to **Workspaces > [Workspace Name] > Accounting**.
 3. Click **Connect to Xero**.
 4. Click **Create a New Xero Connection**.

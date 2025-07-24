@@ -31,7 +31,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {
     areSettingsInErrorFields,
@@ -178,13 +177,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
-
-    useEffect(() => {
-        if (!policyID) {
-            return;
-        }
-        getAssignedSupportData(policyID);
-    }, [policyID]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
@@ -512,8 +504,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const [chatTextLink, chatReportID] = useMemo(() => {
         // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
-        if (account?.adminsRoomReportID) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), account?.adminsRoomReportID];
+        if (policy?.chatReportIDAdmins) {
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins];
         }
 
         // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
@@ -522,7 +514,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         // Else, display the following and link to their Concierge DM.
         return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
-    }, [account, conciergeReportID, translate]);
+    }, [account?.accountManagerAccountID, account?.accountManagerReportID, conciergeReportID, policy?.chatReportIDAdmins, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -626,7 +618,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                     <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
                                         <Text style={styles.textSupporting}>{translate('workspace.accounting.needAnotherAccounting')}</Text>
-                                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID))}>{chatTextLink}</TextLink>
+                                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(chatReportID)))}>{chatTextLink}</TextLink>
                                     </View>
                                 </View>
                             )}

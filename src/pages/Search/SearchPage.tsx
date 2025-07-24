@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -19,9 +19,9 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,8 +69,8 @@ function SearchPage({route}: SearchPageProps) {
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -81,14 +81,11 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
     const {q} = route.params;
-
-    const {isBetaEnabled} = usePermissions();
-
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -101,7 +98,7 @@ function SearchPage({route}: SearchPageProps) {
 
         setLastSearchType(currentSearchResults.search.type);
         if (currentSearchResults.data) {
-            setLastNonEmptySearchResults(currentSearchResults);
+            lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
@@ -109,43 +106,51 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
-            return [];
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Download,
-            text: translate('common.download'),
+            icon: Expensicons.Export,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
             shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
+            subMenuItems: [
+                {
+                    text: translate('common.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
 
-                if (isExportMode) {
-                    setIsDownloadExportModalVisible(true);
-                    return;
-                }
+                        if (isExportMode) {
+                            setIsDownloadExportModalVisible(true);
+                            return;
+                        }
 
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
+                        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        exportSearchItemsToCSV(
+                            {
+                                query: status,
+                                jsonQuery: JSON.stringify(queryJSON),
+                                reportIDList,
+                                transactionIDList: selectedTransactionsKeys,
+                            },
+                            () => {
+                                setIsDownloadErrorModalVisible(true);
+                            },
+                        );
+                        clearSelectedTransactions(undefined, true);
                     },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
-                clearSelectedTransactions();
-            },
+                    shouldCloseModalOnSelect: true,
+                },
+            ],
         };
 
         if (isExportMode) {
@@ -445,11 +450,11 @@ function SearchPage({route}: SearchPageProps) {
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     const createExportAll = useCallback(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return [];
         }
 
@@ -467,7 +472,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
+    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults.current;
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -499,13 +504,13 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                <DragAndDropProvider>
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
                         headerButtonsOptions={headerButtonsOptions}
-                        lastNonEmptySearchResults={lastNonEmptySearchResults}
-                        currentSearchResults={currentSearchResults}
+                        searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -513,13 +518,13 @@ function SearchPage({route}: SearchPageProps) {
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
                 </DragAndDropProvider>
-                {!!selectionMode && selectionMode?.isEnabled && (
+                {!!isMobileSelectionModeEnabled && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
@@ -576,23 +581,25 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                            <DragAndDropProvider>
                                 {PDFValidationComponent}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <SearchFiltersBar
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <Search
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
-                                    currentSearchResults={currentSearchResults}
-                                    lastNonEmptySearchResults={lastNonEmptySearchResults}
+                                    searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
                                     handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
@@ -600,7 +607,7 @@ function SearchPage({route}: SearchPageProps) {
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>
