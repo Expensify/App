@@ -2,23 +2,26 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
-    lastSearchQuery?: OnyxTypes.LastSearchParams;
-    rawReports?: string[];
     shouldDisplayNarrowVersion: boolean;
     backTo?: string;
 };
 
-function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
+function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
+    const [reportsObj] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS, {canBeMissing: true});
+    const rawReports = Object.keys(reportsObj ?? {});
+
     const allReports = rawReports ?? [];
     const currentIndex = allReports.indexOf(reportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
@@ -26,6 +29,7 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
+    const shouldDisplayNavigationArrows = rawReports && rawReports.length > 0;
 
     useEffect(() => {
         if (currentIndex < allReportsCount - 1 || !lastSearchQuery?.queryJSON) {
@@ -79,15 +83,17 @@ function MoneyRequestReportNavigation({reportID, lastSearchQuery, rawReports, sh
     };
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            {!shouldDisplayNarrowVersion && <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
-            <PrevNextButtons
-                isPrevButtonDisabled={hidePrevButton}
-                isNextButtonDisabled={hideNextButton}
-                onNext={goToNextReport}
-                onPrevious={goToPrevReport}
-            />
-        </View>
+        shouldDisplayNavigationArrows && (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                {!shouldDisplayNarrowVersion && <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+                <PrevNextButtons
+                    isPrevButtonDisabled={hidePrevButton}
+                    isNextButtonDisabled={hideNextButton}
+                    onNext={goToNextReport}
+                    onPrevious={goToPrevReport}
+                />
+            </View>
+        )
     );
 }
 
