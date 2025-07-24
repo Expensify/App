@@ -518,9 +518,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         opacity.set(
-            withTiming(0, {duration: 200}, () => {
+            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
                 setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, {duration: 200}));
+                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
             }),
         );
     }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset]);
@@ -605,8 +605,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     if (shouldShowLoadingState) {
         return (
             <Animated.View
-                entering={FadeIn.duration(100)}
-                exiting={FadeOut.duration(100)}
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={[styles.flex1]}
             >
                 <SearchRowSkeleton

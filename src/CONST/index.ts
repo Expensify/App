@@ -6449,6 +6449,9 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
         },
+        ANIMATION: {
+            FADE_DURATION: 200,
+        },
     },
 
     EXPENSE: {
