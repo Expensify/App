@@ -5256,6 +5256,7 @@ const translations = {
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
             yourWorkspace: 'Your workspace is set to an unsupported currency. View the',
             listOfSupportedCurrencies: 'list of supported currencies',
+            chooseAnExisting: 'Choose an existing bank account to pay expenses or add a new one.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',

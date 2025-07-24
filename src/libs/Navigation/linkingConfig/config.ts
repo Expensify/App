@@ -961,6 +961,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
