@@ -70,7 +70,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
+    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading, currentSearchKey} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.email});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -331,7 +331,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
-        const shouldDisplayFeedFilter = feedOptions.length > 1;
+        const shouldDisplayFeedFilter = feedOptions.length > 1 && (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS || !!filterFormValues?.feed);
         const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
 
         const filterList = [
