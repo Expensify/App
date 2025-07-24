@@ -126,9 +126,9 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    }, [initialTransaction, optimisticTransactions]);
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
 

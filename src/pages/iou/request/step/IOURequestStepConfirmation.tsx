@@ -96,9 +96,9 @@ function IOURequestStepConfirmation({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
