@@ -45,7 +45,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -146,6 +146,8 @@ function MoneyRequestReportActionsList({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -477,6 +479,12 @@ function MoneyRequestReportActionsList({
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
+            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
+            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
+            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
+            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
@@ -499,6 +507,8 @@ function MoneyRequestReportActionsList({
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
+                    emojiReactions={actionEmojiReactions}
+                    draftMessage={matchingDraftMessageString}
                 />
             );
         },
@@ -518,6 +528,8 @@ function MoneyRequestReportActionsList({
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            emojiReactions,
+            draftMessage,
         ],
     );
 

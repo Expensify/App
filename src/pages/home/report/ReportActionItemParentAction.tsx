@@ -63,13 +63,13 @@ type ReportActionItemParentActionProps = {
     shouldUseThreadDividerLine?: boolean;
 
     /** User wallet */
-    userWallet?: OnyxEntry<OnyxTypes.UserWallet>;
+    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
     /** Whether the user is validated */
-    isUserValidated?: boolean | undefined;
+    isUserValidated: boolean | undefined;
 
     /** Personal details list */
-    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** Draft message for the report action */
     draftMessage?: string;
@@ -81,7 +81,7 @@ type ReportActionItemParentActionProps = {
     linkedTransactionRouteError?: OnyxEntry<Errors>;
 
     /** User billing fund ID */
-    userBillingFundID?: number;
+    userBillingFundID: number | undefined;
 };
 
 function ReportActionItemParentAction({
