@@ -431,6 +431,10 @@ function ReportAvatar({
                 singleAvatarStyle: styles.singleAvatarMedium,
                 secondAvatarStyles: styles.secondAvatarMedium,
             },
+            [CONST.AVATAR_SIZE.X_LARGE]: {
+                singleAvatarStyle: styles.singleAvatarLarge,
+                secondAvatarStyles: styles.secondAvatarLarge,
+            },
             [CONST.AVATAR_SIZE.DEFAULT]: {
                 singleAvatarStyle: styles.singleAvatar,
                 secondAvatarStyles: styles.secondAvatar,
@@ -469,6 +473,10 @@ function ReportAvatar({
 
         if (size === CONST.AVATAR_SIZE.LARGE) {
             return CONST.AVATAR_SIZE.MEDIUM;
+        }
+
+        if (size === CONST.AVATAR_SIZE.X_LARGE) {
+            return CONST.AVATAR_SIZE.LARGE;
         }
 
         return CONST.AVATAR_SIZE.SMALLER;
@@ -627,6 +635,7 @@ function ReportAvatar({
             const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
             avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
         }
+        const useHugeBottomMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
 
         return shouldStackHorizontally ? (
             avatarRows.map((avatars, rowIndex) => (
@@ -709,7 +718,7 @@ function ReportAvatar({
                 </View>
             ))
         ) : (
-            <View style={avatarContainerStyles}>
+            <View style={[avatarContainerStyles, useHugeBottomMargin && styles.mb5]}>
                 <View
                     style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}
                     testID="ReportAvatar-MultipleAvatars"
