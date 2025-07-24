@@ -5,6 +5,8 @@ import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import {findSelfDMReportID} from './ReportUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
+const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
+
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
@@ -50,6 +52,31 @@ const MERGE_FIELDS_UTILS = {
 };
 
 /**
+ * Fills the receipt.source for a transaction if it's missing
+ * Workaround while wait BE to fix the receipt.source
+ * @param transaction - The transaction to update the receipt source for
+ * @returns The updated transaction with receipt.source filled if it was missing
+ */
+function fillMissingReceiptSource(transaction: OnyxEntry<Transaction>): Transaction | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+
+    // If receipt.source already exists, no need to modify
+    if (!transaction.receipt || !!transaction.receipt?.source || !transaction.filename) {
+        return transaction;
+    }
+
+    return {
+        ...transaction,
+        receipt: {
+            ...transaction.receipt,
+            source: `${RECEIPT_SOURCE_URL}${transaction.filename}`,
+        },
+    };
+}
+
+/**
  * Get the source transaction from a merge transaction
  * @param mergeTransaction - The merge transaction to get the source transaction from
  * @returns The source transaction or null if it doesn't exist
@@ -59,7 +86,7 @@ const getSourceTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => 
         return undefined;
     }
 
-    return mergeTransaction.eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction.sourceTransactionID);
+    return fillMissingReceiptSource(mergeTransaction.eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction.sourceTransactionID));
 };
 
 /**
@@ -222,6 +249,7 @@ export {
     selectTargetAndSourceTransactionIDsForMerge,
     isEmptyMergeValue,
     getReportIDForExpense,
+    fillMissingReceiptSource,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};

@@ -13,7 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {getSourceTransaction, selectTargetAndSourceTransactionIDsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
+import {fillMissingReceiptSource, getSourceTransaction, selectTargetAndSourceTransactionIDsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,7 +60,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         return [
             {
                 data: (eligibleTransactions ?? []).map((eligibleTransaction) => ({
-                    ...eligibleTransaction,
+                    ...fillMissingReceiptSource(eligibleTransaction),
                     keyForList: eligibleTransaction.transactionID,
                     isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
                     errors: eligibleTransaction.errors as Errors | undefined,
