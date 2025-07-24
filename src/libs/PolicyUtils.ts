@@ -448,12 +448,12 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
- *  Converts a colon-delimited tag string into a comma-separated string, filtering out empty tags.
+ * Converts a colon-delimited tag string into a comma-separated string, filtering out empty tags.
  */
 function getCommaSeparatedTagNameWithSanitizedColons(tag: string): string {
     return getTagArrayFromName(tag)
         .filter((tagItem) => tagItem !== '')
-        .map((tagItem) => getCleanedTagName(tagItem))
+        .map(getCleanedTagName)
         .join(', ');
 }
 
