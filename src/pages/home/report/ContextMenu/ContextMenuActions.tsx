@@ -509,8 +509,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction, formatPhoneNumber});
-                    Clipboard.setString(modifyExpenseMessage);
+                    // formatPhoneNumber is always defined, but we make it optional in the type defination
+                    // This is because we only want to pass it to onPress when we have `getForReportAction` function
+                    if (formatPhoneNumber) {
+                        const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction, formatPhoneNumber});
+                        Clipboard.setString(modifyExpenseMessage);
+                    }
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const {expenseReportID} = getOriginalMessage(reportAction) ?? {};
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID);
