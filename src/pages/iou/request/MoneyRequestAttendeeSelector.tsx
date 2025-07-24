@@ -131,7 +131,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
@@ -196,7 +196,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, formatPhoneNumber) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });

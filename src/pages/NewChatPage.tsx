@@ -59,7 +59,7 @@ function useOptions() {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
+    const {formatPhoneNumber} = useLocalize();
     const defaultOptions = useMemo(() => {
         const filteredOptions = getValidOptions(
             {
@@ -76,13 +76,13 @@ function useOptions() {
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
+    }, [debouncedSearchTerm, defaultOptions, selectedOptions, formatPhoneNumber]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -114,6 +114,7 @@ function useOptions() {
             if (!participantOption) {
                 participantOption = getUserToInviteOption({
                     searchValue: participant?.login,
+                    formatPhoneNumber,
                 });
             }
             if (!participantOption) {

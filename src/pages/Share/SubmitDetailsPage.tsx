@@ -72,7 +72,7 @@ function SubmitDetailsPage({
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
-        participant?.accountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant),
+        participant?.accountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber),
     );
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;

@@ -440,7 +440,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber);
                 });
 
                 if (shouldSkipConfirmation) {

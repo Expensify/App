@@ -2,7 +2,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
@@ -33,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import {formatPhoneNumber} from '../utils/TestHelper';  
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -573,12 +573,12 @@ describe('OptionsListUtils', () => {
 
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
-        OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS);
+        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, formatPhoneNumber,       REPORTS_WITH_CONCIERGE);
+        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, formatPhoneNumber, REPORTS_WITH_CHRONOS);
+        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, formatPhoneNumber, REPORTS_WITH_RECEIPTS);
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, formatPhoneNumber);
     });
 
     describe('getSearchOptions()', () => {
@@ -1122,8 +1122,8 @@ describe('OptionsListUtils', () => {
         it('should return correct display name', () => {
             // Given two different personal details
             // When we call getLastActorDisplayName
-            const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2']);
-            const result2 = getLastActorDisplayName(PERSONAL_DETAILS['3']);
+            const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2'], formatPhoneNumber);
+            const result2 = getLastActorDisplayName(PERSONAL_DETAILS['3'], formatPhoneNumber);
 
             // We should expect the display names to be the same as the personal details
             expect(result1).toBe('You');
@@ -1157,7 +1157,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '');
+            const filteredOptions = filterAndOrderOptions(options, '', formatPhoneNumber);
 
             // Then all options should be returned
             expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(13);
@@ -1169,7 +1169,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(options, searchText, {sortByReportTypeInSearch: true});
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber, {sortByReportTypeInSearch: true});
 
             // Then we expect all options to be part of the recentReports list and reports should be first:
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -1188,7 +1188,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1202,7 +1202,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1214,11 +1214,11 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, formatPhoneNumber, REPORTS);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS_WITH_PERIODS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(options, searchText, {sortByReportTypeInSearch: true});
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber, {sortByReportTypeInSearch: true});
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1232,7 +1232,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS_WITH_WORKSPACE_ROOM, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1245,7 +1245,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1256,11 +1256,11 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions(OPTIONS_WITH_CHAT_ROOMS, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filterOptions = filterAndOrderOptions(options, searchText);
+            const filterOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then only two reports should be returned
             expect(filterOptions.recentReports.length).toBe(2);
@@ -1273,7 +1273,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -1288,7 +1288,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -1299,7 +1299,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with excluded logins list
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
             // When we call filterAndOrderOptions with a search value and excluded logins list
-            const filterOptions = filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filterOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             // Then no personal details should be returned
             expect(filterOptions.recentReports.length).toBe(0);
@@ -1310,7 +1310,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value and excludeLogins
-            const filteredOptions = filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -1321,14 +1321,14 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
-            const filteredOptions = filterAndOrderOptions(options, searchText, {maxRecentReportsToShow: 2});
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber, {maxRecentReportsToShow: 2});
 
             // Then only two reports should be returned
             expect(filteredOptions.recentReports.length).toBe(2);
 
             // Note: in the past maxRecentReportsToShow: 0 would return all recent reports, this has changed, and is expected to return none now
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 0
-            const limitToZeroOptions = filterAndOrderOptions(options, searchText, {maxRecentReportsToShow: 0});
+            const limitToZeroOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber, {maxRecentReportsToShow: 0});
 
             // Then no reports should be returned
             expect(limitToZeroOptions.recentReports.length).toBe(0);
@@ -1339,7 +1339,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText);
+            const filteredOptions = filterAndOrderOptions(options, searchText, formatPhoneNumber);
 
             // Then there should be one matching result
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -1351,7 +1351,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
             // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto');
+            const filteredOptions = filterAndOrderOptions(options, 'magneto', formatPhoneNumber);
 
             // Then no personal details should be returned
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -1361,7 +1361,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
             // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com');
+            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', formatPhoneNumber);
 
             // Then one personal detail should be returned
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -1381,7 +1381,7 @@ describe('OptionsListUtils', () => {
             // When we call getShareDestinationOptions with the filteredReports
             const options = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'mutants');
+            const filteredOptions = filterAndOrderOptions(options, 'mutants', formatPhoneNumber);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1401,7 +1401,7 @@ describe('OptionsListUtils', () => {
             // When we call getShareDestinationOptions with the filteredReports
             const options = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'Avengers Room');
+            const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', formatPhoneNumber);
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1421,7 +1421,7 @@ describe('OptionsListUtils', () => {
             // When we call getShareDestinationOptions with the filteredReports
             const options = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair');
+            const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', formatPhoneNumber);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1431,7 +1431,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
-            const filteredOptions = filterAndOrderOptions(options, 'hulk');
+            const filteredOptions = filterAndOrderOptions(options, 'hulk', formatPhoneNumber);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1445,7 +1445,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify');
+            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', formatPhoneNumber);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1458,7 +1458,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com');
+            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', formatPhoneNumber);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1468,10 +1468,10 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return user to invite when search term has a period with options for it that do not contain the period', () => {
-            // Given a set of options
+            // Given a set of options   
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com');
+            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', formatPhoneNumber      );
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1483,7 +1483,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '5005550006');
+            const filteredOptions = filterAndOrderOptions(options, '5005550006', formatPhoneNumber);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1498,7 +1498,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '+15005550006');
+            const filteredOptions = filterAndOrderOptions(options, '+15005550006', formatPhoneNumber);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1513,7 +1513,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233');
+            const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', formatPhoneNumber);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1528,7 +1528,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, '998243aaaa');
+            const filteredOptions = filterAndOrderOptions(options, '998243aaaa', formatPhoneNumber);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1541,7 +1541,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto');
+            const filteredOptions = filterAndOrderOptions(options, 'magneto', formatPhoneNumber);
 
             // Then no personal details should be returned
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -1551,7 +1551,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
+            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', formatPhoneNumber, {sortByReportTypeInSearch: true});
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1565,7 +1565,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
-            const filteredOptions = filterAndOrderOptions(options, '.com', {maxRecentReportsToShow: 5});
+            const filteredOptions = filterAndOrderOptions(options, '.com', formatPhoneNumber, {maxRecentReportsToShow: 5});
 
             // Then there should be 4 matching personal details
             expect(filteredOptions.personalDetails.length).toBe(4);
@@ -1582,7 +1582,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value that matches a personal detail
-            const filteredOptions = filterAndOrderOptions(options, 'spider');
+            const filteredOptions = filterAndOrderOptions(options, 'spider', formatPhoneNumber);
 
             // Then one personal detail should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1594,7 +1594,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value that matches multiple items
-            const filteredOptions = filterAndOrderOptions(options, 'fantastic');
+            const filteredOptions = filterAndOrderOptions(options, 'fantastic', formatPhoneNumber);
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -1607,11 +1607,11 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, formatPhoneNumber, REPORTS);
                     // When we call getSearchOptions
                     const results = getSearchOptions(OPTIONS_WITH_PERIODS);
                     // When we pass the returned options to filterAndOrderOptions with a search value
-                    const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
+                    const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', formatPhoneNumber, {sortByReportTypeInSearch: true});
 
                     // Then only one report should be returned
                     expect(filteredResults.recentReports.length).toBe(1);
@@ -1629,7 +1629,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '');
+            const filteredOptions = filterAndOrderOptions(options, '', formatPhoneNumber);
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
             // Then there should be 2 unique login entries
@@ -1640,12 +1640,12 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
             const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchTerm);
+            const filteredOptions = filterAndOrderOptions(options, searchTerm, formatPhoneNumber);
 
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
@@ -1691,7 +1691,7 @@ describe('OptionsListUtils', () => {
         it('createOptionList() localization', () => {
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
-            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -1702,7 +1702,7 @@ describe('OptionsListUtils', () => {
                     .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
                     .then(() => {
                         // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                        const newReports = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS).reports;
                         // Then the returned reports should change to Spanish
                         // cspell:disable-next-line
                         expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -1781,7 +1781,7 @@ describe('OptionsListUtils', () => {
                 },
             });
             // When we call createOptionList
-            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason

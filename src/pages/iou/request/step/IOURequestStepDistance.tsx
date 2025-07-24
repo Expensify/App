@@ -304,7 +304,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant, formatPhoneNumber);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -406,6 +406,7 @@ function IOURequestStepDistance({
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
+        formatPhoneNumber,
     ]);
 
     const getError = () => {

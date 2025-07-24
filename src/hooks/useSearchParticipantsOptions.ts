@@ -40,7 +40,7 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
     }, [isReady, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,

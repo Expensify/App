@@ -55,7 +55,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, formatPhoneNumber),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, formatPhoneNumber),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, formatPhoneNumber));

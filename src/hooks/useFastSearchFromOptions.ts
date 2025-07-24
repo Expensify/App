@@ -10,6 +10,7 @@ import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import useLocalize from './useLocalize';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -80,7 +81,7 @@ function useFastSearchFromOptions(
     const [isInitialized, setIsInitialized] = useState(false);
     const prevOptionsRef = useRef<typeof options | null>(null);
     const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
-
+    const {formatPhoneNumber} = useLocalize();
     useEffect(() => {
         let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<OptionData>>;
         const prevOptions = prevOptionsRef.current;
@@ -226,6 +227,7 @@ function useFastSearchFromOptions(
                         recentReports,
                     },
                     searchInput,
+                    formatPhoneNumber,
                 );
                 return {
                     personalDetails,

@@ -109,10 +109,10 @@ function RoomInvitePage({
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers});
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    }, [debouncedSearchTerm, defaultOptions, excludedUsers, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];

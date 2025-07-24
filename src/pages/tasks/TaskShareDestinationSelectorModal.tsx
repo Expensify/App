@@ -47,7 +47,7 @@ function TaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
@@ -82,13 +82,13 @@ function TaskShareDestinationSelectorModal() {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredReports = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredReports = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             canInviteUser: false,
         });
         const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, formatPhoneNumber]);
 
     const sections = useMemo(
         () =>

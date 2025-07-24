@@ -74,7 +74,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, reports);
+const options = createOptionList(personalDetails, formatPhoneNumber, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -121,14 +121,14 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, formatPhoneNumber);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
         const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '');
+            filterAndOrderOptions(formattedOptions, '', formatPhoneNumber);
         });
     });
 

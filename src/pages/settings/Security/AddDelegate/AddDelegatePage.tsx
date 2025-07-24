@@ -21,6 +21,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 function useOptions() {
     const betas = useBetas();
+    const {formatPhoneNumber} = useLocalize();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
@@ -67,7 +68,7 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), formatPhoneNumber, {
             excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -81,7 +82,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions, existingDelegates]);
+    }, [debouncedSearchValue, defaultOptions, existingDelegates, formatPhoneNumber]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }

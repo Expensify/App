@@ -640,7 +640,7 @@ function getOptionData({
         lastActorDetails.accountID = lastAction.actorAccountID;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, formatPhoneNumber);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, !!result?.private_isArchived);
@@ -675,7 +675,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, formatPhoneNumber) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -797,7 +797,7 @@ function getOptionData({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'));
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, formatPhoneNumber) && !isArchivedReport(reportNameValuePairs)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText))}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText));

@@ -96,12 +96,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, formatPhoneNumber]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -138,7 +138,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, formatPhoneNumber) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });

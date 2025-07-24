@@ -87,7 +87,10 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         return getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, formatPhoneNumber],
+    );
 
     useEffect(() => {
         // Update selectedOptions with the latest personalDetails information

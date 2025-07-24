@@ -232,7 +232,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -241,7 +241,7 @@ function MoneyRequestParticipantsSelector(
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, formatPhoneNumber]);
 
     const inputHelperText = useMemo(
         () =>
@@ -322,7 +322,7 @@ function MoneyRequestParticipantsSelector(
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, formatPhoneNumber) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });

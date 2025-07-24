@@ -53,7 +53,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
+            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, formatPhoneNumber));
             const alternateText = getAlternateText(report, {});
             return {...report, alternateText};
         });
@@ -67,11 +67,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions, formatPhoneNumber]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];

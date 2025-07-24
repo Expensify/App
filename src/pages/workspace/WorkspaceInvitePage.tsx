@@ -48,7 +48,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
@@ -96,7 +96,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, formatPhoneNumber],
+    );
 
     useEffect(() => {
         if (!areOptionsInitialized) {
