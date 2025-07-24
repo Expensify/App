@@ -1,5 +1,5 @@
 import {useContext, useMemo} from 'react';
-import {BetasContext} from '@components/OnyxProvider';
+import {BetasContext} from '@components/OnyxListItemProvider';
 import Permissions from '@libs/Permissions';
 import type Beta from '@src/types/onyx/Beta';
 

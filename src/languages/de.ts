@@ -35,9 +35,13 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -183,6 +187,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -470,6 +475,7 @@ const translations = {
         message: 'Nachricht',
         leaveThread: 'Thread verlassen',
         you: 'Du',
+        me: 'mich',
         youAfterPreposition: 'du',
         your: 'Ihr',
         conciergeHelp: 'Bitte wenden Sie sich an Concierge, um Hilfe zu erhalten.',
@@ -552,6 +558,7 @@ const translations = {
         userID: 'Benutzer-ID',
         disable: 'Deaktivieren',
         export: 'Exportieren',
+        basicExport: 'Basis Export',
         initialValue: 'Anfangswert',
         currentDate: 'Aktuelles Datum',
         value: 'Wert',
@@ -824,25 +831,21 @@ const translations = {
         reactedWith: 'reagierte mit',
     },
     reportActionsView: {
-        beginningOfArchivedRoomPartOne: 'Du hast die Party in verpasst.',
-        beginningOfArchivedRoomPartTwo: ', hier gibt es nichts zu sehen.',
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
-            `Dieser Chat ist mit allen Expensify-Mitgliedern in der ${domainRoom}-Domain.`,
-        beginningOfChatHistoryDomainRoomPartTwo: 'Verwenden Sie es, um mit Kollegen zu chatten, Tipps auszutauschen und Fragen zu stellen.',
-        beginningOfChatHistoryAdminRoomPartOneFirst: 'Dieser Chat ist mit',
-        beginningOfChatHistoryAdminRoomPartOneLast: 'admin.',
-        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
-        beginningOfChatHistoryAdminRoomPartTwo: 'Verwenden Sie es, um über die Einrichtung des Arbeitsplatzes und mehr zu chatten.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Dieser Chat ist mit allen in ${workspaceName}.`,
-        beginningOfChatHistoryAnnounceRoomPartTwo: `Verwenden Sie es für die wichtigsten Ankündigungen.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Dieser Chatraum ist für alles.',
-        beginningOfChatHistoryUserRoomPartTwo: 'related.',
-        beginningOfChatHistoryInvoiceRoomPartOne: `Dieser Chat ist für Rechnungen zwischen`,
-        beginningOfChatHistoryInvoiceRoomPartTwo: `. Verwenden Sie die + Schaltfläche, um eine Rechnung zu senden.`,
+        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+            `Du hast die Party in <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> verpasst, hier gibt es nichts zu sehen.`,
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
+            `Dieser Chat ist für alle Expensify-Mitglieder auf der <strong>${domainRoom}</strong>-Domain. Nutzen Sie ihn, um mit Kollegen zu chatten, Tipps auszutauschen und Fragen zu stellen.`,
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
+            `Dieser Chat ist mit dem <strong>${workspaceName}</strong>-Administrator. Nutzen Sie ihn, um über die Einrichtung von Arbeitsbereichen und mehr zu sprechen.`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `Dieser Chat ist für alle im <strong>${workspaceName}</strong>. Benutze ihn für die wichtigsten Ankündigungen.`,
+        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+            `Dieser Chatraum ist für alles, was mit <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> zu tun hat.`,
+        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+            `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwenden Sie die Schaltfläche +, um eine Rechnung zu senden.`,
         beginningOfChatHistory: 'Dieser Chat ist mit',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Dies ist, wo',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: 'wird Ausgaben einreichen bei',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: '. Verwenden Sie einfach die + Taste.',
+        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+            `Hier wird <strong>${submitterDisplayName}</strong> die Ausgaben an <strong>${workspaceName}</strong> übermitteln. Verwenden Sie einfach die Schaltfläche +.`,
         beginningOfChatHistorySelfDM: 'Dies ist Ihr persönlicher Bereich. Nutzen Sie ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lassen Sie uns mit der Einrichtung beginnen.',
         chatWithAccountManager: 'Hier mit Ihrem Kundenbetreuer chatten',
@@ -1073,8 +1076,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Machen Sie Fotos von all Ihren Belegen auf einmal, dann bestätigen Sie die Details selbst oder lassen Sie SmartScan dies übernehmen.',
         receiptScanInProgress: 'Belegscan läuft',
         receiptScanInProgressDescription: 'Belegscan läuft. Später erneut prüfen oder die Details jetzt eingeben.',
-        removeFromReport: 'Ausgabe aus Bericht entfernen',
-        moveToPersonalSpace: 'Ausgaben in persönlichen Bereich verschieben',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Mögliche doppelte Ausgaben erkannt. Überprüfen Sie die Duplikate, um die Einreichung zu ermöglichen.'
@@ -1533,6 +1534,8 @@ const translations = {
             invalidFileDescription: 'Die Datei, die Sie importieren möchten, ist ungültig. Bitte versuchen Sie es erneut.',
             invalidateWithDelay: 'Mit Verzögerung ungültig machen',
             recordTroubleshootData: 'Daten zur Fehlerbehebung aufzeichnen',
+            softKillTheApp: 'Soft-Kill der App',
+            kill: 'Töten',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',
@@ -2207,6 +2210,11 @@ const translations = {
             title: 'Verwenden Sie eine Buchhaltungssoftware?',
             none: 'Keine',
         },
+        interestedFeatures: {
+            title: 'Für welche Funktionen interessieren Sie sich?',
+            featuresAlreadyEnabled: 'Ihr Arbeitsbereich hat bereits Folgendes aktiviert:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
+        },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
         },
@@ -2270,7 +2278,7 @@ const translations = {
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     `4. Gib die E-Mail oder Telefonnummer deines Chefs ein.\n` +
@@ -2281,7 +2289,7 @@ const translations = {
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Details bestätigen.\n' +
@@ -2292,7 +2300,7 @@ const translations = {
                 title: 'Verfolge eine Ausgabe',
                 description:
                     '*Verfolge eine Ausgabe* in jeder Währung – mit oder ohne Beleg.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Wähle deinen *persönlichen* Bereich.\n' +
@@ -2376,7 +2384,7 @@ const translations = {
                 title: 'Starte einen Chat',
                 description:
                     '*Starte einen Chat* mit jeder Person über E-Mail oder Telefonnummer.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib eine E-Mail oder Telefonnummer ein.\n\n' +
                     'Falls die Person Expensify noch nicht nutzt, wird sie automatisch eingeladen.\n\n' +
@@ -2386,7 +2394,7 @@ const translations = {
                 title: 'Teile eine Ausgabe',
                 description:
                     '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
                     '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
@@ -2405,7 +2413,7 @@ const translations = {
                 title: 'Erstelle deinen ersten Bericht',
                 description:
                     'So erstellst du einen Bericht:\n\n' +
-                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
                     '2. Wähle *Bericht erstellen*.\n' +
                     '3. Klicke auf *Ausgabe hinzufügen*.\n' +
                     '4. Füge deine erste Ausgabe hinzu.\n\n' +
@@ -2682,6 +2690,8 @@ const translations = {
             validationAmounts: 'Die eingegebenen Validierungsbeträge sind falsch. Bitte überprüfen Sie Ihren Kontoauszug und versuchen Sie es erneut.',
             fullName: 'Bitte geben Sie einen gültigen vollständigen Namen ein',
             ownershipPercentage: 'Bitte geben Sie eine gültige Prozentzahl ein.',
+            deletePaymentBankAccount:
+                'Dieses Bankkonto kann nicht gelöscht werden, da es für Expensify-Karten-Zahlungen verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an den Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3238,10 +3248,8 @@ const translations = {
         termsAndConditions: {
             header: 'Bevor wir fortfahren...',
             title: 'Allgemeine Geschäftsbedingungen',
-            subtitle: 'Bitte stimmen Sie den Expensify Travel zu',
-            termsAndConditions: 'Allgemeine Geschäftsbedingungen',
-            travelTermsAndConditions: 'Allgemeine Geschäftsbedingungen',
-            agree: 'Ich stimme den',
+            label: 'Ich stimme den Bedingungen und Konditionen zu',
+            subtitle: `Bitte stimmen Sie den <a href="${CONST.TRAVEL_TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> von Expensify Travel zu.`,
             error: 'Sie müssen den Expensify Travel Geschäftsbedingungen zustimmen, um fortzufahren.',
             defaultWorkspaceError:
                 'Sie müssen einen Standard-Arbeitsbereich festlegen, um Expensify Travel zu aktivieren. Gehen Sie zu Einstellungen > Arbeitsbereiche > klicken Sie auf die drei vertikalen Punkte neben einem Arbeitsbereich > Als Standard-Arbeitsbereich festlegen und versuchen Sie es dann erneut!',
@@ -3436,7 +3444,7 @@ const translations = {
             welcomeNote: 'Bitte verwenden Sie Expensify, um Ihre Belege zur Erstattung einzureichen, danke!',
             subscription: 'Abonnement',
             markAsEntered: 'Als manuell eingegeben markieren',
-            markAsExported: 'Als manuell exportiert markieren',
+            markAsExported: 'Als exportiert markieren',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportieren nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Lassen Sie uns noch einmal überprüfen, ob alles richtig aussieht.',
             lineItemLevel: 'Positionsebene',
@@ -3816,6 +3824,18 @@ const translations = {
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
+            accountingMethods: {
+                label: 'Wann exportieren',
+                description: 'Wählen Sie, wann die Ausgaben exportiert werden sollen:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden exportiert, wenn sie endgültig genehmigt sind.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden exportiert, wenn sie bezahlt sind.',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Bevorzugter Exporteur',
@@ -4370,9 +4390,8 @@ const translations = {
             addNewBankAccount: 'Ein neues Bankkonto hinzufügen',
             settlementAccount: 'Abrechnungskonto',
             settlementAccountDescription: 'Wählen Sie ein Konto aus, um Ihr Expensify Card-Guthaben zu begleichen.',
-            settlementAccountInfoPt1: 'Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt',
-            settlementAccountInfoPt2: 'damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.',
-            reconciliationAccount: 'Abstimmungskonto',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Vergewissern Sie sich, dass dieses Konto mit Ihrem <a href="${reconciliationAccountSettingsLink}">Abstimmungskonto</a> (${accountNumber}) übereinstimmt, damit der kontinuierliche Abgleich korrekt funktioniert.`,
             settlementFrequency: 'Abrechnungshäufigkeit',
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie Ihr Expensify Card-Guthaben bezahlen möchten.',
             settlementFrequencyInfo: 'Wenn Sie zur monatlichen Abrechnung wechseln möchten, müssen Sie Ihr Bankkonto über Plaid verbinden und eine positive 90-Tage-Saldenhistorie haben.',
@@ -5930,11 +5949,16 @@ const translations = {
                 title: 'Keine Ausgaben zum Exportieren',
                 subtitle: 'Zeit, es ruhig angehen zu lassen, gute Arbeit.',
             },
+            emptyStatementsResults: {
+                title: 'Keine Ausgaben zu sehen',
+                subtitle: 'Keine Ergebnisse. Bitte versuchen Sie, Ihre Filter anzupassen.',
+            },
             emptyUnapprovedResults: {
                 title: 'Keine Ausgaben zur Genehmigung',
                 subtitle: 'Null Ausgaben. Maximale Entspannung. Gut gemacht!',
             },
         },
+        statements: 'Erklärungen',
         unapproved: 'Nicht bewilligt',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCompanyCards: 'Nicht genehmigte Firmenkarten',
@@ -6131,8 +6155,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} in ${newValue} geändert`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `hat den Arbeitsbereich in ${toPolicyName}${fromPolicyName ? `(vorher ${fromPolicyName})` : ''} geändert`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Arbeitsbereich geändert${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
+                    }
+                    return `Arbeitsbereich geändert zu ${toPolicyName}${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `Typ von ${oldType} zu ${newType} geändert`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `diesen Bericht an ${delegateUser} gesendet, da ${originalManager} im Urlaub ist`,
                 exportedToCSV: `in CSV exportiert`,
