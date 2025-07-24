@@ -2013,7 +2013,8 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
-            const searchText = `${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
+            const searchText =
+                `${personalDetail.text?.toLowerCase() ?? ''} ${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
 
             return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
         };
