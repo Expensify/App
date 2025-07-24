@@ -538,7 +538,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
     useEffect(() => {
-        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0) {
+        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
             setColumnsToShow(currentColumns);
             return;
         }
@@ -549,7 +549,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
             }),
         );
-    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset]);
+    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
