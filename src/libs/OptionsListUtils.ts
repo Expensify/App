@@ -1309,7 +1309,7 @@ function orderReportOptions(options: OptionData[]) {
  * Sort personal details by displayName or login in alphabetical order
  */
 const personalDetailsComparator = (personalDetail: OptionData) => {
-    const name = personalDetail.displayName ?? personalDetail.login ?? '';
+    const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
     return name.toLowerCase();
 };
 
@@ -2013,8 +2013,7 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
-            const searchText =
-                `${personalDetail.text?.toLowerCase() ?? ''} ${personalDetail.displayName?.toLowerCase() ?? ''} ${personalDetail.login?.toLowerCase() ?? ''}`.toLocaleLowerCase();
+            const searchText = `${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase();
 
             return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
         };
