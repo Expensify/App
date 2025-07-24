@@ -554,7 +554,7 @@ function MoneyReportHeader({
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {initialValue: [], canBeMissing: false});
-    const exportSubmenuOptions = useMemo(() => {
+    const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
         const options: Record<string, DropdownOption<string>> = {
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
                 text: translate('export.basicExport'),
@@ -791,7 +791,7 @@ function MoneyReportHeader({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
-            subMenuItems: secondaryExportActions.map((action) => exportSubMenuOptions[action]),
+            subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
