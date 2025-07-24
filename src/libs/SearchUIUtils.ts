@@ -1401,7 +1401,7 @@ function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTy
         }
 
         const managerID = (transaction as SearchTransaction).managerID;
-        if (managerID !== currentAccountID) {
+        if (managerID && managerID !== currentAccountID) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = true;
         }
     };
