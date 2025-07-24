@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import CONST from '@src/CONST';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,6 +80,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: actionR14932,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -96,6 +98,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: {...validAction, childMoneyRequestCount: 0},
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -125,6 +128,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -150,6 +154,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
@@ -167,6 +172,7 @@ describe('useReportAvatarDetails', () => {
         const {result} = renderHook(
             () =>
                 useReportAvatarDetails({
+                    formatPhoneNumber,
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
