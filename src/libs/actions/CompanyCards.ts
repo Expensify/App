@@ -91,8 +91,8 @@ function addNewCompanyCardsFeed(
                 settings: {
                     companyCards: {
                         [feedType]: {
-                            statementPeriodEnd,
-                            statementPeriodEndDay,
+                            statementPeriodEnd: statementPeriodEnd ?? null,
+                            statementPeriodEndDay: statementPeriodEndDay ?? null,
                             errors: null,
                         },
                     },
@@ -828,10 +828,10 @@ function setFeedStatementPeriodEndDay(
     policyID: string,
     bankName: string,
     domainAccountID: number,
-    newStatementPeriodEnd: StatementPeriodEnd,
-    oldStatementPeriodEnd: StatementPeriodEnd | null,
-    newStatementPeriodEndDay: StatementPeriodEndDay,
-    oldStatementPeriodEndDay: StatementPeriodEndDay | null,
+    newStatementPeriodEnd: StatementPeriodEnd | undefined,
+    oldStatementPeriodEnd: StatementPeriodEnd | undefined,
+    newStatementPeriodEndDay: StatementPeriodEndDay | undefined,
+    oldStatementPeriodEndDay: StatementPeriodEndDay | undefined,
 ) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -843,8 +843,8 @@ function setFeedStatementPeriodEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
-                            statementPeriodEnd: newStatementPeriodEnd,
-                            statementPeriodEndDay: newStatementPeriodEndDay,
+                            statementPeriodEnd: newStatementPeriodEnd ?? null,
+                            statementPeriodEndDay: newStatementPeriodEndDay ?? null,
                             pendingFields: {
                                 statementPeriodEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 statementPeriodEndDay: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -887,8 +887,8 @@ function setFeedStatementPeriodEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
-                            statementPeriodEnd: oldStatementPeriodEnd,
-                            statementPeriodEndDay: oldStatementPeriodEndDay,
+                            statementPeriodEnd: oldStatementPeriodEnd ?? null,
+                            statementPeriodEndDay: oldStatementPeriodEndDay ?? null,
                             pendingFields: {
                                 statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
