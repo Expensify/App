@@ -14,6 +14,7 @@ Onyx.connect({
 });
 
 function cacheAttachment(attachmentID: string, uri: string) {
+    console.log('cacheAttachment WEB');
     fetch(uri)
         .then((response) => {
             if (!response.ok) {

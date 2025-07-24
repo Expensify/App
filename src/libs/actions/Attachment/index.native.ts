@@ -12,6 +12,7 @@ Onyx.connect({
 });
 
 function cacheAttachment(attachmentID: string, uri: string) {
+    console.log('cacheAttachment NATIVE');
     if (uri.startsWith('file://')) {
         Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
             attachmentID,
