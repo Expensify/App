@@ -1849,6 +1849,8 @@ const translations = {
         chooseYourBankAccount: 'Choisissez votre compte bancaire',
         chooseAccountBody: 'Assurez-vous de sélectionner le bon.',
         confirmYourBankAccount: 'Confirmez votre compte bancaire',
+        personalBankAccounts: 'Comptes bancaires personnels',
+        businessBankAccounts: 'Comptes bancaires professionnels',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

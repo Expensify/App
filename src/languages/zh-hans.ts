@@ -1824,6 +1824,8 @@ const translations = {
         chooseYourBankAccount: '选择您的银行账户',
         chooseAccountBody: '确保您选择正确的选项。',
         confirmYourBankAccount: '确认您的银行账户',
+        personalBankAccounts: '个人银行账户',
+        businessBankAccounts: '企业银行账户',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
