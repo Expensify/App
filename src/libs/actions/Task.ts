@@ -2,13 +2,12 @@ import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -955,7 +954,11 @@ function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+function getAssignee(
+    assigneeAccountID: number | undefined,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Assignee | undefined {
     if (!assigneeAccountID) {
         return;
     }
@@ -972,7 +975,7 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+        displayName: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
         subtitle: details.login ?? '',
     };
 }
@@ -980,7 +983,12 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 /**
  * Get the share destination data
  * */
-function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
+function getShareDestination(
+    reportID: string,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): ShareDestination {
     const report = reports?.[`report_${reportID}`];
 
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
@@ -996,7 +1004,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
-        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
+        subtitle = formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }

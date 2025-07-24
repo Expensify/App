@@ -8,7 +8,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -29,6 +28,7 @@ import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
