@@ -420,8 +420,7 @@ function getSuggestedSearchesVisibility(
         // s77rt remove DEV lock
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion && isDevelopment(),
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
-        // s77rt remove DEV lock
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS]: showShowUnapprovedCardsSuggestion && isDevelopment(),
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARDS]: showShowUnapprovedCardsSuggestion,
     };
 }
 
