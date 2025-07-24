@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
+import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -532,7 +533,8 @@ const ViolationsUtils = {
                 if (!message) {
                     return;
                 }
-                return message.endsWith('.') ? message : `${message}.`;
+                const textMessage = Parser.htmlToText(message);
+                return textMessage.endsWith('.') ? message : `${message}.`;
             }),
         ]
             .filter(Boolean)

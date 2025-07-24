@@ -753,7 +753,7 @@ describe('SidebarUtils', () => {
                     })
 
                     // Then the welcome message should indicate the report is archived
-                    .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived) , there's nothing to see here."))
+                    .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived), there's nothing to see here."))
             );
         });
 
@@ -1056,7 +1056,7 @@ describe('SidebarUtils', () => {
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,
-                } as Report;
+                };
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
