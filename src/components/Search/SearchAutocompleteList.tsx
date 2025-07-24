@@ -166,7 +166,7 @@ function SearchAutocompleteList(
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -178,8 +178,8 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? []);
-    }, [areOptionsInitialized, betas, options]);
+        return getSearchOptions(options, formatPhoneNumber, betas ?? []);
+    }, [areOptionsInitialized, betas, options, formatPhoneNumber]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
 
