@@ -1,9 +1,19 @@
 import {useCallback, useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {Options} from '@libs/OptionsListUtils';
+import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {getAttendeeOptions, getEmptyOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import contactImport from '@libs/ContactImport';
+import type {ContactImportResult} from '@libs/ContactImport/types';
+import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
+import getContacts from '@libs/ContactUtils';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails} from '@src/types/onyx';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
@@ -22,12 +32,29 @@ type UseSearchSelectorConfig = {
     excludeLogins?: Record<string, boolean>;
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
+    /** Enable phone contacts integration */
+    enablePhoneContacts?: boolean;
     /** Callback when selection changes (multi-select mode) */
     onSelectionChange?: (selected: OptionData[]) => void;
     /** Callback when single option is selected (single-select mode) */
     onSingleSelect?: (option: OptionData) => void;
     /** Initial selected options */
     initialSelected?: OptionData[];
+};
+
+type ContactState = {
+    /** Current permission status */
+    permissionStatus: PermissionStatus;
+    /** Contact options from device */
+    contactOptions: Array<SearchOption<PersonalDetails>>;
+    /** Whether to show import UI */
+    showImportUI: boolean;
+    /** Function to trigger contact import */
+    importContacts: () => void;
+    /** Function to initiate contact import and set state */
+    initiateContactImportAndSetState: () => void;
+    /** Function to set permission state */
+    setContactPermissionState: (status: PermissionStatus) => void;
 };
 
 type UseSearchSelectorReturn = {
@@ -47,6 +74,8 @@ type UseSearchSelectorReturn = {
     toggleOption: (option: OptionData) => void;
     /** Whether options are initialized */
     areOptionsInitialized: boolean;
+    /** Contact-related state and functions (when enablePhoneContacts is true) */
+    contactState?: ContactState;
 };
 
 /**
@@ -63,6 +92,7 @@ function useSearchSelector({
     includeUserToInvite = true,
     excludeLogins = {},
     includeRecentReports = false,
+    enablePhoneContacts = false,
     onSelectionChange,
     onSingleSelect,
     initialSelected = [],
@@ -72,20 +102,62 @@ function useSearchSelector({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected);
 
+    // Phone contacts logic
+    const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
+    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
+    const shouldEnableContacts = enablePhoneContacts && isNative;
+    const showImportContacts = shouldEnableContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
+
+    const importAndSaveContacts = useCallback(() => {
+        if (!shouldEnableContacts) {
+            return;
+        }
+        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
+            console.log('morwa importAndSaveContacts', contactList, permissionStatus);
+            setContactPermissionState(permissionStatus);
+            const usersFromContact = getContacts(contactList);
+            setContacts(usersFromContact);
+        });
+    }, [shouldEnableContacts]);
+
+    const initiateContactImportAndSetState = useCallback(() => {
+        setContactPermissionState(RESULTS.GRANTED);
+        InteractionManager.runAfterInteractions(importAndSaveContacts);
+    }, [importAndSaveContacts]);
+
+    useContactPermissions({
+        importAndSaveContacts,
+        setContacts,
+        contactPermissionState,
+        setContactPermissionState,
+    });
+
     // Get optimized options with heap filtering and mark selection state
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
 
+        // Integrate contacts into personalDetails if enabled
+        const personalDetailsWithContacts = shouldEnableContacts 
+            ? options.personalDetails.concat(contacts)
+            : options.personalDetails;
+
+        const optionsWithContacts = {
+            ...options,
+            personalDetails: personalDetailsWithContacts,
+        };
+
         let baseOptions: Options;
         switch (getOptionsFunction) {
             case 'getSearchOptions':
-                baseOptions = getSearchOptions(options, betas ?? [], true, true, debouncedSearchTerm, maxResults, includeUserToInvite);
+                baseOptions = getSearchOptions(optionsWithContacts, betas ?? [], true, true, debouncedSearchTerm, maxResults, includeUserToInvite);
                 break;
             case 'getMemberInviteOptions':
                 baseOptions = getMemberInviteOptions(
-                    options.personalDetails,
+                    personalDetailsWithContacts,
                     betas ?? [],
                     excludeLogins,
                     false,
@@ -100,7 +172,7 @@ function useSearchSelector({
             case 'getAttendeeOptions':
                 baseOptions = getAttendeeOptions(
                     options.reports,
-                    options.personalDetails,
+                    personalDetailsWithContacts,
                     betas ?? [],
                     [],
                     [],
@@ -114,12 +186,12 @@ function useSearchSelector({
                 );
                 break;
             case 'getShareLogOptions':
-                baseOptions = getShareLogOptions(options, betas ?? [], debouncedSearchTerm, maxResults, includeUserToInvite);
+                baseOptions = getShareLogOptions(optionsWithContacts, betas ?? [], debouncedSearchTerm, maxResults, includeUserToInvite);
                 break;
             case 'getShareDestinationOptions':
                 baseOptions = getShareDestinationOptions(
                     options.reports,
-                    options.personalDetails,
+                    personalDetailsWithContacts,
                     betas ?? [],
                     [],
                     excludeLogins,
@@ -130,7 +202,7 @@ function useSearchSelector({
                 );
                 break;
             case 'getValidOptions':
-                baseOptions = getValidOptions(options, {
+                baseOptions = getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
                     searchString: debouncedSearchTerm,
                     maxElements: maxResults,
@@ -168,7 +240,7 @@ function useSearchSelector({
                   }
                 : null,
         };
-    }, [areOptionsInitialized, options, betas, debouncedSearchTerm, maxResults, getOptionsFunction, includeUserToInvite, excludeLogins, includeRecentReports, selectedOptions]);
+    }, [areOptionsInitialized, options, betas, debouncedSearchTerm, maxResults, getOptionsFunction, includeUserToInvite, excludeLogins, includeRecentReports, selectedOptions, shouldEnableContacts, contacts]);
 
     // Available options (unselected items only with proper deduplication)
     const availableOptions = useMemo(() => {
@@ -220,6 +292,18 @@ function useSearchSelector({
         [selectedOptions, selectionMode, onSelectionChange, onSingleSelect],
     );
 
+    // Build contact state if enabled
+    const contactState: ContactState | undefined = shouldEnableContacts
+        ? {
+              permissionStatus: contactPermissionState,
+              contactOptions: contacts,
+              showImportUI: showImportContacts,
+              importContacts: importAndSaveContacts,
+              initiateContactImportAndSetState,
+              setContactPermissionState,
+          }
+        : undefined;
+
     return {
         searchTerm,
         setSearchTerm,
@@ -229,8 +313,9 @@ function useSearchSelector({
         setSelectedOptions,
         toggleOption,
         areOptionsInitialized,
+        contactState,
     };
 }
 
 export default useSearchSelector;
-export type {GetOptionsFunction, UseSearchSelectorConfig, UseSearchSelectorReturn};
+export type {GetOptionsFunction, UseSearchSelectorConfig, UseSearchSelectorReturn, ContactState};
