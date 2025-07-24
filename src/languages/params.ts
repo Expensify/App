@@ -793,6 +793,11 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type SettlementAccountInfoParams = {
+    reconciliationAccountSettingsLink: string;
+    accountNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1070,4 +1075,5 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    SettlementAccountInfoParams,
 };

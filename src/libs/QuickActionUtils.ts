@@ -6,6 +6,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import getIconForAction from './getIconForAction';
+import {shouldShowPolicy} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
@@ -100,7 +101,7 @@ const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Repor
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return !!quickActionPolicy;
+        return shouldShowPolicy(quickActionPolicy, false, undefined) && !!quickActionPolicy?.isPolicyExpenseChatEnabled;
     }
     return true;
 };

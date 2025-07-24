@@ -107,42 +107,50 @@ function SearchPage({route}: SearchPageProps) {
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
-            return [];
+            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Download,
-            text: translate('common.download'),
+            icon: Expensicons.Export,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
             shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
+            subMenuItems: [
+                {
+                    text: translate('common.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
 
-                if (isExportMode) {
-                    setIsDownloadExportModalVisible(true);
-                    return;
-                }
+                        if (isExportMode) {
+                            setIsDownloadExportModalVisible(true);
+                            return;
+                        }
 
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
+                        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        exportSearchItemsToCSV(
+                            {
+                                query: status,
+                                jsonQuery: JSON.stringify(queryJSON),
+                                reportIDList,
+                                transactionIDList: selectedTransactionsKeys,
+                            },
+                            () => {
+                                setIsDownloadErrorModalVisible(true);
+                            },
+                        );
+                        clearSelectedTransactions(undefined, true);
                     },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
-                clearSelectedTransactions();
-            },
+                    shouldCloseModalOnSelect: true,
+                },
+            ],
         };
 
         if (isExportMode) {
@@ -442,7 +450,7 @@ function SearchPage({route}: SearchPageProps) {
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     const createExportAll = useCallback(() => {
@@ -516,7 +524,7 @@ function SearchPage({route}: SearchPageProps) {
                     </DragAndDropConsumer>
                     {ErrorModal}
                 </DragAndDropProvider>
-                {isMobileSelectionModeEnabled && (
+                {!!isMobileSelectionModeEnabled && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
