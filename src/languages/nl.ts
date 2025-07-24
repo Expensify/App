@@ -475,7 +475,6 @@ const translations = {
         message: 'Bericht',
         leaveThread: 'Verlaat thread',
         you: 'Jij',
-        me: 'mij',
         youAfterPreposition: 'jij',
         your: 'uw',
         conciergeHelp: 'Neem contact op met Concierge voor hulp.',

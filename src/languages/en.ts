@@ -466,7 +466,6 @@ const translations = {
         message: 'Message ',
         leaveThread: 'Leave thread',
         you: 'You',
-        me: 'me',
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
