@@ -64,7 +64,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'MoneyRequestParticipantsSelector.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestParticipantsSelector.getValidOptions'});
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */

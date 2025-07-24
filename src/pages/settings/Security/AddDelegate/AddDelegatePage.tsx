@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'AddDelegatePage.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'AddDelegatePage.getValidOptions'});
 
 function useOptions() {
     const betas = useBetas();

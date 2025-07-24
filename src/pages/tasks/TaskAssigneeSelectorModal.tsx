@@ -35,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'TaskAssigneeSelectorModal.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'TaskAssigneeSelectorModal.getValidOptions'});
 
 function useOptions() {
     const betas = useBetas();

@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Accountant} from '@src/types/onyx/IOU';
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
 
 type MoneyRequestAccountantSelectorProps = {
     /** Callback to request parent modal to go to next step */

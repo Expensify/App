@@ -34,7 +34,7 @@ type UserSelectPopupProps = {
     onChange: (value: string[]) => void;
 };
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'UserSelectPopup.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
     const styles = useThemeStyles();

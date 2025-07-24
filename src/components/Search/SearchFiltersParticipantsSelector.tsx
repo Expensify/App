@@ -36,7 +36,7 @@ type SearchFiltersParticipantsSelectorProps = {
     onFiltersUpdate: (accountIDs: string[]) => void;
 };
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
     const {translate} = useLocalize();
