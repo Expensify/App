@@ -46,7 +46,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     <Button
                         success
                         text={translate('common.signIn')}
-                        onPress={() => signOutAndRedirectToSignIn()}
+                        onPress={signOutAndRedirectToSignIn as () => void}
                     />
                 </View>
             </View>
