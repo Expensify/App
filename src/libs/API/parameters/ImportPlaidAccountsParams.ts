@@ -1,4 +1,4 @@
-import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
 type ImportPlaidAccountsParams = {
     publicToken: string;
@@ -7,7 +7,8 @@ type ImportPlaidAccountsParams = {
     country: string;
     domainName: string;
     plaidAccounts: string;
-    statementPeriodEndDay?: CompanyCardStatementCloseDate;
+    statementPeriodEnd?: StatementPeriodEnd;
+    statementPeriodEndDay?: StatementPeriodEndDay;
 };
 
 export default ImportPlaidAccountsParams;

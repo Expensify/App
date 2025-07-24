@@ -6,7 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -124,7 +124,8 @@ function importPlaidAccounts(
     country: string,
     domainName: string,
     plaidAccounts: string,
-    statementPeriodEndDay: CompanyCardStatementCloseDate | undefined,
+    statementPeriodEnd: StatementPeriodEnd | undefined,
+    statementPeriodEndDay: StatementPeriodEndDay | undefined,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
@@ -133,6 +134,7 @@ function importPlaidAccounts(
         country,
         domainName,
         plaidAccounts,
+        statementPeriodEnd,
         statementPeriodEndDay,
     };
 
