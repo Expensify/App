@@ -45,7 +45,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
@@ -91,7 +91,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, formatPhoneNumber);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -139,6 +139,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allCards,
             allFeeds,
             allPolicies,
+            formatPhoneNumber,
         ],
     );
 
