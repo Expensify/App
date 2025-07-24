@@ -3209,7 +3209,6 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.iouAmountTextSize,
             color: theme.heading,
-            lineHeight: variables.inputHeight,
         },
 
         iouAmountTextInput: addOutlineWidth(
@@ -4836,6 +4835,27 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
+        },
+
+        transactionListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            flex: 1,
+            userSelect: 'none',
+        },
+
+        transactionGroupListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            paddingVertical: 8,
+            flex: 1,
+            userSelect: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            flexDirection: 'row',
         },
 
         searchQueryListItemStyle: {
