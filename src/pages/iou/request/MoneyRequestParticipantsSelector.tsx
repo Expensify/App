@@ -35,6 +35,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
 import {
@@ -62,6 +63,8 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'MoneyRequestParticipantsSelector.getValidOptions'});
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -168,7 +171,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const optionList = getValidOptions(
+        const optionList = memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
