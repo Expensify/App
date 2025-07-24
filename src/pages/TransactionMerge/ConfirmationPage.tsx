@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -27,6 +27,7 @@ type ConfirmationProps = PlatformStackScreenProps<MergeTransactionNavigatorParam
 function Confirmation({route}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, backTo} = route.params;
 
@@ -63,6 +64,7 @@ function Confirmation({route}: ConfirmationProps) {
             return;
         }
 
+        setIsMergingExpenses(true);
         mergeTransactionRequest(transactionID, mergeTransaction, targetTransaction, sourceTransaction);
         Navigation.dismissModal();
     }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID]);
@@ -73,7 +75,7 @@ function Confirmation({route}: ConfirmationProps) {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
-            <FullPageNotFoundView shouldShow={!mergeTransaction}>
+            <FullPageNotFoundView shouldShow={!mergeTransaction && !isMergingExpenses}>
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
