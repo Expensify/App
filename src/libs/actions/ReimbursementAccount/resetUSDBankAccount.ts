@@ -2,7 +2,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getLastUsedPaymentMethod} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -19,7 +18,12 @@ Onyx.connect({
 /**
  * Reset user's USD reimbursement account. This will delete the bank account
  */
-function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
+function resetUSDBankAccount(
+    bankAccountID: number | undefined,
+    session: OnyxEntry<OnyxTypes.Session>,
+    policyID: string | undefined,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -28,7 +32,6 @@ function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEnt
     }
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(policy.id);
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 

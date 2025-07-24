@@ -10,7 +10,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import {getLastUsedPaymentMethod, getLastUsedPaymentMethods} from '@libs/IOUUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
@@ -44,6 +43,7 @@ function handleActionButtonPress(
     goToItem: () => void,
     isInMobileSelectionMode: boolean,
     currentSearchKey?: SuggestedSearchKey,
+    lastPaymentMethods?: OnyxEntry<LastPaymentMethod>,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -58,7 +58,7 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            getPayActionCallback(hash, item, goToItem, currentSearchKey);
+            getPayActionCallback(hash, item, goToItem, currentSearchKey, lastPaymentMethods);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
@@ -88,11 +88,15 @@ function handleActionButtonPress(
     }
 }
 
-function getLastPolicyBankAccountID(policyID: string | undefined, reportType: keyof LastPaymentMethodType = 'lastUsed'): number | undefined {
+function getLastPolicyBankAccountID(
+    policyID: string | undefined,
+    lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
+    reportType: keyof LastPaymentMethodType = 'lastUsed',
+): number | undefined {
     if (!policyID) {
         return undefined;
     }
-    const lastPolicyPaymentMethod = getLastUsedPaymentMethod(policyID);
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
     return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
 }
 
@@ -130,8 +134,13 @@ function getReportType(reportID?: string) {
     return undefined;
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, currentSearchKey?: SuggestedSearchKey) {
-    const lastPaymentMethods = (getLastUsedPaymentMethods() ?? {}) as OnyxEntry<LastPaymentMethod>;
+function getPayActionCallback(
+    hash: number,
+    item: TransactionListItemType | TransactionReportGroupListItemType,
+    goToItem: () => void,
+    currentSearchKey?: SuggestedSearchKey,
+    lastPaymentMethods?: OnyxEntry<LastPaymentMethod>,
+) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethods, getReportType(item.reportID));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {

@@ -957,12 +957,12 @@ function MoneyReportHeader({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= 5}
+                    shouldPopoverUseScrollView={shouldDisplayNarrowVersion && applicableSecondaryActions.length >= 5}
                     customText={translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
-                    containerStyles={applicableSecondaryActions.length > 5 ? styles.settlementButtonListContainer : {}}
+                    shouldUseModalPaddingStyle
                 />
             )}
         </KYCWall>

@@ -65,6 +65,8 @@ function KYCWall({
         anchorPositionHorizontal: 0,
     });
 
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+
     const getAnchorPosition = useCallback(
         (domRect: DomRect): AnchorPosition => {
             if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
@@ -119,11 +121,11 @@ function KYCWall({
                         const policyExpenseChatReportID = getPolicyExpenseChat(iouReport.ownerAccountID, policy.id)?.reportID;
                         if (!policyExpenseChatReportID) {
                             const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id) ?? {};
-                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU);
+                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
                         } else {
                             moveIOUReportToPolicy(iouReport.reportID, policy.id, true);
-                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU);
+                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
                         }
 
@@ -136,8 +138,8 @@ function KYCWall({
                     }
 
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
-                    if (policyID) {
-                        savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU);
+                    if (policyID && iouReport?.policyID) {
+                        savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {

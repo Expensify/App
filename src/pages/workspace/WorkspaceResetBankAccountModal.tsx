@@ -43,6 +43,11 @@ function WorkspaceResetBankAccountModal({
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        canBeMissing: true,
+        selector: (paymentMethods) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
+    });
+
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
             resetNonUSDBankAccount(policyID);
@@ -55,7 +60,7 @@ function WorkspaceResetBankAccountModal({
                 setNonUSDBankAccountStep(null);
             }
         } else {
-            resetUSDBankAccount(bankAccountID, session, policyID);
+            resetUSDBankAccount(bankAccountID, session, policyID, lastPaymentMethod);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);

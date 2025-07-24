@@ -48,7 +48,6 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
-    getLastUsedPaymentMethod,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
@@ -8942,6 +8941,7 @@ function getPayMoneyRequestParams(
     payAsBusiness?: boolean,
     bankAccountID?: number,
     paymentPolicyID?: string | undefined,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -9083,7 +9083,6 @@ function getPayMoneyRequestParams(
     );
 
     if (iouReport?.policyID) {
-        const lastUsedPaymentMethod = (getLastUsedPaymentMethod(iouReport.policyID) ?? {}) as OnyxTypes.LastPaymentMethodType;
         const prevLastUsedPaymentMethod = lastUsedPaymentMethod?.lastUsed?.name;
         const usedPaymentOption = paymentPolicyID ?? paymentMethodType;
 
@@ -11159,15 +11158,24 @@ function checkIfScanFileCanBeRead(
 }
 
 /** Save the preferred payment method for a policy or personal DM */
-function savePreferredPaymentMethod(policyID: string | undefined, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+function savePreferredPaymentMethod(
+    policyID: string | undefined,
+    paymentMethod: string,
+    type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined,
+    prevPaymentMethod?: OnyxTypes.LastPaymentMethodType | string,
+) {
     if (!policyID) {
         return;
     }
 
     // to make it easier to revert to the previous last payment method, we will save it to this key
-    const prevPaymentMethod = (getLastUsedPaymentMethod(policyID) ?? {}) as OnyxTypes.LastPaymentMethodType;
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {
-        [policyID]: type ? {[type]: {name: paymentMethod}, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: prevPaymentMethod?.lastUsed?.name ?? paymentMethod}} : paymentMethod,
+        [policyID]: type
+            ? {
+                  [type]: {name: paymentMethod},
+                  [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: typeof prevPaymentMethod === 'string' ? prevPaymentMethod : (prevPaymentMethod?.lastUsed?.name ?? paymentMethod)},
+              }
+            : paymentMethod,
     });
 }
 

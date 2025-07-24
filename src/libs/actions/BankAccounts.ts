@@ -18,7 +18,6 @@ import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/Save
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getLastUsedPaymentMethod} from '@libs/IOUUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
@@ -205,7 +204,7 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
     const parameters: ConnectBankAccountParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -219,9 +218,9 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
     };
 
     const onyxData = getVBBADataForOnyx();
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(policyID);
+    const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
-    if (!lastUsedPaymentMethod?.expense?.name) {
+    if (!lastUsedPaymentMethod) {
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -231,7 +230,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
                         name: CONST.IOU.PAYMENT_TYPE.VBBA,
                     },
                     lastUsed: {
-                        name: lastUsedPaymentMethod?.lastUsed?.name ?? CONST.IOU.PAYMENT_TYPE.VBBA,
+                        name: lastUsedPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.VBBA,
                     },
                 },
             },
@@ -246,7 +245,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string) {
+function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string, lastPaymentMethod?: LastPaymentMethodType | string | undefined) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -265,7 +264,6 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     }
 
     const personalPolicy = getPersonalPolicy();
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(personalPolicy?.id);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -309,7 +307,7 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
         ],
     };
 
-    if (personalPolicy?.id && !lastUsedPaymentMethod) {
+    if (personalPolicy?.id && !lastPaymentMethod) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -393,6 +391,10 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
 
     Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
+
+        if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
+            return;
+        }
 
         if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed.name : null;

@@ -67,7 +67,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {getLastUsedPaymentMethod, getLastUsedPaymentMethods} from '@libs/IOUUtils';
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -89,6 +88,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
+    LastPaymentMethod,
+    LastPaymentMethodType,
     PersonalDetailsList,
     Policy,
     PolicyCategory,
@@ -150,8 +151,22 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    lastUsedPaymentMethod?: LastPaymentMethodType;
 };
 
+type CreateWorkspaceArguments = {
+    policyOwnerEmail?: string;
+    makeMeAdmin?: boolean;
+    policyName?: string;
+    policyID?: string;
+    engagementChoice?: OnboardingPurpose;
+    currency?: string;
+    file?: File;
+    shouldAddOnboardingTasks?: boolean;
+    companySize?: OnboardingCompanySize;
+    userReportedIntegration?: OnboardingAccounting;
+    lastUsedPaymentMethod?: LastPaymentMethodType;
+};
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -337,7 +352,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string) {
+function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMethods?: LastPaymentMethod) {
     if (!allPolicies) {
         return;
     }
@@ -498,7 +513,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
         }
     });
 
-    const lastUsedPaymentMethods = getLastUsedPaymentMethods();
     Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
@@ -506,7 +520,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             return;
         }
 
-        if (lastUsedPaymentMethod.iou.name === policyID) {
+        if (lastUsedPaymentMethod?.iou?.name === policyID) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -1912,6 +1926,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks = true,
         companySize,
         userReportedIntegration,
+        lastUsedPaymentMethod,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2215,12 +2230,10 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         successData.push(...optimisticCategoriesData.successData);
     }
 
-    if (getAdminPolicies().length === 0) {
+    if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
         Object.values(allReports ?? {})
             .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
             .forEach((iouReport) => {
-                const lastUsedPaymentMethod = getLastUsedPaymentMethod(iouReport?.policyID);
-
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
                     return;
@@ -2303,18 +2316,19 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(
+function createWorkspace({
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyName = '',
     policyID = generatePolicyID(),
-    engagementChoice: OnboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+    engagementChoice = CONST.ONBOARDING_CHOICES.MANAGE_TEAM as OnboardingPurpose,
     currency = '',
-    file?: File,
+    file,
     shouldAddOnboardingTasks = true,
-    companySize?: OnboardingCompanySize,
-    userReportedIntegration?: OnboardingAccounting,
-): CreateWorkspaceParams {
+    companySize,
+    userReportedIntegration,
+    lastUsedPaymentMethod,
+}: CreateWorkspaceArguments): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData({
         policyOwnerEmail,
         makeMeAdmin,
@@ -2326,6 +2340,7 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
         userReportedIntegration,
+        lastUsedPaymentMethod,
     });
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});

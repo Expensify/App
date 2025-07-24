@@ -106,9 +106,9 @@ function SettlementButton({
         }
 
         return getLastPolicyPaymentMethod(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport));
-    }, [policyIDKey]);
+    }, [policyIDKey, iouReport, lastPaymentMethods]);
 
-    const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, iouReport?.type as keyof LastPaymentMethodType);
+    const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserAccountID = getCurrentUserAccountID().toString();
@@ -545,6 +545,7 @@ function SettlementButton({
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}
+                    shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
                 />
             )}
         </KYCWall>
