@@ -5205,7 +5205,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
@@ -6422,20 +6422,6 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-        SEARCH_LIST: {
-            EXPENSES: 'expenses',
-            REPORTS: 'reports',
-            CHATS: 'chats',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
-            EXPORT: 'export',
-            STATEMENTS: 'statements',
-            UNAPPROVED_CASH: 'unapprovedCash',
-            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
-            UNAPPROVED_CASH_ONLY: 'unapprovedCashOnly',
-            UNAPPROVED_COMPANY_CARDS_ONLY: 'unapprovedCompanyCardsOnly',
-        },
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
