@@ -1,6 +1,6 @@
 import {getEffectiveDisplayName, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
@@ -58,6 +58,7 @@ describe('PersonalDetailsUtils', () => {
 
         expect(result).toEqual(expected);
     });
+
     test('should return undefined when personalDetail is undefined', () => {
         const result = getEffectiveDisplayName(formatPhoneNumber, undefined);
         expect(result).toBeUndefined();
