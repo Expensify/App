@@ -45,6 +45,7 @@ function useOptions() {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
+            formatPhoneNumber,
             {
                 betas,
                 excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
@@ -65,7 +66,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading, formatPhoneNumber]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), formatPhoneNumber, {

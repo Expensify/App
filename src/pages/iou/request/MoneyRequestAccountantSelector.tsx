@@ -71,6 +71,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            formatPhoneNumber,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -84,7 +85,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports, formatPhoneNumber]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {

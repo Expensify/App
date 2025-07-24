@@ -91,10 +91,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, formatPhoneNumber, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, formatPhoneNumber]);
 
     const inviteOptions = useMemo(
         () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),

@@ -107,26 +107,26 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions(options, mockedBetas));
+        await measureFunction(() => getSearchOptions(options, formatPhoneNumber, mockedBetas));
     });
 
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareLogOptions(options, mockedBetas));
+        await measureFunction(() => getShareLogOptions(options, formatPhoneNumber, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, formatPhoneNumber, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, formatPhoneNumber);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, formatPhoneNumber, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', formatPhoneNumber);
         });
@@ -135,13 +135,13 @@ describe('OptionsListUtils', () => {
     /* Testing getShareDestinationOptions */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() => getShareDestinationOptions(formatPhoneNumber, options.reports, options.personalDetails, mockedBetas));
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, formatPhoneNumber, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

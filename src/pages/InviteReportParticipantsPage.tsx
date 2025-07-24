@@ -84,8 +84,8 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return getEmptyOptions();
         }
 
-        return getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
+        return getMemberInviteOptions(options.personalDetails, formatPhoneNumber, betas ?? [], excludedUsers, false, options.reports, true);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports, formatPhoneNumber]);
 
     const inviteOptions = useMemo(
         () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {excludeLogins: excludedUsers}),

@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
@@ -23,6 +22,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {

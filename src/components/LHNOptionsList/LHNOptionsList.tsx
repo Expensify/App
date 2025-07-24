@@ -45,7 +45,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashList<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -62,7 +61,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
@@ -212,7 +211,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
+            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, formatPhoneNumber, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
@@ -271,6 +270,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
+            formatPhoneNumber,
         ],
     );
 

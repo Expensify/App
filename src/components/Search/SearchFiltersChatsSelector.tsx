@@ -54,7 +54,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, formatPhoneNumber));
-            const alternateText = getAlternateText(report, {});
+            const alternateText = getAlternateText(report, {}, formatPhoneNumber);
             return {...report, alternateText};
         });
     }, [personalDetails, reports, selectedReportIDs, formatPhoneNumber]);
@@ -63,8 +63,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, undefined, false);
-    }, [areOptionsInitialized, isScreenTransitionEnd, options]);
+        return getSearchOptions(options, formatPhoneNumber, undefined, false);
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, formatPhoneNumber]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {

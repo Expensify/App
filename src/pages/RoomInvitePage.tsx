@@ -82,7 +82,7 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, formatPhoneNumber, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -103,7 +103,7 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions, formatPhoneNumber]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {

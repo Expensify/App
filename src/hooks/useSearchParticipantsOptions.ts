@@ -32,12 +32,13 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            formatPhoneNumber,
             {
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [isReady, options.personalDetails, options.reports, selectedOptions]);
+    }, [isReady, options.personalDetails, options.reports, selectedOptions, formatPhoneNumber]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, formatPhoneNumber, {

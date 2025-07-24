@@ -66,6 +66,7 @@ function useOptions() {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],
             },
+            formatPhoneNumber,
             {
                 betas: betas ?? [],
                 selectedOptions,
@@ -73,7 +74,7 @@ function useOptions() {
             },
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions, formatPhoneNumber]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {

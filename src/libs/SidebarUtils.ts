@@ -643,7 +643,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, formatPhoneNumber);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, !!result?.private_isArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, formatPhoneNumber, policy, !!result?.private_isArchived);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.

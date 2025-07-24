@@ -173,6 +173,7 @@ function MoneyRequestParticipantsSelector(
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            formatPhoneNumber,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -217,6 +218,7 @@ function MoneyRequestParticipantsSelector(
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        formatPhoneNumber,
     ]);
 
     const chatOptions = useMemo(() => {
