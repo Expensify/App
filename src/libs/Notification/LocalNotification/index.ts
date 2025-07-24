@@ -1,5 +1,5 @@
-import type {Report, ReportAction} from '@src/types/onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {Report, ReportAction} from '@src/types/onyx';
 import BrowserNotifications from './BrowserNotifications';
 import type {LocalNotificationClickHandler, LocalNotificationModule} from './types';
 

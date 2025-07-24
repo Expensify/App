@@ -96,7 +96,13 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], usesIcon = false) {
+    pushReportCommentNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        usesIcon = false,
+    ) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -130,7 +136,13 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], usesIcon = false) {
+    pushModifiedExpenseNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        usesIcon = false,
+    ) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';

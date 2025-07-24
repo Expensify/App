@@ -1,6 +1,6 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 type LocalNotificationClickHandler = () => void;
 
