@@ -796,8 +796,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         }
 
         // 3. Keep track of the new report totals
-        const isUnreporting = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const targetReportID = isUnreporting ? selfDMReportID : reportID;
+        const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const targetReportID = isUnreported ? selfDMReportID : reportID;
         const transactionAmount = getAmount(transaction);
 
         if (oldReport) {
@@ -816,7 +816,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             originalMessage: {
                 ...originalMessage,
                 IOUReportID: reportID,
-                type: isUnreporting ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                type: isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
             reportActionID: optimisticMoneyRequestReportActionID,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
