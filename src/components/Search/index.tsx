@@ -47,6 +47,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -235,7 +236,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        if (!isFocused || isOffline) {
+        const activeRoute = Navigation.getActiveRoute();
+        const screenParamMatch = activeRoute.match(/screen=([^&]+)/);
+        const screenParam = screenParamMatch ? decodeURIComponent(screenParamMatch[1]) : null;
+        const isMigratedModalDisplay = activeRoute.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true)) || screenParam === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        if (!(isFocused || isMigratedModalDisplay) || isOffline) {
             return;
         }
 
