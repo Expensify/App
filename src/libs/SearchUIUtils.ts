@@ -53,7 +53,6 @@ import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -1110,7 +1109,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -1152,7 +1151,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     ...reportAction,
                     from,
                     reportName: getSearchReportName({
-                        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                        formatPhoneNumber,
                         report,
                         policy,
                         personalDetails: data.personalDetailsList,
@@ -1312,7 +1311,7 @@ function getSections(
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, formatPhoneNumber);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber);
