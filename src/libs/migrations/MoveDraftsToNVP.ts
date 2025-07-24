@@ -9,6 +9,7 @@ export default function (): Promise<void> {
     return new Promise<void>((resolve) => {
         // eslint-disable-next-line rulesdir/no-onyx-connect
         const connection = Onyx.connect({
+            // eslint-disable-next-line deprecation/deprecation
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
             waitForCollectionCallback: true,
             callback: (drafts: OnyxCollection<string>) => {
@@ -25,6 +26,7 @@ export default function (): Promise<void> {
                     if (!draft) {
                         continue;
                     }
+                    // eslint-disable-next-line deprecation/deprecation
                     newDrafts[reportOnyxKey.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '')] = draft;
                     draftsToClear[reportOnyxKey as OnyxKey] = null;
                 }
