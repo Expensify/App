@@ -119,11 +119,8 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
 
-    if (onboardingInitialPath) {
-        const existingPathState = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-        if (existingPathState?.routes?.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
-            return onboardingInitialPath;
-        }
+    if (onboardingInitialPath && state?.routes?.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
+        return onboardingInitialPath;
     }
 
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
