@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -325,6 +326,7 @@ function MoneyReportHeader({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const shouldShowLoadingBar = useLoadingBarVisibility();
+    const kycWallRef = useContext(KYCWallContext);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -929,6 +931,7 @@ function MoneyReportHeader({
 
     const KYCMoreDropdown = (
         <KYCWall
+            ref={kycWallRef}
             onSuccessfulKYC={(payment) => confirmPayment(payment)}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             isDisabled={isOffline}
