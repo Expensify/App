@@ -12,12 +12,7 @@
 - Reason: 🛑
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
-<<<<<<< HEAD
 - PR Introducing Patch:  [NR 0.75 upgrade](https://github.com/Expensify/App/pull/45289)
-=======
-- PR Introducing Patch: [Upgrade to React Native 0.76](https://github.com/Expensify/App/pull/51475) 
-
->>>>>>> ac05f71b9c4 (refactor patches)
 
 ### [react-native-reanimated+3.19.0+003+hybrid-app.patch](react-native-reanimated+3.19.0+003+hybrid-app.patch)
 
