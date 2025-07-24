@@ -14,7 +14,7 @@ type WorkspaceAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeo
 
 function WorkspaceAvatar({route}: WorkspaceAvatarProps) {
     const policy = usePolicy(route?.params?.policyID);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
     const avatarURL = (policy?.avatarURL ?? '') ? (policy?.avatarURL ?? '') : getDefaultWorkspaceAvatar(policy?.name ?? '');
 
     return (
