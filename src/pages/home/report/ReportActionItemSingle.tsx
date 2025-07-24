@@ -89,7 +89,7 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
@@ -104,6 +104,7 @@ function ReportActionItemSingle({
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
 
     const reportPreviewDetails = useReportAvatarDetails({
+        formatPhoneNumber,
         action,
         report,
         iouReport,
