@@ -35,8 +35,7 @@ type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigat
 
 type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
-function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
-    console.log('morwa InviteReportParticipantsPage is called');
+function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -54,7 +53,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         return res;
     }, [report]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleOption, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleOption, areOptionsInitialized} = useSearchSelector({
         selectionMode: 'multi',
         maxResults: 50,
         getOptionsFunction: 'getMemberInviteOptions',
@@ -111,8 +110,6 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
         return sectionsArr;
     }, [areOptionsInitialized, selectedOptions, availableOptions, translate]);
-
-    console.log('morwa availableOptions', availableOptions);
 
     const handleToggleOption = useCallback(
         (option: OptionData) => {

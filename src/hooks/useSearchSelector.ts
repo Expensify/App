@@ -3,14 +3,14 @@ import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {getAttendeeOptions, getEmptyOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import getContacts from '@libs/ContactUtils';
 import getPlatform from '@libs/getPlatform';
+import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
+import {getAttendeeOptions, getEmptyOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -34,6 +34,8 @@ type UseSearchSelectorConfig = {
     includeRecentReports?: boolean;
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
+    /** Additional configuration for getValidOptions function */
+    getValidOptionsConfig?: Partial<GetOptionsConfig>;
     /** Callback when selection changes (multi-select mode) */
     onSelectionChange?: (selected: OptionData[]) => void;
     /** Callback when single option is selected (single-select mode) */
@@ -93,12 +95,13 @@ function useSearchSelector({
     excludeLogins = {},
     includeRecentReports = false,
     enablePhoneContacts = false,
+    getValidOptionsConfig = {},
     onSelectionChange,
     onSingleSelect,
     initialSelected = [],
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options, areOptionsInitialized} = useOptionsList();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected);
 
@@ -115,7 +118,6 @@ function useSearchSelector({
             return;
         }
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            console.log('morwa importAndSaveContacts', contactList, permissionStatus);
             setContactPermissionState(permissionStatus);
             const usersFromContact = getContacts(contactList);
             setContacts(usersFromContact);
@@ -141,9 +143,7 @@ function useSearchSelector({
         }
 
         // Integrate contacts into personalDetails if enabled
-        const personalDetailsWithContacts = shouldEnableContacts 
-            ? options.personalDetails.concat(contacts)
-            : options.personalDetails;
+        const personalDetailsWithContacts = shouldEnableContacts ? options.personalDetails.concat(contacts) : options.personalDetails;
 
         const optionsWithContacts = {
             ...options,
@@ -167,7 +167,6 @@ function useSearchSelector({
                     maxResults,
                     includeUserToInvite,
                 );
-                console.log('morwa baseOptions', baseOptions, options);
                 break;
             case 'getAttendeeOptions':
                 baseOptions = getAttendeeOptions(
@@ -203,6 +202,7 @@ function useSearchSelector({
                 break;
             case 'getValidOptions':
                 baseOptions = getValidOptions(optionsWithContacts, {
+                    ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: debouncedSearchTerm,
                     maxElements: maxResults,
@@ -218,8 +218,8 @@ function useSearchSelector({
         const isOptionSelected = (option: OptionData) =>
             selectedOptions.some(
                 (selected) =>
-                    (selected.accountID && selected.accountID === option.accountID) ||
-                    (selected.reportID && selected.reportID === option.reportID) ||
+                    (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
 
@@ -240,7 +240,21 @@ function useSearchSelector({
                   }
                 : null,
         };
-    }, [areOptionsInitialized, options, betas, debouncedSearchTerm, maxResults, getOptionsFunction, includeUserToInvite, excludeLogins, includeRecentReports, selectedOptions, shouldEnableContacts, contacts]);
+    }, [
+        areOptionsInitialized,
+        options,
+        betas,
+        debouncedSearchTerm,
+        maxResults,
+        getOptionsFunction,
+        includeUserToInvite,
+        excludeLogins,
+        includeRecentReports,
+        selectedOptions,
+        shouldEnableContacts,
+        contacts,
+        getValidOptionsConfig,
+    ]);
 
     // Available options (unselected items only with proper deduplication)
     const availableOptions = useMemo(() => {
@@ -270,8 +284,8 @@ function useSearchSelector({
 
             const isSelected = selectedOptions.some(
                 (selected) =>
-                    (selected.accountID && selected.accountID === option.accountID) ||
-                    (selected.reportID && selected.reportID === option.reportID) ||
+                    (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
 
@@ -279,8 +293,8 @@ function useSearchSelector({
                 ? selectedOptions.filter(
                       (selected) =>
                           !(
-                              (selected.accountID && selected.accountID === option.accountID) ||
-                              (selected.reportID && selected.reportID === option.reportID) ||
+                              (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+                              (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                               (selected.login && selected.login === option.login)
                           ),
                   )
