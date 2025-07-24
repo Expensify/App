@@ -55,17 +55,17 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-    const statementPeriodEndDay = useMemo(() => {
-        if (!selectedFeedData?.statementPeriodEndDay) {
-            return;
-        }
-
-        if (typeof selectedFeedData.statementPeriodEndDay === 'number') {
+    const statementCloseDate = useMemo(() => {
+        if (selectedFeedData?.statementPeriodEndDay) {
             return selectedFeedData.statementPeriodEndDay;
         }
 
-        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
-    }, [translate, selectedFeedData?.statementPeriodEndDay]);
+        if (selectedFeedData?.statementPeriodEnd) {
+            return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEnd}`);
+        }
+
+        return undefined;
+    }, [translate, selectedFeedData?.statementPeriodEnd, selectedFeedData?.statementPeriodEndDay]);
 
     // s77rt remove DEV lock
     const shouldShowStatementCloseDate = isDevelopment;
@@ -133,7 +133,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
-                                    title={statementPeriodEndDay?.toString()}
+                                    title={statementCloseDate?.toString()}
                                     description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                                     style={[styles.moneyRequestMenuItem]}
                                     titleStyle={styles.flex1}
