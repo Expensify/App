@@ -403,7 +403,7 @@ function ReportAvatar({
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
     const isReportArchived = useReportIsArchived(reportID);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived) && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const shouldDisplayAllActors = isReportPreviewAction && !isATripRoom && !isWorkspaceChat && !reportPreviewSenderID;
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isAInvoiceReport || (isWorkspaceChat && (!actorAccountID || shouldDisplayAllActors));
@@ -491,7 +491,12 @@ function ReportAvatar({
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
-    if (((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isTripPreview) && !shouldStackHorizontally && !isChatThreadOutsideTripRoom) {
+    if (
+        ((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isTripPreview) &&
+        !shouldStackHorizontally &&
+        !isChatThreadOutsideTripRoom &&
+        !shouldShowConvertedSubscriptAvatar
+    ) {
         const isSmall = size === CONST.AVATAR_SIZE.SMALL;
         const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
         const containerStyle = StyleUtils.getContainerStyles(size);
@@ -511,7 +516,7 @@ function ReportAvatar({
                         displayName: mainAvatar?.name,
                     }}
                 >
-                    <View testID={`ReportAvatar-Subscript-MainAvatar--${mainAvatar?.id}`}>
+                    <View>
                         <Avatar
                             containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                             source={mainAvatar?.source}
@@ -520,6 +525,7 @@ function ReportAvatar({
                             avatarID={mainAvatar?.id}
                             type={mainAvatar?.type}
                             fallbackIcon={mainAvatar?.fallbackIcon}
+                            testID="ReportAvatar-Subscript-MainAvatar"
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -534,7 +540,6 @@ function ReportAvatar({
                             // Hover on overflowed part of icon will not work on Electron if dragArea is true
                             // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                             dataSet={{dragArea: false}}
-                            testID={`ReportAvatar-Subscript-SecondaryAvatar--${secondaryAvatar.id}`}
                         >
                             <Avatar
                                 iconAdditionalStyles={[
@@ -548,6 +553,7 @@ function ReportAvatar({
                                 avatarID={secondaryAvatar.id}
                                 type={secondaryAvatar.type}
                                 fallbackIcon={secondaryAvatar.fallbackIcon}
+                                testID="ReportAvatar-Subscript-SecondaryAvatar"
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -566,7 +572,6 @@ function ReportAvatar({
                         // Hover on overflowed part of icon will not work on Electron if dragArea is true
                         // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                         dataSet={{dragArea: false}}
-                        testID="ReportAvatar-Subscript-SubIcon"
                     >
                         <Icon
                             src={subIcon.source}
@@ -574,6 +579,7 @@ function ReportAvatar({
                             height={subIcon.height}
                             additionalStyles={styles.alignSelfCenter}
                             fill={subIcon.fill}
+                            testID="ReportAvatar-Subscript-SubIcon"
                         />
                     </View>
                 )}
@@ -597,10 +603,7 @@ function ReportAvatar({
                     }}
                     shouldRender={shouldShowTooltip}
                 >
-                    <View
-                        style={avatarContainerStyles}
-                        testID={`ReportAvatar-MultipleAvatars-OneIcon--${icons.at(0)?.id}`}
-                    >
+                    <View style={avatarContainerStyles}>
                         <Avatar
                             source={icons.at(0)?.source}
                             size={size}
@@ -609,6 +612,7 @@ function ReportAvatar({
                             avatarID={icons.at(0)?.id}
                             type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
                             fallbackIcon={icons.at(0)?.fallbackIcon}
+                            testID="ReportAvatar-MultipleAvatars-OneIcon"
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -642,10 +646,7 @@ function ReportAvatar({
                             }}
                             shouldRender={shouldShowTooltip}
                         >
-                            <View
-                                style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}
-                                testID={`ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar--${icon.id}`}
-                            >
+                            <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
                                 <Avatar
                                     iconAdditionalStyles={[
                                         StyleUtils.getHorizontalStackedAvatarBorderStyle({
@@ -664,6 +665,7 @@ function ReportAvatar({
                                     avatarID={icon.id}
                                     type={icon.type}
                                     fallbackIcon={icon.fallbackIcon}
+                                    testID="ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar"
                                 />
                             </View>
                         </UserDetailsTooltip>
@@ -721,7 +723,7 @@ function ReportAvatar({
                         shouldRender={shouldShowTooltip}
                     >
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
-                        <View testID={`ReportAvatar-MultipleAvatars-MainAvatar--${icons.at(0)?.id}`}>
+                        <View>
                             <Avatar
                                 source={icons.at(0)?.source ?? fallbackIconForMultipleAvatars}
                                 size={avatarSize}
@@ -730,6 +732,7 @@ function ReportAvatar({
                                 type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
                                 avatarID={icons.at(0)?.id}
                                 fallbackIcon={icons.at(0)?.fallbackIcon}
+                                testID="ReportAvatar-MultipleAvatars-MainAvatar"
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -743,7 +746,7 @@ function ReportAvatar({
                                 }}
                                 shouldRender={shouldShowTooltip}
                             >
-                                <View testID="ReportAvatar-MultipleAvatars-SecondaryAvatar">
+                                <View>
                                     <Avatar
                                         source={icons.at(1)?.source ?? fallbackIconForMultipleAvatars}
                                         size={avatarSize}
@@ -752,6 +755,7 @@ function ReportAvatar({
                                         avatarID={icons.at(1)?.id}
                                         type={icons.at(1)?.type ?? CONST.ICON_TYPE_AVATAR}
                                         fallbackIcon={icons.at(1)?.fallbackIcon}
+                                        testID="ReportAvatar-MultipleAvatars-SecondaryAvatar"
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -785,7 +789,7 @@ function ReportAvatar({
             delegateAccountID={action?.delegateAccountID}
             icon={primaryAvatar}
         >
-            <View testID={`ReportAvatar-SingleAvatar--${primaryAvatar.id}`}>
+            <View>
                 <Avatar
                     containerStyles={singleAvatarContainerStyle}
                     source={primaryAvatar.source}
@@ -794,6 +798,7 @@ function ReportAvatar({
                     avatarID={primaryAvatar.id}
                     size={singleAvatarSize ?? size}
                     fallbackIcon={fallbackIcon}
+                    testID="ReportAvatar-SingleAvatar"
                 />
             </View>
         </UserDetailsTooltip>

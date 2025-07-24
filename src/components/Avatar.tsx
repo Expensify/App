@@ -53,6 +53,9 @@ type AvatarProps = {
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
+
+    /** Test ID for the Avatar component */
+    testID?: string;
 };
 
 function Avatar({
@@ -67,6 +70,7 @@ function Avatar({
     type,
     name = '',
     avatarID,
+    testID = 'Avatar',
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -105,7 +109,7 @@ function Avatar({
     return (
         <View
             style={[containerStyles, styles.pointerEventsNone]}
-            testID="Avatar"
+            testID={testID}
         >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
