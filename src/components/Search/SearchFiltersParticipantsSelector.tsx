@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import memoize from '@libs/memoize';
 import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -35,6 +36,8 @@ type SearchFiltersParticipantsSelectorProps = {
     onFiltersUpdate: (accountIDs: string[]) => void;
 };
 
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
+
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -53,7 +56,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return getValidOptions(
+        const result = memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -63,6 +66,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
+        return result;
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
