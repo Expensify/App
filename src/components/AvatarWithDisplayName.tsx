@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -180,6 +181,7 @@ function AvatarWithDisplayName({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {formatPhoneNumber} = useLocalize();
     const StyleUtils = useStyleUtils();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
@@ -188,11 +190,11 @@ function AvatarWithDisplayName({
     );
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
+    const title = getReportName(report, formatPhoneNumber, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, formatPhoneNumber);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    const icons = getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const isReportArchived = useReportIsArchived(report?.reportID);

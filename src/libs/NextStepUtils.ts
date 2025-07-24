@@ -9,6 +9,7 @@ import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
@@ -92,7 +93,7 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
-    return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant({formatPhoneNumber, accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
@@ -163,8 +164,9 @@ function buildNextStep(
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
 
-    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
+    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({formatPhoneNumber, accountID: ownerAccountID});
+    const policyOwnerDisplayName =
+        policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({formatPhoneNumber, accountID: policy.ownerAccountID});
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
@@ -471,7 +473,7 @@ function buildNextStep(
                               text: 'an admin',
                           }
                         : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
+                              text: getDisplayNameForParticipant({formatPhoneNumber, accountID: reimburserAccountID}),
                               type: 'strong',
                           },
                     {
