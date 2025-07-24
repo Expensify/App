@@ -4677,7 +4677,7 @@ function getReportPreviewMessage(
  * At the moment, we only allow changing one transaction field at a time.
  */
 function getModifiedExpenseOriginalMessage(
-    oldTransaction: OnyxInputOrEntry<Transaction>,
+    oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
@@ -6673,7 +6673,7 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
  */
 function buildOptimisticModifiedExpenseReportAction(
     transactionThread: OnyxInputOrEntry<Report>,
-    oldTransaction: OnyxInputOrEntry<Transaction>,
+    oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
