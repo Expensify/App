@@ -43,8 +43,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
                 <ScrollView>
                     {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
                         return (
-                            // eslint-disable-next-line react/jsx-key
-                            <OfflineWithFeedback>
+                            <OfflineWithFeedback key={`${transactionID}-${sequenceIndex}`}>
                                 <ReservationView
                                     reservation={reservation}
                                     transactionID={transactionID}
