@@ -1521,7 +1521,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
 
         // These are not used in the screen, but are needed for the navigation
-        // for IOURequestStepDistance and IOURequestStepAmount components
+        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
         backTo: never;
         action: never;
         currency: never;
