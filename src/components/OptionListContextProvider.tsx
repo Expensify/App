@@ -269,16 +269,10 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
     useEffect(() => {
-        if (areInternalOptionsInitialized) {
-            return;
-        }
-        setAreInternalOptionsInitialized(areOptionsInitialized);
-    }, [areInternalOptionsInitialized, areOptionsInitialized]);
-
-    useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
             setInternalOptions(optionsList);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
         /**
@@ -291,6 +285,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
             return;
         }
         setInternalOptions(optionsList);
+        setAreInternalOptionsInitialized(areOptionsInitialized);
     }, [optionsList, areOptionsInitialized]);
 
     useEffect(() => {
