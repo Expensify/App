@@ -1,7 +1,8 @@
 import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
+import memoize from '@libs/memoize';
+import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
 import type {Section} from '@libs/OptionsListUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -16,6 +17,8 @@ const defaultListOptions = {
     headerMessage: '',
 };
 
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'useSearchParticipantsOptions.getValidOptions'});
+
 function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldInitialize = true}: {selectedOptions: OptionData[]; cleanSearchTerm: string; shouldInitialize?: boolean}) {
     const {options, areOptionsInitialized} = useOptionsList({shouldInitialize});
     const isReady = !!areOptionsInitialized;
@@ -27,26 +30,29 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
             return defaultListOptions;
         }
 
-        return getValidOptions(
+        return memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [isReady, options.personalDetails, options.reports, selectedOptions]);
+    }, [isReady, options.personalDetails, options.reports]);
+
+    const unselectedOptions = useMemo(() => {
+        return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
+    }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(unselectedOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo<{
         sections: Section[];
