@@ -2,6 +2,7 @@ import React from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -23,8 +24,9 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute} = route.params;
-    const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -114,12 +116,23 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleRegularReportSelection(item);
     };
 
+    const removeFromReport = () => {
+        if (!transaction) {
+            return;
+        }
+        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+        Navigation.dismissModal();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
             policyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
+            isUnreported={isUnreported}
         />
     );
 }
