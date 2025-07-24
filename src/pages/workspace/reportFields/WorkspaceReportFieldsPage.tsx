@@ -51,7 +51,7 @@ type ReportFieldForList = ListItem & {
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
 function keyExtractor(item: ReportFieldForList) {
-    return item.keyForList;
+    return item.keyForList ?? '';
 }
 
 function WorkspaceReportFieldsPage({
