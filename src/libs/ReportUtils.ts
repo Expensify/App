@@ -9678,14 +9678,22 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
 /**
  * Checks if report contains actions with errors
  */
-function hasActionsWithErrors(reportID: string | undefined): boolean {
+function hasActionWithErrorsForTransaction(reportID: string | undefined, transaction: Transaction | undefined): boolean {
     if (!reportID) {
         return false;
     }
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
     return Object.values(reportActions)
         .filter(Boolean)
-        .some((action) => !isEmptyObject(action.errors));
+        .some((action) => {
+            if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
+                if (getOriginalMessage(action)?.IOUTransactionID === transaction?.transactionID) {
+                    return !isEmptyObject(action.errors);
+                }
+                return false;
+            }
+            return !isEmptyObject(action.errors);
+        });
 }
 
 function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
@@ -11272,7 +11280,7 @@ export {
     getInvoicesChatName,
     getPayeeName,
     getQuickActionDetails,
-    hasActionsWithErrors,
+    hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
     hasHeldExpenses,
