@@ -2,6 +2,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
@@ -11,8 +12,10 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getLastActorDisplayName,
     getMemberInviteOptions,
+    getParticipantsOption,
     getSearchOptions,
     getShareDestinationOptions,
     getShareLogOptions,
@@ -1003,6 +1006,55 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('getParticipantsOption()', () => {
+        it('should return the correct participant option', () => {
+            const participant = {
+                login: 'tonystark@expensify.com',
+                accountID: 1,
+                displayName: 'Tony Stark',
+                avatar: 'https://avatar.url/stark.png',
+                selected: true,
+            };
+
+            const personalDetails = {
+                1: {
+                    login: 'tonystark@expensify.com',
+                    accountID: 1,
+                    displayName: 'Tony Stark',
+                    avatar: 'https://avatar.url/stark.png',
+                    phoneNumber: '',
+                },
+            };
+
+            const expectedParticipant = {
+                keyForList: '1',
+                login: 'tonystark@expensify.com',
+                accountID: 1,
+                text: 'Tony Stark',
+                firstName: '',
+                lastName: '',
+                alternateText: formatPhoneNumber('tonystark@expensify.com'),
+                icons: [
+                    {
+                        source: 'https://avatar.url/stark.png',
+                        name: 'tonystark@expensify.com',
+                        type: 'avatar',
+                        id: 1,
+                    },
+                ],
+                phoneNumber: '',
+                selected: true,
+                isSelected: true,
+                searchText: undefined,
+            };
+
+            const result = getParticipantsOption(participant, personalDetails, formatPhoneNumber);
+
+            // Then the result should be the correct participant option
+            expect(result).toEqual(expectedParticipant);
+        });
+    });
+
     describe('getShareDestinationsOptions()', () => {
         it('should exclude archived rooms and hidden threads from share destinations', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
@@ -1931,6 +1983,40 @@ describe('OptionsListUtils', () => {
             expect(result.at(0)!.reportID).toBe('1');
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(1)!.reportID).toBe('3');
+        });
+    });
+
+    describe('getIOUConfirmationOptionsFromPayeePersonalDetail()', () => {
+        it('should return the payee option with the formatted phone number', () => {
+            const formattedMember: PersonalDetails = {
+                accountID: 1,
+                firstName: 'John',
+                lastName: 'Doe',
+                displayName: 'John Doe',
+                login: 'john@doe.com',
+                phoneNumber: '1234567890',
+                validated: true,
+                avatar: 'https://example.com/avatar.png',
+            };
+            const result = getIOUConfirmationOptionsFromPayeePersonalDetail(formattedMember, formatPhoneNumber);
+
+            expect(result.login).toBe(formattedMember.login);
+        });
+
+        it('should return the payee option with the formatted phone number', () => {
+            const formattedMember: PersonalDetails = {
+                accountID: 1,
+                firstName: 'John',
+                lastName: 'Doe',
+                displayName: 'John Doe',
+                login: '1234567890@expensify.sms',
+                phoneNumber: '1234567890',
+                validated: true,
+                avatar: 'https://example.com/avatar.png',
+            };
+            const result = getIOUConfirmationOptionsFromPayeePersonalDetail(formattedMember, formatPhoneNumber);
+
+            expect(result.alternateText).toBe(formattedMember.phoneNumber);
         });
     });
 });

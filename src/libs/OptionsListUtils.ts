@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -38,7 +39,7 @@ import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber} from './LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {MinHeap} from './MinHeap';
@@ -528,7 +529,11 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
+function getParticipantsOption(
+    participant: OptionData | Participant,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Participant {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -591,7 +596,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
+          lastActorDetails.firstName || formatPhoneNumberUtils(getDisplayNameOrDefault(lastActorDetails))
         : translateLocal('common.you');
 }
 
@@ -658,7 +663,7 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
 
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
+        : formatPhoneNumberUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -738,7 +743,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
+                    displayName: formatPhoneNumberUtils(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: getPolicyName({report, policy}),
                 });
                 break;
@@ -791,7 +796,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
         const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
         const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        lastMessageTextFromReport = getMovedTransactionMessage(toReport);
+        lastMessageTextFromReport = getMovedTransactionMessage(toReport, formatPhoneNumberUtils);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -1009,13 +1014,15 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberUtils, accountID: accountIDs.at(0)}) || formatPhoneNumberUtils(personalDetail?.login ?? '')
+            : getReportName(report, formatPhoneNumberUtils);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberUtils, accountID: accountIDs.at(0)}) || formatPhoneNumberUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
-        result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
+        result.alternateText = formatPhoneNumberUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
     }
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result);
@@ -1028,7 +1035,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, formatPhoneNumberUtils, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
     return result;
@@ -1050,7 +1057,7 @@ function getReportOption(participant: Participant): OptionData {
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, formatPhoneNumberUtils);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report});
@@ -1089,7 +1096,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, formatPhoneNumberUtils);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails && !option.text) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
@@ -2046,7 +2053,11 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(
+    personalDetail: OnyxEntry<PersonalDetails>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    amountText?: string,
+): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
         text: formatPhoneNumber(getDisplayNameOrDefault(personalDetail, login)),
@@ -2073,6 +2084,7 @@ function getAttendeeOptions(
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2104,7 +2116,7 @@ function getAttendeeOptions(
             login: attendee.email ?? attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never, formatPhoneNumber));
 
     return getValidOptions(
         {reports, personalDetails},
@@ -2265,6 +2277,7 @@ function formatSectionsFromSearchTerm(
     selectedOptions: OptionData[],
     filteredRecentReports: OptionData[],
     filteredPersonalDetails: OptionData[],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: OptionData[] = [],
@@ -2279,7 +2292,7 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2305,7 +2318,7 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
@@ -2590,11 +2603,13 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
-function getManagerMcTestParticipant(): Participant | undefined {
+function getManagerMcTestParticipant(formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): Participant | undefined {
     const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
-    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
+    return managerMcTestPersonalDetails
+        ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails, formatPhoneNumber), reportID: managerMcTestReport?.reportID}
+        : undefined;
 }
 
 function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {

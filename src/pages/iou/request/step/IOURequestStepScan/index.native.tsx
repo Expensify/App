@@ -158,7 +158,7 @@ function IOURequestStepScan({
         return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -353,7 +353,7 @@ function IOURequestStepScan({
             }
 
             if (isTestTransaction) {
-                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                const managerMcTestParticipant = getManagerMcTestParticipant(formatPhoneNumber) ?? {};
                 let reportIDParam = managerMcTestParticipant.reportID;
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
@@ -384,7 +384,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : getReportOption(participant);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -500,6 +500,7 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             selfDMReportID,
+            formatPhoneNumber,
         ],
     );
 

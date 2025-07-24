@@ -1598,7 +1598,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
-        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(formatPhoneNumber) ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
             type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount: iou.report?.total ?? 0,
@@ -5313,7 +5313,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN);
+        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumber);
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -5334,7 +5334,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReportID, {[accountantEmail]: accountantAccountID});
+        } = buildInviteToRoomOnyxData(chatReportID, {[accountantEmail]: accountantAccountID}, formatPhoneNumber);
         optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         successData?.push(...inviteAccountantToRoomSuccessData);
         failureData?.push(...inviteAccountantToRoomFailureData);

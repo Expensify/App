@@ -101,8 +101,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(contactMethod, backTo);
-    }, [contactMethod, backTo]);
+        setContactMethodAsDefault(contactMethod, formatPhoneNumber, backTo);
+    }, [contactMethod, backTo, formatPhoneNumber]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -343,7 +343,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}

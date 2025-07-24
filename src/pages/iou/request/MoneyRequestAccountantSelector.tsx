@@ -45,7 +45,7 @@ type MoneyRequestAccountantSelectorProps = {
 };
 
 function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType, action}: MoneyRequestAccountantSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -115,7 +115,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, formatPhoneNumber, personalDetails, true);
         newSections.push(formatResults.section);
 
         newSections.push({
@@ -138,7 +138,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });
@@ -151,7 +151,17 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         );
 
         return [newSections, headerMessage];
-    }, [areOptionsInitialized, didScreenTransitionEnd, debouncedSearchTerm, chatOptions.recentReports, chatOptions.personalDetails, chatOptions.userToInvite, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        debouncedSearchTerm,
+        chatOptions.recentReports,
+        chatOptions.personalDetails,
+        chatOptions.userToInvite,
+        personalDetails,
+        translate,
+        formatPhoneNumber,
+    ]);
 
     const selectAccountant = useCallback(
         (option: Accountant) => {
