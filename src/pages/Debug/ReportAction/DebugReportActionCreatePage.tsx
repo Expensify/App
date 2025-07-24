@@ -128,9 +128,6 @@ function DebugReportActionCreatePage({
                                     isUserValidated={isUserValidated}
                                     personalDetails={personalDetailsList}
                                     userBillingFundID={userBillingFundID}
-                                    draftMessage={undefined}
-                                    emojiReactions={undefined}
-                                    linkedTransactionRouteError={undefined}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

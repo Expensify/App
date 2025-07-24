@@ -72,7 +72,7 @@ type ReportActionItemParentActionProps = {
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** Draft message for the report action */
-    draftMessage?: OnyxEntry<string & OnyxTypes.ReportActionsDrafts> | undefined;
+    draftMessage?: string;
 
     /** Emoji reactions for the report action */
     emojiReactions?: OnyxEntry<OnyxTypes.ReportActionReactions>;

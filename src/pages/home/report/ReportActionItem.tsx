@@ -27,7 +27,7 @@ import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction, UserWallet} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction, UserWallet} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
@@ -46,7 +46,7 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
     transactions?: Array<OnyxEntry<Transaction>>;
 
     /** Draft message for the report action */
-    draftMessage?: OnyxEntry<string & ReportActionsDrafts> | undefined;
+    draftMessage?: string;
 
     /** Emoji reactions for the report action */
     emojiReactions?: OnyxEntry<ReportActionReactions>;
@@ -89,8 +89,6 @@ function ReportActionItem({
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
-    const matchingDraftMessage = draftMessage?.[action.reportActionID];
-    const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
@@ -113,7 +111,7 @@ function ReportActionItem({
             action={action}
             report={report}
             policy={policy}
-            draftMessage={matchingDraftMessageString}
+            draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
             linkedReport={linkedReport}

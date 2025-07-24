@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction, UserWallet} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction, UserWallet} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -64,25 +64,25 @@ type ReportActionsListItemRendererProps = {
     shouldUseThreadDividerLine?: boolean;
 
     /** Draft messages for the report */
-    draftMessage?: OnyxEntry<string & ReportActionsDrafts> | undefined;
+    draftMessage?: string;
 
     /** Emoji reactions for the report action */
     emojiReactions?: OnyxEntry<ReportActionReactions>;
 
     /** User wallet */
-    userWallet?: OnyxEntry<UserWallet>;
+    userWallet: OnyxEntry<UserWallet>;
 
     /** Linked transaction route error */
     linkedTransactionRouteError?: OnyxEntry<Errors>;
 
     /** Whether the user is validated */
-    isUserValidated?: boolean | undefined;
+    isUserValidated: boolean | undefined;
 
     /** Personal details list */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** User billing fund ID */
-    userBillingFundID?: number | undefined;
+    userBillingFundID: number | undefined;
 };
 
 function ReportActionsListItemRenderer({

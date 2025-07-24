@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -8,7 +9,7 @@ import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportActionsDrafts, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
@@ -22,7 +23,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
     const styles = useThemeStyles();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
@@ -52,6 +53,9 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
         return null;
     }
 
+    const reportDraftMessage = draftMessage?.[action.reportActionID];
+    const matchingDraftMessage = typeof reportDraftMessage === 'string' ? reportDraftMessage : reportDraftMessage?.message;
+
     return (
         <View style={styles.pb2}>
             <ReportActionItem
@@ -70,7 +74,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
                 userWallet={userWallet}
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                draftMessage={draftMessage as OnyxEntry<string & ReportActionsDrafts>}
+                draftMessage={matchingDraftMessage}
                 emojiReactions={emojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
