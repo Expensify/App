@@ -3213,9 +3213,9 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
+        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick, formatPhoneNumberPhoneUtils);
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick);
+        LocalNotification.showCommentNotification(report, reportAction, onClick, formatPhoneNumberPhoneUtils);
     }
 
     notifyNewAction(reportID, reportAction.actorAccountID);

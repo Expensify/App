@@ -2,8 +2,8 @@
 import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -96,7 +96,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], usesIcon = false) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -130,7 +130,7 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';

@@ -1,5 +1,6 @@
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import type {Report, ReportAction} from '@src/types/onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 type LocalNotificationClickHandler = () => void;
 
@@ -8,9 +9,9 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => void;
     showUpdateAvailableNotification: () => void;
-    showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => void;
     clearReportNotifications: ClearReportNotifications;
 };
 

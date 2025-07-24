@@ -1,17 +1,18 @@
 import type {Report, ReportAction} from '@src/types/onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import BrowserNotifications from './BrowserNotifications';
 import type {LocalNotificationClickHandler, LocalNotificationModule} from './types';
 
-function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
-    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick);
+function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, formatPhoneNumber);
 }
 
 function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
-    BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick);
+function showModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick, formatPhoneNumber);
 }
 
 function clearReportNotifications(reportID: string | undefined) {
