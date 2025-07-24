@@ -44,7 +44,7 @@ describe('MergeTransactionUtils', () => {
 
         it('should return the correct transaction when sourceTransactionID matches an eligible transaction', () => {
             // Given a merge transaction with a sourceTransactionID that matches one of the eligible transactions
-            const sourceTransaction = createRandomTransaction(0);
+            const sourceTransaction = {...createRandomTransaction(0), receipt: undefined};
             const otherTransaction = createRandomTransaction(1);
             sourceTransaction.transactionID = 'source123';
 

@@ -58,11 +58,7 @@ const MERGE_FIELDS_UTILS = {
  * @param transaction - The transaction to update the receipt source for
  * @returns The updated transaction with receipt.source filled if it was missing
  */
-function fillMissingReceiptSource(transaction: OnyxEntry<Transaction>): Transaction | undefined {
-    if (!transaction) {
-        return undefined;
-    }
-
+function fillMissingReceiptSource(transaction: Transaction) {
     // If receipt.source already exists, no need to modify
     if (!transaction.receipt || !!transaction.receipt?.source || !transaction.filename) {
         return transaction;
@@ -87,7 +83,8 @@ const getSourceTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => 
         return undefined;
     }
 
-    return fillMissingReceiptSource(mergeTransaction.eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction.sourceTransactionID));
+    const sourceTransaction = mergeTransaction.eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction.sourceTransactionID);
+    return sourceTransaction ? fillMissingReceiptSource(sourceTransaction) : sourceTransaction;
 };
 
 /**
