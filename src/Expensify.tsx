@@ -1,9 +1,10 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -16,6 +17,8 @@ import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
+import useOnyx from './hooks/useOnyx';
+import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -93,7 +96,7 @@ function Expensify() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
     const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
@@ -101,8 +104,9 @@ function Expensify() {
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
     useDebugShortcut();
+    usePriorityMode();
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
@@ -118,7 +122,6 @@ function Expensify() {
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
     const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
-
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
@@ -202,22 +205,17 @@ function Expensify() {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            // We use custom deeplink handler in setup/hybridApp
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
-            setInitialUrl(url);
+            setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            // We use custom deeplink handler in setup/hybridApp
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
             Report.openReportFromDeepLink(state.url);
         });
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.onURLListenerAdded();
+        }
 
         return () => {
             if (!appStateChangeListener.current) {

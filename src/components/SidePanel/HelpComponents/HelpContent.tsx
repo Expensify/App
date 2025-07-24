@@ -1,7 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 // Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
 // https://github.com/react-native-modal/react-native-modal/issues/236
@@ -10,11 +9,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportAction, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getHelpPaneReportType} from '@libs/ReportUtils';
 import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -43,14 +44,22 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     });
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
-        canEvict: false,
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [parentIOUReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
         canBeMissing: true,
+        selector: (actions) =>
+            Object.values(actions ?? {})
+                .filter((action) => action.reportActionID === report?.parentReportActionID)
+                .filter(isMoneyRequestAction)
+                .at(0),
     });
-    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const linkedTransactionID = useMemo(() => (isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined), [parentReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, {canBeMissing: true});
+
+    const transactionID = useMemo(() => {
+        const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+        return getOriginalMessage(parentIOUReportAction ?? transactionThreadReportAction)?.IOUTransactionID;
+    }, [report, chatReport, reportActions, parentIOUReportAction]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
@@ -61,13 +70,14 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
+        const reportType = getHelpPaneReportType(report);
 
-        if (expenseType) {
+        if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
             return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
         }
 
-        if (report) {
-            return cleanedPath.replaceAll(':reportID', `:${getHelpPaneReportType(report)}`);
+        if (reportType) {
+            return cleanedPath.replaceAll(':reportID', `:${reportType}`);
         }
 
         return cleanedPath;

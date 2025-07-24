@@ -1,5 +1,4 @@
 import {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -24,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
@@ -84,8 +84,15 @@ function useSelectedTransactionsActions({
                 return transactionID === IOUTransactionID;
             }),
         }));
+        const deletedTransactionIDs: string[] = [];
+        transactionsWithActions.forEach(({transactionID, action}) => {
+            if (!action) {
+                return;
+            }
 
-        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+            deleteMoneyRequest(transactionID, action, undefined, deletedTransactionIDs);
+            deletedTransactionIDs.push(transactionID);
+        });
         clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
