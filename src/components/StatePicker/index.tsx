@@ -2,7 +2,6 @@ import type {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
 import type {Option} from '@libs/searchOptions';
 import CONST from '@src/CONST';
 import StateSelectorModal from './StateSelectorModal';
@@ -49,7 +48,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
                 onStateSelected={updateInput}
                 onClose={hidePickerModal}
                 label={translate('common.state')}
-                onBackdropPress={Navigation.dismissModal}
+                onBackdropPress={hidePickerModal}
             />
         </>
     );

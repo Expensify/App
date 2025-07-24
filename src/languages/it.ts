@@ -35,9 +35,13 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -183,6 +187,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -470,6 +475,7 @@ const translations = {
         message: 'Messaggio',
         leaveThread: 'Abbandona discussione',
         you: 'Tu',
+        me: 'me',
         youAfterPreposition: 'tu/voi (depending on the context)',
         your: 'tuo/tuoi/tuoi/tuo (depending on context and gender/number)',
         conciergeHelp: 'Si prega di contattare Concierge per assistenza.',
@@ -552,6 +558,7 @@ const translations = {
         userID: 'User ID',
         disable: 'Disabilita',
         export: 'Esporta',
+        basicExport: 'Esportazione basica',
         initialValue: 'Valore iniziale',
         currentDate: 'La data odierna',
         value: 'Valore',
@@ -823,24 +830,21 @@ const translations = {
         reactedWith: 'ha reagito con',
     },
     reportActionsView: {
-        beginningOfArchivedRoomPartOne: 'Ti sei perso la festa in',
-        beginningOfArchivedRoomPartTwo: ", non c'è niente da vedere qui.",
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `Questa chat è con tutti i membri di Expensify nel dominio ${domainRoom}.`,
-        beginningOfChatHistoryDomainRoomPartTwo: 'Usalo per chattare con i colleghi, condividere consigli e fare domande.',
-        beginningOfChatHistoryAdminRoomPartOneFirst: 'Questa chat è con',
-        beginningOfChatHistoryAdminRoomPartOneLast: 'admin.',
-        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
-        beginningOfChatHistoryAdminRoomPartTwo: "Usalo per discutere dell'allestimento dello spazio di lavoro e altro ancora.",
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Questa chat è con tutti in ${workspaceName}.`,
-        beginningOfChatHistoryAnnounceRoomPartTwo: `Usalo per gli annunci più importanti.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Questa chat room è per qualsiasi cosa',
-        beginningOfChatHistoryUserRoomPartTwo: 'related.',
-        beginningOfChatHistoryInvoiceRoomPartOne: `Questa chat è per le fatture tra`,
-        beginningOfChatHistoryInvoiceRoomPartTwo: `. Usa il pulsante + per inviare una fattura.`,
+        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+            `Ti sei perso la festa in <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>, non c'è niente da vedere qui.`,
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
+            `Questa chat è dedicata a tutti i membri di Expensify sul dominio <strong>${domainRoom}</strong>. Utilizzatela per chattare con i colleghi, condividere suggerimenti e porre domande.`,
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
+            `Questa chat è dedicata agli amministratori <strong>${workspaceName}</strong>. Utilizzatela per chattare sulla configurazione dello spazio di lavoro e altro ancora.`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `Questa chat è dedicata a tutti i membri della <strong>${workspaceName}</strong>. Usatela per gli annunci più importanti.`,
+        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+            `Questa chat è per tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
+        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante + per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Questo è dove',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: 'invierà le spese a',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: '. Basta usare il pulsante +.',
+        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
@@ -1037,6 +1041,9 @@ const translations = {
         createExpense: 'Crea spesa',
         trackDistance: 'Traccia distanza',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
+        removeExpense: 'Rimuovi spesa',
+        removeThisExpense: 'Rimuovi questa spesa',
+        removeExpenseConfirmation: 'Sei sicuro di voler rimuovere questa ricevuta? Questa azione non può essere annullata.',
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Crea ${amount} spesa`,
@@ -1066,8 +1073,6 @@ const translations = {
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta, poi conferma i dettagli tu stesso o lascia che SmartScan se ne occupi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Controlla più tardi o inserisci i dettagli ora.',
-        removeFromReport: 'Rimuovi dal rapporto',
-        moveToPersonalSpace: 'Sposta spese nello spazio personale',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? "Spese potenzialmente duplicate identificate. Rivedi i duplicati per consentire l'invio."
@@ -1234,7 +1239,6 @@ const translations = {
         unheldExpense: 'sblocca questa spesa',
         moveUnreportedExpense: 'Sposta spesa non segnalata',
         addUnreportedExpense: 'Aggiungi spesa non segnalata',
-        createNewExpense: 'Crea nuova spesa',
         selectUnreportedExpense: 'Seleziona almeno una spesa da aggiungere al rapporto.',
         emptyStateUnreportedExpenseTitle: 'Nessuna spesa non segnalata',
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
@@ -1523,6 +1527,8 @@ const translations = {
             invalidFileDescription: 'Il file che stai cercando di importare non è valido. Per favore riprova.',
             invalidateWithDelay: 'Invalidare con ritardo',
             recordTroubleshootData: 'Registrazione dei dati di risoluzione dei problemi',
+            softKillTheApp: "Disattivare l'applicazione",
+            kill: 'Uccidere',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2194,6 +2200,11 @@ const translations = {
             title: 'Usi qualche software di contabilità?',
             none: 'Nessuno',
         },
+        interestedFeatures: {
+            title: 'Quali funzionalità ti interessano?',
+            featuresAlreadyEnabled: 'Il tuo spazio di lavoro ha già abilitato quanto segue:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
+        },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
         },
@@ -2262,7 +2273,7 @@ const translations = {
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
@@ -2275,7 +2286,7 @@ const translations = {
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Conferma i dettagli.\n' +
@@ -2288,7 +2299,7 @@ const translations = {
                 description:
                     '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Scegli il tuo spazio *personale*.\n' +
@@ -2383,7 +2394,7 @@ const translations = {
                 description:
                     '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci un’email o numero di telefono.\n' +
                     '\n' +
@@ -2396,7 +2407,7 @@ const translations = {
                 description:
                     '*Dividi le spese* con una o più persone.\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci email o numeri di telefono.\n' +
                     '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
@@ -2417,7 +2428,7 @@ const translations = {
                 description:
                     'Ecco come creare un report:\n' +
                     '\n' +
-                    '1. Clicca sul pulsante verde *+*.\n' +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea report*.\n' +
                     '3. Clicca su *Aggiungi spesa*.\n' +
                     '4. Aggiungi la tua prima spesa.\n' +
@@ -2692,6 +2703,8 @@ const translations = {
             validationAmounts: "Gli importi di convalida inseriti non sono corretti. Si prega di ricontrollare l'estratto conto bancario e riprovare.",
             fullName: 'Per favore, inserisci un nome completo valido',
             ownershipPercentage: 'Per favore, inserisci un numero percentuale valido',
+            deletePaymentBankAccount:
+                'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con la carta Expensify. Se desideri comunque eliminare questo conto, contatta il Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3249,10 +3262,8 @@ const translations = {
         termsAndConditions: {
             header: 'Prima di continuare...',
             title: 'Termini e condizioni',
-            subtitle: 'Si prega di accettare Expensify Travel',
-            termsAndConditions: 'termini e condizioni',
-            travelTermsAndConditions: 'termini e condizioni',
-            agree: 'Accetto i',
+            label: 'Accetto i termini e le condizioni',
+            subtitle: `Accettate <a href="${CONST.TRAVEL_TERMS_URL}">i termini e le condizioni</a> di Expensify Travel.`,
             error: 'Devi accettare i termini e le condizioni di Expensify Travel per continuare',
             defaultWorkspaceError:
                 "Devi impostare un'area di lavoro predefinita per abilitare Expensify Travel. Vai su Impostazioni > Aree di lavoro > clicca sui tre punti verticali accanto a un'area di lavoro > Imposta come area di lavoro predefinita, quindi riprova!",
@@ -3446,7 +3457,7 @@ const translations = {
             welcomeNote: 'Per favore, usa Expensify per inviare le tue ricevute per il rimborso, grazie!',
             subscription: 'Abbonamento',
             markAsEntered: 'Segna come inserito manualmente',
-            markAsExported: 'Segna come esportato manualmente',
+            markAsExported: 'Segna come esportato',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Esporta in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
             lineItemLevel: 'Livello voce di dettaglio',
@@ -3829,6 +3840,18 @@ const translations = {
             },
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: "Per favore, aggiungi l'account in Xero e sincronizza nuovamente la connessione.",
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         sageIntacct: {
             preferredExporter: 'Esportatore preferito',
@@ -4383,9 +4406,8 @@ const translations = {
             addNewBankAccount: 'Aggiungi un nuovo conto bancario',
             settlementAccount: 'Conto di regolamento',
             settlementAccountDescription: 'Scegli un account per pagare il saldo della tua Expensify Card.',
-            settlementAccountInfoPt1: 'Assicurati che questo account corrisponda al tuo',
-            settlementAccountInfoPt2: 'quindi il Riconciliazione Continua funziona correttamente.',
-            reconciliationAccount: 'Conto di riconciliazione',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Assicurarsi che questo conto corrisponda al <a href="${reconciliationAccountSettingsLink}">conto Riconciliazione</a> (${accountNumber}) in modo che la Riconciliazione continua funzioni correttamente.`,
             settlementFrequency: 'Frequenza di liquidazione',
             settlementFrequencyDescription: 'Scegli la frequenza con cui pagherai il saldo della tua Expensify Card.',
             settlementFrequencyInfo: 'Se desideri passare al regolamento mensile, dovrai collegare il tuo conto bancario tramite Plaid e avere uno storico del saldo positivo di 90 giorni.',
@@ -5942,11 +5964,16 @@ const translations = {
                 title: 'Nessuna spesa da esportare',
                 subtitle: 'È ora di rilassarsi, bel lavoro.',
             },
+            emptyStatementsResults: {
+                title: 'Nessuna spesa da visualizzare',
+                subtitle: 'Nessun risultato. Provare a regolare i filtri.',
+            },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
         },
+        statements: 'Dichiarazioni',
         unapproved: 'Non approvato',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCompanyCards: 'Carte aziendali non approvate',
@@ -6143,8 +6170,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} in ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `cambiato l'area di lavoro in ${toPolicyName}${fromPolicyName ? `(in precedenza ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Spazio di lavoro modificato${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
+                    }
+                    return `Spazio di lavoro modificato in ${toPolicyName}${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambiato tipo da ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `inviato questo rapporto a ${delegateUser} poiché ${originalManager} è in vacanza`,
                 exportedToCSV: `esportato in CSV`,
