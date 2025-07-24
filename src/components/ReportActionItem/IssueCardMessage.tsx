@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails, shouldShowReplacedCard} from '@libs/ReportActionsUtils';
+import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -31,8 +31,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
     const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails);
-    const shouldShowActivateButton =
-        isAssigneeCurrentUser && (shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails) || shouldShowReplacedCard(action?.actionName, expensifyCard));
+    const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
 
     return (
         <>

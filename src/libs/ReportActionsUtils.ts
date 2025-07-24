@@ -2801,12 +2801,14 @@ function isCardIssuedAction(
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
 > {
     return (
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
-        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED)
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL)
     );
 }
 
@@ -2820,8 +2822,8 @@ function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, priv
     return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) && isCardPendingActivate(card) && !missingDetails;
 }
 
-function shouldShowReplacedCard(actionName?: ReportActionName, card?: Card) {
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED && isCardPendingReplace(card);
+function shouldShowReplacedCard(actionName?: ReportActionName, expensifyCard?: Card) {
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL && isCardPendingReplace(expensifyCard);
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
@@ -2866,17 +2868,10 @@ function getCardIssuedMessage({
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
             : translateLocal('workspace.companyCards.companyCard');
     const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, privatePersonalDetails);
-    const shouldShowReplaceCardMessage = !isAssigneeCurrentUser || shouldShowReplacedCard(reportAction?.actionName, expensifyCard);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
-            if (shouldShowReplaceCardMessage) {
-                return translateLocal('workspace.expensifyCard.replacedCard', {assignee});
-            }
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            if (isCardVirtualAndReplaced) {
-                return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink});
-            }
             return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
@@ -2885,6 +2880,11 @@ function getCardIssuedMessage({
                 return translateLocal('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
             }
             return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
+            if (expensifyCard?.nameValuePairs?.isVirtual) {
+                return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink});
+            }
+            return translateLocal('workspace.expensifyCard.replacedCard', {assignee});
         default:
             return '';
     }
