@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID} from './ReportUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
@@ -171,8 +172,6 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 
 /**
  * Get the report ID for an expense, if it's unreported, we'll return the self DM report ID
- * @param transaction - The transaction to get the report ID for
- * @returns The report ID for the expense
  */
 function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
     if (!transaction) {
@@ -186,6 +185,16 @@ function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
     }
 
     return transaction.reportID;
+}
+
+/**
+ * Get the report ID for the transaction thread of a transaction
+ * @param transaction - The transaction to get the report ID for
+ * @returns The report ID for the transaction thread
+ */
+function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
+    const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
+    return iouActionOfTargetTransaction?.childReportID;
 }
 
 /**
@@ -248,8 +257,8 @@ export {
     buildMergedTransactionData,
     selectTargetAndSourceTransactionIDsForMerge,
     isEmptyMergeValue,
-    getReportIDForExpense,
     fillMissingReceiptSource,
+    getTransactionThreadReportID,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};

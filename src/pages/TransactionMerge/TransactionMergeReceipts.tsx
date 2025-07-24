@@ -7,6 +7,7 @@ import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import CONST from '@src/CONST';
@@ -64,7 +65,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Zoom}
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transaction.reportID, transaction.transactionID, true));
+                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(getTransactionThreadReportID(transaction), transaction.transactionID, true));
                                         }}
                                     />
                                 </View>
