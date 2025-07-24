@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -19,7 +18,6 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {formatPhoneNumber} from '@src/libs/LocalePhoneNumber';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
@@ -29,6 +27,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>

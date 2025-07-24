@@ -19,7 +19,6 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {formatPhoneNumber} = useLocalize();
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {

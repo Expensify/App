@@ -13,8 +13,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const {formatPhoneNumber} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {formatPhoneNumber} = useLocalize();
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
@@ -31,7 +29,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report]);
+    }, [policy, report, formatPhoneNumber]);
 
     const contentProps = useMemo(
         () =>
