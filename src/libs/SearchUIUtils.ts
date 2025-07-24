@@ -53,7 +53,7 @@ import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber as formatPhoneNumberUtils} from './LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -1152,7 +1152,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     ...reportAction,
                     from,
                     reportName: getSearchReportName({
-                        formatPhoneNumber: formatPhoneNumberUtils,
+                        formatPhoneNumber: formatPhoneNumberPhoneUtils,
                         report,
                         policy,
                         personalDetails: data.personalDetailsList,
