@@ -51,6 +51,14 @@ describe('ReportActionItemSingle', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
+                                    [fakeReportAction.reportActionID]: fakeReportAction,
+                                },
+                            },
+                            [ONYXKEYS.COLLECTION.REPORT]: {
+                                [fakeReport.reportID]: fakeReport,
+                            },
                             ...policyCollectionDataSet,
                         }),
                     )
@@ -59,12 +67,12 @@ describe('ReportActionItemSingle', () => {
                     });
             }
 
-            it('renders secondary Avatar properly', async () => {
-                const expectedSecondaryIconTestId = 'Avatar';
+            it('renders avatar properly', async () => {
+                const expectedIconTestID = 'ReportAvatar-SingleAvatar';
 
                 await setup();
                 await waitFor(() => {
-                    expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
+                    expect(screen.getByTestId(expectedIconTestID)).toBeOnTheScreen();
                 });
             });
 

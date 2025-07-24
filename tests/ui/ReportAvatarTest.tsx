@@ -397,7 +397,7 @@ describe('ReportAvatar', () => {
             isSubscriptAvatarRendered(retrievedData);
         });
 
-        it('doesnt render subscript for user message in workspace if they are text messages', async () => {
+        it("doesn't render subscript for user message in workspace if they are text messages", async () => {
             const retrievedData = await retrieveDataFromAvatarView({action: commentAction, reportID: iouReport.reportID});
             isSubscriptAvatarRendered({...retrievedData, negate: true});
         });

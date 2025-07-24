@@ -403,7 +403,7 @@ function ReportAvatar({
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
     const isReportArchived = useReportIsArchived(reportID);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived) && policy.type !== CONST.POLICY.TYPE.PERSONAL;
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived) && policy?.type !== CONST.POLICY.TYPE.PERSONAL;
     const shouldDisplayAllActors = isReportPreviewAction && !isATripRoom && !isWorkspaceChat && !reportPreviewSenderID;
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isAInvoiceReport || (isWorkspaceChat && (!actorAccountID || shouldDisplayAllActors));
