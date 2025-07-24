@@ -962,7 +962,7 @@ function MoneyReportHeader({
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
-                    shouldUseModalPaddingStyle={applicableSecondaryActions.length <= 5}
+                    containerStyles={applicableSecondaryActions.length > 5 ? styles.settlementButtonListContainer : {}}
                 />
             )}
         </KYCWall>
