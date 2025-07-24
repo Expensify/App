@@ -2974,7 +2974,7 @@ function getGroupChatName(
             .map(
                 (participantAccountID, index) =>
                     getDisplayNameForParticipant({formatPhoneNumber, accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport}) ||
-                    formatPhoneNumberPhoneUtils(participants?.[index]?.login ?? ''),
+                    formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
@@ -2984,7 +2984,7 @@ function getGroupChatName(
     }
 
     return translateLocal('groupChat.defaultReportName', {
-        displayName: getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: participantAccountIDs.at(0)}),
+        displayName: getDisplayNameForParticipant({formatPhoneNumber, accountID: participantAccountIDs.at(0)}),
     });
 }
 
@@ -3955,7 +3955,7 @@ function getMoneyRequestReportName({
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy);
     } else {
-        payerOrApproverName = getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: report?.managerID}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({formatPhoneNumber, accountID: report?.managerID}) ?? '';
     }
 
     const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
@@ -3975,7 +3975,7 @@ function getMoneyRequestReportName({
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: report?.ownerAccountID}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({formatPhoneNumber, accountID: report?.ownerAccountID}) ?? '';
         return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -4873,7 +4873,7 @@ function getInvoicePayerName(
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID]));
+        return formatPhoneNumber(getDisplayNameOrDefault(invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID]));
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]});
@@ -5341,7 +5341,7 @@ function getReportNameInternal({
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant({
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
             accountID: currentUserAccountID,
             shouldAddCurrentUserPostfix: true,
             personalDetailsData: personalDetails,
