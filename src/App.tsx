@@ -41,6 +41,7 @@ import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import './setup/backgroundTask';
 import './setup/hybridApp';
@@ -69,47 +70,47 @@ function App() {
                 <InitialURLContextProvider>
                     <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
-                        <ComposeProviders
-                            components={[
-                                OnyxListItemProvider,
-                                ThemeProvider,
-                                ThemeStylesProvider,
-                                ThemeIllustrationsProvider,
-                                SafeAreaProvider,
-                                HTMLEngineProvider,
-                                PortalProvider,
-                                SafeArea,
-                                LocaleContextProvider,
-                                PopoverContextProvider,
-                                CurrentReportIDContextProvider,
-                                ScrollOffsetContextProvider,
-                                AttachmentModalContextProvider,
-                                PickerStateProvider,
-                                EnvironmentProvider,
-                                CustomStatusBarAndBackgroundContextProvider,
-                                ActiveElementRoleProvider,
-                                ActionSheetAwareScrollViewProvider,
-                                PlaybackContextProvider,
-                                FullScreenContextProvider,
-                                VolumeContextProvider,
-                                VideoPopoverMenuContextProvider,
-                                KeyboardProvider,
-                                KeyboardStateProvider,
-                                SearchRouterContextProvider,
-                                ProductTrainingContextProvider,
-                                InputBlurContextProvider,
-                                FullScreenBlockingViewContextProvider,
-                                FullScreenLoaderContextProvider,
-                            ]}
-                        >
-                            <CustomStatusBarAndBackground />
-                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                <ColorSchemeWrapper>
-                                    <Expensify />
-                                </ColorSchemeWrapper>
-                            </ErrorBoundary>
-                            <NavigationBar />
-                        </ComposeProviders>
+                            <ComposeProviders
+                                components={[
+                                    OnyxListItemProvider,
+                                    ThemeProvider,
+                                    ThemeStylesProvider,
+                                    ThemeIllustrationsProvider,
+                                    SafeAreaProvider,
+                                    HTMLEngineProvider,
+                                    PortalProvider,
+                                    SafeArea,
+                                    LocaleContextProvider,
+                                    PopoverContextProvider,
+                                    CurrentReportIDContextProvider,
+                                    ScrollOffsetContextProvider,
+                                    AttachmentModalContextProvider,
+                                    PickerStateProvider,
+                                    EnvironmentProvider,
+                                    CustomStatusBarAndBackgroundContextProvider,
+                                    ActiveElementRoleProvider,
+                                    ActionSheetAwareScrollViewProvider,
+                                    PlaybackContextProvider,
+                                    FullScreenContextProvider,
+                                    VolumeContextProvider,
+                                    VideoPopoverMenuContextProvider,
+                                    KeyboardProvider,
+                                    KeyboardStateProvider,
+                                    SearchRouterContextProvider,
+                                    ProductTrainingContextProvider,
+                                    InputBlurContextProvider,
+                                    FullScreenBlockingViewContextProvider,
+                                    FullScreenLoaderContextProvider,
+                                ]}
+                            >
+                                <CustomStatusBarAndBackground />
+                                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                    <ColorSchemeWrapper>
+                                        <Expensify />
+                                    </ColorSchemeWrapper>
+                                </ErrorBoundary>
+                                <NavigationBar />
+                            </ComposeProviders>
                     </GestureHandlerRootView>
                 </InitialURLContextProvider>
             </SplashScreenStateContextProvider>
