@@ -1,5 +1,5 @@
 ---
-title: adding-your-personal-information.md
+title: Adding Your Personal Information
 description: Learn how to complete your personal travel profile in Expensify to streamline future bookings.
 keywords: [travel profile, personal information, traveler details, travel booking, expensify travel, classic, new expensify]
 ---
@@ -15,7 +15,7 @@ Set up your personal travel profile to customize your Expensify Travel expense a
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Don’t see the travel feature?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
