@@ -229,8 +229,6 @@ function AttachmentPicker({
             allowMultiSelection: fileLimit !== 1,
         });
 
-        console.log(pickedFiles);
-
         const localCopies = await keepLocalCopy({
             files: pickedFiles.map((file) => {
                 return {
@@ -242,7 +240,6 @@ function AttachmentPicker({
         });
 
         return pickedFiles.map((file) => {
-            // Match by sourceUri to prevent race condition mix-ups
             const localCopy = localCopies.find((copy) =>
                 copy.status === 'success' && copy.sourceUri === file.uri
             );
