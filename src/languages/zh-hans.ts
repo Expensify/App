@@ -475,7 +475,6 @@ const translations = {
         message: '消息',
         leaveThread: '离开线程',
         you: '你',
-        me: '我',
         youAfterPreposition: '你',
         your: '你的',
         conciergeHelp: '请联系Concierge寻求帮助。',
