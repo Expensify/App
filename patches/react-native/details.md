@@ -188,5 +188,5 @@
 
 - Reason: Fixes an issue where deeply nested modals fail to appear, and the app becomes unresponsive after closing them. The patch ensures modals are always presented from the topmost currently visible view controller, resolving incorrect modal stacking behavior on iOS.
 - Upstream PR/issue: https://github.com/facebook/react-native/issues/52790
-- E/App issue: https://github.com/Expensify/App/issues/66247
+- E/App issue: https://github.com/Expensify/App/issues/67059
 - PR Introducing Patch: [#67052](https://github.com/Expensify/App/pull/67052)
