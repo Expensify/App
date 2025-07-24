@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -48,7 +48,7 @@ function clearAssignCardStepAndData() {
     Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
 }
 
-function setAddNewCompanyCardStepAndData({data, isEditing, step}: AddNewCompanyCardFlowData) {
+function setAddNewCompanyCardStepAndData({data, isEditing, step}: NullishDeep<AddNewCompanyCardFlowData>) {
     Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data, isEditing, currentStep: step});
 }
 

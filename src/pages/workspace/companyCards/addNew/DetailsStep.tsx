@@ -66,7 +66,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             return;
         }
 
-        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, undefined, lastSelectedFeed);
+        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, undefined, undefined, lastSelectedFeed);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 

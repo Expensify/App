@@ -9,7 +9,7 @@ import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspac
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
 type StatementCloseDateStepProps = {
     /** ID of the current policy */
@@ -26,17 +26,18 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!addNewCard?.data?.publicToken;
 
     const submit = useCallback(
-        (statementPeriodEndDay: CompanyCardStatementCloseDate) => {
+        (statementPeriodEnd: StatementPeriodEnd | undefined, statementPeriodEndDay: StatementPeriodEndDay | undefined) => {
             if (isPlaid) {
                 setAddNewCompanyCardStepAndData({
                     step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
-                    data: {statementPeriodEndDay},
+                    // Fallback to null to clear old value (if any) because `undefined` is a no-op in Onyx.merge
+                    data: {statementPeriodEnd: statementPeriodEnd ?? null, statementPeriodEndDay: statementPeriodEndDay ?? null},
                 });
                 return;
             }
 
             if (addNewCard?.data.feedDetails) {
-                addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, addNewCard.data.feedDetails, cardFeeds, statementPeriodEndDay, lastSelectedFeed);
+                addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, addNewCard.data.feedDetails, cardFeeds, statementPeriodEnd, statementPeriodEndDay, lastSelectedFeed);
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             }
         },
@@ -53,7 +54,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
             onSubmit={submit}
             onBackButtonPress={goBack}
             enabledWhenOffline={false}
-            defaultDate={CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH}
+            defaultStatementPeriodEnd={CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH}
         />
     );
 }
