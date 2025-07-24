@@ -237,6 +237,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
@@ -905,7 +906,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
                         testID={`report-screen-${reportID}`}
-                        includeSafeAreaPaddingBottom={false}
+                        includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -985,6 +986,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             transactionThreadReportID={transactionThreadReportID}
                                             keyboardHeight={keyboardHeight}
                                             onLayout={onComposerLayout}
+                                            headerHeight={headerHeight}
                                         />
                                     ) : null}
                                 </View>
