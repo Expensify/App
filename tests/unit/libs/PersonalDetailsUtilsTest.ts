@@ -12,10 +12,8 @@ describe('PersonalDetailsUtils', () => {
         const newLogins = ['3322076524', 'test2@test.com'];
         const newAccountIDs = [1, 2];
 
-        // Call the function with the mock formatPhoneNumber
         const result = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
-        // Construct the expected output based on the function's logic and the mock behavior.
         const expected = {
             optimisticData: [
                 {
@@ -32,7 +30,6 @@ describe('PersonalDetailsUtils', () => {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '2': {
                             accountID: 2,
-                            // This comes from mockFormatPhoneNumber('test2@test.com')
                             displayName: 'test2@test.com',
                             isOptimisticPersonalDetail: true,
                             login: 'test2@test.com',
