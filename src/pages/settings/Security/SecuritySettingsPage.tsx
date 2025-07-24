@@ -14,7 +14,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,7 +32,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -56,12 +55,11 @@ type BaseMenuItemType = {
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
-
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});

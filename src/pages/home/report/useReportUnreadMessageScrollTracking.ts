@@ -43,8 +43,10 @@ export default function useReportUnreadMessageScrollTracking({
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      * Call any other callback that the component might need
      */
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onTrackScrolling(event);
+    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
+        if (event) {
+            onTrackScrolling(event);
+        }
 
         const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
 
