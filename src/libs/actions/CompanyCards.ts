@@ -916,14 +916,14 @@ function setFeedStatementPeriodEndDay(
     API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
-function clearErrorFields(bankName: string, domainAccountID: number, fieldNames: Array<keyof CardFeedData>) {
-    const errorFields = Object.fromEntries(fieldNames.map((fieldName) => [fieldName, null]));
-
+function clearErrorField(bankName: string, domainAccountID: number, fieldName: keyof CardFeedData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         settings: {
             companyCards: {
                 [bankName]: {
-                    errorFields,
+                    errorFields: {
+                        [fieldName]: null,
+                    },
                 },
             },
         },
@@ -951,5 +951,5 @@ export {
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
     setFeedStatementPeriodEndDay,
-    clearErrorFields,
+    clearErrorField,
 };
