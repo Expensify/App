@@ -398,6 +398,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         displayDate,
         displayPosted,
         filterFormValues.from,
+        filterFormValues.feed,
         translate,
         typeComponent,
         groupByComponent,
