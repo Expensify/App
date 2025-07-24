@@ -27,6 +27,7 @@ function HelpButton({style}: HelpButtonProps) {
 
     return (
         <>
+            {/* Render SidePanel here on native platforms, since it's not included in RootNavigatorExtraContent like on web */}
             {isNative && <SidePanel />}
             {!shouldHideHelpButton && (
                 <Tooltip text={translate('common.help')}>
