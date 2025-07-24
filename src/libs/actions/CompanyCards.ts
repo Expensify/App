@@ -8,7 +8,7 @@ import type {
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
-    SetFeedStatementPeriodEndDay,
+    SetFeedStatementPeriodEndDayParams,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -892,7 +892,7 @@ function setFeedStatementPeriodEndDay(
         },
     ];
 
-    const parameters: SetFeedStatementPeriodEndDay = {
+    const parameters: SetFeedStatementPeriodEndDayParams = {
         authToken,
         policyID,
         bankName,

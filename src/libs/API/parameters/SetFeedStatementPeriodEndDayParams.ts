@@ -1,6 +1,6 @@
 import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
 
-type SetFeedStatementPeriodEndDay = {
+type SetFeedStatementPeriodEndDayParams = {
     authToken: string | null | undefined;
     policyID: string;
     bankName: string;
@@ -8,4 +8,4 @@ type SetFeedStatementPeriodEndDay = {
     statementPeriodEndDay: CompanyCardStatementCloseDate;
 };
 
-export default SetFeedStatementPeriodEndDay;
+export default SetFeedStatementPeriodEndDayParams;
