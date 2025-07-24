@@ -1,11 +1,11 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useAnimatedProps} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
+import {useAnimatedProps, useAnimatedReaction} from 'react-native-reanimated';
+import type {AnimatedScrollViewProps, SharedValue} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -99,6 +99,7 @@ type ReportActionsListProps = {
     /** Callback executed on scroll */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
+    /** The current scroll position of the chat */
     scrollingVerticalOffset: SharedValue<number>;
 
     /** Function to load more chats */
@@ -113,10 +114,15 @@ type ReportActionsListProps = {
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
+    /** iOS only - The current keyboard height, updated on every keyboard movement frame */
     keyboardHeight: SharedValue<number>;
 
+    /** iOS only - The content offset to be set on the flatlist according to the
+     * keyboard and scroll positions
+     */
     keyboardOffset: SharedValue<number>;
 
+    /** iOS only - The current composer height */
     composerHeight: number;
 
     isComposerFullSize?: boolean;
@@ -206,6 +212,22 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
+    const scrollingVerticalOffsetRef = useRef(0);
+
+    // The previous scroll tracking implementation was made via a ref. This is
+    // to ensure it will behave the same as before.
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: scrollingVerticalOffset.get(),
+                kHeight: keyboardHeight.get(),
+            };
+        },
+        ({offsetY, kHeight}) => {
+            const correctedOffsetY = Platform.OS === 'ios' ? kHeight + offsetY : offsetY;
+            scrollingVerticalOffsetRef.current = correctedOffsetY;
+        },
+    );
 
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
@@ -278,7 +300,7 @@ function ReportActionsList({
                     accountID,
                     prevSortedVisibleReportActionsObjects,
                     unreadMarkerTime,
-                    scrollingVerticalOffset: scrollingVerticalOffset.get(),
+                    scrollingVerticalOffset: scrollingVerticalOffsetRef.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
             if (shouldDisplayNewMarker) {
@@ -287,7 +309,7 @@ function ReportActionsList({
         }
 
         return [null, -1];
-    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime, scrollingVerticalOffset]);
+    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -352,7 +374,7 @@ function ReportActionsList({
 
     useEffect(() => {
         if (
-            scrollingVerticalOffset.get() < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
             reportActionSize.current > sortedVisibleReportActions.length &&
             hasNewestReportAction
@@ -362,7 +384,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible, scrollingVerticalOffset]);
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -379,7 +401,7 @@ function ReportActionsList({
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.get() < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            if ((isVisible || isFromNotification) && scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -608,7 +630,7 @@ function ReportActionsList({
         lastMessageTime.current = null;
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasNewMessagesInView = scrollingVerticalOffset.get() < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasNewMessagesInView = scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
                 newMessageTimeReference &&
@@ -808,11 +830,10 @@ function ReportActionsList({
                     renderItem={renderItem}
                     renderScrollComponent={(props) =>
                         renderScrollComponent?.(
-                            Platform.select<ScrollViewProps>({
+                            Platform.select<AnimatedScrollViewProps>({
                                 ios: {
                                     ...props,
                                     onScroll,
-                                    // @ts-expect-error - non animated scroll views do not receive this prop
                                     animatedProps,
                                     automaticallyAdjustContentInsets: false,
                                     contentInsetAdjustmentBehavior: 'never',
@@ -823,6 +844,7 @@ function ReportActionsList({
                                 },
                                 default: {
                                     ...props,
+                                    onScroll,
                                 },
                             }),
                         )

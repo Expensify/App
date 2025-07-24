@@ -1,11 +1,14 @@
 import {useCallback, useContext} from 'react';
+import {Platform} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {ActionListContext} from '@pages/home/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
     const {flatListRef, setScrollPosition} = useContext(ActionListContext);
+    const {isKeyboardActive, keyboardHeight} = useKeyboardState();
 
     /**
      * Scroll to the provided index.
@@ -30,10 +33,16 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
+        if (Platform.OS === 'ios' && isKeyboardActive) {
+            setScrollPosition({offset: -keyboardHeight});
+            flatListRef.current?.scrollToOffset({animated: false, offset: -keyboardHeight});
+            return;
+        }
+
         setScrollPosition({offset: 0});
 
         flatListRef.current?.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef, setScrollPosition]);
+    }, [flatListRef, setScrollPosition, isKeyboardActive, keyboardHeight]);
 
     /**
      * Scroll to the end of the FlatList.
@@ -59,9 +68,14 @@ function useReportScrollManager(): ReportScrollManagerData {
                 return;
             }
 
+            if (Platform.OS === 'ios' && isKeyboardActive) {
+                flatListRef.current?.scrollToOffset({animated: false, offset: offset - keyboardHeight});
+                return;
+            }
+
             flatListRef.current.scrollToOffset({offset, animated: false});
         },
-        [flatListRef],
+        [flatListRef, isKeyboardActive, keyboardHeight],
     );
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
