@@ -3,9 +3,11 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {getAllReportErrors} from '@libs/ReportUtils';
+import {translateLocal} from '@libs/Localize';
+import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
+import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -14,10 +16,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
-import {chatReportR14932} from '../../__mocks__/reportData/reports';
+import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
+import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -750,7 +753,7 @@ describe('SidebarUtils', () => {
                     })
 
                     // Then the welcome message should indicate the report is archived
-                    .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived) , there's nothing to see here."))
+                    .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived), there's nothing to see here."))
             );
         });
 
@@ -990,6 +993,131 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(`test message`);
             });
+
+            it("For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be in the format 'spent $total'", async () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const policyExpenseChat: Report = {
+                    ...createRandomReport(2),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reportNameValuePairs = {};
+                const lastReportPreviewAction = {
+                    action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childReportName: 'Expense Report 2025-07-10',
+                    childReportID: '5186125925096828',
+                    created: '2025-07-10 17:45:31.448',
+                    reportActionID: '7425617950691586420',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'a owes ETB 5.00',
+                            text: 'a owes ETB 5.00',
+                            isEdited: false,
+                            whisperedTo: [],
+                            isDeletedParentAction: false,
+                            deleted: '',
+                            reactions: [],
+                        },
+                    ],
+                    originalMessage: {
+                        linkedReportID: '5186125925096828',
+                        actionableForAccountIDs: [20232605],
+                        isNewDot: true,
+                        lastModified: '2025-07-10 17:45:53.635',
+                    },
+                    person: [
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'f100',
+                        },
+                    ],
+                    parentReportID: policyExpenseChat.reportID,
+                };
+
+                const policyExpenseChatActions: ReportActions = {[lastReportPreviewAction.reportActionID]: lastReportPreviewAction};
+                const iouReport = {
+                    reportName: 'Expense Report 2025-07-10',
+                    reportID: '5186125925096828',
+                    policyID: policy.id,
+                    type: 'expense',
+                    currency: 'ETB',
+                    ownerAccountID: 20232605,
+                    total: -500,
+                    nonReimbursableTotal: 0,
+                    parentReportID: policyExpenseChat.reportID,
+                    parentReportActionID: lastReportPreviewAction.reportActionID,
+                    chatReportID: policyExpenseChat.reportID,
+                };
+                const iouAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        amount: -200,
+                        currency: 'ETB',
+                        type: 'track',
+                        participantAccountIDs: [20232605],
+                        IOUReportID: '5186125925096828',
+                    },
+                    reportActionID: '8964283462949622660',
+                    shouldShow: true,
+                    created: '2025-07-10 17:45:34.865',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'tracked ETB 2.00',
+                            text: 'tracked ETB 2.00',
+                            isEdited: false,
+                            whisperedTo: [],
+                            isDeletedParentAction: false,
+                            deleted: '',
+                            reactions: [],
+                        },
+                    ],
+                    parentReportID: iouReport.reportID,
+                };
+                const iouReportActions: ReportActions = {[iouAction.reportActionID]: iouAction};
+                const transaction = {
+                    transactionID: '4766156517568983315',
+                    amount: -300,
+                    currency: 'ETB',
+                    reportID: iouReport.reportID,
+                    reimbursable: false,
+                    isLoading: false,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`, policyExpenseChatActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+                const optionData = SidebarUtils.getOptionData({
+                    report: policyExpenseChat,
+                    reportAttributes: undefined,
+                    reportNameValuePairs,
+                    personalDetails: {},
+                    policy,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                });
+                const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
+                const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
+
+                expect(optionData?.alternateText).toBe(
+                    formatReportLastMessageText(
+                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
+                    ),
+                );
+            });
+
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -1119,6 +1247,70 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 const result = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+            });
+
+            it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
+                const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
+
+                iouReportR14932.reportID = '5';
+                chatReportR14932.reportID = '6';
+                iouReportR14932.lastActorAccountID = undefined;
+
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: 'policyExpenseChat',
+                    pendingAction: null,
+                    isOwnPolicyExpenseChat: true,
+                    parentReportID: iouReportR14932.reportID,
+                    parentReportActionID: mockIOUAction.reportActionID,
+                    lastActorAccountID: undefined,
+                };
+
+                const linkedCreateAction: ReportAction = {
+                    ...mockIOUAction,
+                    originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+                    childReportID: report.reportID,
+                    reportActionID: '3',
+                };
+
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'test action',
+                            text: 'test action',
+                        },
+                    ],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
+
+                    created: DateUtils.getDBTime(),
+                    lastModified: DateUtils.getDBTime(),
+                    shouldShow: true,
+                    pendingAction: null,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: undefined,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[lastAction.reportActionID]: lastAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
+
+                const result = SidebarUtils.getOptionData({
+                    report: iouReportR14932,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},

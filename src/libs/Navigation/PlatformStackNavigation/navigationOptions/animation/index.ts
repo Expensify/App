@@ -12,7 +12,7 @@ const InternalPlatformAnimations = {
 const Animations = {
     SLIDE_FROM_LEFT: 'slide_from_left',
     SLIDE_FROM_RIGHT: 'slide_from_right',
-    MODAL: 'modal',
+    SLIDE_FROM_BOTTOM: 'slide_from_bottom',
     FADE: 'fade',
     NONE: 'none',
 } as const;

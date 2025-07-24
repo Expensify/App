@@ -141,6 +141,9 @@ The submitter can only delete expenses, and the report must be in the Open state
 
 # FAQ
 
+## Can I add multiple attachments to a single expense?
+No, it's only possible to add one attachment per expense. 
+
 ## Who can edit an expense?
 - **Expense owner**: Can edit expenses if the report is Open.
 - **Approvers and Workspace Admins**: Can edit submitted expenses before final approval.

@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
@@ -20,7 +20,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const locales = useMemo(() => {
         const sortedLocales = SORTED_LOCALES;

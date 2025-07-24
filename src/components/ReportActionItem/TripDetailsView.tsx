@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,8 +19,9 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {getReservationsFromTripTransactions, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {getReservationsFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -27,10 +29,10 @@ type ReservationViewProps = {
     reservation: Reservation;
     transactionID: string;
     tripRoomReportID: string;
-    reservationIndex: number;
+    sequenceIndex: number;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, reservationIndex}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -139,14 +141,18 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
-            onPress={() => Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, reservationIndex, Navigation.getReportRHPActiveRoute()))}
+            onPress={() =>
+                Navigation.navigate(
+                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex, Navigation.getReportRHPActiveRoute()),
+                )
+            }
         />
     );
 }
 
 type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
-    tripRoomReportID: string;
+    tripRoomReport: OnyxEntry<Report>;
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
@@ -155,11 +161,15 @@ type TripDetailsViewProps = {
     tripTransactions: Transaction[];
 };
 
-function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
+function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
+    if (!tripRoomReport) {
+        return null;
+    }
+
+    const reservationsData: ReservationData[] = getReservationsFromTripReport(tripRoomReport, tripTransactions);
 
     return (
         <View>
@@ -174,14 +184,14 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule, tripTransa
                 </View>
             </View>
             <>
-                {reservationsData.map(({reservation, transactionID, reservationIndex}) => {
+                {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
                     return (
                         <OfflineWithFeedback>
                             <ReservationView
                                 reservation={reservation}
                                 transactionID={transactionID}
-                                tripRoomReportID={tripRoomReportID}
-                                reservationIndex={reservationIndex}
+                                tripRoomReportID={tripRoomReport.reportID}
+                                sequenceIndex={sequenceIndex}
                             />
                         </OfflineWithFeedback>
                     );

@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +7,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -91,13 +91,16 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+                break;
+            case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
+                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             default:
                 break;

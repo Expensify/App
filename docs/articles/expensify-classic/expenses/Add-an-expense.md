@@ -12,6 +12,7 @@ Add, track, and manage all types of expenses in Expensify—from SmartScanned re
 # Add an Expense with SmartScan
 
 💡 **Things to know when SmartScanning expenses:** 💡
+- Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number as **Settings > Account > Profile > Contact Methods**.
 - You can edit any scanned receipt by tapping **Fill out details myself** to update the merchant, date, total, currency, category, description, attendees, report, or reimbursement settings.
 - On iPhone, hard-press the Expensify app icon to open the camera shortcut.
 - You can also email receipts to **receipts@expensify.com** from any email associated with your account. SmartScan will auto-fill the details and upload the receipt to your **Expenses** tab.
