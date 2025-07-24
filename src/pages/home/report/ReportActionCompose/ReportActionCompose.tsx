@@ -35,6 +35,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -230,7 +231,7 @@ function ReportActionCompose({
 
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
@@ -533,7 +534,7 @@ function ReportActionCompose({
             const file = e?.dataTransfer?.files?.[0];
             if (file) {
                 file.uri = URL.createObjectURL(file);
-                validateFiles([file]);
+                validateFiles([file], Array.from(e.dataTransfer?.items ?? []));
                 return;
             }
         }
@@ -547,7 +548,7 @@ function ReportActionCompose({
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -582,6 +583,7 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
+                            report={report}
                         >
                             {({displayFilesInModal}) => {
                                 const handleAttachmentDrop = (event: DragEvent) => {
@@ -594,14 +596,14 @@ function ReportActionCompose({
                                             file.uri = URL.createObjectURL(file);
                                             return file;
                                         });
-                                        displayFilesInModal(files);
+                                        displayFilesInModal(files, Array.from(event.dataTransfer?.items ?? []));
                                         return;
                                     }
 
                                     const data = event.dataTransfer?.files[0];
                                     if (data) {
                                         data.uri = URL.createObjectURL(data);
-                                        displayFilesInModal([data]);
+                                        displayFilesInModal([data], Array.from(event.dataTransfer?.items ?? []));
                                     }
                                 };
 
