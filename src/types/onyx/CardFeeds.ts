@@ -4,14 +4,17 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Card statement close date */
-type CompanyCardStatementCloseDate = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH> | number;
-
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
 /** Custom card feed with a number */
 type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
+
+/** Statement period end */
+type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
+
+/** Statement period end day */
+type StatementPeriodEndDay = number;
 
 /** Card feed provider */
 type CardFeedProvider =
@@ -64,14 +67,17 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Specifies the format for the report title related to this card */
     reportTitleFormat?: string;
 
-    /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay?: CompanyCardStatementCloseDate;
+    /** Indicates the day (preset value) when the statement period for this card ends */
+    statementPeriodEnd?: StatementPeriodEnd;
+
+    /** Indicates the day (custom day) when the statement period for this card ends */
+    statementPeriodEndDay?: StatementPeriodEndDay;
 
     /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEnd' | 'statementPeriodEndDay'>;
 }>;
 
 /** Direct card feed data */
@@ -94,14 +100,17 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether any actions are pending */
     pending?: boolean;
 
-    /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay?: CompanyCardStatementCloseDate;
+    /** Indicates the day (preset value) when the statement period for this card ends */
+    statementPeriodEnd?: StatementPeriodEnd;
+
+    /** Indicates the day (custom day) when the statement period for this card ends */
+    statementPeriodEndDay?: StatementPeriodEndDay;
 
     /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEnd' | 'statementPeriodEndDay'>;
 }>;
 
 /** Card feed data */
@@ -142,8 +151,11 @@ type AddNewCardFeedData = {
     /** Name of the card */
     cardTitle: string;
 
-    /** The day when the statement period for this feed ends */
-    statementPeriodEndDay?: CompanyCardStatementCloseDate;
+    /** Indicates the day (preset value) when the statement period for this card ends */
+    statementPeriodEnd?: StatementPeriodEnd;
+
+    /** Indicates the day (custom day) when the statement period for this card ends */
+    statementPeriodEndDay?: StatementPeriodEndDay;
 
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
@@ -205,5 +217,6 @@ export type {
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
     FundID,
-    CompanyCardStatementCloseDate,
+    StatementPeriodEnd,
+    StatementPeriodEndDay,
 };
