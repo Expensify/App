@@ -23,7 +23,6 @@ import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
@@ -379,7 +378,12 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
-function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
+function getFilterDisplayTitle(
+    filters: Partial<SearchAdvancedFiltersForm>,
+    filterKey: SearchFilterKey,
+    translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
+) {
     if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
         const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
@@ -539,7 +543,7 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 }
 
 function AdvancedSearchFilters() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
@@ -663,17 +667,17 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
                         if (!shouldDisplayCategoryFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
                         if (!shouldDisplayTagFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
                         if (!shouldDisplayCardFilter) {
                             return;
@@ -683,7 +687,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayCardFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
                         if (!shouldDisplayTaxFilter) {
                             return;
@@ -707,7 +711,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayGroupByFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     }
                     return {
                         key,
