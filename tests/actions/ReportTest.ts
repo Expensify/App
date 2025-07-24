@@ -8,7 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -1846,7 +1846,7 @@ describe('actions/Report', () => {
             };
             const policyID = '1';
             Report.buildOptimisticChangePolicyData(report, policyID);
-            expect(buildNextStep).toHaveBeenCalledWith({...report, policyID}, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumberPhoneUtils);
+            expect(buildNextStep).toHaveBeenCalledWith({...report, policyID}, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumber);
         });
     });
 
