@@ -57,6 +57,7 @@ import {
     isExpenseReport,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
+    isInvoiceRoom,
     isIOUReport,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -158,6 +159,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
+        }
+        if (isInvoiceRoom(reportHeaderData)) {
+            return true;
         }
         if (isChatRoom) {
             return !reportDescription;
@@ -321,7 +325,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {isChatRoom && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
+                                        {isChatRoom && !isInvoiceRoom(reportHeaderData) && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                             <View style={[styles.alignSelfStart, styles.mw100]}>
                                                 <Text
                                                     style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
