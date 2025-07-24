@@ -433,6 +433,7 @@ function ReportActionsList({
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
                     } else {
+                        setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
                     }
                     if (action?.reportActionID) {
