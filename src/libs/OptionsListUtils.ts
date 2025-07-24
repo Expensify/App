@@ -2260,12 +2260,11 @@ function formatMemberForList(member: OptionData): MemberForList {
  * Build the options for the Workspace Member Invite view
  */
 function getMemberInviteOptions(
-    reports: Array<SearchOption<Report>> = [],
     personalDetails: Array<SearchOption<PersonalDetails>>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
-    
+    reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
     searchString = '',
     maxElements?: number,
@@ -2758,4 +2757,4 @@ export {
     sortAlphabetically,
 };
 
-export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase, GetOptionsConfig};
+export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase, GetValidOptionsConfig};
