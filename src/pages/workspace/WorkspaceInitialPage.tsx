@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -118,6 +119,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
+    const {setIsLoaderVisible} = useFullScreenLoader();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -391,19 +393,23 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     const hasDeleteWorkspaceAnnualSubscriptionError = isDeleteWorkspaceAnnualSubscriptionError(policy);
-    // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
+    const shouldShowNotFoundPage = !shouldShowPolicy && !isPendingDelete;
 
     useEffect(() => {
         if (isEmptyObject(prevPolicy)) {
             return;
         }
-        if (isOffline && !prevIsPendingDelete && isPendingDelete) {
+        if (!prevIsPendingDelete && isPendingDelete) {
+            if (!isOffline) {
+                setIsLoaderVisible(true);
+                return;
+            }
             goBackFromInvalidPolicy();
             return;
         }
         if (prevIsPendingDelete && !isPendingDelete) {
+            setIsLoaderVisible(false);
             if (hasDeleteWorkspaceAnnualSubscriptionError) {
                 clearDeleteWorkspaceError(policyID);
                 setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
@@ -411,7 +417,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             }
             goBackFromInvalidPolicy();
         }
-    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, hasDeleteWorkspaceAnnualSubscriptionError, policyID]);
+    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, hasDeleteWorkspaceAnnualSubscriptionError, policyID, setIsLoaderVisible]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
