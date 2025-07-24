@@ -7,7 +7,7 @@ import usePrevious from './usePrevious';
 
 function usePriorityMode() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
-    const [allReportsDraftComment] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [allReportsWithDraftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const prevPriorityMode = usePrevious(priorityMode);
 
     useEffect(() => {
@@ -16,8 +16,8 @@ function usePriorityMode() {
         }
         // When a user switches their priority mode away from #focus/GSD we need to call openApp
         // to fetch all their chats because #focus mode works with a subset of a user's chats.
-        openApp(false, allReportsDraftComment);
-    }, [priorityMode, allReportsDraftComment, prevPriorityMode]);
+        openApp(false, allReportsWithDraftComments);
+    }, [priorityMode, allReportsWithDraftComments, prevPriorityMode]);
 }
 
 export default usePriorityMode;

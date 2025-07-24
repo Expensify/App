@@ -245,7 +245,12 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
-function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = false, shouldKeepPublicRooms = false, allReportsDraftComment?: Record<string, string | undefined>): OnyxData {
+function getOnyxDataForOpenOrReconnect(
+    isOpenApp = false,
+    isFullReconnect = false,
+    shouldKeepPublicRooms = false,
+    allReportsWithDraftComments?: Record<string, string | undefined>,
+): OnyxData {
     const result: OnyxData = {
         optimisticData: [
             {
@@ -308,12 +313,12 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
 
     // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
     // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
-    const reportsHaveDraftComments = Object.entries(allReportsDraftComment ?? {})
+    const reportsWithDraftComments = Object.entries(allReportsWithDraftComments ?? {})
         .filter(([, value]) => value !== null)
         .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
-    reportsHaveDraftComments?.forEach((report) => {
+    reportsWithDraftComments?.forEach((report) => {
         result.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
@@ -329,10 +334,10 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
 /**
  * Fetches data needed for app initialization
  */
-function openApp(shouldKeepPublicRooms = false, allReportsDraftComment?: Record<string, string | undefined>) {
+function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>) {
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsDraftComment));
+        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
     });
 }
 
