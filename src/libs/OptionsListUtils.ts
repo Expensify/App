@@ -1030,7 +1030,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, formatPhoneNumber, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, formatPhoneNumberUtils, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
     return result;
