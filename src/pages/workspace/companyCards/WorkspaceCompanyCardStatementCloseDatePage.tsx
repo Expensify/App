@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from './WorkspaceCompanyCardStatementCloseDateSelectionList';
 
@@ -33,17 +33,18 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const statementPeriodEnd = selectedFeedData?.statementPeriodEnd;
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
     const submit = useCallback(
-        (newStatementPeriodEndDay: CompanyCardStatementCloseDate) => {
+        (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
             if (selectedFeed) {
-                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEndDay, statementPeriodEndDay ?? null);
+                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, statementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
+        [policyID, selectedFeed, statementPeriodEnd, statementPeriodEndDay, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {
@@ -73,7 +74,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
                 onSubmit={submit}
                 onBackButtonPress={goBack}
                 enabledWhenOffline
-                defaultDate={statementPeriodEndDay}
+                defaultStatementPeriodEnd={statementPeriodEnd}
+                defaultStatementPeriodEndDay={statementPeriodEndDay}
                 pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}
                 errors={selectedFeedData?.errorFields?.statementPeriodEndDay}
                 onCloseError={clearError}
