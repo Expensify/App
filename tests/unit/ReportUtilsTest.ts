@@ -22,6 +22,7 @@ import {
     canAddTransaction,
     canDeleteReportAction,
     canDeleteTransaction,
+    canEditFieldOfMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
@@ -294,6 +295,71 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('canEditFieldOfMoneyRequest', () => {
+        const reportActionID = 2;
+        const IOUReportID = '1234';
+        const IOUTransactionID = '123';
+        const randomReportAction = createRandomReportAction(reportActionID);
+        const policyID = '2424';
+        const amount = 39;
+
+        const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
+
+        // Given that there is at least one outstanding expense report in a policy
+        const outstandingExpenseReport = {
+            ...createExpenseReport(483),
+            policyID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            ownerAccountID: currentUserAccountID,
+        };
+
+        // When a user creates an invoice in the same policy
+
+        const reportAction = {
+            ...randomReportAction,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            originalMessage: {
+                // eslint-disable-next-line deprecation/deprecation
+                ...randomReportAction.originalMessage,
+                IOUReportID,
+                IOUTransactionID,
+                type: CONST.IOU.ACTION.CREATE,
+                amount,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+
+        const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount};
+
+        const invoiceReport = {
+            ...createInvoiceReport(Number(IOUReportID)),
+            policyID,
+            ownerAccountID: currentUserAccountID,
+            state: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: 8723,
+        };
+
+        beforeAll(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, invoiceReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${483}`, outstandingExpenseReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1);
+            return waitForBatchedUpdates();
+        });
+
+        // Then the user should be able to move the invoice to the outstanding expense report
+        it('should return true for invoice report action given that there is a minimum of one outstanding report', () => {
+            const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            expect(canEditReportField).toBe(true);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
