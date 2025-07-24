@@ -58,7 +58,15 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
 
         const newSections: Section[] = [];
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            formatPhoneNumber,
+            personalDetails,
+            true,
+        );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 

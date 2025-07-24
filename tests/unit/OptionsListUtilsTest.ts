@@ -15,6 +15,7 @@ import {
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getLastActorDisplayName,
     getMemberInviteOptions,
+    getParticipantsOption,
     getSearchOptions,
     getShareDestinationOptions,
     getShareLogOptions,
@@ -1002,6 +1003,55 @@ describe('OptionsListUtils', () => {
             // Then none of the results should include receipts
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+        });
+    });
+
+    describe('getParticipantsOption()', () => {
+        it('should return the correct participant option', () => {
+            const participant = {
+                login: 'tonystark@expensify.com',
+                accountID: 1,
+                displayName: 'Tony Stark',
+                avatar: 'https://avatar.url/stark.png',
+                selected: true,
+            };
+
+            const personalDetails = {
+                1: {
+                    login: 'tonystark@expensify.com',
+                    accountID: 1,
+                    displayName: 'Tony Stark',
+                    avatar: 'https://avatar.url/stark.png',
+                    phoneNumber: '',
+                },
+            };
+
+            const expectedParticipant = {
+                keyForList: '1',
+                login: 'tonystark@expensify.com',
+                accountID: 1,
+                text: 'Tony Stark',
+                firstName: '',
+                lastName: '',
+                alternateText: formatPhoneNumber('tonystark@expensify.com'),
+                icons: [
+                    {
+                        source: 'https://avatar.url/stark.png',
+                        name: 'tonystark@expensify.com',
+                        type: 'avatar',
+                        id: 1,
+                    },
+                ],
+                phoneNumber: '',
+                selected: true,
+                isSelected: true,
+                searchText: undefined,
+            };
+
+            const result = getParticipantsOption(participant, personalDetails, formatPhoneNumber);
+
+            // Then the result should be the correct participant option
+            expect(result).toEqual(expectedParticipant);
         });
     });
 

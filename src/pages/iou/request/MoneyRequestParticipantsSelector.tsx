@@ -99,7 +99,7 @@ function MoneyRequestParticipantsSelector(
     }: MoneyRequestParticipantsSelectorProps,
     ref: Ref<InputFocusRef>,
 ) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
@@ -278,6 +278,7 @@ function MoneyRequestParticipantsSelector(
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            formatPhoneNumber,
             personalDetails,
             true,
         );
@@ -321,7 +322,7 @@ function MoneyRequestParticipantsSelector(
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 shouldShow: true,
             });
@@ -348,6 +349,7 @@ function MoneyRequestParticipantsSelector(
         showImportContacts,
         inputHelperText,
         isPerDiemRequest,
+        formatPhoneNumber,
     ]);
 
     /**

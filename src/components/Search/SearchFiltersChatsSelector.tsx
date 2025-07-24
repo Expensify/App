@@ -38,7 +38,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -79,7 +79,15 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, false);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            formatPhoneNumber,
+            personalDetails,
+            false,
+        );
 
         newSections.push(formattedResults.section);
 
