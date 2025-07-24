@@ -370,6 +370,7 @@ function ReportActionsList({
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         isInverted: true,
         unreadMarkerReportActionIndex,
+        keyboardHeight,
     });
 
     useEffect(() => {

@@ -994,6 +994,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             nativeID="composer"
                                             keyboardHeight={keyboardHeight}
                                             onLayout={onComposerLayout}
+                                            headerHeight={headerHeight}
                                         />
                                     ) : null}
                                 </View>
