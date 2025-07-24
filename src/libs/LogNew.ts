@@ -4,8 +4,8 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
-import useOnyx from '@hooks/useOnyx';
 import type {Merge} from 'type-fest';
+import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
@@ -69,7 +69,7 @@ const createLogger = (shouldCollectLogs: boolean) =>
     });
 
 function useLog() {
-    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
 
     const Log = createLogger(shouldStoreLogs);
     setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
