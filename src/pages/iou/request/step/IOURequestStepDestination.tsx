@@ -118,7 +118,7 @@ function IOURequestStepDestination({
         <ScreenWrapper
             includePaddingTop={false}
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-            testID={`${IOURequestStepDestination.displayName} Wrap`}
+            testID={`${IOURequestStepDestination.displayName}-container`}
         >
             <StepScreenWrapper
                 headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
