@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
