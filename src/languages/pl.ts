@@ -35,9 +35,13 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -183,6 +187,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -470,6 +475,7 @@ const translations = {
         message: 'Wiadomość',
         leaveThread: 'Opuść wątek',
         you: 'Ty',
+        me: 'mnie',
         youAfterPreposition: 'ty',
         your: 'twój',
         conciergeHelp: 'Proszę skontaktować się z Concierge po pomoc.',
@@ -552,8 +558,9 @@ const translations = {
         userID: 'ID użytkownika',
         disable: 'Wyłącz',
         export: 'Eksportuj',
+        basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
-        currentDate: 'Current date',
+        currentDate: 'Aktualna data',
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
@@ -823,24 +830,21 @@ const translations = {
         reactedWith: 'zareagował(a) za pomocą',
     },
     reportActionsView: {
-        beginningOfArchivedRoomPartOne: 'Przegapiłeś imprezę w',
-        beginningOfArchivedRoomPartTwo: ', nie ma tu nic do zobaczenia.',
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `Ten czat jest z wszystkimi członkami Expensify na domenie ${domainRoom}.`,
-        beginningOfChatHistoryDomainRoomPartTwo: 'Używaj go do rozmów ze współpracownikami, dzielenia się wskazówkami i zadawania pytań.',
-        beginningOfChatHistoryAdminRoomPartOneFirst: 'Ta rozmowa jest z',
-        beginningOfChatHistoryAdminRoomPartOneLast: 'admin.',
-        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
-        beginningOfChatHistoryAdminRoomPartTwo: 'Użyj tego, aby porozmawiać o konfiguracji przestrzeni roboczej i nie tylko.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Ten czat jest z wszystkimi w ${workspaceName}.`,
-        beginningOfChatHistoryAnnounceRoomPartTwo: `Używaj tego do najważniejszych ogłoszeń.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Ten pokój czatowy jest do wszystkiego.',
-        beginningOfChatHistoryUserRoomPartTwo: 'related.',
-        beginningOfChatHistoryInvoiceRoomPartOne: `Ten czat dotyczy faktur pomiędzy`,
-        beginningOfChatHistoryInvoiceRoomPartTwo: `. Użyj przycisku +, aby wysłać fakturę.`,
+        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+            `Przegapiłeś imprezę w <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>, nie ma tu nic do oglądania.`,
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
+            `Ten czat jest przeznaczony dla wszystkich członków Expensify w domenie <strong>${domainRoom}</strong>. Używaj go do czatowania ze współpracownikami, dzielenia się wskazówkami i zadawania pytań.`,
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
+            `Ten czat jest przeznaczony dla administratora <strong>${workspaceName}</strong>. Użyj go, aby porozmawiać o konfiguracji przestrzeni roboczej i nie tylko.`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `Ten czat jest przeznaczony dla wszystkich w <strong>${workspaceName}</strong>. Używaj go do najważniejszych ogłoszeń.`,
+        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+            `Ten czat jest przeznaczony do wszystkiego, co związane z <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
+        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku +, aby wysłać fakturę.`,
         beginningOfChatHistory: 'Ta rozmowa jest z',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: 'To jest miejsce, gdzie',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: 'prześle wydatki do',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: '. Po prostu użyj przycisku +.',
+        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku +.`,
         beginningOfChatHistorySelfDM: 'To jest Twoja przestrzeń osobista. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Czat z Twoim opiekunem konta tutaj',
@@ -1521,6 +1525,8 @@ const translations = {
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
             invalidateWithDelay: 'Unieważnij z opóźnieniem',
             recordTroubleshootData: 'Rejestrowanie danych rozwiązywania problemów',
+            softKillTheApp: 'Miękkie wyłączenie aplikacji',
+            kill: 'Zabić',
         },
         debugConsole: {
             saveLog: 'Zapisz log',
@@ -2189,6 +2195,11 @@ const translations = {
         accounting: {
             title: 'Czy używasz jakiegoś oprogramowania księgowego?',
             none: 'None',
+        },
+        interestedFeatures: {
+            title: 'Jakie funkcje Cię interesują?',
+            featuresAlreadyEnabled: 'Twoje miejsce pracy ma już włączone następujące opcje:',
+            featureYouMayBeInterestedIn: 'Włącz dodatkowe funkcje, które mogą Cię zainteresować:',
         },
         error: {
             requiredFirstName: 'Proszę podać swoje imię, aby kontynuować',
@@ -3254,10 +3265,8 @@ const translations = {
         termsAndConditions: {
             header: 'Zanim przejdziemy dalej...',
             title: 'Warunki i zasady',
-            subtitle: 'Proszę zaakceptować Expensify Travel',
-            termsAndConditions: 'warunki i zasady',
-            travelTermsAndConditions: 'warunki i zasady',
-            agree: 'Zgadzam się na',
+            label: 'Zgadzam się z regulaminem',
+            subtitle: `Prosimy o zaakceptowanie <a href="${CONST.TRAVEL_TERMS_URL}">regulaminu</a> Expensify Travel.`,
             error: 'Musisz zaakceptować warunki i zasady Expensify Travel, aby kontynuować.',
             defaultWorkspaceError:
                 'Musisz ustawić domyślne miejsce pracy, aby włączyć Expensify Travel. Przejdź do Ustawienia > Miejsca pracy > kliknij trzy pionowe kropki obok miejsca pracy > Ustaw jako domyślne miejsce pracy, a następnie spróbuj ponownie!',
@@ -3451,7 +3460,7 @@ const translations = {
             welcomeNote: 'Proszę użyć Expensify do przesyłania paragonów do zwrotu kosztów, dziękuję!',
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
-            markAsExported: 'Oznacz jako wyeksportowane ręcznie',
+            markAsExported: 'Oznacz jako wyeksportowane',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Eksportuj do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Sprawdźmy podwójnie, czy wszystko wygląda dobrze.',
             lineItemLevel: 'Poziom pozycji linii',
@@ -4391,9 +4400,8 @@ const translations = {
             addNewBankAccount: 'Dodaj nowe konto bankowe',
             settlementAccount: 'Konto rozliczeniowe',
             settlementAccountDescription: 'Wybierz konto do spłaty salda na karcie Expensify.',
-            settlementAccountInfoPt1: 'Upewnij się, że to konto pasuje do Twojego',
-            settlementAccountInfoPt2: 'więc Ciągła Rekoncyliacja działa poprawnie.',
-            reconciliationAccount: 'Konto uzgadniające',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Upewnij się, że to konto jest zgodne z <a href="${reconciliationAccountSettingsLink}">kontem Reconciliation</a> (${accountNumber}), aby Continuous Reconciliation działało poprawnie.`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             settlementFrequencyDescription: 'Wybierz, jak często będziesz spłacać saldo swojej karty Expensify.',
             settlementFrequencyInfo:
@@ -6142,8 +6150,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `zmieniono ${fieldName} z ${oldValue} na ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `zmieniono ${fieldName} na ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `zmieniono przestrzeń roboczą na ${toPolicyName}${fromPolicyName ? `(uprzednio ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Zmieniono przestrzeń roboczą${fromPolicyName ? ` (wcześniej ${fromPolicyName})` : ''}`;
+                    }
+                    return `Zmieniono przestrzeń roboczą na ${toPolicyName}${fromPolicyName ? ` (wcześniej ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `zmieniono typ z ${oldType} na ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `wysłał ten raport do ${delegateUser}, ponieważ ${originalManager} jest na urlopie`,
                 exportedToCSV: `wyeksportowano do CSV`,
