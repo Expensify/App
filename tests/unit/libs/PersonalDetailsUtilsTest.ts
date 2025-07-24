@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {getEffectiveDisplayName, getPersonalDetailsOnyxDataForOptimisticUsers, createDisplayName} from '@libs/PersonalDetailsUtils';
+import {createDisplayName, getEffectiveDisplayName, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
@@ -147,7 +147,6 @@ describe('PersonalDetailsUtils', () => {
         const personalDetail: PersonalDetails = {accountID: 123, login: '', displayName: 'Fallback Name'};
         const result = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         expect(result).toBe('Fallback Name');
-
     });
 
     // Test Group 1: Scenarios where `passedPersonalDetails` is null or undefined
