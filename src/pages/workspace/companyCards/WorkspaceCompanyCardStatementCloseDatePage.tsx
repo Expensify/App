@@ -33,18 +33,17 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-    const statementPeriodEnd = selectedFeedData?.statementPeriodEnd;
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
     const submit = useCallback(
         (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
             if (selectedFeed) {
-                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, statementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
+                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed, statementPeriodEnd, statementPeriodEndDay, domainOrWorkspaceAccountID],
+        [policyID, selectedFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {
