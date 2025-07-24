@@ -181,7 +181,6 @@ function AvatarWithDisplayName({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {formatPhoneNumber} = useLocalize();
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});

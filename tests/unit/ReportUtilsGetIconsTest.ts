@@ -1,6 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {
     getIcons,
@@ -25,11 +24,11 @@ import {
     isWorkspaceThread,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {formatPhoneNumber} from '@src/libs/LocalePhoneNumber';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 
 const FAKE_PERSONAL_DETAILS = LHNTestUtils.fakePersonalDetails;
 /* eslint-disable @typescript-eslint/naming-convention */
