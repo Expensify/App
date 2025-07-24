@@ -36,7 +36,6 @@ const PADDING_MODAL = 8;
 
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: DropdownButtonProps) {
@@ -102,14 +101,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         return {width: CONST.POPOVER_DROPDOWN_WIDTH};
     }, [isSmallScreenWidth, styles]);
 
-    const popoverContent = useMemo(() => {
-        if (!isOverlayVisible) {
-            return null;
-        }
-        return PopoverComponent({closeOverlay: toggleOverlay});
-        // PopoverComponent is stable so we don't need it here as a dep.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isOverlayVisible, toggleOverlay]);
 
     return (
         <>
@@ -152,7 +143,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 }}
                 shouldSkipRemeasurement
             >
-                {popoverContent}
+                <PopoverComponent closeOverlay={toggleOverlay} />
             </PopoverWithMeasuredContent>
         </>
     );
