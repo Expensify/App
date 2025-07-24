@@ -135,13 +135,12 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function useKeyboardAnimation(isModalVisible?: boolean, isComposerFullSize?: boolean) {
+function useKeyboardAnimation(isModalVisible?: boolean) {
     const progress = useSharedValue(0);
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
     const scrollY = useSharedValue(0);
     const keyboardAbsoluteHeight = useSharedValue(0);
-    const willCloseComposer = useSharedValue(false);
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -153,41 +152,26 @@ function useKeyboardAnimation(isModalVisible?: boolean, isComposerFullSize?: boo
             progress.set(e.progress);
             height.set(e.height);
 
-            const willKeyboardClose = e.progress === 0;
             const willKeyboardOpen = e.progress === 1;
 
-            if (isModalVisible && willKeyboardClose) {
-                // Since the keyboard will close immediately when the modal opens, this is to preserve the current scroll position
+            if (willKeyboardOpen) {
+                if (e.height > 0) {
+                    keyboardAbsoluteHeight.set(e.height);
+                }
+
+                // Do nothing when the keyboard opens again after the modal closes, since the current position is preserved
+                if (isModalVisible) {
+                    return;
+                }
+            }
+
+            if (isModalVisible) {
+                // Since the keyboard will close immediately when a modal opens, this is to preserve the current scroll position before it closes
                 offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
                 return;
             }
 
-            if (isModalVisible && willKeyboardOpen) {
-                // Do nothing when the keyboard opens again after the modal closes, since the current position is preserved
-                return;
-            }
-
-            if (willKeyboardOpen) {
-                if (keyboardAbsoluteHeight.get() === 0) {
-                    keyboardAbsoluteHeight.set(e.height);
-                }
-
-                // Same logic of preserving position as the isModalVisible if above
-                if (isComposerFullSize) {
-                    willCloseComposer.set(true);
-                    return offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
-                }
-
-                if (willCloseComposer.get()) {
-                    willCloseComposer.set(false);
-                    return;
-                }
-
-                return offset.set(scrollYValueAtStart);
-            }
-
-            // When we close the keyboard we need to maintain the position that we had when the keyboard was open
-            // The position is: currentScroll + keyboardHeight (as we add keyboard height to the scrollOfffset)
+            // Preserve the current scroll position the the keyboard starts its movement
             offset.set(scrollYValueAtStart + prevHeight);
         },
         onInteractive: (e) => {
@@ -254,7 +238,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation(modal?.isPopover);
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
