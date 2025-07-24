@@ -7067,7 +7067,7 @@ function completeSplitBill(
     sessionAccountID: number,
     sessionEmail?: string,
 ) {
-    const parsedComment = getParsedComment(updatedTransaction?.comment?.comment ?? '');
+    const parsedComment = getParsedComment(Parser.htmlToMarkdown(updatedTransaction?.comment?.comment ?? ''));
     if (updatedTransaction?.comment) {
         // eslint-disable-next-line no-param-reassign
         updatedTransaction.comment.comment = parsedComment;
