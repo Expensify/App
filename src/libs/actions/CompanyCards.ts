@@ -91,8 +91,7 @@ function addNewCompanyCardsFeed(
                 settings: {
                     companyCards: {
                         [feedType]: {
-                            statementPeriodEnd: statementPeriodEnd ?? null,
-                            statementPeriodEndDay: statementPeriodEndDay ?? null,
+                            statementPeriodEndDay: statementPeriodEndDay ?? statementPeriodEnd ?? null,
                             errors: null,
                         },
                     },
@@ -829,9 +828,8 @@ function setFeedStatementPeriodEndDay(
     bankName: string,
     domainAccountID: number,
     newStatementPeriodEnd: StatementPeriodEnd | undefined,
-    oldStatementPeriodEnd: StatementPeriodEnd | undefined,
     newStatementPeriodEndDay: StatementPeriodEndDay | undefined,
-    oldStatementPeriodEndDay: StatementPeriodEndDay | undefined,
+    oldStatementPeriodEndDay: StatementPeriodEnd | StatementPeriodEndDay | undefined,
 ) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -843,14 +841,11 @@ function setFeedStatementPeriodEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
-                            statementPeriodEnd: newStatementPeriodEnd ?? null,
-                            statementPeriodEndDay: newStatementPeriodEndDay ?? null,
+                            statementPeriodEndDay: newStatementPeriodEndDay ?? newStatementPeriodEnd ?? null,
                             pendingFields: {
-                                statementPeriodEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 statementPeriodEndDay: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                             errorFields: {
-                                statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
                             },
                         },
@@ -869,7 +864,6 @@ function setFeedStatementPeriodEndDay(
                     companyCards: {
                         [bankName]: {
                             pendingFields: {
-                                statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
                             },
                         },
@@ -887,14 +881,11 @@ function setFeedStatementPeriodEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
-                            statementPeriodEnd: oldStatementPeriodEnd ?? null,
                             statementPeriodEndDay: oldStatementPeriodEndDay ?? null,
                             pendingFields: {
-                                statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
                             },
                             errorFields: {
-                                statementPeriodEnd: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                 statementPeriodEndDay: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
