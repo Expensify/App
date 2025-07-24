@@ -30,6 +30,7 @@ import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
@@ -1845,7 +1846,12 @@ describe('actions/Report', () => {
             };
             const policyID = '1';
             Report.buildOptimisticChangePolicyData(report, policyID);
-            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(buildNextStep).toHaveBeenCalledWith(
+                {...report, policyID},
+                CONST.REPORT.STATUS_NUM.SUBMITTED,
+                formatPhoneNumber,
+            );
+            
         });
     });
 
