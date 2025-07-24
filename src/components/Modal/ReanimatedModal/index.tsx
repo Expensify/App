@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 import {BackHandler, Dimensions, InteractionManager, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -41,6 +42,8 @@ function ReanimatedModal({
     onSwipeComplete,
     swipeDirection,
     swipeThreshold,
+    shouldPreventScrollOnFocus,
+    initialFocus,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -213,7 +216,13 @@ function ReanimatedModal({
                         {isVisibleState && containerView}
                     </KeyboardAvoidingView>
                 ) : (
-                    isVisibleState && containerView
+                    <FocusTrapForModal
+                        active={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
+                        initialFocus={initialFocus}
+                        shouldPreventScroll={shouldPreventScrollOnFocus}
+                    >
+                        {isVisibleState && containerView}
+                    </FocusTrapForModal>
                 )}
             </Modal>
         </LayoutAnimationConfig>

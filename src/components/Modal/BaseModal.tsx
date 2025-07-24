@@ -29,12 +29,15 @@ import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
 import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
+import type {FocusTrapOptions} from './types';
 
 const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
     shouldUseReanimatedModal?: boolean;
+    shouldPreventScrollOnFocus?: boolean;
+    initialFocus?: FocusTrapOptions['initialFocus'];
 };
 
 function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
@@ -334,6 +337,8 @@ function BaseModal(
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
+                        shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
+                        initialFocus={initialFocus}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
@@ -363,18 +368,27 @@ function BaseModal(
                             onModalWillShow={saveFocusState}
                             onDismiss={handleDismissModal}
                         >
-                            <FocusTrapForModal
-                                active={isVisible}
-                                initialFocus={initialFocus}
-                                shouldPreventScroll={shouldPreventScrollOnFocus}
-                            >
+                            {type && !REANIMATED_MODAL_TYPES.includes(type) && !shouldUseReanimatedModal ? (
+                                <FocusTrapForModal
+                                    active={isVisible}
+                                    initialFocus={initialFocus}
+                                    shouldPreventScroll={shouldPreventScrollOnFocus}
+                                >
+                                    <Animated.View
+                                        style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
+                                        ref={ref}
+                                    >
+                                        <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                                    </Animated.View>
+                                </FocusTrapForModal>
+                            ) : (
                                 <Animated.View
                                     style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
                                     ref={ref}
                                 >
                                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                                 </Animated.View>
-                            </FocusTrapForModal>
+                            )}
                         </ModalContent>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ModalComponent>
