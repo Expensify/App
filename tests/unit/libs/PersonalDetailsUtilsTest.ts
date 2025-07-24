@@ -4,7 +4,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
-
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
     firstName?: string | null;
     lastName?: string | null;
@@ -150,7 +149,6 @@ describe('PersonalDetailsUtils', () => {
         expect(result).toBe('Fallback Name');
 
     });
-
 
     // Test Group 1: Scenarios where `passedPersonalDetails` is null or undefined
     describe('when passedPersonalDetails is null or undefined', () => {
