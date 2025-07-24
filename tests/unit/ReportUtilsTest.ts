@@ -22,6 +22,7 @@ import {
     canAddTransaction,
     canDeleteReportAction,
     canDeleteTransaction,
+    canEditFieldOfMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
@@ -29,6 +30,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
     getApprovalChain,
@@ -293,6 +295,71 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('canEditFieldOfMoneyRequest', () => {
+        const reportActionID = 2;
+        const IOUReportID = '1234';
+        const IOUTransactionID = '123';
+        const randomReportAction = createRandomReportAction(reportActionID);
+        const policyID = '2424';
+        const amount = 39;
+
+        const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
+
+        // Given that there is at least one outstanding expense report in a policy
+        const outstandingExpenseReport = {
+            ...createExpenseReport(483),
+            policyID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            ownerAccountID: currentUserAccountID,
+        };
+
+        // When a user creates an invoice in the same policy
+
+        const reportAction = {
+            ...randomReportAction,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            originalMessage: {
+                // eslint-disable-next-line deprecation/deprecation
+                ...randomReportAction.originalMessage,
+                IOUReportID,
+                IOUTransactionID,
+                type: CONST.IOU.ACTION.CREATE,
+                amount,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+
+        const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount};
+
+        const invoiceReport = {
+            ...createInvoiceReport(Number(IOUReportID)),
+            policyID,
+            ownerAccountID: currentUserAccountID,
+            state: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: 8723,
+        };
+
+        beforeAll(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, invoiceReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${483}`, outstandingExpenseReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1);
+            return waitForBatchedUpdates();
+        });
+
+        // Then the user should be able to move the invoice to the outstanding expense report
+        it('should return true for invoice report action given that there is a minimum of one outstanding report', () => {
+            const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            expect(canEditReportField).toBe(true);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -1054,6 +1121,25 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
+
+            it('the current user is an invited user of the expense report', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+            it('the current user is an invited user of the iou report', () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 20,
+                    managerID: 21,
+                };
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20, 21]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
         });
 
         describe('return only iou split option if', () => {
@@ -1140,7 +1226,7 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         parentReportID: '102',
                         type: CONST.REPORT.TYPE.EXPENSE,
-                        managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -1162,7 +1248,7 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         parentReportID: '103',
-                        managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
@@ -1293,6 +1379,7 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         parentReportID: '101',
                         policyID: paidPolicy.id,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -3753,6 +3840,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(10000),
                 type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -3765,11 +3853,27 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
+        it('should return false for an expense report the current user is not the submitter', async () => {
+            // Given an expense report the current user is not the submitter
+            const report: Report = {
+                ...createRandomReport(10000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID + 1,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const result = canAddTransaction(report, false);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
                 ...createRandomReport(10001),
                 type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
@@ -3958,6 +4062,27 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isDeprecatedGroupDM(report)).toBeTruthy();
+        });
+    });
+
+    describe('canUserPerformWriteAction', () => {
+        it('should return false for announce room when the role of the employee is auditor ', async () => {
+            // Given a policy announce room of a policy that the user has an auditor role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.AUDITOR};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
     });
 

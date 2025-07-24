@@ -170,9 +170,9 @@
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
 
-### [react-native+0.79.2+024+restore-old-line-height-algorithm.patch](react-native+0.79.2+024+restore-old-line-height-algorithm.patch)
+### [react-native+0.79.2+024+fix-display-contents-not-updating-nodes.patch](react-native+0.79.2+024+fix-display-contents-not-updating-nodes.patch)
 
-- Reason: This patch fixes line height calculation issues in Android text rendering by replacing the web-based CSS implementation with a priority-based approach that properly handles cases where font metrics exceed the specified line height, ensuring better text display consistency and preventing text clipping
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: https://github.com/Expensify/App/pull/60421
+- Reason: This patch updates Yoga to correctly update the subtrees of `display: contents` nodes so that they are in sync with their React Native counterparts.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/52530
+- E/App issue: https://github.com/Expensify/App/issues/65268
+- PR introducing patch: [#65925](https://github.com/Expensify/App/pull/65925)

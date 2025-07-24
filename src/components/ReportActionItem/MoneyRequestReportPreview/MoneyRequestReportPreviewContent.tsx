@@ -596,7 +596,10 @@ function MoneyRequestReportPreviewContent({
     }, [carouselTransactions.length]);
 
     return (
-        <View onLayout={onWrapperLayout}>
+        <View
+            onLayout={onWrapperLayout}
+            testID="MoneyRequestReportPreviewContent-wrapper"
+        >
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}
                 shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
