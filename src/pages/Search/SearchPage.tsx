@@ -22,7 +22,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,9 +81,6 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
     const {q} = route.params;
-
-    const {isBetaEnabled} = usePermissions();
-
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -111,42 +107,50 @@ function SearchPage({route}: SearchPageProps) {
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
-            return [];
+            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Download,
-            text: translate('common.download'),
+            icon: Expensicons.Export,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
             shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
+            subMenuItems: [
+                {
+                    text: translate('common.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
 
-                if (isExportMode) {
-                    setIsDownloadExportModalVisible(true);
-                    return;
-                }
+                        if (isExportMode) {
+                            setIsDownloadExportModalVisible(true);
+                            return;
+                        }
 
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
+                        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        exportSearchItemsToCSV(
+                            {
+                                query: status,
+                                jsonQuery: JSON.stringify(queryJSON),
+                                reportIDList,
+                                transactionIDList: selectedTransactionsKeys,
+                            },
+                            () => {
+                                setIsDownloadErrorModalVisible(true);
+                            },
+                        );
+                        clearSelectedTransactions(undefined, true);
                     },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
-                clearSelectedTransactions();
-            },
+                    shouldCloseModalOnSelect: true,
+                },
+            ],
         };
 
         if (isExportMode) {
@@ -446,7 +450,7 @@ function SearchPage({route}: SearchPageProps) {
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     const createExportAll = useCallback(() => {
@@ -500,7 +504,7 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                <DragAndDropProvider>
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
@@ -514,13 +518,13 @@ function SearchPage({route}: SearchPageProps) {
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
                 </DragAndDropProvider>
-                {isMobileSelectionModeEnabled && (
+                {!!isMobileSelectionModeEnabled && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
@@ -577,7 +581,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                            <DragAndDropProvider>
                                 {PDFValidationComponent}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
@@ -603,7 +607,7 @@ function SearchPage({route}: SearchPageProps) {
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>

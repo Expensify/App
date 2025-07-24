@@ -137,6 +137,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type WorkspacesListRouteParams = {
+    workspacesListRoute: string;
+};
+
 type WorkspaceRouteParams = {
     workspaceRoute: string;
 };
@@ -789,6 +793,11 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type SettlementAccountInfoParams = {
+    reconciliationAccountSettingsLink: string;
+    accountNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1063,6 +1072,8 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    SettlementAccountInfoParams,
 };

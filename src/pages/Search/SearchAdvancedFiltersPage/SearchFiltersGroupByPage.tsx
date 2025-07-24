@@ -29,7 +29,7 @@ function SearchFiltersGroupByPage() {
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [selectedItem, translate]);
+    }, [selectedItem]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);

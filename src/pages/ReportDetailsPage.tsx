@@ -93,6 +93,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isDemoTransaction} from '@libs/TransactionUtils';
 import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
 import {
     clearAvatarErrors,
@@ -245,7 +246,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     });
 
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
-
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -281,7 +281,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+
     useEffect(() => {
         if (canDeleteRequest) {
             return;
@@ -699,7 +700,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                     furtherDetailsNumberOfLines={isPolicyExpenseChat ? 0 : undefined}
-                    furtherDetailsStyle={isPolicyExpenseChat ? styles.textAlignCenter : undefined}
+                    furtherDetailsStyle={isPolicyExpenseChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord

@@ -21,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
+import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -32,6 +32,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
@@ -204,6 +205,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         },
         [quickActionReport?.policyID],
     );
+
+    const startScan = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                setModalVisible(true);
+                return;
+            }
+
+            // Start the scan flow directly
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false);
+        });
+    }, [shouldRedirectToExpensifyClassic]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -388,14 +401,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const openTravel = useCallback(() => {
         if (isTravelEnabled) {
-            openTravelDotLink(activePolicy?.id)
-                ?.then(() => {})
-                ?.catch(() => {
-                    Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
-                });
-        } else {
-            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+            openTravelDotLink(activePolicy?.id);
+            return;
         }
+        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
     }, [activePolicy, isTravelEnabled]);
 
     const menuItems = [
@@ -498,7 +507,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             {
                 icon: Expensicons.Suitcase,
                 text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
             },
         ],
@@ -515,7 +524,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   if (
                                       introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
                                       introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+                                      (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                                   ) {
                                       completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
                                       Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -592,6 +602,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isActive={isCreateMenuActive}
                 ref={fabRef}
                 onPress={toggleCreateMenu}
+                onLongPress={startScan}
             />
         </View>
     );
