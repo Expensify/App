@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import memoize from '@libs/memoize';
 import type {Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
@@ -29,6 +30,8 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Accountant} from '@src/types/onyx/IOU';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
 
 type MoneyRequestAccountantSelectorProps = {
     /** Callback to request parent modal to go to next step */
@@ -66,7 +69,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             getEmptyOptions();
         }
 
-        const optionList = getValidOptions(
+        const optionList = memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
