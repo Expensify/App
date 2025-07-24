@@ -1472,7 +1472,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  * @param onyxData - An object to store optimistic and failure updates.
  * @param transactionID - The ID of the transaction being deleted or updated.
  * @param transactions - A collection of all transactions and their duplicates.
- * @param transactionViolations - The collection of the transaction violations incuding the duplicates violations.
+ * @param transactionViolations - The collection of the transaction violations including the duplicates violations.
  *
  */
 function updateDuplicatesTransactionsViolations(

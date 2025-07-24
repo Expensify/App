@@ -6,7 +6,6 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -17,7 +16,6 @@ import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -281,9 +279,18 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         setIsPopoverVisible(false);
     };
 
-    const originalMessage = getOriginalMessage(reportActionRef.current);
-    const IOUTransactionID = originalMessage && 'IOUTransactionID' in originalMessage ? originalMessage.IOUTransactionID : undefined;
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(IOUTransactionID ? [IOUTransactionID] : []);
+    const [transactionIDs, setTransactionIDs] = useState<string[]>([]);
+
+    useEffect(() => {
+        const originalMessage = getOriginalMessage(reportActionRef.current);
+        if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
+            setTransactionIDs([originalMessage.IOUTransactionID]);
+            return;
+        }
+        setTransactionIDs([]);
+    }, [reportActionRef.current]);
+
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);

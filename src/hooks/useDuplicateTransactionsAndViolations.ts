@@ -1,8 +1,8 @@
-import ONYXKEYS from "@src/ONYXKEYS";
-import { OnyxCollection, useOnyx } from "react-native-onyx";
-import type { Transaction, TransactionViolations } from "@src/types/onyx";
-import CONST from "@src/CONST";
-import { useMemo } from "react";
+import {useMemo} from 'react';
+import {OnyxCollection, useOnyx} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
 
 /**
  * Selects violations related to provided transaction IDs and if present, the violations of their duplicates.
@@ -11,10 +11,7 @@ import { useMemo } from "react";
  * @returns {OnyxCollection<TransactionViolations>} - A collection of violations related to the transaction IDs and if present, the violations of their duplicates.
  * @private
  */
-function selectViolationsWithDuplicates(
-    transactionIDs: string[],
-    allViolations: OnyxCollection<TransactionViolations>
-): OnyxCollection<TransactionViolations> {
+function selectViolationsWithDuplicates(transactionIDs: string[], allViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> {
     if (!allViolations) {
         return {};
     }
@@ -32,9 +29,9 @@ function selectViolationsWithDuplicates(
         result[key] = violations;
 
         violations
-            .filter(violations => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap(violations => violations?.data?.duplicates ?? [])
-            .forEach(duplicateID => {
+            .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            .flatMap((violations) => violations?.data?.duplicates ?? [])
+            .forEach((duplicateID) => {
                 if (!duplicateID) {
                     return;
                 }
@@ -59,19 +56,15 @@ function selectViolationsWithDuplicates(
  * @property {OnyxCollection<TransactionViolations>} duplicateTransactionViolations - Collection of violations related to duplicate transactions.
  */
 function useDuplicateTransactionsAndViolations(transactionIDs: string[]) {
-    
     const violationsSelectorMemo = useMemo(() => {
         return (allViolations: OnyxCollection<TransactionViolations>) => selectViolationsWithDuplicates(transactionIDs, allViolations);
     }, [transactionIDs.join(',')]);
 
-    const [duplicateTransactionViolations] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        {
-            canBeMissing: true,
-            selector: violationsSelectorMemo,
-        }
-    );
-    
+    const [duplicateTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        canBeMissing: true,
+        selector: violationsSelectorMemo,
+    });
+
     const transactionSelector = useMemo(() => {
         return (allTransactions: OnyxCollection<Transaction>) => {
             if (!allTransactions) {
@@ -88,15 +81,15 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]) {
                 const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
                 const violations = duplicateTransactionViolations?.[violationsKey];
 
-                if (!violations){
+                if (!violations) {
                     continue;
                 }
 
                 violations
-                    .filter(violations => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-                    .flatMap(violations => violations?.data?.duplicates ?? [])
-                    .forEach(duplicateID => {
-                        if (!duplicateID){
+                    .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                    .flatMap((violations) => violations?.data?.duplicates ?? [])
+                    .forEach((duplicateID) => {
+                        if (!duplicateID) {
                             return;
                         }
 
@@ -112,19 +105,18 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]) {
         };
     }, [transactionIDs.join(','), duplicateTransactionViolations]);
 
-    const [duplicateTransactions] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            canBeMissing: true,
-            selector: transactionSelector,
-        }
+    const [duplicateTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: true,
+        selector: transactionSelector,
+    });
+
+    return useMemo(
+        () => ({
+            duplicateTransactions,
+            duplicateTransactionViolations,
+        }),
+        [duplicateTransactions, duplicateTransactionViolations],
     );
-
-    return useMemo(() => ({
-        duplicateTransactions,
-        duplicateTransactionViolations,
-    }), [duplicateTransactions, duplicateTransactionViolations]);
-
 }
 
 export default useDuplicateTransactionsAndViolations;
