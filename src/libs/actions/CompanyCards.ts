@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type AddNewCompanyCardFlowData = {
@@ -64,7 +64,8 @@ function addNewCompanyCardsFeed(
     cardFeed: CompanyCardFeed,
     feedDetails: CardFeedDetails,
     cardFeeds: OnyxEntry<CardFeeds>,
-    statementPeriodEndDay: CompanyCardStatementCloseDate | undefined,
+    statementPeriodEnd: StatementPeriodEnd | undefined,
+    statementPeriodEndDay: StatementPeriodEndDay | undefined,
     lastSelectedFeed?: CompanyCardFeed,
 ) {
     const authToken = NetworkStore.getAuthToken();
@@ -90,6 +91,7 @@ function addNewCompanyCardsFeed(
                 settings: {
                     companyCards: {
                         [feedType]: {
+                            statementPeriodEnd,
                             statementPeriodEndDay,
                             errors: null,
                         },
@@ -143,6 +145,7 @@ function addNewCompanyCardsFeed(
         feedDetails: Object.entries(feedDetails)
             .map(([key, value]) => `${key}: ${value}`)
             .join(', '),
+        statementPeriodEnd,
         statementPeriodEndDay,
     };
 
@@ -825,8 +828,10 @@ function setFeedStatementPeriodEndDay(
     policyID: string,
     bankName: string,
     domainAccountID: number,
-    newStatementPeriodEndDay: CompanyCardStatementCloseDate,
-    oldStatementPeriodEndDay: CompanyCardStatementCloseDate | null,
+    newStatementPeriodEnd: StatementPeriodEnd,
+    oldStatementPeriodEnd: StatementPeriodEnd | null,
+    newStatementPeriodEndDay: StatementPeriodEndDay,
+    oldStatementPeriodEndDay: StatementPeriodEndDay | null,
 ) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -838,11 +843,14 @@ function setFeedStatementPeriodEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
+                            statementPeriodEnd: newStatementPeriodEnd,
                             statementPeriodEndDay: newStatementPeriodEndDay,
                             pendingFields: {
+                                statementPeriodEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 statementPeriodEndDay: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                             errorFields: {
+                                statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
                             },
                         },
@@ -861,6 +869,7 @@ function setFeedStatementPeriodEndDay(
                     companyCards: {
                         [bankName]: {
                             pendingFields: {
+                                statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
                             },
                         },
@@ -878,11 +887,14 @@ function setFeedStatementPeriodEndDay(
                 settings: {
                     companyCards: {
                         [bankName]: {
+                            statementPeriodEnd: oldStatementPeriodEnd,
                             statementPeriodEndDay: oldStatementPeriodEndDay,
                             pendingFields: {
+                                statementPeriodEnd: null,
                                 statementPeriodEndDay: null,
                             },
                             errorFields: {
+                                statementPeriodEnd: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                 statementPeriodEndDay: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
@@ -897,6 +909,7 @@ function setFeedStatementPeriodEndDay(
         policyID,
         bankName,
         domainAccountID,
+        statementPeriodEnd: newStatementPeriodEnd,
         statementPeriodEndDay: newStatementPeriodEndDay,
     };
 
