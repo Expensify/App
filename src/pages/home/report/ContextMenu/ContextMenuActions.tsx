@@ -509,7 +509,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
-                    // formatPhoneNumber is always defined, but we make it optional in the type defination
+                    // formatPhoneNumber is always defined, but we make it optional in the type definition
                     // This is because we only want to pass it to onPress when we have `getForReportAction` function
                     if (formatPhoneNumber) {
                         const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction, formatPhoneNumber});
