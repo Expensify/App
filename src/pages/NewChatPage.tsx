@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {
@@ -50,6 +51,8 @@ type SelectedOption = ListItem &
         reportID?: string;
     };
 
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 1, monitoringName: 'NewChatPage.getValidOptions'});
+
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
@@ -62,7 +65,7 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = getValidOptions(
+        const filteredOptions = memoizedGetValidOptions(
             {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],
