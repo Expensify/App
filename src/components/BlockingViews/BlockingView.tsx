@@ -139,12 +139,12 @@ function BlockingView({
                             onPress={onLinkPress}
                             style={[styles.link, styles.mt2, !!subtitleKeyBelowLink && styles.textAlignCenter]}
                         >
-                            {` ${translate(linkKey)}`}
+                            {` ${translate(linkKey)}\n\n`}
                         </TextLink>
                     </Text>
                     {!!subtitleKeyBelowLink && (
                         <AutoEmailLink
-                            style={[styles.textAlignCenter, subtitleStyle, styles.mt2]}
+                            style={[styles.textAlignCenter, subtitleStyle]}
                             text={translate(subtitleKeyBelowLink)}
                         />
                     )}
