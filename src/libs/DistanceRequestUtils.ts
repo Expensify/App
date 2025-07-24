@@ -246,7 +246,7 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
- * Let's make sure this logic is in sync with the logic in Auth since we're using the same logic to compute the rate for distance expenses created via Concierge.
+ * Let's ensure this logic is consistent with the logic in Auth, since we're using the same method to calculate distance expenses created via Concierge.
  *
  * @param currency
  * @returns The rate and unit in MileageRate object.
@@ -354,7 +354,7 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
  *
- * Let's make sure this logic is in sync with the logic in Auth since we're using the same logic to compute the rate for distance expenses created via Concierge.
+ * Let's ensure this logic is consistent with the logic in Auth, since we're using the same method to calculate distance expenses created via Concierge.
  */
 function getRate({
     transaction,
