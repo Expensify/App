@@ -2809,7 +2809,7 @@ function getDisplayNameForParticipant({
     // Check if the phone number is already cached
     let formattedLogin = phoneNumberCache[login];
     if (!formattedLogin) {
-        formattedLogin = formatPhoneNumberPhoneUtils(login);
+        formattedLogin = formatPhoneNumber(login);
         // Store the formatted phone number in the cache
         phoneNumberCache[login] = formattedLogin;
     }
@@ -4827,7 +4827,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     const personalDetails = getPersonalDetailsByIDs({accountIDs: originalMessage?.targetAccountIDs ?? [], currentUserAccountID: 0});
 
     const participants = personalDetails.map((personalDetail) => {
-        const name = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
+        const name = getEffectiveDisplayName(formatPhoneNumberPhoneUtils, personalDetail);
         if (name && name?.length > 0) {
             return name;
         }

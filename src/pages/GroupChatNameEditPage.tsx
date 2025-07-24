@@ -39,7 +39,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
 
     const existingReportName = useMemo(
         () => (report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants)),
-        [groupChatDraft?.participants, report],
+        [groupChatDraft?.participants, report, formatPhoneNumber],
     );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;

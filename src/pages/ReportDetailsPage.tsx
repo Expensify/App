@@ -557,7 +557,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants);
     }, [participants, personalDetails]);
 
-    const icons = useMemo(() => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy), [report, personalDetails, policy]);
+    const icons = useMemo(() => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy), [report, personalDetails, policy, formatPhoneNumber]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
         <DisplayNames

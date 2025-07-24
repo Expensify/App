@@ -200,7 +200,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         });
         inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate]);
+    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();

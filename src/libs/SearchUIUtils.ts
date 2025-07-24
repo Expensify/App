@@ -53,6 +53,7 @@ import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import localeCompare from './LocaleCompare';
+import {formatPhoneNumber as formatPhoneNumberUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -1150,7 +1151,16 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    reportName: getSearchReportName({formatPhoneNumber, report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
+                    reportName: getSearchReportName({
+                        formatPhoneNumber: formatPhoneNumberUtils,
+                        report,
+                        policy,
+                        personalDetails: data.personalDetailsList,
+                        transactions,
+                        invoiceReceiverPolicy,
+                        reports,
+                        policies,
+                    }),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

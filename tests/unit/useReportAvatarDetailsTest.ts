@@ -3,9 +3,7 @@ import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import CONST from '@src/CONST';
-import {formatPhoneNumber} from '@src/libs/LocalePhoneNumber';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -14,6 +12,7 @@ import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 import PropertyKeysOf = jest.PropertyKeysOf;
@@ -85,7 +84,6 @@ describe('useReportAvatarDetails', () => {
                     action: actionR14932,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
-                    formatPhoneNumber,
                     ...policiesMock,
                 }),
             {wrapper: OnyxListItemProvider},
@@ -104,7 +102,6 @@ describe('useReportAvatarDetails', () => {
                     action: {...validAction, childMoneyRequestCount: 0},
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
-                    formatPhoneNumber,
                     ...policiesMock,
                 }),
             {wrapper: OnyxListItemProvider},
@@ -135,7 +132,6 @@ describe('useReportAvatarDetails', () => {
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
-                    formatPhoneNumber,
                     ...policiesMock,
                 }),
             {wrapper: OnyxListItemProvider},
@@ -162,7 +158,6 @@ describe('useReportAvatarDetails', () => {
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
-                    formatPhoneNumber,
                     ...policiesMock,
                 }),
             {wrapper: OnyxListItemProvider},
@@ -181,7 +176,6 @@ describe('useReportAvatarDetails', () => {
                     action: validAction,
                     iouReport: iouReportR14932,
                     report: mockedDMChatRoom,
-                    formatPhoneNumber,
                     ...policiesMock,
                 }),
             {wrapper: OnyxListItemProvider},
