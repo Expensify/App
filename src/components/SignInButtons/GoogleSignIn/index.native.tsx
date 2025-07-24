@@ -1,9 +1,8 @@
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
-import {setNewDotSignInState} from '@libs/actions/HybridApp';
 import Log from '@libs/Log';
-import {beginGoogleSignIn} from '@userActions/Session';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {GoogleSignInProps} from '.';
@@ -14,8 +13,8 @@ import type GoogleError from './types';
  */
 function googleSignInRequest() {
     GoogleSignin.configure({
-        webClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_WEB_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-        iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
+        webClientId: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
+        iosClientId: CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
         offlineAccess: false,
     });
 
@@ -26,10 +25,7 @@ function googleSignInRequest() {
 
     GoogleSignin.signIn()
         .then((response) => response.idToken)
-        .then((token) => {
-            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
-            beginGoogleSignIn(token);
-        })
+        .then((token) => Session.beginGoogleSignIn(token))
         .catch((error: GoogleError | undefined) => {
             // Handle unexpected error shape
             if (error?.code === undefined) {

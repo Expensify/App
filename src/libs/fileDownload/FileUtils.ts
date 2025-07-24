@@ -331,15 +331,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
     if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         return Promise.resolve(file);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) =>
-        getImageManipulator({
-            fileUri: file.uri ?? '',
-            width,
-            height,
-            fileName: file.name ?? '',
-            type: file.type,
-        }),
-    );
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
 
 const createFile = (file: File): FileObject => {
@@ -393,9 +385,54 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
+const isHeicOrHeifImage = (file: FileObject) => {
+    return (
+        file?.type?.startsWith('image') &&
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
+    );
+};
+
+/**
+ * Normalizes a file-like object specifically for Android clipboard image pasting,
+ * where limited file metadata is available (e.g., only a URI).
+ * If the object is already a File or contains a size, it is returned as-is.
+ * Otherwise, it attempts to fetch the file via its URI and reconstruct a File
+ * with full metadata (name, size, type).
+ */
+const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
+    if (file instanceof File || file instanceof Blob) {
+        return Promise.resolve(file);
+    }
+
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+    const isNativePlatform = isAndroidNative || isIOSNative;
+
+    if (!isNativePlatform || 'size' in file) {
+        return Promise.resolve(file);
+    }
+
+    if (typeof file.uri !== 'string') {
+        return Promise.resolve(file);
+    }
+
+    return fetch(file.uri)
+        .then((response) => response.blob())
+        .then((blob) => {
+            const name = file.name ?? 'unknown';
+            const type = file.type ?? blob.type ?? 'application/octet-stream';
+            const normalizedFile = new File([blob], name, {type});
+            return normalizedFile;
+        })
+        .catch((error) => {
+            return Promise.reject(error);
+        });
+};
+
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > maxFileSize) {
+    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -418,6 +455,7 @@ type TranslationAdditionalData = {
 const getFileValidationErrorText = (
     validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
     additionalData: TranslationAdditionalData = {},
+    isValidatingReceipt = false,
 ): {
     title: string;
     reason: string;
@@ -428,6 +466,7 @@ const getFileValidationErrorText = (
             reason: '',
         };
     }
+    const maxSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
@@ -442,13 +481,17 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translateLocal('attachmentPicker.attachmentTooLarge'),
-                reason: translateLocal('attachmentPicker.sizeExceeded'),
+                reason: isValidatingReceipt
+                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
+                      })
+                    : translateLocal('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
-                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
@@ -484,6 +527,16 @@ const getFileValidationErrorText = (
     }
 };
 
+const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
+    if (!attachmentInvalidReason) {
+        return '';
+    }
+    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+    }
+    return translateLocal(attachmentInvalidReason);
+};
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -507,6 +560,9 @@ export {
     createFile,
     validateReceipt,
     validateAttachment,
+    normalizeFileObject,
     isValidReceiptExtension,
     getFileValidationErrorText,
+    isHeicOrHeifImage,
+    getConfirmModalPrompt,
 };

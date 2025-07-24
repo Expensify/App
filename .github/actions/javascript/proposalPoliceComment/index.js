@@ -11543,17 +11543,42 @@ function wrappy (fn, cb) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __nccwpck_require__(42186);
+const core = __importStar(__nccwpck_require__(42186));
 const github_1 = __nccwpck_require__(95438);
 const date_fns_1 = __nccwpck_require__(25468);
 const date_fns_tz_1 = __nccwpck_require__(99297);
+const ActionUtils_1 = __nccwpck_require__(96981);
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
-const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
+const proposalPolice_1 = __importDefault(__nccwpck_require__(67282));
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(23956));
 function isCommentCreatedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.CREATED;
@@ -11572,8 +11597,9 @@ async function run() {
         throw new Error('ProposalPolice™ only supports the issue_comment webhook event');
     }
     const payload = github_1.context.payload;
-    // check if the issue is open and the has labels
-    if (payload.issue?.state !== 'open' && !payload.issue?.labels.some((issueLabel) => issueLabel.name === CONST_1.default.LABELS.HELP_WANTED)) {
+    // Return early unless issue is open AND has the "Help Wanted" label
+    if (payload.issue?.state !== CONST_1.default.STATE.OPEN || !payload.issue?.labels.some((issueLabel) => issueLabel.name === CONST_1.default.LABELS.HELP_WANTED)) {
+        console.log('Issue is not open or does not have the "Help Wanted" label, skipping checks.');
         return;
     }
     // Verify that the comment is not empty and contains the case sensitive `Proposal` keyword
@@ -11596,18 +11622,84 @@ async function run() {
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
     const assistantID = (0, core_1.getInput)('PROPOSAL_POLICE_ASSISTANT_ID', { required: true });
     const openAI = new OpenAIUtils_1.default(apiKey);
+    /* eslint-disable rulesdir/no-default-id-values */
+    const issueNumber = payload.issue?.number ?? -1;
+    /* eslint-disable rulesdir/no-default-id-values */
+    const commentID = payload.comment?.id ?? -1;
+    // DUPLICATE PROPOSAL DETECTION
+    if (isCommentCreatedEvent(payload)) {
+        console.log('Starting DUPLICATE PROPOSAL DETECTION Check');
+        const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
+        const newProposalBody = payload.comment.body;
+        const newProposalAuthor = payload.comment.user.login;
+        // Fetch all comments in the issue
+        console.log('Get comments for issue #', issueNumber);
+        const commentsResponse = await GithubUtils_1.default.getAllCommentDetails(issueNumber);
+        core.startGroup('Comments Response');
+        console.log('commentsResponse', commentsResponse);
+        core.endGroup();
+        let didFindDuplicate = false;
+        for (const previousProposal of commentsResponse) {
+            const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
+            const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
+            // Early continue if not a proposal or previous comment is newer than current one
+            if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
+                continue;
+            }
+            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
+            // Skip prompting if comment author is the GH bot
+            if (isAuthorBot) {
+                continue;
+            }
+            const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
+            const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
+            let similarityPercentage = 0;
+            const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
+            core.startGroup('Parsed Duplicate Check Response');
+            console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            core.endGroup();
+            if (parsedDuplicateCheckResponse) {
+                const { similarity = 0 } = parsedDuplicateCheckResponse ?? {};
+                similarityPercentage = (0, ActionUtils_1.convertToNumber)(similarity);
+                if (similarityPercentage >= 90) {
+                    console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
+                    didFindDuplicate = true;
+                    break;
+                }
+            }
+        }
+        if (didFindDuplicate) {
+            const duplicateCheckWithdrawMessage = proposalPolice_1.default.getDuplicateCheckWithdrawMessage();
+            const duplicateCheckNoticeMessage = proposalPolice_1.default.getDuplicateCheckNoticeMessage(newProposalAuthor);
+            // If a duplicate proposal is detected, update the comment to withdraw it
+            console.log('ProposalPolice™ withdrawing duplicated proposal...');
+            await GithubUtils_1.default.octokit.issues.updateComment({
+                ...github_1.context.repo,
+                /* eslint-disable @typescript-eslint/naming-convention */
+                comment_id: commentID,
+                body: duplicateCheckWithdrawMessage,
+            });
+            // Post a comment to notify the user about the withdrawn duplicated proposal
+            console.log('ProposalPolice™ notifying contributor of withdrawn proposal...');
+            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, duplicateCheckNoticeMessage);
+            console.log('DUPLICATE PROPOSAL DETECTION Check Completed, returning early.');
+            return;
+        }
+    }
     const prompt = isCommentCreatedEvent(payload)
-        ? `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`
-        : `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
+        ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
+        : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
+    const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
+    core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
-    // fallback to empty strings to avoid crashing in case parsing fails and we fallback to empty object
+    core.endGroup();
+    // fallback to empty strings to avoid crashing in case parsing fails
     const { action = '', message = '' } = parsedAssistantResponse ?? {};
     const isNoAction = action.trim() === CONST_1.default.NO_ACTION;
     const isActionEdit = action.trim() === CONST_1.default.ACTION_EDIT;
     const isActionRequired = action.trim() === CONST_1.default.ACTION_REQUIRED;
-    // If assistant response is NO_ACTION and there's no message, do nothing
+    // If assistant response is NO_ACTION and there's no message, return early
     if (isNoAction && !message) {
         console.log('Detected NO_ACTION for comment, returning early.');
         return;
@@ -11618,16 +11710,16 @@ async function run() {
             .replaceAll('{user}', `@${payload.comment?.user.login}`);
         // Create a comment with the assistant's response
         console.log('ProposalPolice™ commenting on issue...');
-        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, github_1.context.issue.number, formattedResponse);
+        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, formattedResponse);
         // edit comment if assistant detected substantial changes
     }
     else if (isActionEdit) {
         const formattedResponse = message.replace('{updated_timestamp}', formattedDate);
-        console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
+        console.log('ProposalPolice™ editing issue comment...', commentID);
         await GithubUtils_1.default.octokit.issues.updateComment({
             ...github_1.context.repo,
             /* eslint-disable @typescript-eslint/naming-convention */
-            comment_id: payload.comment.id,
+            comment_id: commentID,
             body: `${formattedResponse}\n\n${payload.comment?.body}`,
         });
     }
@@ -11642,6 +11734,85 @@ run().catch((error) => {
 
 /***/ }),
 
+/***/ 96981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertToNumber = exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(42186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+/**
+ * Converts a value to a number, returning 0 for non-numeric values.
+ */
+function convertToNumber(value) {
+    switch (typeof value) {
+        case 'number':
+            return value;
+        case 'string':
+            if (!Number.isNaN(Number(value))) {
+                return Number(value);
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
+exports.convertToNumber = convertToNumber;
+
+
+/***/ }),
+
 /***/ 29873:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -11650,8 +11821,8 @@ run().catch((error) => {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
-    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
 const CONST = {
@@ -11664,6 +11835,13 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+    },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -11683,6 +11861,7 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
@@ -11727,9 +11906,9 @@ const utils_1 = __nccwpck_require__(73030);
 const plugin_paginate_rest_1 = __nccwpck_require__(64193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(10537);
-const EmptyObject_1 = __nccwpck_require__(58227);
-const arrayDifference_1 = __importDefault(__nccwpck_require__(97034));
+const arrayDifference_1 = __importDefault(__nccwpck_require__(17532));
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
+const isEmptyObject_1 = __nccwpck_require__(86497);
 class GithubUtils {
     static internalOctokit;
     /**
@@ -11920,7 +12099,7 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
             return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
                 // The format of this map is following:
                 // {
@@ -11950,7 +12129,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
-                if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
+                if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
                     Object.keys(internalQAPRMap).forEach((URL) => {
@@ -12042,6 +12221,14 @@ class GithubUtils {
             issue_number: issueNumber,
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
+    }
+    static getAllCommentDetails(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data);
     }
     /**
      * Create comment on pull request
@@ -12151,6 +12338,24 @@ class GithubUtils {
             .then((response) => response.url);
     }
     /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path, ref = 'main') {
+        const { data } = await this.octokit.repos.getContent({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
@@ -12214,6 +12419,39 @@ exports["default"] = GithubUtils;
 
 /***/ }),
 
+/***/ 17532:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
+ * It returns an array of items that are in the first array but not in the second array.
+ */
+function arrayDifference(array1, array2) {
+    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
+}
+exports["default"] = arrayDifference;
+
+
+/***/ }),
+
+/***/ 86497:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = void 0;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
+}
+exports.isEmptyObject = isEmptyObject;
+
+
+/***/ }),
+
 /***/ 40136:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -12267,6 +12505,38 @@ exports["default"] = sanitizeJSONStringValues;
 
 /***/ }),
 
+/***/ 67282:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST_1 = __importDefault(__nccwpck_require__(29873));
+const PROPOSAL_POLICE_TEMPLATES = {
+    getPromptForNewProposalTemplateCheck: (commentBody) => {
+        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
+    },
+    getPromptForNewProposalDuplicateCheck: (newProposalBody, existingProposal) => {
+        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
+    },
+    getPromptForEditedProposal: (previousBody, editedBody) => {
+        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
+    },
+    getDuplicateCheckWithdrawMessage: () => {
+        return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
+    },
+    getDuplicateCheckNoticeMessage: (proposalAuthor) => {
+        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
+    },
+};
+exports["default"] = PROPOSAL_POLICE_TEMPLATES;
+
+
+/***/ }),
+
 /***/ 23956:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -12277,6 +12547,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const openai_1 = __importDefault(__nccwpck_require__(60047));
+const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
 const retryWithBackoff_1 = __importDefault(__nccwpck_require__(54583));
 class OpenAIUtils {
     /**
@@ -12287,6 +12558,18 @@ class OpenAIUtils {
      * The maximum amount of time to wait for a thread to produce a response.
      */
     static POLL_TIMEOUT = 90000;
+    /**
+     * The role of the `user` in the OpenAI model.
+     */
+    static USER = 'user';
+    /**
+     * The role of the `assistant` in the OpenAI model.
+     */
+    static ASSISTANT = 'assistant';
+    /**
+     * The status of a completed run in the OpenAI model.
+     */
+    static OPENAI_RUN_COMPLETED = 'completed';
     /**
      * The maximum number of requests to make when polling for thread completion.
      */
@@ -12321,29 +12604,35 @@ class OpenAIUtils {
      * Prompt a pre-defined assistant.
      */
     async promptAssistant(assistantID, userMessage) {
-        // start a thread run
-        let threadRun = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.createAndRun({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            assistant_id: assistantID,
-            thread: {
-                messages: [{ role: 'user', content: userMessage }],
-            },
+        // 1. Create a thread
+        const thread = await (0, retryWithBackoff_1.default)(() => 
+        // eslint-disable-next-line deprecation/deprecation
+        this.client.beta.threads.create({
+            messages: [{ role: OpenAIUtils.USER, content: userMessage }],
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        // poll for completion
+        // 2. Create a run on the thread
+        let run = await (0, retryWithBackoff_1.default)(() => 
+        // eslint-disable-next-line deprecation/deprecation
+        this.client.beta.threads.runs.create(thread.id, {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            assistant_id: assistantID,
+        }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
+        // 3. Poll for completion
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, { thread_id: threadRun.id });
-            if (threadRun.status !== 'completed') {
+            // eslint-disable-next-line @typescript-eslint/naming-convention, deprecation/deprecation
+            run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
+            if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
                 await new Promise((resolve) => {
                     setTimeout(resolve, OpenAIUtils.POLL_RATE);
                 });
                 continue;
             }
-            for await (const message of this.client.beta.threads.messages.list(threadRun.thread_id)) {
-                if (message.role !== 'assistant') {
+            // eslint-disable-next-line deprecation/deprecation
+            for await (const message of this.client.beta.threads.messages.list(thread.id)) {
+                if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;
                 }
                 response += message.content
@@ -12384,6 +12673,22 @@ class OpenAIUtils {
             );
         }
         return false;
+    }
+    parseAssistantResponse(response) {
+        const sanitized = (0, sanitizeJSONStringValues_1.default)(response);
+        let parsed;
+        try {
+            parsed = JSON.parse(sanitized);
+        }
+        catch (e) {
+            console.error('Failed to parse AI response as JSON:', response);
+            return null;
+        }
+        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
+            console.error('AI response missing required fields:', parsed);
+            return null;
+        }
+        return parsed;
     }
 }
 exports["default"] = OpenAIUtils;
@@ -12429,39 +12734,6 @@ async function retryWithBackoff(fn, { maxRetries = 5, initialDelayMs = 1000, fac
     throw lastError;
 }
 exports["default"] = retryWithBackoff;
-
-
-/***/ }),
-
-/***/ 58227:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
-exports.isEmptyObject = isEmptyObject;
-
-
-/***/ }),
-
-/***/ 97034:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-/**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
- */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-exports["default"] = arrayDifference;
 
 
 /***/ }),

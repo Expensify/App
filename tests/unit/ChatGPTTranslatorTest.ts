@@ -18,6 +18,10 @@ describe('ChatGPTTranslator.performTranslation', () => {
     const validTranslation = '[it] Hello ${name}!';
     const invalidTranslation = '[it] Hello name!'; // missing ${...}
 
+    const originalHTML = '<img src="photo.jpg" alt="A dog" class="photo">';
+    const validHTMLTranslation = '[it] <img src="photo.jpg" alt="Un chien" class="photo">';
+    const invalidHTMLTranslation = '[it] <img src="different.jpg" alt="Un chien" class="photo">'; // different src
+
     let translator: ChatGPTTranslator;
 
     beforeEach(() => {
@@ -49,5 +53,17 @@ describe('ChatGPTTranslator.performTranslation', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptChatCompletions).toHaveBeenCalledTimes(ChatGPTTranslator.MAX_RETRIES + 1);
         expect(result).toBe(original);
+    });
+
+    it('retries if translated HTML has incorrect attributes, then succeeds', async () => {
+        // First attempt returns invalid HTML format, second returns valid
+        (MockedOpenAIUtils.prototype.promptChatCompletions as jest.Mock).mockResolvedValueOnce(invalidHTMLTranslation).mockResolvedValueOnce(validHTMLTranslation);
+
+        // @ts-expect-error TS2445
+        const result = await translator.performTranslation(targetLang, originalHTML);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptChatCompletions).toHaveBeenCalledTimes(2);
+        expect(result).toBe(validHTMLTranslation);
     });
 });
