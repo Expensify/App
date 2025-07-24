@@ -8,6 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -1812,9 +1813,14 @@ describe('actions/Report', () => {
             });
 
             // When moving to another workspace
-            Report.changeReportPolicyAndInviteSubmitter(expenseReport, '2', {
-                [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
-            });
+            Report.changeReportPolicyAndInviteSubmitter(
+                expenseReport,
+                '2',
+                {
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                },
+                TestHelper.formatPhoneNumber,
+            );
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1840,7 +1846,7 @@ describe('actions/Report', () => {
             };
             const policyID = '1';
             Report.buildOptimisticChangePolicyData(report, policyID);
-            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(buildNextStep).toHaveBeenCalledWith({...report, policyID}, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumber);
         });
     });
 

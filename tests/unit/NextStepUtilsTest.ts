@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -105,7 +106,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
+                const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -131,7 +132,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber, true);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -159,7 +160,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -200,7 +201,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -235,7 +236,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -270,7 +271,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -306,7 +307,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -342,7 +343,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
                         expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
@@ -377,7 +378,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -412,7 +413,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -445,7 +446,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: false,
                         },
                     }).then(() => {
-                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, formatPhoneNumber);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -476,7 +477,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED, formatPhoneNumber);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -508,7 +509,7 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
 
@@ -550,7 +551,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -587,7 +588,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -604,7 +605,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -636,7 +637,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -668,7 +669,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED, formatPhoneNumber);
                     expect(result).toMatchObject(optimisticNextStep);
                 });
             });
@@ -687,7 +688,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -719,7 +720,7 @@ describe('libs/NextStepUtils', () => {
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED, formatPhoneNumber);
 
                 expect(result).toMatchObject(optimisticNextStep);
 
@@ -755,7 +756,7 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -770,7 +771,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
