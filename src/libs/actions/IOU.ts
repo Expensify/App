@@ -4569,6 +4569,7 @@ function getUpdateTrackExpenseParams(
 function updateMoneyRequestDate(
     transactionID: string,
     transactionThreadReportID: string,
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -4585,7 +4586,7 @@ function updateMoneyRequestDate(
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
-        updateDuplicatesTransactionsViolations(data.onyxData, transactionID, transactionViolations);
+        updateDuplicatesTransactionsViolations(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
@@ -7528,6 +7529,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     taxCode: string;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
@@ -7542,6 +7544,7 @@ function updateMoneyRequestAmountAndCurrency({
     policyTagList,
     policyCategories,
     taxCode,
+    transactions,
     transactionViolations,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
@@ -7557,7 +7560,7 @@ function updateMoneyRequestAmountAndCurrency({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null);
-        updateDuplicatesTransactionsViolations(data.onyxData, transactionID, transactionViolations);
+        updateDuplicatesTransactionsViolations(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
@@ -7936,6 +7939,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
 function deleteMoneyRequest(
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
     transactionIDsPendingDeletion?: string[],
@@ -7986,7 +7990,7 @@ function deleteMoneyRequest(
         },
     ];
 
-    updateDuplicatesTransactionsViolations({optimisticData, failureData}, transactionID, violations);
+    updateDuplicatesTransactionsViolations({optimisticData, failureData}, transactionID, transactions, violations);
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
@@ -8232,6 +8236,7 @@ function deleteTrackExpense(
     chatReportID: string | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
 ) {
@@ -8244,7 +8249,7 @@ function deleteTrackExpense(
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, violations, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, transactions, violations, isSingleTransactionView);
         return urlToNavigateBack;
     }
 

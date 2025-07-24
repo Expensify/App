@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
@@ -45,7 +46,7 @@ function useSelectedTransactionsActions({
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
@@ -89,7 +90,7 @@ function useSelectedTransactionsActions({
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, allTransactionViolations, false, deletedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs);
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
@@ -97,7 +98,7 @@ function useSelectedTransactionsActions({
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);

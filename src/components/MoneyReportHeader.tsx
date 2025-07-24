@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -183,7 +184,7 @@ function MoneyReportHeader({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {
         canBeMissing: true,
     });
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -1115,7 +1116,9 @@ function MoneyReportHeader({
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
-                        InteractionManager.runAfterInteractions(() => deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, allTransactionViolations));
+                        InteractionManager.runAfterInteractions(() =>
+                            deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations),
+                        );
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
                     }
 

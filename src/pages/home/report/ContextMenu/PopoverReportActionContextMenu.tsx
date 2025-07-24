@@ -10,6 +10,7 @@ import {useOnyx} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
@@ -56,8 +57,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         vertical: 0,
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-
     const instanceIDRef = useRef('');
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -282,15 +281,19 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         setIsPopoverVisible(false);
     };
 
+    const originalMessage = getOriginalMessage(reportActionRef.current);
+    const IOUTransactionID = originalMessage && 'IOUTransactionID' in originalMessage ? originalMessage.IOUTransactionID : undefined;
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(IOUTransactionID ? [IOUTransactionID] : []);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, allTransactionViolations);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
             }
         } else if (reportAction) {
             InteractionManager.runAfterInteractions(() => {
@@ -300,7 +303,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [allTransactionViolations]);
+    }, [duplicateTransactionViolations]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

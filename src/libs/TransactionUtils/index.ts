@@ -1399,13 +1399,18 @@ type FieldsToChange = {
  * - settled or approved transactions
  *
  * @param transactionID - The ID of the transaction being validated.
+ * @param transactionCollection - A collection of all transactions and their duplicates.
  * @param currentTransactionViolations - The list of violations associated with this transaction.
  * @returns A set of valid duplicate transaction IDs.
  */
-function getValidDuplicateTransactionIDs(transactionID: string, currentTransactionViolations: TransactionViolation[]): Set<string> {
+function getValidDuplicateTransactionIDs(transactionID: string, transactionCollection: OnyxCollection<Transaction>, currentTransactionViolations: TransactionViolation[]): Set<string> {
     const result = new Set<string>();
     const seen = new Set<string>();
     let foundDuplicateViolation = false;
+
+    if (!transactionCollection) {
+        return result;
+    }
 
     for (const violation of currentTransactionViolations) {
         if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) {
@@ -1441,7 +1446,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, currentTransacti
 
             seen.add(duplicateID);
 
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`];
+            const transaction = transactionCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`];
             if (!transaction?.transactionID) {
                 Log.warn(`Transaction ${duplicateID} does not exist or is invalid. Found in transaction ${transactionID}.`);
                 continue;
@@ -1466,55 +1471,57 @@ function getValidDuplicateTransactionIDs(transactionID: string, currentTransacti
  * by removing the passed transactionID from any violation that referenced it.
  * @param onyxData - An object to store optimistic and failure updates.
  * @param transactionID - The ID of the transaction being deleted or updated.
- * @param transactionViolations - The collection of all transaction violations.
+ * @param transactions - A collection of all transactions and their duplicates.
+ * @param transactionViolations - The collection of the transaction violations incuding the duplicates violations.
  *
  */
-function updateDuplicatesTransactionsViolations(onyxData: OnyxData, transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>) {
-    if (!transactionID || !transactionViolations) {
+function updateDuplicatesTransactionsViolations(
+    onyxData: OnyxData,
+    transactionID: string,
+    transactions: OnyxCollection<Transaction>,
+    transactionViolations: OnyxCollection<TransactionViolations>,
+) {
+    if (!transactionID || !transactions || !transactionViolations) {
+        return;
+    }
+    const violations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+    if (!violations) {
         return;
     }
 
-    const currentTransactionViolations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    if (!currentTransactionViolations || currentTransactionViolations.length === 0) {
-        return;
-    }
-
-    const duplicateIDs = getValidDuplicateTransactionIDs(transactionID, currentTransactionViolations);
-
-    if (duplicateIDs.size === 0) {
-        return;
-    }
+    const duplicateIDs = getValidDuplicateTransactionIDs(transactionID, transactions, violations);
 
     for (const duplicateID of duplicateIDs) {
         const duplicateViolations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
+
         if (!duplicateViolations) {
-            return;
+            continue;
         }
 
         const duplicateTransactionViolations = duplicateViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
-        // If there are no duplicate transaction violations, we don't need to update the violation
-        if (duplicateTransactionViolations.length === 0) {
-            return;
+        if (duplicateTransactionViolations.length == 0) {
+            continue;
         }
 
         if (duplicateTransactionViolations.length > 1) {
             Log.warn(`There are ${duplicateTransactionViolations.length} duplicate transaction violations for transactionID: ${duplicateID}. This should not happen.`);
-            return;
+            continue;
         }
 
         const duplicateTransactionViolation = duplicateTransactionViolations.at(0);
-        if (!duplicateTransactionViolation?.data?.duplicates || duplicateTransactionViolation?.data?.duplicates.length === 0) {
-            return;
+        if (!duplicateTransactionViolation?.data?.duplicates) {
+            continue;
         }
 
         // If the transactionID is not in the duplicates list, we don't need to update the violation
         const duplicateTransactionIDs = duplicateTransactionViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
         if (duplicateTransactionIDs.length === duplicateTransactionViolation.data.duplicates.length) {
-            return;
+            continue;
         }
 
-        const optimisticViolations = duplicateViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        const optimisticViolations = duplicateTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
         if (duplicateTransactionIDs.length > 0) {
             optimisticViolations.push({
@@ -1899,6 +1906,7 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
+    getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
