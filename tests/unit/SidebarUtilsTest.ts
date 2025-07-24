@@ -1015,6 +1015,7 @@ describe('SidebarUtils', () => {
                     childReportID: '5186125925096828',
                     created: '2025-07-10 17:45:31.448',
                     reportActionID: '7425617950691586420',
+                    shouldShow: true,
                     message: [
                         {
                             type: 'COMMENT',
