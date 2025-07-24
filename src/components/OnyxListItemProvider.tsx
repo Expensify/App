@@ -11,10 +11,6 @@ import createOnyxContext from './createOnyxContext';
 const [PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
-const [ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-const [PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
-const [FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
-const [PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -32,10 +28,6 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 PersonalDetailsProvider,
                 BlockedFromConciergeProvider,
                 BetasProvider,
-                ReportCommentDraftsProvider,
-                PreferredThemeProvider,
-                FrequentlyUsedEmojisProvider,
-                PreferredEmojiSkinToneProvider,
                 SessionProvider,
                 PolicyCategoriesProvider,
                 PolicyTagsProvider,
@@ -51,17 +43,4 @@ OnyxListItemProvider.displayName = 'OnyxListItemProvider';
 
 export default OnyxListItemProvider;
 
-export {
-    usePersonalDetails,
-    BetasContext,
-    PreferredThemeContext,
-    useBetas,
-    useFrequentlyUsedEmojis,
-    PersonalDetailsContext,
-    PreferredEmojiSkinToneContext,
-    useBlockedFromConcierge,
-    useSession,
-    usePolicyCategories,
-    usePolicyTags,
-    useAllReportsTransactionsAndViolations,
-};
+export {usePersonalDetails, BetasContext, useBetas, PersonalDetailsContext, useBlockedFromConcierge, useSession, usePolicyCategories, usePolicyTags, useAllReportsTransactionsAndViolations};

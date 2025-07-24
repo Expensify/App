@@ -109,6 +109,25 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical, popoverHorizontalOffsetType]);
 
+    const handleSingleOptionPress = useCallback(
+        (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+            const option = options.at(0);
+            if (!option) {
+                return;
+            }
+
+            if (option.onSelected) {
+                option.onSelected();
+            } else {
+                onOptionSelected?.(option);
+                onPress(event, option.value);
+            }
+
+            onSubItemSelected?.(option, 0, event);
+        },
+        [options, onPress, onOptionSelected, onSubItemSelected],
+    );
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
@@ -121,10 +140,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                     onPress(e, selectedItem.value);
                 }
             } else {
-                const option = options.at(0);
-                if (option?.value) {
-                    onPress(e, option.value);
-                }
+                handleSingleOptionPress(e);
             }
         },
         {
@@ -215,10 +231,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
                     text={selectedItem?.text}
-                    onPress={(event) => {
-                        const option = options.at(0);
-                        return option ? onPress(event, option.value) : undefined;
-                    }}
+                    onPress={handleSingleOptionPress}
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -229,6 +242,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                     icon={shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon}
                     iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
                     shouldShowRightIcon={shouldShowButtonRightIcon}
+                    testID={testID}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
@@ -264,6 +278,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,
+                        subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
                     }))}
                 />
             )}

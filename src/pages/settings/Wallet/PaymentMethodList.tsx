@@ -1,8 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -70,9 +71,6 @@ type PaymentMethodListProps = {
 
     /** React ref being forwarded to the PaymentMethodList Button */
     buttonRef?: Ref<View>;
-
-    /** To enable/disable scrolling */
-    shouldEnableScroll?: boolean;
 
     /** List container style */
     style?: StyleProp<ViewStyle>;
@@ -187,7 +185,6 @@ function PaymentMethodList({
     shouldShowAssignedCards = false,
     selectedMethodID = '',
     onListContentSizeChange = () => {},
-    shouldEnableScroll = true,
     style = {},
     listItemStyle = {},
     shouldShowRightIcon = true,
@@ -475,14 +472,14 @@ function PaymentMethodList({
     return (
         <>
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
-                <FlatList
+                <FlashList
+                    estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
                     onContentSizeChange={onListContentSizeChange}
-                    scrollEnabled={shouldEnableScroll}
                 />
                 {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>
