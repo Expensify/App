@@ -29,7 +29,6 @@ import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
-import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
