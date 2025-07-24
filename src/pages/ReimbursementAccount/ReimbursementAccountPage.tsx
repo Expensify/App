@@ -415,7 +415,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <HeaderWithBackButton
-                    title={translate('workspace.common.addBankAccount')}
+                    title={translate('bankAccount.addBankAccount')}
                     subtitle={policyName}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />

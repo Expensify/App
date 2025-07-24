@@ -183,7 +183,7 @@ function VerifiedBankAccountFlowEntryPoint({
             testID={VerifiedBankAccountFlowEntryPoint.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.addBankAccount')}
+                title={translate('bankAccount.addBankAccount')}
                 subtitle={policyName}
                 onBackButtonPress={onBackButtonPress}
             />
