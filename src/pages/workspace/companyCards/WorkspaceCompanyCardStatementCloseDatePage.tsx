@@ -49,7 +49,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
 
     const submit = useCallback(
         (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
-            if (selectedFeed) {
+            const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
+            if (selectedFeed && isChangedValue) {
                 setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
