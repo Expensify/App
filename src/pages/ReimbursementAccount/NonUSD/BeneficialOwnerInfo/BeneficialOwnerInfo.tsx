@@ -287,7 +287,6 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
             stepNames={stepNames}
             startStepIndex={3}
-            shouldBlockOffline
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (
                 <YesNoStep

@@ -140,7 +140,6 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
             stepNames={stepNames}
             startStepIndex={2}
-            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}

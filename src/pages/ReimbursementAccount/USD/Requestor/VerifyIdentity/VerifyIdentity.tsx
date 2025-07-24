@@ -1,4 +1,5 @@
 import React, {useCallback, useState} from 'react';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
@@ -66,17 +67,19 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
             startStepIndex={2}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldBlockOffline
         >
-            <ScrollView contentContainerStyle={styles.flex1}>
-                <Onfido
-                    key={onfidoKey}
-                    sdkToken={onfidoToken ?? ''}
-                    onUserExit={handleOnfidoUserExit}
-                    onError={handleOnfidoError}
-                    onSuccess={handleOnfidoSuccess}
-                />
-            </ScrollView>
+            {' '}
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
+                <ScrollView contentContainerStyle={styles.flex1}>
+                    <Onfido
+                        key={onfidoKey}
+                        sdkToken={onfidoToken ?? ''}
+                        onUserExit={handleOnfidoUserExit}
+                        onError={handleOnfidoError}
+                        onSuccess={handleOnfidoSuccess}
+                    />
+                </ScrollView>
+            </FullPageOfflineBlockingView>
         </InteractiveStepWrapper>
     );
 }

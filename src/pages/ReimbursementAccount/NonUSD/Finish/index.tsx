@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {ChatBubble} from '@components/Icon/Expensicons';
@@ -43,47 +42,46 @@ function Finish() {
                 title={translate('finishStep.connect')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView>
-                <ScrollView style={[styles.flex1]}>
-                    <Section
-                        title={translate('finishStep.letsFinish')}
-                        icon={Illustrations.ConciergeBubble}
-                        containerStyles={[styles.mb8, styles.mh5]}
-                        titleStyles={[styles.mb3, styles.textHeadline]}
-                    >
-                        <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
-                        <MenuItem
-                            icon={ChatBubble}
-                            title={translate('finishStep.iHaveA')}
-                            onPress={handleNavigateToConciergeChat}
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                            shouldShowRightIcon
-                        />
-                    </Section>
-                    <Section
-                        title={translate('finishStep.enable2FA')}
-                        icon={Illustrations.ShieldYellow}
-                        titleStyles={[styles.mb4, styles.textHeadline]}
-                        containerStyles={[styles.mh5]}
-                        menuItems={[
-                            {
-                                title: translate('finishStep.secure'),
-                                onPress: () => {
-                                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
-                                },
-                                icon: Expensicons.Shield,
-                                shouldShowRightIcon: true,
-                                iconRight: Expensicons.NewWindow,
-                                outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
+            <ScrollView style={[styles.flex1]}>
+                <Section
+                    title={translate('finishStep.letsFinish')}
+                    icon={Illustrations.ConciergeBubble}
+                    containerStyles={[styles.mb8, styles.mh5]}
+                    titleStyles={[styles.mb3, styles.textHeadline]}
+                >
+                    <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
+                    <MenuItem
+                        icon={ChatBubble}
+                        title={translate('finishStep.iHaveA')}
+                        onPress={handleNavigateToConciergeChat}
+                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                        shouldShowRightIcon
+                    />
+                </Section>
+                <Section
+                    title={translate('finishStep.enable2FA')}
+                    icon={Illustrations.ShieldYellow}
+                    titleStyles={[styles.mb4, styles.textHeadline]}
+                    containerStyles={[styles.mh5]}
+                    menuItems={[
+                        {
+                            title: translate('finishStep.secure'),
+                            onPress: () => {
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                             },
-                        ]}
-                    >
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
-                        </View>
-                    </Section>
-                </ScrollView>
-            </FullPageOfflineBlockingView>
+                            icon: Expensicons.Shield,
+                            shouldShowRightIcon: true,
+                            iconRight: Expensicons.NewWindow,
+                            outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
+                        },
+                    ]}
+                >
+                    <View style={styles.mb6}>
+                        <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
+                    </View>
+                </Section>
+            </ScrollView>
+            s{' '}
         </ScreenWrapper>
     );
 }

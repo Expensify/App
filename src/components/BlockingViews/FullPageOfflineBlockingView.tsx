@@ -12,23 +12,15 @@ type FullPageOfflineBlockingViewProps = ChildrenProps & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-    /** Whether we want to display BlockingView in offline mode */
-    shouldBlockOffline?: boolean;
 };
 
-function FullPageOfflineBlockingView({
-    children,
-    addBottomSafeAreaPadding = true,
-    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
-    shouldBlockOffline = true,
-}: FullPageOfflineBlockingViewProps) {
+function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true, addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding}: FullPageOfflineBlockingViewProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const theme = useTheme();
 
-    if (isOffline && shouldBlockOffline) {
+    if (isOffline) {
         return (
             <BlockingView
                 icon={Expensicons.OfflineCloud}

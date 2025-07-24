@@ -65,7 +65,6 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}

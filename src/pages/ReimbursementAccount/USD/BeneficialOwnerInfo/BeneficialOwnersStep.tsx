@@ -217,7 +217,6 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-            shouldBlockOffline
         >
             {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep

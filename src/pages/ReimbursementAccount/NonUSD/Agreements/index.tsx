@@ -117,7 +117,6 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
             headerTitle={translate('agreementsStep.agreements')}
             stepNames={stepNames}
             startStepIndex={5}
-            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}

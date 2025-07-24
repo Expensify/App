@@ -110,7 +110,6 @@ function Docusign({onBackButtonPress, onSubmit, policyID, stepNames}: DocusignPr
             headerTitle={translate('docusignStep.subheader')}
             stepNames={stepNames}
             startStepIndex={6}
-            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}

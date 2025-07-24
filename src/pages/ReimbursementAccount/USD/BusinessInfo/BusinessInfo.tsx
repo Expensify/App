@@ -116,7 +116,6 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}

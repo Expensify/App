@@ -3,7 +3,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
@@ -54,9 +53,6 @@ type InteractiveStepWrapperProps = {
      * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
-
-    /** Whether we want to display BlockingView in offline mode */
-    shouldBlockOffline?: boolean;
 };
 
 function InteractiveStepWrapper(
@@ -74,7 +70,6 @@ function InteractiveStepWrapper(
         offlineIndicatorStyle,
         shouldKeyboardOffsetBottomSafeAreaPadding,
         enableEdgeToEdgeBottomSafeAreaPadding,
-        shouldBlockOffline = false,
     }: InteractiveStepWrapperProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -97,17 +92,15 @@ function InteractiveStepWrapper(
                 subtitle={headerSubtitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView shouldBlockOffline={shouldBlockOffline}>
-                {!!stepNames && (
-                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                        <InteractiveStepSubHeader
-                            startStepIndex={startStepIndex}
-                            stepNames={stepNames}
-                        />
-                    </View>
-                )}
-                {children}
-            </FullPageOfflineBlockingView>
+            {!!stepNames && (
+                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                    <InteractiveStepSubHeader
+                        startStepIndex={startStepIndex}
+                        stepNames={stepNames}
+                    />
+                </View>
+            )}
+            {children}
         </ScreenWrapper>
     );
 }

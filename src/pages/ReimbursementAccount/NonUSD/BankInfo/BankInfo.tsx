@@ -129,7 +129,6 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
             headerTitle={translate('bankAccount.bankInfo')}
             stepNames={stepNames}
             startStepIndex={1}
-            shouldBlockOffline
         >
             <SubStep
                 isEditing={isEditing}
