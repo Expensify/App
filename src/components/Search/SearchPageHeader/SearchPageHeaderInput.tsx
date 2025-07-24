@@ -19,6 +19,7 @@ import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQuery
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -38,9 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
-import useLocalize from '@hooks/useLocalize';
 import SearchTypeMenuPopover from './SearchTypeMenuPopover';
-
 
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;

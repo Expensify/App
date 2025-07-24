@@ -1,11 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
-import type { LocaleContextProps } from '@components/LocaleContextProvider';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
@@ -33,7 +33,7 @@ function buildSubstitutionsMap(
     cardList: CardList,
     cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber']
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
