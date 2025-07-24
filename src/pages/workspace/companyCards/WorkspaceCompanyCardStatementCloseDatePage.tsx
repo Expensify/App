@@ -75,8 +75,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
                 enabledWhenOffline
                 defaultStatementPeriodEnd={statementPeriodEnd}
                 defaultStatementPeriodEndDay={statementPeriodEndDay}
-                pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay ?? selectedFeedData?.pendingFields?.statementPeriodEnd}
-                errors={selectedFeedData?.errorFields?.statementPeriodEndDay ?? selectedFeedData?.errorFields?.statementPeriodEnd}
+                pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}
+                errors={selectedFeedData?.errorFields?.statementPeriodEndDay}
                 onCloseError={clearError}
             />
         </AccessOrNotFoundWrapper>
