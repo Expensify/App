@@ -67,17 +67,16 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Specifies the format for the report title related to this card */
     reportTitleFormat?: string;
 
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
+    /** Indicates the day when the statement period for this card ends.
+     * The BE returns a unified key which may hold either a preset value (string) or a custom day (integer)
+     */
+    statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
     /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEnd' | 'statementPeriodEndDay'>;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEnd'>;
 }>;
 
 /** Direct card feed data */
@@ -100,17 +99,16 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether any actions are pending */
     pending?: boolean;
 
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
+    /** Indicates the day when the statement period for this card ends.
+     * The BE returns a unified key which may hold either a preset value (string) or a custom day (integer)
+     */
+    statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
     /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEnd' | 'statementPeriodEndDay'>;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEnd'>;
 }>;
 
 /** Card feed data */
