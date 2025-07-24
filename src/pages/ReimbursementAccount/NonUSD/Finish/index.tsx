@@ -81,7 +81,6 @@ function Finish() {
                     </View>
                 </Section>
             </ScrollView>
-            s{' '}
         </ScreenWrapper>
     );
 }
