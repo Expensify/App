@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-key */
+
 /* eslint-disable react/no-unescaped-entities */
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -36,40 +38,22 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expensify logo</Text> - Click to return to your Inbox (homepage)
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Inbox</Text> - Your personalized dashboard with action items and reminders
                             </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Reports</Text> - Access all your expense reports and filtering tools
                             </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Workspaces</Text> - Manage company and personal workspace settings
                             </Text>,
-                            <Text
-                                key="5"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Account</Text> - Personal settings, profile, and preferences
                             </Text>,
-                            <Text
-                                key="6"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Global Create</Text> button - Quick access to create reports, expenses, invoices, and chats
                             </Text>,
                         ]}
@@ -81,30 +65,10 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
-                                Smart reminders to submit, approve, or reconcile expenses
-                            </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
-                                Real-time updates on recent actions and flagged reports
-                            </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
-                                List of chats with other employees in your organization
-                            </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
-                                Personalized action items based on your role and activity
-                            </Text>,
+                            <Text style={styles.textNormal}>Smart reminders to submit, approve, or reconcile expenses</Text>,
+                            <Text style={styles.textNormal}>Real-time updates on recent actions and flagged reports</Text>,
+                            <Text style={styles.textNormal}>List of chats with other employees in your organization</Text>,
+                            <Text style={styles.textNormal}>Personalized action items based on your role and activity</Text>,
                         ]}
                     />
                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Chat Features</Text>
@@ -112,34 +76,19 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Text messages</Text> with rich formatting support
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Images &amp; Documents</Text> via copy/paste, drag/drop, or attach button
                             </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expenses</Text> to track and submit for reimbursement
                             </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Tasks</Text> to assign and manage work items
                             </Text>,
-                            <Text
-                                key="5"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Mentions</Text> to invite anyone by email or phone number
                             </Text>,
                         ]}
@@ -151,24 +100,11 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 Use the <Text style={styles.textBold}>Workspace filter</Text> inside the Filters menu to refine results
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
-                                Apply filters and queries that update automatically
-                            </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
-                                View all expense reports across your workspaces
-                            </Text>,
+                            <Text style={styles.textNormal}>Apply filters and queries that update automatically</Text>,
+                            <Text style={styles.textNormal}>View all expense reports across your workspaces</Text>,
                         ]}
                     />
                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Quick Actions</Text>
@@ -178,36 +114,11 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
-                                Start a new chat or conversation
-                            </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
-                                Create an expense report
-                            </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
-                                Add an expense or receipt
-                            </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
-                                Create a task or invoice
-                            </Text>,
-                            <Text
-                                key="5"
-                                style={styles.textNormal}
-                            >
-                                Submit expenses for approval
-                            </Text>,
+                            <Text style={styles.textNormal}>Start a new chat or conversation</Text>,
+                            <Text style={styles.textNormal}>Create an expense report</Text>,
+                            <Text style={styles.textNormal}>Add an expense or receipt</Text>,
+                            <Text style={styles.textNormal}>Create a task or invoice</Text>,
+                            <Text style={styles.textNormal}>Submit expenses for approval</Text>,
                         ]}
                     />
 
@@ -240,30 +151,21 @@ const helpContentMap: HelpContent = {
                                                                     <BulletList
                                                                         styles={styles}
                                                                         items={[
-                                                                            <Text
-                                                                                key="1"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={[styles.textNormal]}>
                                                                                     <Text style={styles.textBold}>Create distance expenses:</Text> Click the green + button and choose Create
                                                                                     expense, then select Distance. Enter your starting point and destination. You can also add stops if
                                                                                     needed.
                                                                                 </Text>
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="2"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={[styles.textNormal]}>
                                                                                     <Text style={styles.textBold}>Submit for approval:</Text> Choose your workspace and confirm the distance,
                                                                                     amount, and date. Add optional notes or categories, then click Create expense to submit the mileage
                                                                                     expense for approval.
                                                                                 </Text>
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="3"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={[styles.textNormal]}>
                                                                                     <Text style={styles.textBold}>Log a round-trip:</Text> To log a round-trip, use the same location for both
                                                                                     start and finish, and include any stops along the way.
@@ -289,34 +191,19 @@ const helpContentMap: HelpContent = {
                                                                     <BulletList
                                                                         styles={styles}
                                                                         items={[
-                                                                            <Text
-                                                                                key="1"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Amount</Text> and currency
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="2"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Merchant</Text> name and location
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="3"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Date</Text> of purchase
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="4"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Tax</Text> information (when visible)
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="5"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Category</Text> suggestions based on merchant type
                                                                             </Text>,
                                                                         ]}
@@ -325,28 +212,16 @@ const helpContentMap: HelpContent = {
                                                                     <BulletList
                                                                         styles={styles}
                                                                         items={[
-                                                                            <Text
-                                                                                key="1"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Photos</Text> - Take with your device camera
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="2"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Email receipts</Text> - Forward to receipts@expensify.com
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="3"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>PDF receipts</Text> - Upload from your device
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="4"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <Text style={styles.textBold}>Screenshots</Text> - From apps or websites
                                                                             </Text>,
                                                                         ]}
@@ -355,64 +230,26 @@ const helpContentMap: HelpContent = {
                                                                     <BulletList
                                                                         styles={styles}
                                                                         items={[
-                                                                            <Text
-                                                                                key="1"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                Ensure receipt text is clear and readable
-                                                                            </Text>,
-                                                                            <Text
-                                                                                key="2"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                Include the full receipt in the image
-                                                                            </Text>,
-                                                                            <Text
-                                                                                key="3"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                Good lighting improves accuracy
-                                                                            </Text>,
-                                                                            <Text
-                                                                                key="4"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                Straight angles work better than tilted photos
-                                                                            </Text>,
+                                                                            <Text style={styles.textNormal}>Ensure receipt text is clear and readable</Text>,
+                                                                            <Text style={styles.textNormal}>Include the full receipt in the image</Text>,
+                                                                            <Text style={styles.textNormal}>Good lighting improves accuracy</Text>,
+                                                                            <Text style={styles.textNormal}>Straight angles work better than tilted photos</Text>,
                                                                         ]}
                                                                     />
                                                                     <Text style={[styles.textHeadlineH2, styles.mv4]}>After Scanning</Text>
                                                                     <BulletList
                                                                         styles={styles}
                                                                         items={[
-                                                                            <Text
-                                                                                key="1"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                Review extracted details for accuracy
-                                                                            </Text>,
-                                                                            <Text
-                                                                                key="2"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                Add description, category, or tags as needed
-                                                                            </Text>,
-                                                                            <Text
-                                                                                key="3"
-                                                                                style={styles.textNormal}
-                                                                            >
-                                                                                SmartScan learns from your corrections
-                                                                            </Text>,
+                                                                            <Text style={styles.textNormal}>Review extracted details for accuracy</Text>,
+                                                                            <Text style={styles.textNormal}>Add description, category, or tags as needed</Text>,
+                                                                            <Text style={styles.textNormal}>SmartScan learns from your corrections</Text>,
                                                                         ]}
                                                                     />
                                                                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
                                                                     <BulletList
                                                                         styles={styles}
                                                                         items={[
-                                                                            <Text
-                                                                                key="1"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <TextLink
                                                                                     href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense"
                                                                                     style={styles.link}
@@ -420,10 +257,7 @@ const helpContentMap: HelpContent = {
                                                                                     Create an Expense
                                                                                 </TextLink>
                                                                             </Text>,
-                                                                            <Text
-                                                                                key="2"
-                                                                                style={styles.textNormal}
-                                                                            >
+                                                                            <Text style={styles.textNormal}>
                                                                                 <TextLink
                                                                                     href="https://help.expensify.com/articles/new-expensify/getting-started/Free-Features-in-Expensify"
                                                                                     style={styles.link}
@@ -513,34 +347,19 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Receipt</Text> – Attach a photo or document to this expense.
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Amount</Text> – The financial total of this transaction.
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Description</Text> – A general explanation of what this expense was for.
                                     </Text>,
-                                    <Text
-                                        key="4"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Merchant</Text> – The business this purchase was made at.
                                     </Text>,
-                                    <Text
-                                        key="5"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Date</Text> – The day on which the purchase was made.
                                     </Text>,
                                 ]}
@@ -562,29 +381,20 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Talking with Concierge, your setup specialist, or your account manager</Text> – When you first create the workspace,
                                             Concierge and a setup specialist will be added. Feel free to ask any setup questions you have about how to configure the workspace, onboard your
                                             team, connect your accounting, or anything else you might need.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Monitoring workspace changes</Text> – Every #admins room shows an audit trail of any configuration changes or
                                             significant events happening inside the workspace.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Chatting with other admins</Text> – The #admins room is a useful space for workspace admins to chat with each other
                                             about anything, whether or not it relates to Expensify.
@@ -603,18 +413,8 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
-                                        Is shared with everyone in the approval flow configured inside the workspace.
-                                    </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
-                                        Will maintain an audit trail of all historical workflow actions (i.e., approvals).
-                                    </Text>,
+                                    <Text style={styles.textNormal}>Is shared with everyone in the approval flow configured inside the workspace.</Text>,
+                                    <Text style={styles.textNormal}>Will maintain an audit trail of all historical workflow actions (i.e., approvals).</Text>,
                                 ]}
                             />
                             <Text style={[styles.textNormal, styles.mt4]}>
@@ -634,16 +434,10 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Create expense</Text> – This will submit an expense to the workspace for reimbursement.
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Split expense</Text> – This will split an expense between the member and the workspace (e.g., for a business meal that
                                         brings a spouse).
                                     </Text>,
@@ -664,28 +458,19 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Post company-wide announcements:</Text> All members can post in #announce by default, making it easy to communicate
                                             across the workspace.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Restrict posting to admins:</Text> Workspace admins can limit posting to admins only. Open the #announce room, click
                                             the room header, select Settings, and change Who can post to Admins only.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Everyone can read messages:</Text> Even if posting is limited to admins, all workspace members can still view
                                             messages in the #announce room.
@@ -713,29 +498,17 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Text</Text> – Rich text messages stored securely and delivered via web, app, email, or SMS.
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Images &amp; Documents</Text> – Insert photos, screenshots, movies, PDFs, or more, using copy/paste, drag/drop, or the attach
                                 button.
                             </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expenses</Text> – Share an expense in the chat, either to simply track and document it, or to submit for reimbursement.
                             </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Tasks</Text> – Record a task, and optionally assign it to someone (or yourself!).
                             </Text>,
                         ]}
@@ -745,22 +518,13 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>React</Text> – Throw a ♥️😂🔥 like on anything!
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Reply in thread</Text> – Go deeper by creating a new chat on any comment.
                             </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Mark unread</Text> – Flag it for reading later, at your convenience.
                             </Text>,
                         ]}
@@ -770,10 +534,7 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Markdown</Text> – Format text using <Text style={styles.textBold}>bold</Text>, <Text style={styles.textItalic}>italics</Text>,
                                 and{' '}
                                 <TextLink
@@ -784,10 +545,7 @@ const helpContentMap: HelpContent = {
                                 </TextLink>
                                 .
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Mention</Text> – Invite or tag anyone in the world to any chat by putting an @ in front of their email address or phone number
                                 (e.g., <Text style={styles.textBold}>@awong@marslink.web</Text>, or <Text style={styles.textBold}>@415-867-5309</Text>).
                             </Text>,
@@ -801,30 +559,10 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
-                                Expense reports waiting on you
-                            </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
-                                Tasks assigned to you
-                            </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
-                                Chats that have mentioned you
-                            </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
-                                Anything you have pinned
-                            </Text>,
+                            <Text style={styles.textNormal}>Expense reports waiting on you</Text>,
+                            <Text style={styles.textNormal}>Tasks assigned to you</Text>,
+                            <Text style={styles.textNormal}>Chats that have mentioned you</Text>,
+                            <Text style={styles.textNormal}>Anything you have pinned</Text>,
                         ]}
                     />
                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Chats</Text>
@@ -832,16 +570,10 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Most Recent</Text> – Lists every chat, ordered by whichever was most recently active.
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Focus</Text> – Only lists chats with unread messages, sorted alphabetically.
                             </Text>,
                         ]}
@@ -867,24 +599,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Import settings to control what data comes from your accounting system.
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Export settings to choose how expense reports are sent back.
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Advanced options for automation, such as auto-sync and employee settings.
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Import settings to control what data comes from your accounting system.</Text>,
+                                            <Text style={styles.textNormal}>Export settings to choose how expense reports are sent back.</Text>,
+                                            <Text style={styles.textNormal}>Advanced options for automation, such as auto-sync and employee settings.</Text>,
                                         ]}
                                     />
 
@@ -895,24 +612,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Real-time expense sync
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Category and vendor mapping
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Tax rate sync
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Real-time expense sync</Text>,
+                                            <Text style={styles.textNormal}>Category and vendor mapping</Text>,
+                                            <Text style={styles.textNormal}>Tax rate sync</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -921,24 +623,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                File-based import/export
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Chart of accounts sync
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Custom field mapping
-                                            </Text>,
+                                            <Text style={styles.textNormal}>File-based import/export</Text>,
+                                            <Text style={styles.textNormal}>Chart of accounts sync</Text>,
+                                            <Text style={styles.textNormal}>Custom field mapping</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -947,24 +634,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Auto-sync approved reports
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Import tracking categories
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Manage tax rates seamlessly
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Auto-sync approved reports</Text>,
+                                            <Text style={styles.textNormal}>Import tracking categories</Text>,
+                                            <Text style={styles.textNormal}>Manage tax rates seamlessly</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -973,24 +645,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Built for complex orgs with multi-entity support
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Custom dimension mapping
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Automated bill payments
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Built for complex orgs with multi-entity support</Text>,
+                                            <Text style={styles.textNormal}>Custom dimension mapping</Text>,
+                                            <Text style={styles.textNormal}>Automated bill payments</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -999,24 +656,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Track departments, classes, and more
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Multi-currency support
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Advanced approval workflows
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Track departments, classes, and more</Text>,
+                                            <Text style={styles.textNormal}>Multi-currency support</Text>,
+                                            <Text style={styles.textNormal}>Advanced approval workflows</Text>,
                                         ]}
                                     />
 
@@ -1027,30 +669,10 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Chart of accounts (as categories)
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Classes, departments, locations (as tags)
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Tax rates and customers
-                                            </Text>,
-                                            <Text
-                                                key="4"
-                                                style={styles.textNormal}
-                                            >
-                                                Vendors and bill payment accounts
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Chart of accounts (as categories)</Text>,
+                                            <Text style={styles.textNormal}>Classes, departments, locations (as tags)</Text>,
+                                            <Text style={styles.textNormal}>Tax rates and customers</Text>,
+                                            <Text style={styles.textNormal}>Vendors and bill payment accounts</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -1059,30 +681,10 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Approved expense reports
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Company card transactions
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Vendor bills and journal entries
-                                            </Text>,
-                                            <Text
-                                                key="4"
-                                                style={styles.textNormal}
-                                            >
-                                                Payment records and reconciliation data
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Approved expense reports</Text>,
+                                            <Text style={styles.textNormal}>Company card transactions</Text>,
+                                            <Text style={styles.textNormal}>Vendor bills and journal entries</Text>,
+                                            <Text style={styles.textNormal}>Payment records and reconciliation data</Text>,
                                         ]}
                                     />
 
@@ -1090,10 +692,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online"
                                                     style={styles.link}
@@ -1101,10 +700,7 @@ const helpContentMap: HelpContent = {
                                                     Connect to QuickBooks Online
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero"
                                                     style={styles.link}
@@ -1112,10 +708,7 @@ const helpContentMap: HelpContent = {
                                                     Connect to Xero
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite"
                                                     style={styles.link}
@@ -1140,10 +733,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>How to set up rates</Text>: Under{' '}
                                                     <Text style={styles.textBold}>Workspaces &gt; [Workspace Name] &gt; Distance rates</Text> and choose{' '}
@@ -1151,19 +741,13 @@ const helpContentMap: HelpContent = {
                                                     <Text style={styles.textBold}>Save</Text>.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Multiple rate options</Text>: Customize rates for personal cars, company vehicles, or different types of
                                                     trips.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Managing your rates</Text>: To save time, you can turn rates on or off, update amounts, or manage them in
                                                     bulk.
@@ -1193,28 +777,19 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Approval setup</Text>: Assign approvers to review expenses before they’re paid. You can even customize
                                                     approvers for different team members.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Submission timing</Text>: Pick a daily or weekly schedule for automatic expense submission so no one forgets
                                                     to submit their expenses.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Automated payments</Text>: Link your business bank account, and Expensify will automatically process
                                                     payments for approved expenses and invoices.
@@ -1227,10 +802,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows"
                                                     style={styles.link}
@@ -1238,10 +810,7 @@ const helpContentMap: HelpContent = {
                                                     Workspace Workflows
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals"
                                                     style={styles.link}
@@ -1269,28 +838,19 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Issue cards</Text>: Hand out virtual or physical cards with flexible spending controls, such as smart
                                                     limits, monthly caps, or fixed amounts.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Smarter spending controls</Text>: Set custom limits, block certain merchant types, and track every swipe in
                                                     real time.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Easy card management</Text>: As a workspace admin, you can see all issued cards at a glance. You can adjust
                                                     limits, rename cards, or deactivate them whenever you need to.
@@ -1317,28 +877,19 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>How to add tags</Text>: Click the green + button to add tags manually, or upload up to 50,000 at once with a
                                                     spreadsheet. Using an accounting integration? Your tags will sync automatically.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Organizing tags</Text>: Use dependent tags (where one relies on another) for more structured tracking, or
                                                     keep things simple with independent tags.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Automatic tagging that gets smarter</Text>: Expensify learns how you tag expenses and starts doing it for
                                                     you, speeding up and simplifying your workflow over time.
@@ -1351,10 +902,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags"
                                                     style={styles.link}
@@ -1362,10 +910,7 @@ const helpContentMap: HelpContent = {
                                                     Create Tags
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Require-tags-and-categories-for-expenses"
                                                     style={styles.link}
@@ -1390,19 +935,13 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Set up rates</Text>: Create daily rates for different locations, meal types, or travel needs. Just enter the
                                                     amount, and you’re done!
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Default categories</Text>: Assign a default category to keep all your per diem expenses organized and your
                                                     accounting on track.
@@ -1429,28 +968,19 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>How to set up tax rates</Text>: Click the green + button to add a tax rate. Just enter the tax name,
                                                     percentage, and tax code for your records.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Default tax settings</Text>: Set separate default rates for your workspace currency and foreign currencies,
                                                     so everything’s accurate no matter where you’re spending.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Managing tax rates</Text>: You can turn rates on or off, update their values, or delete them entirely. Use
                                                     bulk actions to move faster, or make changes one at a time.
@@ -1480,28 +1010,19 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Expense requirements:</Text> Decide when receipts are required, set a max spend per expense, and control how
                                                     far back expenses can be submitted.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Prohibited expenses:</Text> Let Expensify’s AI catch restricted items like alcohol, gambling, or tobacco—no
                                                     manual review needed.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Automatic approvals:</Text> Save time by auto-approving compliant reports under a certain amount. You can
                                                     even randomly audit a few to keep everyone honest.
@@ -1514,10 +1035,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules"
                                                     style={styles.link}
@@ -1525,10 +1043,7 @@ const helpContentMap: HelpContent = {
                                                     Workspace Rules
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Prohibited-Expense-Rule"
                                                     style={styles.link}
@@ -1556,30 +1071,10 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Full workspace control and settings access
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Add/remove members and change roles
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                Set up integrations and payment methods
-                                            </Text>,
-                                            <Text
-                                                key="4"
-                                                style={styles.textNormal}
-                                            >
-                                                Approve and pay expenses
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Full workspace control and settings access</Text>,
+                                            <Text style={styles.textNormal}>Add/remove members and change roles</Text>,
+                                            <Text style={styles.textNormal}>Set up integrations and payment methods</Text>,
+                                            <Text style={styles.textNormal}>Approve and pay expenses</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -1588,24 +1083,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                Submit expenses and create reports
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Participate in workspace chats
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                View assigned expenses and reports
-                                            </Text>,
+                                            <Text style={styles.textNormal}>Submit expenses and create reports</Text>,
+                                            <Text style={styles.textNormal}>Participate in workspace chats</Text>,
+                                            <Text style={styles.textNormal}>View assigned expenses and reports</Text>,
                                         ]}
                                     />
                                     <Text style={[styles.textNormal, styles.mt4]}>
@@ -1614,24 +1094,9 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
-                                                View all workspace reports (read-only)
-                                            </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
-                                                Add comments, but cannot modify expenses
-                                            </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
-                                                No approval or payment permissions
-                                            </Text>,
+                                            <Text style={styles.textNormal}>View all workspace reports (read-only)</Text>,
+                                            <Text style={styles.textNormal}>Add comments, but cannot modify expenses</Text>,
+                                            <Text style={styles.textNormal}>No approval or payment permissions</Text>,
                                         ]}
                                     />
 
@@ -1657,10 +1122,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members"
                                                     style={styles.link}
@@ -1668,10 +1130,7 @@ const helpContentMap: HelpContent = {
                                                     Managing Workspace Members
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals"
                                                     style={styles.link}
@@ -1696,28 +1155,19 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>How to connect cards</Text>: Link your corporate card program to your workspace, assign the cards to the
                                                     corresponding cardholder, and transactions will start syncing automatically as they post—no manual entry needed.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Exporting expenses</Text>: Send card transactions to your accounting system, either to a shared account or
                                                     separate ones for each cardholder.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="3"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>eReceipts</Text>: Turn on eReceipts to automatically generate digital receipts for USD transactions under
                                                     $75—no more chasing paper ones.
@@ -1741,20 +1191,14 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Report title</Text>: Use the Custom Report Names feature (under workspace Rules) to create naming templates
                                                     for new reports. It’s a smarter way to keep things organized and make reports easier to find. You also have the option to prevent members
                                                     from changing the custom report names you set.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Report fields</Text>: Collect high-level info—like project names, client codes, or trip types—that applies
                                                     to the whole report, not just individual expenses. Report fields are filled out once and apply to all expenses in that report.
@@ -1787,20 +1231,14 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Category settings made simple:</Text> You can toggle categories on or off, add GL codes, and set rules like
                                                     receipt requirements or spending limits, all in one place under{' '}
                                                     <Text style={styles.textBold}>Workspaces &gt; [Workspace Name] &gt; Categories</Text>.
                                                 </Text>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <Text style={[styles.textNormal]}>
                                                     <Text style={styles.textBold}>Smarter categorization, automatically:</Text> Expensify learns how you tag your expenses and starts
                                                     automatically applying those categories to similar merchants. This means less busywork and more accuracy.
@@ -1813,10 +1251,7 @@ const helpContentMap: HelpContent = {
                                     <BulletList
                                         styles={styles}
                                         items={[
-                                            <Text
-                                                key="1"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-categories"
                                                     style={styles.link}
@@ -1824,10 +1259,7 @@ const helpContentMap: HelpContent = {
                                                     Create Expense Categories
                                                 </TextLink>
                                             </Text>,
-                                            <Text
-                                                key="2"
-                                                style={styles.textNormal}
-                                            >
+                                            <Text style={styles.textNormal}>
                                                 <TextLink
                                                     href="https://help.expensify.com/articles/new-expensify/workspaces/Require-tags-and-categories-for-expenses"
                                                     style={styles.link}
@@ -1860,18 +1292,8 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
-                                Members can submit and approve reports they’re assigned to.
-                            </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
-                                Admins can approve all reports and manage workspace settings.
-                            </Text>,
+                            <Text style={styles.textNormal}>Members can submit and approve reports they’re assigned to.</Text>,
+                            <Text style={styles.textNormal}>Admins can approve all reports and manage workspace settings.</Text>,
                         ]}
                     />
                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Automate approvals</Text>
@@ -1908,37 +1330,25 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Notifications</Text>: Decide which alerts you want to receive, such as feature updates, news, or sound
                                             notifications. You’re in control.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Priority mode:</Text> Choose how chats appear in your inbox – Focus on unread and pinned chats, or keep everything
                                             visible, with the most recent messages shown at the top of the left-hand menu.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Language options</Text>: You can update your interface in just a few clicks by choosing from 10 supported languages.
                                             Choose your preferred language from the list, and your account will update automatically.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="4"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Payment Currency:</Text> Set your default currency for expense tracking and reimbursements.
                                         </Text>
@@ -1951,22 +1361,13 @@ const helpContentMap: HelpContent = {
                                         <BulletList
                                             styles={styles}
                                             items={[
-                                                <Text
-                                                    key="1"
-                                                    style={styles.textNormal}
-                                                >
+                                                <Text style={styles.textNormal}>
                                                     <Text style={styles.textBold}>Dark Mode</Text> - Easy on the eyes in low-light environments
                                                 </Text>,
-                                                <Text
-                                                    key="2"
-                                                    style={styles.textNormal}
-                                                >
+                                                <Text style={styles.textNormal}>
                                                     <Text style={styles.textBold}>Light Mode</Text> - Bright, clean interface for well-lit spaces
                                                 </Text>,
-                                                <Text
-                                                    key="3"
-                                                    style={styles.textNormal}
-                                                >
+                                                <Text style={styles.textNormal}>
                                                     <Text style={styles.textBold}>Use Device Settings</Text> - Automatically match your device’s theme
                                                 </Text>,
                                             ]}
@@ -1998,27 +1399,18 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Set it up in a minute:</Text> Use an app like Google Authenticator or Microsoft Authenticator to link your account.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Don’t skip the backup codes:</Text> Download or save your recovery codes somewhere safe. You’ll need them if you
                                             ever lose access to your app.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>How login works:</Text> You’ll log in with your email magic code and a 6-digit code from your authenticator app.
                                         </Text>
@@ -2033,27 +1425,18 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Heads up:</Text> Merging is permanent and must be done from your company account by pulling in the personal one.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>How to merge:</Text> Under <Text style={styles.textBold}>Account &gt; Security &gt; Merge accounts</Text>, add the
                                             email address of the account you’re merging and then enter the magic code sent to your email.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>What moves over:</Text> Expenses, reports, cards, co-pilots — everything from the merged account rolls over into
                                             your existing account.
@@ -2073,18 +1456,12 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Before you close:</Text> Make sure to transfer ownerships, clear any balances, and update billing contacts.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>After closing the account:</Text> Shared reports and expenses will still be accessible to workspace admins, but all
                                             your personal data will be wiped.
@@ -2097,10 +1474,7 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/settings/Two-Factor-Authentication"
                                             style={styles.link}
@@ -2108,10 +1482,7 @@ const helpContentMap: HelpContent = {
                                             Two-Factor Authentication
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/settings/Lock-Account-Tool"
                                             style={styles.link}
@@ -2119,10 +1490,7 @@ const helpContentMap: HelpContent = {
                                             Report Suspicious Activity
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts"
                                             style={styles.link}
@@ -2130,10 +1498,7 @@ const helpContentMap: HelpContent = {
                                             Merge Accounts
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="4"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/settings/Close-Account"
                                             style={styles.link}
@@ -2158,37 +1523,25 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Expensify offers two plans – Collect and Control:</Text> The Collect plan is $5 per member each month. The Control
                                             plan ranges from $9 to $36 per member/month, depending on your subscription commitment and how much your team uses the Expensify Card.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Add a payment card:</Text> To pay for your subscription, add a payment card under{' '}
                                             <Text style={styles.textBold}>Account &gt; Subscription</Text>. Charges will automatically be billed to this card each month.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Change plan:</Text> You can switch plans by clicking <Text style={styles.textBold}>Explore all plans</Text>. You can
                                             upgrade your plan or increase your subscription size at any time.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="4"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Request Tax-Exempt Status:</Text> Under{' '}
                                             <Text style={styles.textBold}>Account &gt; Subscription &gt; Subscription settings</Text>, click{' '}
@@ -2203,10 +1556,7 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview"
                                             style={styles.link}
@@ -2214,10 +1564,7 @@ const helpContentMap: HelpContent = {
                                             Billing Overview
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Changing-Your-Workspace-Plan"
                                             style={styles.link}
@@ -2225,10 +1572,7 @@ const helpContentMap: HelpContent = {
                                             Change Workspace Plan
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Tax-Exemption"
                                             style={styles.link}
@@ -2252,19 +1596,13 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Setting your status</Text>: Add a custom status (yep, emojis included) to show if you’re in a meeting, out of
                                             office, or just heads-down for a bit.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Managing contact methods</Text>: Add backup emails or phone numbers to keep your account secure and accessible, even
                                             if your primary email changes.
@@ -2292,10 +1630,7 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Turn on payments:</Text> Head to{' '}
                                             <Text style={styles.textBold}>Workspaces &gt; [Workspace Name] &gt; More features</Text>, click{' '}
@@ -2303,10 +1638,7 @@ const helpContentMap: HelpContent = {
                                             <Text style={styles.textBold}>Connect bank account</Text> to get started.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Connect your account:</Text> Use Plaid to link your account in seconds, or enter your details manually. You’ll need
                                             to upload an ID, add your company info, and verify the account with a few test transactions.
@@ -2318,37 +1650,14 @@ const helpContentMap: HelpContent = {
                                         <BulletList
                                             styles={styles}
                                             items={[
-                                                <Text
-                                                    key="1"
-                                                    style={styles.textNormal}
-                                                >
-                                                    Reimburse employees via ACH
-                                                </Text>,
-                                                <Text
-                                                    key="2"
-                                                    style={styles.textNormal}
-                                                >
-                                                    Pay vendors and suppliers
-                                                </Text>,
-                                                <Text
-                                                    key="3"
-                                                    style={styles.textNormal}
-                                                >
-                                                    Issue Expensify Cards to your team
-                                                </Text>,
-                                                <Text
-                                                    key="4"
-                                                    style={styles.textNormal}
-                                                >
-                                                    Collect invoice payments from clients
-                                                </Text>,
+                                                <Text style={styles.textNormal}>Reimburse employees via ACH</Text>,
+                                                <Text style={styles.textNormal}>Pay vendors and suppliers</Text>,
+                                                <Text style={styles.textNormal}>Issue Expensify Cards to your team</Text>,
+                                                <Text style={styles.textNormal}>Collect invoice payments from clients</Text>,
                                             ]}
                                         />
                                     </>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={styles.textBold}>Share access to the bank account with another admin:</Text> Under{' '}
                                         <Text style={styles.textBold}>Settings &gt; Account &gt; Wallet</Text>, click <Text style={styles.textBold}>Share</Text> next to the bank account, and
                                         enter the admin’s email. They’ll just need to revalidate the bank account on their end before they can issue payments.
@@ -2363,19 +1672,13 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Add your bank account</Text>: Under <Text style={styles.textBold}>Settings &gt; Wallet &gt; Bank accounts</Text>,
                                             click <Text style={styles.textBold}>Add bank account</Text>, choose your country, and connect via Plaid or enter your info manually.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Note:</Text> Personal bank accounts are for receiving funds only. You’ll need a verified business bank account to
                                             send payments or issue Expensify Cards.
@@ -2392,28 +1695,19 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>See card details (Expensify Card):</Text> Click <Text style={styles.textBold}>Reveal details</Text> to check your
                                             card number, expiration date, and security code for online purchases.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Track expenses smarter:</Text> Transactions pull in automatically and match with SmartScanned receipts to keep
                                             records audit-ready.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>View transactions:</Text> Click on a connected card and then <Text style={styles.textBold}>View transactions</Text>{' '}
                                             to see all of the imported expenses from that company card.
@@ -2426,10 +1720,7 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account"
                                             style={styles.link}
@@ -2437,10 +1728,7 @@ const helpContentMap: HelpContent = {
                                             Connect a Business Bank Account
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account"
                                             style={styles.link}
@@ -2448,10 +1736,7 @@ const helpContentMap: HelpContent = {
                                             Connect a Personal Bank Account
                                         </TextLink>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <TextLink
                                             href="https://help.expensify.com/articles/new-expensify/expensify-card/Cardholder-Settings-and-Features"
                                             style={styles.link}
@@ -2479,38 +1764,26 @@ const helpContentMap: HelpContent = {
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text
-                                        key="1"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Create a task:</Text> In any chat, click the + button next to the message field and select Assign a task. Add a
                                             title (required) and an optional description, and choose an assignee from chat participants. You can also leave it unassigned to track it
                                             yourself.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="2"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Use tasks to stay on top of action items:</Text> Tasks are great for follow-ups like “Submit expense report,” “Share
                                             slide deck,” or “Update mileage rate.” They’re perfect for 1:1 check-ins, project updates, or organizing next steps after a team discussion.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="3"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Edit and manage tasks:</Text> Task creators and assignees can comment, edit the title or description, reassign the
                                             task, or mark it as complete. Just click the task to update any details.
                                         </Text>
                                     </Text>,
-                                    <Text
-                                        key="4"
-                                        style={styles.textNormal}
-                                    >
+                                    <Text style={styles.textNormal}>
                                         <Text style={[styles.textNormal]}>
                                             <Text style={styles.textBold}>Tasks stay visible:</Text> Each task is shared in the chat where it’s created. When completed, it will be clearly
                                             marked in the chat and can be reopened if needed.
@@ -2533,34 +1806,19 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expense</Text> - Individual standalone expenses.
                             </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expense reports</Text> - Groups of expenses processed in a batch.
                             </Text>,
-                            <Text
-                                key="3"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Chats</Text> - Comments written by you and others.
                             </Text>,
-                            <Text
-                                key="4"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Invoices</Text> - Expenses submitted to clients for payment.
                             </Text>,
-                            <Text
-                                key="5"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Trips</Text> - Travel expenses booked with Expensify Travel or scanned with SmartScan.
                             </Text>,
                         ]}
@@ -2572,10 +1830,7 @@ const helpContentMap: HelpContent = {
                     <BulletList
                         styles={styles}
                         items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
+                            <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>All</Text>
                             </Text>,
                             <>
@@ -2584,36 +1839,11 @@ const helpContentMap: HelpContent = {
                                 <BulletList
                                     styles={styles}
                                     items={[
-                                        <Text
-                                            key="1"
-                                            style={styles.textNormal}
-                                        >
-                                            Draft - Only you can see that hasn’t been shared yet.
-                                        </Text>,
-                                        <Text
-                                            key="2"
-                                            style={styles.textNormal}
-                                        >
-                                            Outstanding - Submitted to someone and awaiting action.
-                                        </Text>,
-                                        <Text
-                                            key="3"
-                                            style={styles.textNormal}
-                                        >
-                                            Approved - Approved, but awaiting payment.
-                                        </Text>,
-                                        <Text
-                                            key="4"
-                                            style={styles.textNormal}
-                                        >
-                                            Done - Fully processed, no further action needed.
-                                        </Text>,
-                                        <Text
-                                            key="5"
-                                            style={styles.textNormal}
-                                        >
-                                            Paid - Fully paid, no further action needed.
-                                        </Text>,
+                                        <Text style={styles.textNormal}>Draft - Only you can see that hasn’t been shared yet.</Text>,
+                                        <Text style={styles.textNormal}>Outstanding - Submitted to someone and awaiting action.</Text>,
+                                        <Text style={styles.textNormal}>Approved - Approved, but awaiting payment.</Text>,
+                                        <Text style={styles.textNormal}>Done - Fully processed, no further action needed.</Text>,
+                                        <Text style={styles.textNormal}>Paid - Fully paid, no further action needed.</Text>,
                                     ]}
                                 />
                             </>,
@@ -2623,36 +1853,11 @@ const helpContentMap: HelpContent = {
                                 <BulletList
                                     styles={styles}
                                     items={[
-                                        <Text
-                                            key="1"
-                                            style={styles.textNormal}
-                                        >
-                                            Unread - Not seen yet by you.
-                                        </Text>,
-                                        <Text
-                                            key="2"
-                                            style={styles.textNormal}
-                                        >
-                                            Sent - Sent by you.
-                                        </Text>,
-                                        <Text
-                                            key="3"
-                                            style={styles.textNormal}
-                                        >
-                                            Attachments - Image, movie, or document.
-                                        </Text>,
-                                        <Text
-                                            key="4"
-                                            style={styles.textNormal}
-                                        >
-                                            Links - Hyperlinks.
-                                        </Text>,
-                                        <Text
-                                            key="5"
-                                            style={styles.textNormal}
-                                        >
-                                            Pinned - Highlighted by you as important.
-                                        </Text>,
+                                        <Text style={styles.textNormal}>Unread - Not seen yet by you.</Text>,
+                                        <Text style={styles.textNormal}>Sent - Sent by you.</Text>,
+                                        <Text style={styles.textNormal}>Attachments - Image, movie, or document.</Text>,
+                                        <Text style={styles.textNormal}>Links - Hyperlinks.</Text>,
+                                        <Text style={styles.textNormal}>Pinned - Highlighted by you as important.</Text>,
                                     ]}
                                 />
                             </>,
@@ -2661,20 +1866,7 @@ const helpContentMap: HelpContent = {
 
                                 <BulletList
                                     styles={styles}
-                                    items={[
-                                        <Text
-                                            key="1"
-                                            style={styles.textNormal}
-                                        >
-                                            Current - Happening or in the future.
-                                        </Text>,
-                                        <Text
-                                            key="2"
-                                            style={styles.textNormal}
-                                        >
-                                            Past - Already happened.
-                                        </Text>,
-                                    ]}
+                                    items={[<Text style={styles.textNormal}>Current - Happening or in the future.</Text>, <Text style={styles.textNormal}>Past - Already happened.</Text>]}
                                 />
                             </>,
                         ]}
@@ -2683,20 +1875,7 @@ const helpContentMap: HelpContent = {
                     <Text style={[styles.textNormal]}>The core of the Reports page are the search results themselves.</Text>
                     <BulletList
                         styles={styles}
-                        items={[
-                            <Text
-                                key="1"
-                                style={styles.textNormal}
-                            >
-                                Select a row to see additional options.
-                            </Text>,
-                            <Text
-                                key="2"
-                                style={styles.textNormal}
-                            >
-                                Tap on a row to see more detail.
-                            </Text>,
-                        ]}
+                        items={[<Text style={styles.textNormal}>Select a row to see additional options.</Text>, <Text style={styles.textNormal}>Tap on a row to see more detail.</Text>]}
                     />
                 </View>
             ),
