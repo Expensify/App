@@ -27,7 +27,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
@@ -810,10 +810,11 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         // 4. Optimistically update the IOU action reportID
         const optimisticMoneyRequestReportActionID = rand64();
 
+        const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
         const newIOUAction = {
             ...oldIOUAction,
             originalMessage: {
-                ...getOriginalMessage(oldIOUAction),
+                ...originalMessage,
                 IOUReportID: reportID,
                 type: isUnreporting ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
