@@ -706,7 +706,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     transactions.forEach((transaction) => {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        const selfDMReportID = existingSelfDMReportID ?? selfDMReport.reportID;
+        const selfDMReportID = existingSelfDMReportID ?? selfDMReport?.reportID;
 
         const oldIOUAction = getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
         if (!transaction.reportID || transaction.reportID === reportID) {
