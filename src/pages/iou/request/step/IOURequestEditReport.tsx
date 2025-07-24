@@ -32,19 +32,9 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        const allReportTransactions = getReportTransactions(reportID);
-        const isMovingAllExpenses = selectedTransactionIDs.length === allReportTransactions.length;
-
         changeTransactionsReport(selectedTransactionIDs, item.value);
         clearSelectedTransactions(true);
-
-        if (isMovingAllExpenses && !isSearchTopmostFullScreenRoute()) {
-            // If moving all expenses, navigate to destination report since original becomes empty (except for Reports page, to maintain the behavior to show the empty report state)
-            Navigation.dismissModalWithReport({reportID: item.value});
-        } else {
-            // If only moving some expenses, stay on original report
-            Navigation.dismissModal();
-        }
+        Navigation.dismissModal();
     };
 
     return (

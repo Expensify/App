@@ -926,6 +926,11 @@ function MoneyReportHeader({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     if (isMobileSelectionModeEnabled) {
+        // If mobile selection mode is enabled but only one transaction remains, turn it off
+        if (transactions.length === 1) {
+            turnOffMobileSelectionMode();
+        }
+
         return (
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
