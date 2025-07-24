@@ -1,8 +1,8 @@
+import type {LocaleContextProps} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
@@ -29,7 +29,7 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
     });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<PersonalDetails>> => {
+const getContacts = (deviceContacts: DeviceContact[] | [], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [])?.at(0) ?? '';
