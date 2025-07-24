@@ -57,7 +57,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             const alternateText = getAlternateText(report, {});
             return {...report, alternateText};
         });
-    }, [personalDetails, reports, selectedReportIDs]);
+    }, [personalDetails, reports, selectedReportIDs, formatPhoneNumber]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -118,6 +118,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         selectedOptions,
         selectedReportIDs,
         translate,
+        formatPhoneNumber,
     ]);
 
     useEffect(() => {

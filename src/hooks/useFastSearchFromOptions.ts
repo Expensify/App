@@ -244,7 +244,7 @@ function useFastSearchFromOptions(
                 currentUserOption: undefined,
             };
         },
-        [includeUserToInvite, options, fastSearch],
+        [includeUserToInvite, options, fastSearch, formatPhoneNumber],
     );
 
     return {search: findInSearchTree, isInitialized};

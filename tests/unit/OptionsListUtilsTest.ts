@@ -31,8 +31,8 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import {formatPhoneNumber} from '../utils/TestHelper';  
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -574,7 +574,7 @@ describe('OptionsListUtils', () => {
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, formatPhoneNumber,       REPORTS_WITH_CONCIERGE);
+        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, formatPhoneNumber, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, formatPhoneNumber, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, formatPhoneNumber, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, formatPhoneNumber, REPORTS_WITH_WORKSPACE_ROOMS);
@@ -1468,10 +1468,10 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return user to invite when search term has a period with options for it that do not contain the period', () => {
-            // Given a set of options   
+            // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', formatPhoneNumber      );
+            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', formatPhoneNumber);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);

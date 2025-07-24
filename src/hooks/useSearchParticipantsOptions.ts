@@ -46,7 +46,7 @@ function useSearchParticipantsOptions({selectedOptions, cleanSearchTerm, shouldI
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions, formatPhoneNumber]);
 
     const {sections, headerMessage} = useMemo<{
         sections: Section[];

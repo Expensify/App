@@ -126,7 +126,7 @@ function useOptions() {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID, formatPhoneNumber]);
 
     return {
         ...options,
