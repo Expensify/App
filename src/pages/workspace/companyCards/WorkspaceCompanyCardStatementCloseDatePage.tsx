@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
@@ -34,6 +34,18 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
+
+    const [defaultStatementPeriodEnd, defaultStatementPeriodEndDay] = useMemo(() => {
+        if (!statementPeriodEndDay) {
+            return [undefined, undefined];
+        }
+
+        if (typeof statementPeriodEndDay === 'number') {
+            return [undefined, statementPeriodEndDay];
+        }
+
+        return [statementPeriodEndDay, undefined];
+    }, [statementPeriodEndDay]);
 
     const submit = useCallback(
         (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
@@ -73,8 +85,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
                 onSubmit={submit}
                 onBackButtonPress={goBack}
                 enabledWhenOffline
-                defaultStatementPeriodEnd={statementPeriodEnd}
-                defaultStatementPeriodEndDay={statementPeriodEndDay}
+                defaultStatementPeriodEnd={defaultStatementPeriodEnd}
+                defaultStatementPeriodEndDay={defaultStatementPeriodEndDay}
                 pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}
                 errors={selectedFeedData?.errorFields?.statementPeriodEndDay}
                 onCloseError={clearError}

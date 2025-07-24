@@ -56,16 +56,16 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const statementCloseDate = useMemo(() => {
-        if (selectedFeedData?.statementPeriodEndDay) {
+        if (!selectedFeedData?.statementPeriodEndDay) {
+            return undefined;
+        }
+
+        if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
             return selectedFeedData.statementPeriodEndDay;
         }
 
-        if (selectedFeedData?.statementPeriodEnd) {
-            return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEnd}`);
-        }
-
-        return undefined;
-    }, [translate, selectedFeedData?.statementPeriodEnd, selectedFeedData?.statementPeriodEndDay]);
+        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
     // s77rt remove DEV lock
     const shouldShowStatementCloseDate = isDevelopment;
