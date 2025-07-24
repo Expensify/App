@@ -449,7 +449,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                     buttonRef={addPaymentMethodAnchorRef}
                                     onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
-                                    shouldEnableScroll={false}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
@@ -468,7 +467,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         shouldShowAddPaymentMethodButton={false}
                                         shouldShowAssignedCards
                                         shouldShowEmptyListMessage={false}
-                                        shouldEnableScroll={false}
                                         onPress={assignedCardPressed}
                                         style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                         listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}

@@ -2,9 +2,11 @@ import {useMemo} from 'react';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 const useCardFeedsForDisplay = () => {
+    const {localeCompare} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [eligiblePoliciesIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -30,7 +32,7 @@ const useCardFeedsForDisplay = () => {
         if (activePolicyID && eligiblePoliciesIDs.has(activePolicyID)) {
             const policyCardFeeds = cardFeedsByPolicy[activePolicyID];
             if (policyCardFeeds?.length) {
-                return policyCardFeeds.sort((a, b) => a.name.localeCompare(b.name)).at(0);
+                return policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
             }
         }
 
@@ -38,10 +40,10 @@ const useCardFeedsForDisplay = () => {
         for (const eligiblePolicyID of eligiblePoliciesIDs) {
             const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
             if (policyCardFeeds?.length) {
-                return policyCardFeeds.sort((a, b) => a.name.localeCompare(b.name)).at(0);
+                return policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
             }
         }
-    }, [eligiblePoliciesIDs, activePolicyID, cardFeedsByPolicy]);
+    }, [eligiblePoliciesIDs, activePolicyID, cardFeedsByPolicy, localeCompare]);
 
     return {defaultCardFeed, cardFeedsByPolicy};
 };

@@ -61,10 +61,12 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
                 isVisible={shouldShowConfirmation}
                 onClose={onClose}
                 onModalHide={onClose}
-                hideModalContentWhileAnimating
-                useNativeDriver
-                onBackdropPress={Navigation.dismissModal}
+                onBackdropPress={() => {
+                    onClose();
+                    Navigation.dismissModal();
+                }}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
