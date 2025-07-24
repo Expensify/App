@@ -16,7 +16,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -44,7 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getAllSelfApprovers, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, hasUserPendingApprovalForPolicy} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -130,8 +130,6 @@ function WorkspacesListPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
@@ -197,14 +195,6 @@ function WorkspacesListPage() {
         const technicalContact = currentPolicy?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
-        const userAccountID = session?.accountID ? String(session.accountID) : undefined;
-
-        // Check if user has any pending approvals
-        const hasPendingApproval = hasUserPendingApprovalForPolicy(reports, policyIDToLeave, userAccountID);
-
-        if (hasPendingApproval) {
-            return translate('common.cannotLeaveWorkspaceOutstandingReport');
-        }
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');
@@ -260,8 +250,6 @@ function WorkspacesListPage() {
                 },
             ];
 
-            const hasPendingApproval = hasUserPendingApprovalForPolicy(reports, item.policyID, session?.accountID ? String(session.accountID) : undefined);
-
             if (isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
@@ -303,7 +291,7 @@ function WorkspacesListPage() {
 
                         setPolicyIDToLeave(item.policyID);
 
-                        if (isReimburser || hasPendingApproval) {
+                        if (isReimburser) {
                             setIsCannotLeaveWorkspaceModalOpen(true);
                             return;
                         }
@@ -365,7 +353,6 @@ function WorkspacesListPage() {
             session?.email,
             activePolicyID,
             translate,
-            reports,
             styles.ph5,
             styles.mb2,
             styles.mh5,
