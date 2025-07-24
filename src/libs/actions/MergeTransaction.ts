@@ -71,6 +71,9 @@ function getTransactionsForMergingLocally(
     } else if (isAdmin || isManager) {
         const reportTransactions = getReportTransactions(report?.reportID);
         eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
+            if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
+                return false;
+            }
             return areTransactionsEligibleForMerge(targetTransaction, transaction);
         });
     } else {
@@ -78,7 +81,9 @@ function getTransactionsForMergingLocally(
             if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
                 return false;
             }
-            return areTransactionsEligibleForMerge(targetTransaction, transaction) && isMoneyRequestReportEligibleForMerge(transaction.reportID, false);
+
+            const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            return areTransactionsEligibleForMerge(targetTransaction, transaction) && (isUnreportedExpense || isMoneyRequestReportEligibleForMerge(transaction.reportID, false));
         });
     }
 
