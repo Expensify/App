@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
+import Log from '@libs/Log';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -86,34 +87,105 @@ function useFastSearchFromOptions(
         if (prevOptions && shallowCompareOptions(prevOptions, options)) {
             return;
         }
+
+        const actionId = `fast_search_tree_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
         InteractionManager.runAfterInteractions(() => {
-            prevOptionsRef.current = options;
-            prevFastSearchRef.current?.dispose();
-            newFastSearch = FastSearch.createFastSearch(
-                [
-                    {
-                        data: options.personalDetails,
-                        toSearchableString: personalDetailToSearchString,
-                        uniqueId: getPersonalDetailUniqueId,
-                    },
-                    {
-                        data: options.recentReports,
-                        toSearchableString: recentReportToSearchString,
-                        uniqueId: getRecentReportUniqueId,
-                    },
-                ],
+            const startTime = Date.now();
 
-                {shouldStoreSearchableStrings: true},
-            );
-            setFastSearch(newFastSearch);
-            prevFastSearchRef.current = newFastSearch;
-            setIsInitialized(true);
+            Performance.markStart(CONST.TIMING.FAST_SEARCH_TREE_CREATION);
+            Log.info('[CMD_K_DEBUG] FastSearch tree creation started', false, {
+                actionId,
+                personalDetailsCount: options.personalDetails.length,
+                recentReportsCount: options.recentReports.length,
+                hasExistingTree: !!prevFastSearchRef.current,
+                timestamp: startTime,
+            });
+
+            try {
+                prevOptionsRef.current = options;
+
+                // Dispose existing tree if present
+                if (prevFastSearchRef.current) {
+                    const disposeStartTime = Date.now();
+                    try {
+                        prevFastSearchRef.current.dispose();
+                        Log.info('[CMD_K_DEBUG] FastSearch tree disposed (reason: recreate)', false, {
+                            actionId,
+                            disposeTime: Date.now() - disposeStartTime,
+                            timestamp: Date.now(),
+                        });
+                    } catch (error) {
+                        Log.alert('[CMD_K_FREEZE] FastSearch tree disposed (reason: recreate) failed', {
+                            actionId,
+                            error: String(error),
+                            timestamp: Date.now(),
+                        });
+                    }
+                }
+
+                newFastSearch = FastSearch.createFastSearch(
+                    [
+                        {
+                            data: options.personalDetails,
+                            toSearchableString: personalDetailToSearchString,
+                            uniqueId: getPersonalDetailUniqueId,
+                        },
+                        {
+                            data: options.recentReports,
+                            toSearchableString: recentReportToSearchString,
+                            uniqueId: getRecentReportUniqueId,
+                        },
+                    ],
+
+                    {shouldStoreSearchableStrings: true},
+                );
+
+                setFastSearch(newFastSearch);
+                prevFastSearchRef.current = newFastSearch;
+                setIsInitialized(true);
+
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.FAST_SEARCH_TREE_CREATION);
+                Log.info('[CMD_K_DEBUG] FastSearch tree creation completed', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    totalItems: options.personalDetails.length + options.recentReports.length,
+                    isInitialized: true,
+                    timestamp: endTime,
+                });
+            } catch (error) {
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.FAST_SEARCH_TREE_CREATION);
+                Log.alert('[CMD_K_FREEZE] FastSearch tree creation failed', {
+                    actionId,
+                    error: String(error),
+                    duration: endTime - startTime,
+                    personalDetailsCount: options.personalDetails.length,
+                    recentReportsCount: options.recentReports.length,
+                    timestamp: endTime,
+                });
+                throw error;
+            }
         });
-
-        return () => newFastSearch?.dispose();
     }, [options]);
 
-    useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
+    useEffect(
+        () => () => {
+            try {
+                Log.info('[CMD_K_DEBUG] FastSearch tree cleanup (reason: unmount)', false, {
+                    timestamp: Date.now(),
+                });
+                prevFastSearchRef.current?.dispose();
+            } catch (error) {
+                Log.alert('[CMD_K_FREEZE] FastSearch tree cleanup (reason: unmount) failed', {
+                    error: String(error),
+                    timestamp: Date.now(),
+                });
+            }
+        },
+        [],
+    );
 
     const findInSearchTree = useCallback(
         (searchInput: string): OptionsListType => {

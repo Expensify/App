@@ -65,7 +65,7 @@ Navigation.navigate(ROUTES.HOME);
 // Navigation with parameters
 Navigation.navigate(
     ROUTES.SEARCH_ROOT.getRoute({
-        query: 'type:expense status:all search',
+        query: 'type:expense search',
         // additional parameters...
     }),
 );
@@ -503,7 +503,7 @@ In Expensify, we use an extended implementation of this function because:
 
 Here are examples how the state is generated based on route:
 
--   `settings/workspaces/1/overview`
+-   `workspaces/1/overview`
 
 ```json
 {
@@ -536,7 +536,7 @@ Here are examples how the state is generated based on route:
                         "params": {
                             "policyID": "1"
                         },
-                        "path": "/settings/workspaces/1/overview",
+                        "path": "workspaces/1/overview",
                         "key": "Workspace_Overview-key"
                     }
                 ]
@@ -654,7 +654,7 @@ function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
 }
 ```
 
-To optimize the number of routes rendered in `RootStackNavigator` we limit the number of `FullScreenNavigators` rendered to 2 (we need to render the previous fullscreen too for the transition animations to work well). 
+To optimize the number of routes rendered in `RootStackNavigator` we limit the number of `FullScreenNavigators` rendered to 2 (we need to render the previous fullscreen too for the transition animations to work well). There's an exception for `SearchFullscreenNavigator` where we render only last route when possible due to performance implications. The idea stays the same.
 
 -   `src/libs/Navigation/AppNavigator/createSearchFullscreenNavigator/index.tsx`
 
@@ -664,10 +664,9 @@ function useCustomEffects(props: CustomEffectsHookProps) {
     usePreserveNavigatorState(props.state, props.parentRoute);
 }
 
-// This is a custom state hook that is used to render the last two routes in the stack.
-// We do this to improve the performance of the search results screen.
-function useCustomState({state}: CustomStateHookProps) {
-    const routesToRender = [...state.routes.slice(-2)];
+// For web we only render last route in SearchFullscreenNavigator. Other navigators are keep last two routes mounted. The idea stays the same.
+export default function useCustomState({state}: CustomStateHookProps) {
+    const routesToRender = state.routes.slice(-1);
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
 ```
