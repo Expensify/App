@@ -126,13 +126,15 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+    // wrapped in useMemo to avoid unnecessary re-renders and improve performance
+    const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
@@ -155,7 +157,7 @@ function MoneyRequestReportActionsList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
@@ -472,6 +474,7 @@ function MoneyRequestReportActionsList({
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
+                    policies={policies}
                     reportAction={reportAction}
                     reportActions={reportActions}
                     parentReportAction={parentReportAction}
@@ -500,6 +503,7 @@ function MoneyRequestReportActionsList({
             firstVisibleReportActionID,
             linkedReportActionID,
             allReports,
+            policies,
         ],
     );
 
@@ -548,13 +552,14 @@ function MoneyRequestReportActionsList({
     }, []);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
-
+    // Wrapped into useCallback to stabilize children re-renders
+    const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
     return (
         <View
             style={[styles.flex1]}
             ref={wrapperViewRef}
         >
-            {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <>
                     <ButtonWithDropdownMenu
                         onPress={() => null}
@@ -564,7 +569,7 @@ function MoneyRequestReportActionsList({
                         shouldAlwaysShowDropdownMenu
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
-                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
+                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
@@ -597,7 +602,14 @@ function MoneyRequestReportActionsList({
                     <ConfirmModal
                         title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
-                        onConfirm={handleDeleteTransactions}
+                        onConfirm={() => {
+                            const shouldNavigateBack =
+                                transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+                            handleDeleteTransactions();
+                            if (shouldNavigateBack) {
+                                Navigation.goBack(route.params?.backTo);
+                            }
+                        }}
                         onCancel={hideDeleteModal}
                         prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                         confirmText={translate('common.delete')}
@@ -628,7 +640,7 @@ function MoneyRequestReportActionsList({
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.reportActionID}
+                        keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={0.75}

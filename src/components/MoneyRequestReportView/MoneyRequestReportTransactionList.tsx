@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -116,6 +116,7 @@ function MoneyRequestReportTransactionList({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -136,7 +137,7 @@ function MoneyRequestReportTransactionList({
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -273,7 +274,7 @@ function MoneyRequestReportTransactionList({
                                             return;
                                         }
 
-                                        if (selectionMode?.isEnabled) {
+                                        if (isMobileSelectionModeEnabled) {
                                             toggleTransaction(transaction.transactionID);
                                             return;
                                         }
@@ -295,7 +296,7 @@ function MoneyRequestReportTransactionList({
                                         if (!isSmallScreenWidth) {
                                             return;
                                         }
-                                        if (selectionMode?.isEnabled) {
+                                        if (isMobileSelectionModeEnabled) {
                                             toggleTransaction(transaction.transactionID);
                                             return;
                                         }
@@ -312,7 +313,7 @@ function MoneyRequestReportTransactionList({
                                         taxAmountColumnSize={taxAmountColumnSize}
                                         shouldShowTooltip
                                         shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                        shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
+                                        shouldShowCheckbox={isMobileSelectionModeEnabled || !isSmallScreenWidth}
                                         onCheckboxPress={toggleTransaction}
                                         columns={allReportColumns}
                                         scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
@@ -355,7 +356,7 @@ function MoneyRequestReportTransactionList({
                             title={translate('common.select')}
                             icon={Expensicons.CheckSquare}
                             onPress={() => {
-                                if (!selectionMode?.isEnabled) {
+                                if (!isMobileSelectionModeEnabled) {
                                     turnOnMobileSelectionMode();
                                 }
                                 toggleTransaction(selectedTransactionID);
@@ -371,7 +372,7 @@ function MoneyRequestReportTransactionList({
                 <Animated.Text
                     style={[styles.textLabelSupporting]}
                     entering={hasComments ? undefined : FadeIn}
-                    exiting={FadeOut}
+                    exiting={isFocused ? FadeOut : undefined}
                 >
                     {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
                 </Animated.Text>

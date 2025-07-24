@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import useIsHomeRouteActive from '@navigation/helpers/useIsHomeRouteActive';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -27,6 +28,9 @@ type FloatingActionButtonProps = {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
+    /* Callback to fire on long press of the FloatingActionButton */
+    onLongPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
     /* Current state (active or not active) of the component */
     isActive: boolean;
 
@@ -40,13 +44,13 @@ type FloatingActionButtonProps = {
     isTooltipAllowed: boolean;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false, canBeMissing: true});
+    const [isSidebarLoaded = false] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
@@ -88,6 +92,19 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         onPress(event);
     };
 
+    const longPressFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        // Only execute on narrow layout - prevent event from firing on wide screens
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+
+        hideProductTrainingTooltip();
+
+        // Drop focus to avoid blue focus ring.
+        fabPressable.current?.blur();
+        onLongPress?.(event);
+    };
+
     return (
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
@@ -108,10 +125,16 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                         buttonRef.current = el ?? null;
                     }
                 }}
-                style={[styles.h100, styles.navigationTabBarItem]}
+                style={[
+                    styles.h100,
+                    styles.navigationTabBarItem,
+
+                    // Prevent text selection on touch devices (e.g. on long press)
+                    canUseTouchScreen() && styles.userSelectNone,
+                ]}
                 accessibilityLabel={accessibilityLabel}
                 onPress={toggleFabAction}
-                onLongPress={() => {}}
+                onLongPress={longPressFabAction}
                 role={role}
                 shouldUseHapticsOnLongPress={false}
                 testID="floating-action-button"

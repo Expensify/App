@@ -8,6 +8,8 @@ import {
     getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getTagList,
+    getTagListByOrderWeight,
     getUnitRateValue,
     isUserInvitedToWorkspace,
     shouldShowPolicy,
@@ -171,6 +173,20 @@ const rules = {
             id: '4',
         },
     ],
+};
+const policyTags = {
+    TagListTest0: {
+        name: 'TagListTest0',
+        orderWeight: 0,
+        required: false,
+        tags: {},
+    },
+    TagListTest2: {
+        name: 'TagListTest2',
+        orderWeight: 2,
+        required: false,
+        tags: {},
+    },
 };
 
 describe('PolicyUtils', () => {
@@ -816,6 +832,26 @@ describe('PolicyUtils', () => {
             const result = isUserInvitedToWorkspace();
 
             expect(result).toBeTruthy();
+        });
+    });
+    describe('getTagList', () => {
+        it.each([
+            ['when index is 0', 0, policyTags.TagListTest0.name],
+            ['when index is 1', 1, policyTags.TagListTest2.name],
+            ['when index is out of range', 2, ''],
+        ])('%s', (_description, index, expected) => {
+            const tagList = getTagList(policyTags, index);
+            expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('getTagListByOrderWeight', () => {
+        it.each([
+            ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
+            ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
+            ['when orderWeight is out of range', 1, ''],
+        ])('%s', (_description, orderWeight, expected) => {
+            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
+            expect(tagList.name).toEqual(expected);
         });
     });
 });

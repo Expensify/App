@@ -3,6 +3,7 @@ import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {
     addSplitExpenseField,
@@ -34,6 +35,7 @@ import {
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
@@ -124,9 +126,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         hash: 12345,
         query: 'test',
         type: 'invoice',
-        status: 'all',
+        status: '',
         flatFilters: [],
     })),
+    getTodoSearchQuery: jest.fn(),
+    buildSearchQueryJSON: jest.fn(),
 }));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -152,6 +156,7 @@ describe('actions/IOU', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
+        initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
@@ -2365,6 +2370,66 @@ describe('actions/IOU', () => {
             });
             expect(originalTransactionThread).toBe(undefined);
         });
+
+        it('should remove the original transaction from the search snapshot data', async () => {
+            // Given a single expense
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                amount: 100,
+                currency: 'USD',
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                merchant: 'test',
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2),
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: expenseReport.reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            const draftTransaction: OnyxEntry<Transaction> = {
+                ...transaction,
+                comment: {
+                    originalTransactionID: transaction.transactionID,
+                },
+            };
+
+            // When splitting the expense
+            const hash = 1;
+            saveSplitTransactions(draftTransaction, hash);
+
+            await waitForBatchedUpdates();
+
+            // Then the original expense/transaction should be removed from the search snapshot data
+            const searchSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            expect(searchSnapshot?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
@@ -2694,7 +2759,7 @@ describe('actions/IOU', () => {
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
                                             lastMessageText: `paid $${amount / 100}.00 with Expensify`,
                                             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-                                            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                                            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -5205,7 +5270,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scan failure transactions', async () => {
@@ -5260,7 +5326,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scan failure transaction', async () => {
@@ -5306,7 +5373,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
@@ -5357,7 +5425,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
             // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 

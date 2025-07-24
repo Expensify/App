@@ -190,14 +190,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
                                 </TextLink>
                                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                                <TextLink
-                                    onPress={() => {
-                                        // TODO: Add link to tag levels documentation
-                                        return null;
-                                    }}
-                                >
-                                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}
-                                </TextLink>
+                                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
                                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
                             </>
                         )}

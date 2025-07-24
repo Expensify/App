@@ -1,31 +1,18 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {usePersonalDetails} from '@components/OnyxProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSearchParticipantsOptions from '@hooks/useSearchParticipantsOptions';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {searchInServer} from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-
-const defaultListOptions = {
-    userToInvite: null,
-    recentReports: [],
-    personalDetails: [],
-    currentUserOption: null,
-    headerMessage: '',
-};
 
 function getSelectedOptionData(option: Option): OptionData {
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -41,86 +28,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const {options, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: didScreenTransitionEnd,
-    });
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return defaultListOptions;
-        }
-
-        return getValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                selectedOptions,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            },
-        );
-    }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
-
-    const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
-            selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
-
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
-        if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
-        }
-
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
-
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
-
-        if (chatOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-            });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
-            } else {
-                chatOptions.currentUserOption.text = formattedName;
-                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
-            }
-        }
-
-        newSections.push(formattedResults.section);
-
-        newSections.push({
-            title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
-        });
-
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
-        });
-
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
+    const {sections, headerMessage, areOptionsInitialized} = useSearchParticipantsOptions({
+        selectedOptions,
+        cleanSearchTerm,
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
@@ -155,10 +73,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         setSelectedOptions(preSelectedOptions);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails]);
-
-    useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
 
     const handleParticipantSelection = useCallback(
         (option: Option) => {
