@@ -108,7 +108,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
@@ -152,8 +152,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 employees: policy?.employeeList ?? {},
                 defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail, localeCompare],
     );
 
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
