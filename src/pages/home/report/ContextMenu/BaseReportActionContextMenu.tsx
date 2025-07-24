@@ -376,7 +376,12 @@ function BaseReportActionContextMenu({
                                 key={contextAction.textTranslateKey}
                                 onPress={(event) =>
                                     interceptAnonymousUser(
-                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}, formatPhoneNumber),
+                                        () =>
+                                            contextAction.onPress?.(
+                                                closePopup,
+                                                {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})},
+                                                formatPhoneNumber,
+                                            ),
                                         contextAction.isAnonymousAction,
                                     )
                                 }
