@@ -113,8 +113,10 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 
+    /** The native ID for this component */
     nativeID?: string;
 
+    /** Callback when layout of composer changes */
     onLayout: (height: number) => void;
 };
 
