@@ -6,6 +6,7 @@ import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ModifiedExpenseMessage', () => {
@@ -30,7 +31,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -51,7 +52,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the amount to $18.00`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -74,7 +75,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -99,7 +100,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -122,7 +123,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -150,7 +151,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult =
                     'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -176,7 +177,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult =
                     'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -195,7 +196,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the merchant (previously "Big Belly")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -214,7 +215,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "KFC"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -235,7 +236,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -258,7 +259,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -277,7 +278,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "Big Belly"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -298,7 +299,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -321,7 +322,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -340,7 +341,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26)';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -358,7 +359,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the expense';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -380,7 +381,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -401,7 +402,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -427,7 +428,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
 
                 // When the expense is moved from an expense chat or 1:1 DM to selfDM
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: selfDMReport.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: selfDMReport.reportID, reportAction, formatPhoneNumber});
                 // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
@@ -453,7 +454,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
 
                 // When the expense is moved to an expense chat with reportName empty
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction, formatPhoneNumber});
                 // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
@@ -482,7 +483,7 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 // When the expense is moved to an expense chat with both reportName and policyName are present
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction, formatPhoneNumber});
                 // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
@@ -507,7 +508,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseChat.reportName});
 
                 // When the expense is moved to an expense chat with only reportName is present
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction, formatPhoneNumber});
                 // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });

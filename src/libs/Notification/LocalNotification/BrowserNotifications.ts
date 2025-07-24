@@ -132,7 +132,7 @@ export default {
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, formatPhoneNumber});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

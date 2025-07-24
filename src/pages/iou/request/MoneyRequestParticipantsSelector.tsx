@@ -135,10 +135,10 @@ function MoneyRequestParticipantsSelector(
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, formatPhoneNumber);
+            const usersFromContact = getContacts(contactList, formatPhoneNumber );
             setContacts(usersFromContact);
         });
-    }, []);
+    }, [formatPhoneNumber]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());

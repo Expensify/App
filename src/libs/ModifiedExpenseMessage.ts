@@ -1,13 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
@@ -170,10 +170,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
+    formatPhoneNumber,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';

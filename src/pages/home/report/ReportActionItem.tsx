@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -53,6 +54,7 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const {formatPhoneNumber} = useLocalize();
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         canBeMissing: true,
         selector: (draftMessagesForReport) => {
@@ -121,7 +123,7 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
-            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action})}
+            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action, formatPhoneNumber})}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
