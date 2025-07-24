@@ -65,16 +65,23 @@ type ReportActionsViewProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
+    /** The animated scroll handler callback */
     onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
 
     scrollingVerticalOffset: SharedValue<number>;
 
+    /** The current keyboard height, updated on every keyboard movement frame */
     keyboardHeight: SharedValue<number>;
 
+    /** The content offset to be set on the flatlist according to the
+     * keyboard and scroll positions
+     */
     keyboardOffset: SharedValue<number>;
 
+    /** The current composer height */
     composerHeight: number;
 
+    /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 };
 

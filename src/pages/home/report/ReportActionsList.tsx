@@ -114,15 +114,15 @@ type ReportActionsListProps = {
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
-    /** iOS only - The current keyboard height, updated on every keyboard movement frame */
+    /** The current keyboard height, updated on every keyboard movement frame */
     keyboardHeight: SharedValue<number>;
 
-    /** iOS only - The content offset to be set on the flatlist according to the
+    /** The content offset to be set on the flatlist according to the
      * keyboard and scroll positions
      */
     keyboardOffset: SharedValue<number>;
 
-    /** iOS only - The current composer height */
+    /** The current composer height */
     composerHeight: number;
 
     isComposerFullSize?: boolean;

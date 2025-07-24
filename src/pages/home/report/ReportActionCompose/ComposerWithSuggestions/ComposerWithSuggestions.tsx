@@ -145,6 +145,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 
+    /** The native ID for this component */
     nativeID?: string;
 };
 

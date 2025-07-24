@@ -75,12 +75,16 @@ type ReportFooterProps = {
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
 
+    /** The native ID for this component */
     nativeID?: string;
 
+    /** The current keyboard height, updated on every keyboard movement frame */
     keyboardHeight: SharedValue<number>;
 
+    /** Callback when layout of composer changes */
     onLayout: (height: number) => void;
 
+    /** The current fixed header height of the chat */
     headerHeight: number;
 };
 

@@ -172,6 +172,7 @@ function useKeyboardAnimation(isModalVisible?: boolean, isComposerFullSize?: boo
                     keyboardAbsoluteHeight.set(e.height);
                 }
 
+                // Same logic of preserving position as the isModalVisible if above
                 if (isComposerFullSize) {
                     willCloseComposer.set(true);
                     return offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
