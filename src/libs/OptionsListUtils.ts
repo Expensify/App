@@ -791,7 +791,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
         const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
         const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        lastMessageTextFromReport = getMovedTransactionMessage(toReport);
+        lastMessageTextFromReport = getMovedTransactionMessage(toReport, formatPhoneNumber);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -1009,10 +1009,12 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({formatPhoneNumber, accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '')
+            : getReportName(report, formatPhoneNumber);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({formatPhoneNumber, accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1028,7 +1030,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, formatPhoneNumber, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
     return result;
@@ -1050,7 +1052,7 @@ function getReportOption(participant: Participant): OptionData {
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, formatPhoneNumber);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report});
@@ -1089,7 +1091,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, formatPhoneNumber);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails && !option.text) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
