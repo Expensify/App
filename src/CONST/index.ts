@@ -5206,7 +5206,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
