@@ -475,6 +475,7 @@ function TransactionItemRow({
                                         transaction={transactionItem}
                                         containerStyles={[styles.mt2, styles.minHeight4]}
                                         missingFieldError={missingFieldError}
+                                        violations={transactionItem.violations}
                                     />
                                 </View>
                                 {shouldRenderChatBubbleCell && (
@@ -506,6 +507,7 @@ function TransactionItemRow({
                             <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
                                 missingFieldError={missingFieldError}
+                                violations={transactionItem.violations}
                             />
                         </View>
                     </Animated.View>

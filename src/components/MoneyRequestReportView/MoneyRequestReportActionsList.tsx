@@ -54,6 +54,7 @@ import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListI
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -652,15 +653,17 @@ function MoneyRequestReportActionsList({
                                     report={report}
                                     policy={policy}
                                 />
-                                <MoneyRequestReportTransactionList
-                                    report={report}
-                                    transactions={transactions}
-                                    newTransactions={newTransactions}
-                                    reportActions={reportActions}
-                                    hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
-                                    scrollToNewTransaction={scrollToNewTransaction}
-                                />
+                                <OnyxListItemProvider>
+                                    <MoneyRequestReportTransactionList
+                                        report={report}
+                                        transactions={transactions}
+                                        newTransactions={newTransactions}
+                                        reportActions={reportActions}
+                                        hasComments={reportHasComments}
+                                        isLoadingInitialReportActions={showReportActionsLoadingState}
+                                        scrollToNewTransaction={scrollToNewTransaction}
+                                    />
+                                </OnyxListItemProvider>
                             </>
                         }
                         keyboardShouldPersistTaps="handled"

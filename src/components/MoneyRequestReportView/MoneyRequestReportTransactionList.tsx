@@ -19,6 +19,7 @@ import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -117,6 +118,7 @@ function MoneyRequestReportTransactionList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
+    const [, , violations] = useReportWithTransactionsAndViolations(report.reportID);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -306,7 +308,10 @@ function MoneyRequestReportTransactionList({
                                     disabled={isTransactionPendingDelete(transaction)}
                                 >
                                     <TransactionItemRow
-                                        transactionItem={transaction}
+                                        transactionItem={{
+                                            ...transaction,
+                                            violations: violations?.[transaction.transactionID] ?? [],
+                                        }}
                                         isSelected={isTransactionSelected(transaction.transactionID)}
                                         dateColumnSize={dateColumnSize}
                                         amountColumnSize={amountColumnSize}
