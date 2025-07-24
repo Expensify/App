@@ -22,7 +22,7 @@ import type {BaseShareLogListProps} from './types';
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const betas = useBetas();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
@@ -52,7 +52,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, formatPhoneNumber, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
@@ -64,7 +64,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         );
 
         return {...filteredOptions, headerMessage};
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         const sectionsList = [];

@@ -59,7 +59,7 @@ function useOptions() {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
+    const {formatPhoneNumber} = useLocalize();
     const defaultOptions = useMemo(() => {
         const filteredOptions = getValidOptions(
             {
@@ -76,13 +76,13 @@ function useOptions() {
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, formatPhoneNumber, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
+    }, [debouncedSearchTerm, defaultOptions, selectedOptions, formatPhoneNumber]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -114,6 +114,7 @@ function useOptions() {
             if (!participantOption) {
                 participantOption = getUserToInviteOption({
                     searchValue: participant?.login,
+                    formatPhoneNumber,
                 });
             }
             if (!participantOption) {
@@ -125,7 +126,7 @@ function useOptions() {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID, formatPhoneNumber]);
 
     return {
         ...options,
@@ -144,7 +145,7 @@ type NewChatPageRef = {
 };
 
 function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -165,7 +166,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions as OptionData[], recentReports, personalDetails);
+        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions as OptionData[], recentReports, personalDetails, formatPhoneNumber);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
@@ -202,7 +203,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite, formatPhoneNumber]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

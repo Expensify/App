@@ -14,6 +14,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -73,7 +74,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, reports);
+const options = createOptionList(personalDetails, formatPhoneNumber, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -120,14 +121,14 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, formatPhoneNumber);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
         const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '');
+            filterAndOrderOptions(formattedOptions, '', formatPhoneNumber);
         });
     });
 
@@ -185,6 +186,7 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                formatPhoneNumber,
                 mockedPersonalDetails,
                 true,
             ),
@@ -197,6 +199,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], formatPhoneNumber, mockedPersonalDetails, true));
     });
 });
