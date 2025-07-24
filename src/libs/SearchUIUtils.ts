@@ -2,6 +2,7 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -52,7 +53,6 @@ import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import localeCompare from './LocaleCompare';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -466,6 +466,7 @@ function getTransactionItemCommonFormattedProperties(
     from: SearchPersonalDetails,
     to: SearchPersonalDetails,
     policy: SearchPolicy,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
@@ -749,7 +750,12 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey): TransactionListItemType[] {
+function getTransactionsSections(
+    data: OnyxTypes.SearchResults['data'],
+    metadata: OnyxTypes.SearchResults['search'],
+    currentSearch: SearchKey,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -779,7 +785,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
-        const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
+        const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
         const transactionSection: TransactionListItemType = {
             action: getAction(data, allViolations, key, currentSearch),
@@ -1041,7 +1047,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1080,8 +1086,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
-                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                    const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
+                    const parentReportName = getReportName(parentReport, formatPhoneNumber, policy, undefined, undefined);
+                    const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
                     const parentReportIcon = icons?.at(0);
 
                     result.parentReportName = parentReportName;
@@ -1103,7 +1109,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -1144,7 +1150,16 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
+                    reportName: getSearchReportName({
+                        formatPhoneNumber,
+                        report,
+                        policy,
+                        personalDetails: data.personalDetailsList,
+                        transactions,
+                        invoiceReceiverPolicy,
+                        reports,
+                        policies,
+                    }),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -1165,6 +1180,7 @@ function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1213,7 +1229,7 @@ function getReportSections(
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
             const transaction = {
                 ...transactionItem,
@@ -1289,15 +1305,16 @@ function getSections(
     type: SearchDataTypes,
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, formatPhoneNumber);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data);
+        return getTaskSections(data, formatPhoneNumber);
     }
 
     if (groupBy) {
@@ -1305,7 +1322,7 @@ function getSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getReportSections(data, metadata, currentSearch, reportActions);
+                return getReportSections(data, metadata, currentSearch, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.MEMBERS:
                 return getMemberSections(data, metadata);
             case CONST.SEARCH.GROUP_BY.CARDS:
@@ -1313,7 +1330,7 @@ function getSections(
         }
     }
 
-    return getTransactionsSections(data, metadata, currentSearch);
+    return getTransactionsSections(data, metadata, currentSearch, formatPhoneNumber);
 }
 
 /**

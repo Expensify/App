@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
     QueryFilter,
@@ -696,6 +697,7 @@ function getFilterDisplayValue(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -716,7 +718,7 @@ function getFilterDisplayValue(
         return getCardDescription(cardID, cardList) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], formatPhoneNumber) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -749,6 +751,7 @@ function buildUserReadableQueryString(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -821,7 +824,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeeds, policies),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeeds, policies, formatPhoneNumber),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
