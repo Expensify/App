@@ -2809,7 +2809,7 @@ function getDisplayNameForParticipant({
     // Check if the phone number is already cached
     let formattedLogin = phoneNumberCache[login];
     if (!formattedLogin) {
-        formattedLogin = formatPhoneNumberPhoneUtils(login);
+        formattedLogin = formatPhoneNumber(login);
         // Store the formatted phone number in the cache
         phoneNumberCache[login] = formattedLogin;
     }
@@ -2832,7 +2832,7 @@ function getDisplayNameForParticipant({
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === hiddenTranslation) {
-        return formatPhoneNumberPhoneUtils(longName);
+        return formatPhoneNumber(longName);
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
@@ -3083,7 +3083,7 @@ function getIconsForChatThread(
     const actorIcon = {
         id: actorAccountID,
         source: actorDetails?.avatar ?? FallbackAvatar,
-        name: formatPhoneNumberPhoneUtils(actorDisplayName),
+        name: formatPhoneNumber(actorDisplayName),
         type: CONST.ICON_TYPE_AVATAR,
         fallbackIcon: actorDetails?.fallbackIcon,
     };
@@ -5278,7 +5278,6 @@ function getReportNameInternal({
             childReportID: report?.reportID,
             reports,
             personalDetails,
-            formatPhoneNumber,
         }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             return `[${translateLocal('common.attachment')}]`;
