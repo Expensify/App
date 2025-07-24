@@ -1,5 +1,7 @@
 import type {RefObject} from 'react';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
+import {Platform} from 'react-native';
+import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -10,6 +12,9 @@ type Args = {
 
     /** The current offset of scrolling from either top or bottom of chat list */
     currentVerticalScrollingOffset: SharedValue<number>;
+
+    /** The current keyboard height, updated on every keyboard movement frame */
+    keyboardHeight: SharedValue<number>;
 
     /** Ref for whether read action was skipped */
     readActionSkippedRef: RefObject<boolean>;
@@ -27,6 +32,7 @@ export default function useReportUnreadMessageScrollTracking({
     floatingMessageVisibleInitialValue,
     hasUnreadMarkerReportAction,
     readActionSkippedRef,
+    keyboardHeight,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(floatingMessageVisibleInitialValue);
 
@@ -36,23 +42,34 @@ export default function useReportUnreadMessageScrollTracking({
      * Call any other callback that the component might need
      */
 
-    useEffect(() => {
-        // display floating button if we're scrolled more than the offset
-        if (currentVerticalScrollingOffset.get() > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && hasUnreadMarkerReportAction) {
-            setIsFloatingMessageCounterVisible(true);
-        }
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: currentVerticalScrollingOffset.get(),
+                kHeight: keyboardHeight.get(),
+            };
+        },
+        ({offsetY, kHeight}) => {
+            const correctedOffsetY = Platform.OS === 'ios' ? kHeight + offsetY : offsetY;
 
-        // hide floating button if we're scrolled closer than the offset and mark message as read
-        if (currentVerticalScrollingOffset.get() < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
-            if (readActionSkippedRef.current) {
-                // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
-                readActionSkippedRef.current = false;
-                readNewestAction(reportID);
+            // display floating button if we're scrolled more than the offset
+            if (correctedOffsetY > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && hasUnreadMarkerReportAction) {
+                runOnJS(setIsFloatingMessageCounterVisible)(true);
             }
 
-            setIsFloatingMessageCounterVisible(false);
-        }
-    }, [currentVerticalScrollingOffset, hasUnreadMarkerReportAction, isFloatingMessageCounterVisible, reportID, readActionSkippedRef]);
+            // hide floating button if we're scrolled closer than the offset and mark message as read
+            if (correctedOffsetY < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
+                if (readActionSkippedRef.current) {
+                    // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
+                    readActionSkippedRef.current = false;
+                    runOnJS(readNewestAction)(reportID);
+                }
+
+                runOnJS(setIsFloatingMessageCounterVisible)(false);
+            }
+        },
+        [hasUnreadMarkerReportAction, isFloatingMessageCounterVisible, reportID, readActionSkippedRef],
+    );
 
     return {
         isFloatingMessageCounterVisible,

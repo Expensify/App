@@ -373,6 +373,7 @@ function ReportActionsList({
         floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        keyboardHeight,
     });
 
     useEffect(() => {
