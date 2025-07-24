@@ -1,4 +1,4 @@
-import union from 'lodash-es/union';
+import union from 'lodash/union';
 import {useMemo} from 'react';
 import usePrevious from './usePrevious';
 
