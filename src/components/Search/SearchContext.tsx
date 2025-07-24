@@ -217,6 +217,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             lastSearchType,
             shouldShowSelectAllMatchingItems,
             showSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
         ],
     );
 

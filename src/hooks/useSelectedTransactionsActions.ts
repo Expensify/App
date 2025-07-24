@@ -168,7 +168,7 @@ function useSelectedTransactionsActions({
         }
 
         // Gets the list of options for the export sub-menu
-        const getExportOptions = () => {
+        const getExportOptions = (): PopoverMenuItem[] => {
             // We provide the basic and expense level export options by default
             const exportOptions: PopoverMenuItem[] = [
                 {
