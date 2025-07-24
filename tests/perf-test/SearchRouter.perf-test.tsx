@@ -87,7 +87,7 @@ const getMockedPersonalDetails = (length = 100) =>
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
-const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, TestHelper.formatPhoneNumber, mockedReports);
 
 beforeAll(() =>
     Onyx.init({
