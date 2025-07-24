@@ -5457,7 +5457,7 @@ const CONST = {
         },
     },
 
-    /* If we update these values, let's ensure this logic is consistent with the logic in Auth, since we're using the same method to calculate distance expenses created via Concierge. */
+    /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
             "rate": 414,
