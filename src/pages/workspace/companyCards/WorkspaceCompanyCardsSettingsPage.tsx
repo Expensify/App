@@ -130,7 +130,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             onPress={navigateToChangeFeedName}
                         />
                         {shouldShowStatementCloseDate && (
-                            <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay ?? selectedFeedData?.pendingFields?.statementPeriodEnd}>
+                            <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     title={statementCloseDate?.toString()}
@@ -138,11 +138,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                     style={[styles.moneyRequestMenuItem]}
                                     titleStyle={styles.flex1}
                                     onPress={navigateToChangeStatementCloseDate}
-                                    brickRoadIndicator={
-                                        (selectedFeedData?.errorFields?.statementPeriodEndDay ?? selectedFeedData?.errorFields?.statementPeriodEnd)
-                                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                            : undefined
-                                    }
+                                    brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
                             </OfflineWithFeedback>
                         )}
