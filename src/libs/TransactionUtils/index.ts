@@ -19,7 +19,7 @@ import {translateLocal} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
-    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnitRate,
     getPolicy,
     getTaxByID,
@@ -837,7 +837,7 @@ function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): 
 }
 
 function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
-    return getCleanedTagName(getTag(transaction, tagIndex));
+    return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
 function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -997,7 +997,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 /**
  * Check if the user should see the violation
  */
-function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
+function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName, shouldShowRterForSettledReport = true): boolean {
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
     const isReportOpen = isOpenExpenseReport(iouReport);
@@ -1011,7 +1011,7 @@ function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
-        return isSubmitter || isInstantSubmitEnabled(policy);
+        return (isSubmitter || isInstantSubmitEnabled(policy)) && (shouldShowRterForSettledReport || !isSettled(iouReport));
     }
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
