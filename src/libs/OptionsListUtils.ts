@@ -240,6 +240,7 @@ type GetValidReportsReturnTypeCombined = {
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
@@ -1973,7 +1974,7 @@ function getValidOptions(
         if (currentUserLogin) {
             personalDetailLoginsToExclude = {
                 ...loginsToExclude,
-                [currentUserLogin]: true,
+                [currentUserLogin]: !config.includeCurrentUser,
             };
         }
 
@@ -2326,11 +2327,11 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
-    return [item.participantsList?.[0]?.displayName ?? item?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+    return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
 function getCurrentUserSearchTerms(item: OptionData) {
-    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
+    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
 /**
