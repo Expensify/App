@@ -1456,6 +1456,8 @@ const CONST = {
         ANIMATION_TIMING: {
             DEFAULT_IN: 300,
             DEFAULT_OUT: 200,
+            DEFAULT_RIGHT_DOCKED_IOS_IN: 500,
+            DEFAULT_RIGHT_DOCKED_IOS_OUT: 400,
             FAB_IN: 350,
             FAB_OUT: 200,
         },
