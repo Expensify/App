@@ -550,6 +550,7 @@ const translations = {
         tax: 'Imposto',
         shared: 'Compartilhado',
         drafts: 'Rascunhos',
+        draft: 'Rascunho',
         finished: 'Concluído',
         upgrade: 'Atualizar',
         downgradeWorkspace: 'Reduzir espaço de trabalho',

@@ -550,6 +550,7 @@ const translations = {
         tax: '税金',
         shared: '共有',
         drafts: '下書き',
+        draft: 'ドラフト',
         finished: '完了',
         upgrade: 'アップグレード',
         downgradeWorkspace: 'ワークスペースをダウングレードする',
