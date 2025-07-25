@@ -386,8 +386,8 @@ function IOURequestStepConfirmation({
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
-                if (!isLocalFile) {
-                    newReceiptFiles = {...newReceiptFiles, ...(item.receipt && {[item.transactionID]: item.receipt})};
+                if (!isLocalFile && item.receipt) {
+                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
                     return;
                 }
 
@@ -403,7 +403,7 @@ function IOURequestStepConfirmation({
                         receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
-                    newReceiptFiles = {...newReceiptFiles, ...(receipt && {[item.transactionID]: receipt})};
+                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
                 };
 
                 const onFailure = () => {
