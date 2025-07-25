@@ -813,6 +813,14 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type EmptyCategoriesSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
+type EmptyTagsSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
 type SettlementAccountInfoParams = {
     reconciliationAccountSettingsLink: string;
     accountNumber: string;
@@ -1099,5 +1107,7 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
 };
