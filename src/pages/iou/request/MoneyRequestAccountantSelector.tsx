@@ -116,7 +116,16 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formatResults = formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            [],
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+            undefined,
+            reportAttributesDerived,
+        );
         newSections.push(formatResults.section);
 
         newSections.push({
