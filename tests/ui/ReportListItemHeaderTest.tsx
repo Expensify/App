@@ -29,7 +29,7 @@ const mockSearchContext = {
     setSelectedReports: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
-    setCurrentSearchHash: jest.fn(),
+    setCurrentSearchHashAndKey: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     shouldShowSelectAllMatchingItems: jest.fn(),
