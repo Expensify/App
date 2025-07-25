@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1919,7 +1920,7 @@ function getValidOptions(
 
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const searchTerms = (searchString ?? '')
+        const searchTerms = deburr(searchString ?? '')
             .toLowerCase()
             .split(' ')
             .filter((term) => term.length > 0);
@@ -1934,7 +1935,7 @@ function getValidOptions(
             } else if (report.isPolicyExpenseChat) {
                 searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
             }
-            searchText = searchText.toLocaleLowerCase();
+            searchText = deburr(searchText.toLocaleLowerCase());
             const searchTermsFound = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
 
             if (!searchTermsFound) {
@@ -1995,7 +1996,7 @@ function getValidOptions(
             };
         }
 
-        const searchTerms = (searchString ?? '')
+        const searchTerms = deburr(searchString ?? '')
             .toLowerCase()
             .split(' ')
             .filter((term) => term.length > 0);
@@ -2013,7 +2014,7 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
-            const searchText = `${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase();
+            const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
             return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
         };
