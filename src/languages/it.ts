@@ -5975,7 +5975,7 @@ const translations = {
         },
         statements: 'Dichiarazioni',
         unapprovedCash: 'Contanti non approvati',
-        unapprovedCompanyCards: 'Carte aziendali non approvate',
+        unapprovedCards: 'Carte non approvate',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
