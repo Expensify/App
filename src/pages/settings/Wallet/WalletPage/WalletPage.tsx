@@ -684,6 +684,26 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 }}
                                 wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                             />
+                            <MenuItem
+                                title={translate('common.enableGlobalReimbursements')}
+                                icon={Expensicons.Globe}
+                                onPress={() => {
+                                    if (isActingAsDelegate) {
+                                        closeModal(() => {
+                                            showDelegateNoAccessModal();
+                                        });
+                                        return;
+                                    }
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
+                                        return;
+                                    }
+                                    closeModal(() =>
+                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.additionalData?.policyID)),
+                                    );
+                                }}
+                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                            />
                         </View>
                     )}
                 </Popover>
