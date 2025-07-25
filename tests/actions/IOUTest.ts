@@ -4694,14 +4694,10 @@ describe('actions/IOU', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                             callback: (updatedTransaction) => {
-                                if (!updatedTransaction) {
-                                    return;
-                                }
-
                                 Onyx.disconnect(connection);
                                 expect(updatedTransaction?.pendingAction).toBeFalsy();
-                                expect(updatedTransaction?.comment?.hold).not.toBeNull();
-                                expect(Object.values(updatedTransaction.errors ?? {})).toEqual(
+                                expect(updatedTransaction?.comment?.hold).toBeTruthy();
+                                expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
                                     Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
                                 );
 
