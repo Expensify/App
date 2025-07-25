@@ -71,6 +71,7 @@ function useSidePanel() {
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
+
     useEffect(() => {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([

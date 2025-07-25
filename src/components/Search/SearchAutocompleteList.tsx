@@ -27,7 +27,6 @@ import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyU
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
-    getAutocompleteDatePresets,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -167,7 +166,7 @@ function SearchAutocompleteList(
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -217,7 +216,6 @@ function SearchAutocompleteList(
         // Thus passing an empty object to the `allCards` parameter.
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
-    const datePresetAutoCompleteList = useMemo(() => getAutocompleteDatePresets(translate), [translate]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -472,16 +470,11 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
-                const filteredDates = datePresetAutoCompleteList[autocompleteKey]
-                    .filter((date) => date.text.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(date.text.toLowerCase()))
+                const filteredDatePresets = CONST.SEARCH.FILTER_DATE_PRESETS[autocompleteKey]
+                    .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))
                     .sort()
                     .slice(0, 10);
-                return filteredDates.map((date) => ({
-                    filterKey: autocompleteKey,
-                    text: date.text,
-                    autocompleteID: date.value,
-                    mapKey: autocompleteKey,
-                }));
+                return filteredDatePresets.map((datePreset) => ({filterKey: autocompleteKey, text: datePreset}));
             }
             default: {
                 return [];
@@ -507,12 +500,11 @@ function SearchAutocompleteList(
         allCards,
         booleanTypes,
         workspaceList,
-        datePresetAutoCompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
-        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-    }, [recentSearches]);
+        return Object.values(recentSearches ?? {}).sort((a, b) => localeCompare(b.timestamp, a.timestamp));
+    }, [recentSearches, localeCompare]);
 
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
