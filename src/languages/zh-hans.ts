@@ -35,9 +35,13 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -183,6 +187,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -545,6 +550,7 @@ const translations = {
         tax: '税务',
         shared: '共享',
         drafts: '草稿',
+        draft: '草稿',
         finished: '完成',
         upgrade: '升级',
         downgradeWorkspace: '降级工作区',
@@ -552,6 +558,7 @@ const translations = {
         userID: '用户 ID',
         disable: '禁用',
         export: '导出',
+        basicExport: '基本导出',
         initialValue: '初始值',
         currentDate: '当前日期',
         value: '值',
@@ -822,24 +829,21 @@ const translations = {
         reactedWith: '做出了反应',
     },
     reportActionsView: {
-        beginningOfArchivedRoomPartOne: '您错过了在 的聚会',
-        beginningOfArchivedRoomPartTwo: '这里没有什么可看的。',
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `此聊天是与 ${domainRoom} 域上的所有 Expensify 成员进行的。`,
-        beginningOfChatHistoryDomainRoomPartTwo: '用它与同事聊天、分享技巧和提问。',
-        beginningOfChatHistoryAdminRoomPartOneFirst: '此聊天是与',
-        beginningOfChatHistoryAdminRoomPartOneLast: 'admin.',
-        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
-        beginningOfChatHistoryAdminRoomPartTwo: '用它来讨论工作区设置和更多内容。',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `此聊天是与${workspaceName}中的所有人进行的。`,
-        beginningOfChatHistoryAnnounceRoomPartTwo: `用于最重要的公告。`,
-        beginningOfChatHistoryUserRoomPartOne: '此聊天室可用于任何内容',
-        beginningOfChatHistoryUserRoomPartTwo: 'related.',
-        beginningOfChatHistoryInvoiceRoomPartOne: `此聊天用于发票之间的交流`,
-        beginningOfChatHistoryInvoiceRoomPartTwo: `. 使用 + 按钮发送发票。`,
+        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+            `你错过了 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 的派对，这里没什么好看的。`,
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
+            `此聊天是与 <strong>${domainRoom}</strong> 域名上的所有 Expensify 会员进行的。使用它与同事聊天、分享技巧和提问。`,
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
+            `此聊天是与 <strong>${workspaceName}</strong> 管理员进行的。您可以用它来聊天，讨论工作空间设置等问题。`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `此聊天室面向 <strong>${workspaceName}</strong> 的所有人。最重要的公告请使用此聊天室。`,
+        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+            `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
+        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: '这是在这里',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: '将提交费用至',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: '只需使用 + 按钮。',
+        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 + 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
@@ -1509,6 +1513,8 @@ const translations = {
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
             invalidateWithDelay: '延迟失效',
             recordTroubleshootData: '记录故障排除数据',
+            softKillTheApp: '软删除应用程序',
+            kill: '杀戮',
         },
         debugConsole: {
             saveLog: '保存日志',
@@ -2171,6 +2177,11 @@ const translations = {
             title: '您是否使用任何会计软件？',
             none: 'None',
         },
+        interestedFeatures: {
+            title: '您对哪些功能感兴趣？',
+            featuresAlreadyEnabled: '您的工作区已启用以下功能：',
+            featureYouMayBeInterestedIn: '启用您可能感兴趣的其他功能：',
+        },
         error: {
             requiredFirstName: '请输入您的名字以继续',
         },
@@ -2669,6 +2680,7 @@ const translations = {
             validationAmounts: '您输入的验证金额不正确。请仔细检查您的银行对账单，然后重试。',
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入一个有效的百分比数字',
+            deletePaymentBankAccount: '由于该银行账户用于Expensify卡支付，因此无法删除。如果您仍希望删除此账户，请联系Concierge。',
         },
     },
     addPersonalBankAccount: {
@@ -3217,10 +3229,8 @@ const translations = {
         termsAndConditions: {
             header: '在我们继续之前...',
             title: '条款和条件',
-            subtitle: '请同意Expensify Travel',
-            termsAndConditions: '条款和条件',
-            travelTermsAndConditions: '条款和条件',
-            agree: '我同意',
+            label: '我同意条款和条件',
+            subtitle: `请同意 Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">条款和条件</a>。`,
             error: '您必须同意Expensify Travel的条款和条件才能继续',
             defaultWorkspaceError: '您需要设置一个默认工作区以启用Expensify Travel。请前往设置 > 工作区 > 点击工作区旁边的三个竖点 > 设为默认工作区，然后重试！',
         },
@@ -3409,7 +3419,7 @@ const translations = {
             welcomeNote: '请使用Expensify提交您的报销收据，谢谢！',
             subscription: '订阅',
             markAsEntered: '标记为手动输入',
-            markAsExported: '标记为手动导出',
+            markAsExported: '标记为已出口',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `导出到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: '让我们仔细检查一下，确保一切都正确。',
             lineItemLevel: '逐项级别',
@@ -4323,9 +4333,8 @@ const translations = {
             addNewBankAccount: '添加新的银行账户',
             settlementAccount: '结算账户',
             settlementAccountDescription: '选择一个账户来支付您的Expensify卡余额。',
-            settlementAccountInfoPt1: '确保此账户与您的账户匹配',
-            settlementAccountInfoPt2: '所以持续对账正常工作。',
-            reconciliationAccount: '对账账户',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `确保该账户与<a href="${reconciliationAccountSettingsLink}">对账账户</a> (${accountNumber}) 一致，以便连续对账正常工作。`,
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择您支付 Expensify Card 余额的频率。',
             settlementFrequencyInfo: '如果您想切换到每月结算，您需要通过Plaid连接您的银行账户，并拥有90天的正余额历史记录。',
@@ -6043,7 +6052,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将${fieldName}从${oldValue}更改为${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将${fieldName}更改为${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => `将工作区更改为${toPolicyName}${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `已更改工作区${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;
+                    }
+                    return `已将工作区更改为 ${toPolicyName}${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `类型从${oldType}更改为${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `由于${originalManager}正在休假，已将此报告发送给${delegateUser}。`,
                 exportedToCSV: `导出为CSV`,

@@ -71,7 +71,10 @@ describe('actions/Report', () => {
 
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
-        const promise = Onyx.clear().then(jest.useRealTimers);
+        const promise = Onyx.clear().then(() => {
+            jest.useRealTimers();
+            waitForBatchedUpdates();
+        });
 
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
@@ -1757,6 +1760,77 @@ describe('actions/Report', () => {
             });
             // The length is 3 to include the CREATED action
             expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
+        });
+    });
+
+    describe('changeReportPolicy', () => {
+        it('should unarchive the expense report', async () => {
+            // Given an archived expense report
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+
+            // When moving to another workspace
+            Report.changeReportPolicy(expenseReport, '2');
+            await waitForBatchedUpdates();
+
+            // Then the expense report should not be archived anymore
+            const isArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        resolve(!!val?.private_isArchived);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            expect(isArchived).toBe(false);
+        });
+    });
+
+    describe('changeReportPolicyAndInviteSubmitter', () => {
+        it('should unarchive the expense report', async () => {
+            // Given an archived expense report
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminEmail = 'admin@gmail.com';
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                ownerAccountID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ownerAccountID]: {
+                    login: ownerEmail,
+                },
+            });
+
+            // When moving to another workspace
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, '2', {
+                [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the expense report should not be archived anymore
+            const isArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        resolve(!!val?.private_isArchived);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            expect(isArchived).toBe(false);
         });
     });
 
