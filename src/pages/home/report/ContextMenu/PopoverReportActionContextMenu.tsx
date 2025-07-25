@@ -282,13 +282,16 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [transactionIDs, setTransactionIDs] = useState<string[]>([]);
 
     useEffect(() => {
-        const originalMessage = getOriginalMessage(reportActionRef.current);
-        if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
-            setTransactionIDs([originalMessage.IOUTransactionID]);
-            return;
+        const reportAction = reportActionRef.current;
+        if (isMoneyRequestAction(reportAction)) {
+            const originalMessage = getOriginalMessage(reportAction);
+            if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
+                setTransactionIDs([originalMessage.IOUTransactionID]);
+                return;
+            }
         }
         setTransactionIDs([]);
-    }, [reportActionRef.current]);
+    }, [reportActionRef]);
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
 
@@ -310,7 +313,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactionViolations]);
+    }, [duplicateTransactions, duplicateTransactionViolations]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

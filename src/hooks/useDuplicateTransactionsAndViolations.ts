@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,11 +50,9 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
 }
 
 /**
- * Hook to fetch transactions, their violations and if present, the duplicate transactions and their violations.
- * @param {string[]} transactionIDs - Array of transaction IDs to check for duplicates.
- * @returns {Object} - An object containing duplicate transactions and their violations.
- * @property {OnyxCollection<Transaction>} duplicateTransactions - Collection of duplicate transactions.
- * @property {OnyxCollection<TransactionViolations>} duplicateTransactionViolations - Collection of violations related to duplicate transactions.
+ * A hook to fetch transactions, their violations and if present, the duplicate transactions and their violations.
+ * @param transactionIDs - Array of transaction IDs to check for duplicates.
+ * @returns - An object containing duplicate transactions and their violations.
  */
 function useDuplicateTransactionsAndViolations(transactionIDs: string[]) {
     const violationsSelectorMemo = useMemo(() => {
