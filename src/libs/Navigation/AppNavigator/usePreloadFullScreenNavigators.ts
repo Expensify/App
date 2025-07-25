@@ -16,6 +16,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavigatorState';
 
+// This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
+const TIMING_TO_CALL_PRELOAD = 1000;
+
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
     const lastWorkspacesSplitNavigator = state.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
@@ -116,7 +119,7 @@ function usePreloadFullScreenNavigators() {
                                 return undefined;
                         }
                     });
-            }, 1000);
+            }, TIMING_TO_CALL_PRELOAD);
         }, [navigation, preloadedRoutes, route.name, subscriptionPlan, isAuthenticated]),
     );
 }
