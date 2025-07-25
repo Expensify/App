@@ -208,11 +208,14 @@ function ReportActionItemSingle({
                 <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>
                     <ReportAvatar
                         singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptBorderColor={getBackgroundColor()}
-                        subscriptNoMargin
+                        subscriptAvatarBorderColor={getBackgroundColor()}
+                        noRightMarginOnSubscriptContainer
                         isInReportAction
                         shouldShowTooltip
-                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
+                        secondaryAvatarContainerStyle={[
+                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
+                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
+                        ]}
                         reportID={iouReportID}
                         action={action}
                     />

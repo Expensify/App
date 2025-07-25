@@ -573,8 +573,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             return (
                 <View style={styles.mb3}>
                     <ReportAvatar
-                        subscriptNoMargin
-                        subscriptAvatarSize={CONST.AVATAR_SIZE.HEADER}
+                        noRightMarginOnSubscriptContainer
                         size={CONST.AVATAR_SIZE.X_LARGE}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
                     />

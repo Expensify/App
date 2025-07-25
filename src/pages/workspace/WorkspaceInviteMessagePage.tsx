@@ -188,10 +188,10 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                         <ReportAvatar
                             size={CONST.AVATAR_SIZE.LARGE}
                             accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                            convertSubscriptToMultiple
-                            shouldStackHorizontally
-                            shouldDisplayAvatarsInRows
-                            secondAvatarStyle={[styles.secondAvatarInline]}
+                            horizontalStacking={{
+                                displayInRows: true,
+                            }}
+                            secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                         />
                     </View>
                     <View style={[styles.mb5]}>

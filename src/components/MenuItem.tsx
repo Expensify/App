@@ -32,7 +32,6 @@ import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -714,12 +713,10 @@ function MenuItem(
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {(!!iconReportID || !!iconAccountID) && (
                                                         <ReportAvatar
-                                                            subscriptBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
-                                                            isHovered={isHovered}
-                                                            isPressed={pressed}
+                                                            subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                             size={avatarSize}
-                                                            secondAvatarStyle={[
+                                                            secondaryAvatarContainerStyle={[
                                                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
@@ -903,16 +900,18 @@ function MenuItem(
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         <ReportAvatar
-                                                            subscriptBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                            isHovered={isHovered}
-                                                            isPressed={pressed}
+                                                            subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
                                                             reportID={rightIconReportID}
                                                             size={CONST.AVATAR_SIZE.SMALL}
-                                                            fallbackIconForMultipleAvatars={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                                            shouldStackHorizontally={shouldStackHorizontally}
+                                                            horizontalStacking={
+                                                                shouldStackHorizontally && {
+                                                                    isHovered,
+                                                                    isPressed: pressed,
+                                                                }
+                                                            }
                                                             accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
-                                                            isFocusMode
+                                                            useMidSubscriptSizeForMultipleAvatars
                                                         />
                                                     </View>
                                                 )}

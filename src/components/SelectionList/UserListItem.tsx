@@ -3,7 +3,6 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportAvatar from '@components/ReportAvatar';
 import Text from '@components/Text';
@@ -14,16 +13,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
-
-const fallbackIcon: IconType = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
 
 function UserListItem<TItem extends ListItem>({
     item,
@@ -110,10 +101,9 @@ function UserListItem<TItem extends ListItem>({
                     )}
                     {!!item.icons && (
                         <ReportAvatar
-                            subscriptFallbackIcon={fallbackIcon}
-                            subscriptBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
-                            secondAvatarStyle={[
+                            secondaryAvatarContainerStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                 isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                 hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,

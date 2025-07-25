@@ -111,7 +111,7 @@ function TableListItem<TItem extends ListItem>({
                         <ReportAvatar
                             accountIDs={[item.accountID]}
                             shouldShowTooltip={showTooltip}
-                            secondAvatarStyle={[
+                            secondaryAvatarContainerStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                 isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                 hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,

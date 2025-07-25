@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportAvatar from '@components/ReportAvatar';
@@ -17,16 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
-
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
 
 function InviteMemberListItem<TItem extends ListItem>({
     item,
@@ -112,10 +103,9 @@ function InviteMemberListItem<TItem extends ListItem>({
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {!!item.icons && (
                             <ReportAvatar
-                                subscriptFallbackIcon={fallbackIcon}
-                                subscriptBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
+                                secondaryAvatarContainerStyle={[
                                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                     isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                     hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,

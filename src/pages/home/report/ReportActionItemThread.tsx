@@ -63,11 +63,12 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                     <ReportAvatar
                         size={CONST.AVATAR_SIZE.SMALL}
-                        sortAvatarsByName
                         accountIDs={accountIDs}
-                        shouldStackHorizontally
-                        isHovered={isHovered}
-                        isActive={isActive}
+                        horizontalStacking={{
+                            isHovered,
+                            isActive,
+                            sort: 'byName',
+                        }}
                         isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>

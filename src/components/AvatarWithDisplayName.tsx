@@ -28,11 +28,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
-import {FallbackAvatar} from './Icon/Expensicons';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportAvatar from './ReportAvatar';
@@ -66,13 +64,6 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
-};
-
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
 };
 
 function getCustomDisplayName(
@@ -231,10 +222,9 @@ function AvatarWithDisplayName({
     const multipleAvatars = (
         <ReportAvatar
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-            subscriptBorderColor={avatarBorderColor}
-            subscriptFallbackIcon={fallbackIcon}
+            subscriptAvatarBorderColor={avatarBorderColor}
             size={size}
-            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+            secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
             reportID={report?.reportID}
         />
     );

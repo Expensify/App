@@ -9,7 +9,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCardFeedIcon} from '@libs/CardUtils';
 import localeCompare from '@libs/LocaleCompare';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {
@@ -29,98 +31,79 @@ import {
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {CompanyCardFeed, OnyxInputOrEntry, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import {FallbackAvatar} from './Icon/Expensicons';
+import {WorkspaceBuilding} from './Icon/WorkspaceDefaultAvatars';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
-type SubIcon = {
-    /** Avatar source to display */
-    source: IconAsset;
+type SortingOptions = 'byID' | 'byName' | 'reverse';
 
-    /** Width of the icon */
-    width?: number;
+/** Prop to identify if we should load avatars vertically instead of diagonally */
+type HorizontalStacking =
+    | Partial<{
+          /** Prop to identify if we should display avatars in rows */
+          displayInRows: boolean;
 
-    /** Height of the icon */
-    height?: number;
+          /** Whether the avatars are hovered */
+          isHovered: boolean;
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
-    fill?: string;
-};
+          /** Whether the avatars are active */
+          isActive: boolean;
+
+          /** Whether the avatars are in an element being pressed */
+          isPressed: boolean;
+
+          /** Prop to limit the amount of avatars displayed horizontally */
+          overlapDivider: number;
+
+          /** Prop to limit the amount of avatars displayed horizontally */
+          maxAvatarsInRow: number;
+
+          /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
+          useCardBG: boolean;
+
+          /** Prop to sort the avatars */
+          sort: SortingOptions | SortingOptions[];
+      }>
+    | boolean;
 
 type ReportAvatarProps = {
+    horizontalStacking?: HorizontalStacking;
+
     /** IOU Report ID for single avatar */
     reportID?: string;
 
     /** IOU Report ID for single avatar */
     action?: OnyxEntry<ReportAction>;
 
-    /** Single avatar size */
-    singleAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
     /** Single avatar container styles */
     singleAvatarContainerStyle?: ViewStyle[];
 
     /** Border color for the subscript avatar */
-    subscriptBorderColor?: ColorValue;
+    subscriptAvatarBorderColor?: ColorValue;
 
     /** Whether to show the subscript avatar without margin */
-    subscriptNoMargin?: boolean;
+    noRightMarginOnSubscriptContainer?: boolean;
 
-    /** Subscript icon to display */
-    subIcon?: SubIcon;
-
-    /** A fallback main avatar icon */
-    subscriptFallbackIcon?: IconType;
-
-    /** Size of the secondary avatar */
-    subscriptAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
+    /** Account IDs to display avatars for, it overrides the reportID and action props */
     accountIDs?: number[];
-
-    reverseAvatars?: boolean;
-
-    convertSubscriptToMultiple?: boolean;
-
-    sortAvatarsByID?: boolean;
-
-    sortAvatarsByName?: boolean;
 
     /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Style for Second Avatar */
-    secondAvatarStyle?: StyleProp<ViewStyle>;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIconForMultipleAvatars?: AvatarSource;
-
-    /** Prop to identify if we should load avatars vertically instead of diagonally */
-    shouldStackHorizontally?: boolean;
-
-    /** Prop to identify if we should display avatars in rows */
-    shouldDisplayAvatarsInRows?: boolean;
-
-    /** Whether the avatars are hovered */
-    isHovered?: boolean;
-
-    /** Whether the avatars are active */
-    isActive?: boolean;
-
-    /** Whether the avatars are in an element being pressed */
-    isPressed?: boolean;
+    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether #focus mode is on */
-    isFocusMode?: boolean;
+    useMidSubscriptSizeForMultipleAvatars?: boolean;
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
@@ -128,14 +111,8 @@ type ReportAvatarProps = {
     /** Whether to show the tooltip text */
     shouldShowTooltip?: boolean;
 
-    /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
-    shouldUseCardBackground?: boolean;
-
-    /** Prop to limit the amount of avatars displayed horizontally */
-    maxAvatarsInRow?: number;
-
-    /** Prop to limit the amount of avatars displayed horizontally */
-    overlapDivider?: number;
+    /** Subscript card feed to display instead of the second avatar */
+    subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
 };
 
 type AvatarStyles = {
@@ -332,37 +309,23 @@ function getPrimaryAndSecondaryAvatar({
 
 function ReportAvatar({
     reportID: potentialReportID,
-    singleAvatarContainerStyle,
-    singleAvatarSize,
-    subscriptBorderColor,
-    subscriptNoMargin = false,
-    subIcon,
-    subscriptFallbackIcon,
-    subscriptAvatarSize = CONST.AVATAR_SIZE.SUBSCRIPT,
-    accountIDs: passedAccountIDs,
     action: passedAction,
-    reverseAvatars,
-    convertSubscriptToMultiple,
-    sortAvatarsByID,
-    sortAvatarsByName,
-    fallbackIconForMultipleAvatars,
+    accountIDs: passedAccountIDs,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle: secondAvatarStyleProp,
-    shouldStackHorizontally = false,
-    shouldDisplayAvatarsInRows = false,
-    isHovered = false,
-    isActive = false,
-    isPressed = false,
-    isFocusMode = false,
-    isInReportAction = false,
     shouldShowTooltip = true,
-    shouldUseCardBackground = false,
-    maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
-    overlapDivider = 3,
+    horizontalStacking,
+    singleAvatarContainerStyle,
+    subscriptAvatarBorderColor,
+    noRightMarginOnSubscriptContainer = false,
+    subscriptCardFeed,
+    secondaryAvatarContainerStyle,
+    useMidSubscriptSizeForMultipleAvatars = false,
+    isInReportAction = false,
 }: ReportAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useThemeIllustrations();
 
     const reportID =
         potentialReportID ??
@@ -379,6 +342,7 @@ function ReportAvatar({
 
     const iouReport = isChatReport(report) && report?.chatType !== 'tripRoom' ? undefined : report;
     const chatReport = isChatReport(report) && report?.chatType !== 'tripRoom' ? report : potentialChatReport;
+    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.X_LARGE ? CONST.AVATAR_SIZE.HEADER : CONST.AVATAR_SIZE.SUBSCRIPT;
 
     const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID;
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -400,6 +364,18 @@ function ReportAvatar({
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
 
     const {fallbackIcon} = personalDetails?.[accountID] ?? {};
+    const {
+        displayInRows: shouldDisplayAvatarsInRows = false,
+        isHovered = false,
+        isActive = false,
+        isPressed = false,
+        overlapDivider = 3,
+        maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
+        sort: sortAvatars = undefined,
+        useCardBG: shouldUseCardBackground = false,
+    } = typeof horizontalStacking === 'boolean' ? {} : (horizontalStacking ?? {});
+
+    const shouldStackHorizontally = !!horizontalStacking;
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
     const isReportArchived = useReportIsArchived(reportID);
@@ -408,7 +384,7 @@ function ReportAvatar({
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isAInvoiceReport || (isWorkspaceChat && (!actorAccountID || shouldDisplayAllActors));
     const shouldShowAllActors = shouldDisplayAllActors && !reportPreviewSenderID;
-    const shouldShowConvertedSubscriptAvatar = convertSubscriptToMultiple && shouldShowSubscriptAvatar && !reportPreviewSenderID;
+    const shouldShowConvertedSubscriptAvatar = (shouldStackHorizontally || passedAccountIDs) && shouldShowSubscriptAvatar && !reportPreviewSenderID;
     const isReportPreviewOrNoAction = !action || action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
 
@@ -452,14 +428,14 @@ function ReportAvatar({
 
     const multipleAvatars = avatarsForAccountIDs.length > 0 ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar];
     const sortedAvatars = (() => {
-        if (sortAvatarsByName) {
+        if (sortAvatars?.includes('byName')) {
             return sortIconsByName(multipleAvatars, personalDetails);
         }
-        return sortAvatarsByID ? lodashSortBy(multipleAvatars, (icon) => icon.id) : multipleAvatars;
+        return sortAvatars?.includes('byID') ? lodashSortBy(multipleAvatars, (icon) => icon.id) : multipleAvatars;
     })();
-    const icons = reverseAvatars ? sortedAvatars.reverse() : sortedAvatars;
+    const icons = sortAvatars?.includes('reverse') ? sortedAvatars.reverse() : sortedAvatars;
 
-    const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
+    const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
@@ -467,7 +443,7 @@ function ReportAvatar({
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
 
     const avatarSize = useMemo(() => {
-        if (isFocusMode) {
+        if (useMidSubscriptSizeForMultipleAvatars) {
             return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
         }
 
@@ -480,7 +456,7 @@ function ReportAvatar({
         }
 
         return CONST.AVATAR_SIZE.SMALLER;
-    }, [isFocusMode, size]);
+    }, [useMidSubscriptSizeForMultipleAvatars, size]);
 
     const subscriptAvatarStyle = useMemo(() => {
         if (size === CONST.AVATAR_SIZE.SMALL) {
@@ -516,43 +492,42 @@ function ReportAvatar({
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
     if (
-        ((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isTripPreview) &&
-        !shouldStackHorizontally &&
-        !isChatThreadOutsideTripRoom &&
-        !shouldShowConvertedSubscriptAvatar
+        (((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isTripPreview) &&
+            !shouldStackHorizontally &&
+            !isChatThreadOutsideTripRoom &&
+            !shouldShowConvertedSubscriptAvatar) ||
+        !!subscriptCardFeed
     ) {
         const isSmall = size === CONST.AVATAR_SIZE.SMALL;
         const containerStyle = StyleUtils.getContainerStyles(size);
 
-        const mainAvatar = primaryAvatar ?? subscriptFallbackIcon;
-
         return (
             <View
-                style={[containerStyle, subscriptNoMargin ? styles.mr0 : {}]}
+                style={[containerStyle, noRightMarginOnSubscriptContainer ? styles.mr0 : {}]}
                 testID="ReportAvatar-Subscript"
             >
                 <UserDetailsTooltip
                     shouldRender={shouldShowTooltip}
-                    accountID={Number(mainAvatar?.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={mainAvatar}
+                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                    icon={primaryAvatar}
                     fallbackUserDetails={{
-                        displayName: mainAvatar?.name,
+                        displayName: primaryAvatar.name,
                     }}
                 >
                     <View>
                         <Avatar
                             containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-                            source={mainAvatar?.source}
+                            source={primaryAvatar.source}
                             size={size}
-                            name={mainAvatar?.name}
-                            avatarID={mainAvatar?.id}
-                            type={mainAvatar?.type}
-                            fallbackIcon={mainAvatar?.fallbackIcon}
+                            name={primaryAvatar.name}
+                            avatarID={primaryAvatar.id}
+                            type={primaryAvatar.type}
+                            fallbackIcon={primaryAvatar.fallbackIcon}
                             testID="ReportAvatar-Subscript-MainAvatar"
                         />
                     </View>
                 </UserDetailsTooltip>
-                {!!secondaryAvatar && (
+                {!!secondaryAvatar && !subscriptCardFeed && (
                     <UserDetailsTooltip
                         shouldRender={shouldShowTooltip}
                         accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
@@ -567,7 +542,7 @@ function ReportAvatar({
                             <Avatar
                                 iconAdditionalStyles={[
                                     StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
-                                    StyleUtils.getBorderColorStyle(subscriptBorderColor ?? theme.componentBG),
+                                    StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                                 ]}
                                 source={secondaryAvatar.source}
                                 size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize}
@@ -581,14 +556,14 @@ function ReportAvatar({
                         </View>
                     </UserDetailsTooltip>
                 )}
-                {!!subIcon && (
+                {!!subscriptCardFeed && (
                     <View
                         style={[
                             size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},
                             // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            StyleUtils.getBorderColorStyle(subscriptBorderColor || theme.sidebar),
-                            StyleUtils.getAvatarSubscriptIconContainerStyle(subIcon.width, subIcon.height),
+                            StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
+                            StyleUtils.getAvatarSubscriptIconContainerStyle(variables.cardAvatarWidth, variables.cardAvatarHeight),
                             styles.dFlex,
                             styles.justifyContentCenter,
                         ]}
@@ -597,12 +572,11 @@ function ReportAvatar({
                         dataSet={{dragArea: false}}
                     >
                         <Icon
-                            src={subIcon.source}
-                            width={subIcon.width}
-                            height={subIcon.height}
+                            src={getCardFeedIcon(subscriptCardFeed, illustrations)}
+                            width={variables.cardAvatarWidth}
+                            height={variables.cardAvatarHeight}
                             additionalStyles={styles.alignSelfCenter}
-                            fill={subIcon.fill}
-                            testID="ReportAvatar-Subscript-SubIcon"
+                            testID="ReportAvatar-Subscript-CardIcon"
                         />
                     </View>
                 )}
@@ -683,7 +657,7 @@ function ReportAvatar({
                                         }),
                                         StyleUtils.getAvatarBorderWidth(size),
                                     ]}
-                                    source={icon.source ?? fallbackIconForMultipleAvatars}
+                                    source={icon.source ?? WorkspaceBuilding}
                                     size={size}
                                     name={icon.name}
                                     avatarID={icon.id}
@@ -749,7 +723,7 @@ function ReportAvatar({
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
-                                source={icons.at(0)?.source ?? fallbackIconForMultipleAvatars}
+                                source={icons.at(0)?.source ?? WorkspaceBuilding}
                                 size={avatarSize}
                                 imageStyles={[singleAvatarStyle]}
                                 name={icons.at(0)?.name}
@@ -760,7 +734,13 @@ function ReportAvatar({
                             />
                         </View>
                     </UserDetailsTooltip>
-                    <View style={[secondAvatarStyles, secondAvatarStyle, icons.at(1)?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons.at(1)?.type) : {}]}>
+                    <View
+                        style={[
+                            secondAvatarStyles,
+                            secondaryAvatarContainerStyles,
+                            icons.at(1)?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons.at(1)?.type) : {},
+                        ]}
+                    >
                         {icons.length === 2 ? (
                             <UserDetailsTooltip
                                 accountID={Number(icons.at(1)?.id)}
@@ -772,7 +752,7 @@ function ReportAvatar({
                             >
                                 <View>
                                     <Avatar
-                                        source={icons.at(1)?.source ?? fallbackIconForMultipleAvatars}
+                                        source={icons.at(1)?.source ?? WorkspaceBuilding}
                                         size={avatarSize}
                                         imageStyles={[singleAvatarStyle]}
                                         name={icons.at(1)?.name}
@@ -820,7 +800,7 @@ function ReportAvatar({
                     type={primaryAvatar.type}
                     name={primaryAvatar.name}
                     avatarID={primaryAvatar.id}
-                    size={singleAvatarSize ?? size}
+                    size={size}
                     fallbackIcon={fallbackIcon}
                     testID="ReportAvatar-SingleAvatar"
                 />

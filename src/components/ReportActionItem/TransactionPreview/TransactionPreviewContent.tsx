@@ -244,10 +244,11 @@ function TransactionPreviewContent({
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
                                                 <ReportAvatar
                                                     accountIDs={participantAccountIDs}
-                                                    sortAvatarsByID
-                                                    shouldStackHorizontally
+                                                    horizontalStacking={{
+                                                        sort: 'byID',
+                                                        useCardBG: true,
+                                                    }}
                                                     size={CONST.AVATAR_SIZE.SUBSCRIPT}
-                                                    shouldUseCardBackground
                                                 />
                                             </View>
                                         )}

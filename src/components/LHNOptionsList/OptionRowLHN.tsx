@@ -261,10 +261,10 @@ function OptionRowLHN({
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length && !!firstIcon && (
                                             <ReportAvatar
-                                                subscriptBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                isFocusMode={isInFocusMode}
+                                                subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                                useMidSubscriptSizeForMultipleAvatars={isInFocusMode}
                                                 size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                secondAvatarStyle={[
+                                                secondaryAvatarContainerStyle={[
                                                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                                     isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,

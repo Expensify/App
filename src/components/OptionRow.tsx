@@ -208,10 +208,10 @@ function OptionRow({
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
                                     <ReportAvatar
-                                        subscriptBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                        subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                         reportID={option.iouReportID ?? option.reportID}
                                         size={CONST.AVATAR_SIZE.DEFAULT}
-                                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
+                                        secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                         shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
                                     />
                                 )}

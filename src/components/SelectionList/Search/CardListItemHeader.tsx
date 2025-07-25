@@ -7,11 +7,8 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon} from '@libs/CardUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
@@ -36,17 +33,8 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const illustrations = useThemeIllustrations();
 
     const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
-
-    const cardIcon = useMemo(() => {
-        return {
-            source: getCardFeedIcon(cardItem.bank as CompanyCardFeed, illustrations),
-            width: variables.cardAvatarWidth,
-            height: variables.cardAvatarHeight,
-        };
-    }, [illustrations, cardItem]);
 
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
@@ -67,9 +55,9 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                     )}
                     <View style={[styles.flexRow, styles.gap3]}>
                         <ReportAvatar
-                            subIcon={cardIcon}
-                            subscriptBorderColor={backgroundColor}
-                            subscriptNoMargin
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
                             reportID={cardItem.reportID}
                         />
                         <View style={[styles.gapHalf]}>

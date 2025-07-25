@@ -331,22 +331,28 @@ function isMultipleAvatarRendered({
     workspaceIconAsPrimaryAvatar,
     negate = false,
     secondUserAvatar,
+    stacked,
 }: {
     images: AvatarData[];
     fragments: string[];
     workspaceIconAsPrimaryAvatar?: boolean;
     negate?: boolean;
     secondUserAvatar?: string;
+    stacked?: boolean;
 }) {
     const isEveryAvatarFragmentAMultiple = fragments.every((fragment) => fragment.startsWith('ReportAvatar-MultipleAvatars')) && fragments.length !== 0;
 
     const isUserAvatarCorrect = images.some(
-        (image) => image.uri === USER_AVATAR && image.parent === `ReportAvatar-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'SecondaryAvatar' : 'MainAvatar'}`,
+        (image) =>
+            image.uri === USER_AVATAR &&
+            image.parent ===
+                (stacked ? 'ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar' : `ReportAvatar-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'SecondaryAvatar' : 'MainAvatar'}`),
     );
     const isWorkspaceAvatarCorrect = images.some(
         (image) =>
             image.uri === (secondUserAvatar ?? DEFAULT_WORKSPACE_AVATAR.name) &&
-            image.parent === `ReportAvatar-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'MainAvatar' : 'SecondaryAvatar'}`,
+            image.parent ===
+                (stacked ? 'ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar' : `ReportAvatar-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'MainAvatar' : 'SecondaryAvatar'}`),
     );
 
     expect(isEveryAvatarFragmentAMultiple).toBe(!negate);
@@ -402,10 +408,10 @@ describe('ReportAvatar', () => {
             isSubscriptAvatarRendered({...retrievedData, negate: true});
         });
 
-        it('properly converts subscript avatars to multiple avatars if the prop is passed', async () => {
-            const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, convertSubscriptToMultiple: true});
+        it('properly converts subscript avatars to multiple avatars if the avatars are stacked horizontally', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, horizontalStacking: true});
             isSubscriptAvatarRendered({...retrievedData, negate: true});
-            isMultipleAvatarRendered(retrievedData);
+            isMultipleAvatarRendered({...retrievedData, stacked: true});
         });
     });
 
@@ -415,7 +421,6 @@ describe('ReportAvatar', () => {
                 reportID: iouReport.reportID,
                 action: reportPreviewAction,
                 accountIDs: [SECOND_USER_ID],
-                convertSubscriptToMultiple: true,
             });
             isMultipleAvatarRendered({...retrievedData, negate: true});
             isSingleAvatarRendered({...retrievedData, userAvatar: SECOND_USER_AVATAR});

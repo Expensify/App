@@ -8,7 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
@@ -77,7 +77,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewProps = {
@@ -95,13 +94,6 @@ type HeaderViewProps = {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
-};
-
-const fallbackIcon: IconType = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
 };
 
 function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
@@ -246,7 +238,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const multipleAvatars = (
         <ReportAvatar
             reportID={report?.reportID}
-            subscriptFallbackIcon={fallbackIcon}
             size={shouldShowSubscript ? defaultSubscriptSize : undefined}
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />

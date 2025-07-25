@@ -60,13 +60,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         >
                             <ReportAvatar
                                 reportID={reportID}
-                                reverseAvatars={isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report)}
                                 size={CONST.AVATAR_SIZE.X_LARGE}
-                                overlapDivider={4}
-                                shouldStackHorizontally
-                                convertSubscriptToMultiple
-                                shouldDisplayAvatarsInRows={shouldUseNarrowLayout}
-                                maxAvatarsInRow={shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                                horizontalStacking={{
+                                    displayInRows: shouldUseNarrowLayout,
+                                    maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
+                                    overlapDivider: 4,
+                                    sort: isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? 'reverse' : undefined,
+                                }}
                             />
                         </PressableWithoutFeedback>
                     </OfflineWithFeedback>
