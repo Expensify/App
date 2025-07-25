@@ -63,7 +63,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
-import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -551,6 +550,35 @@ function MoneyRequestReportActionsList({
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
 
+    const listFooterComponent = useMemo(
+        () => (
+            <>
+                <MoneyRequestViewReportFields
+                    report={report}
+                    policy={policy}
+                />
+                <MoneyRequestReportTransactionList
+                    report={report}
+                    transactions={transactions}
+                    newTransactions={newTransactions}
+                    reportActions={reportActions}
+                    hasComments={reportHasComments}
+                    isLoadingInitialReportActions={showReportActionsLoadingState}
+                    scrollToNewTransaction={scrollToNewTransaction}
+                />
+            </>
+        ),
+        [report, policy, transactions, newTransactions, reportActions, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
+    );
+
+    const listHeaderComponent = useMemo(() => <View style={styles.flex1} />, [styles.flex1]);
+
+    const listFooterComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? styles.flex1 : undefined], [visibleReportActions.length, styles.flex1]);
+    const listHeaderComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? undefined : styles.flex1], [visibleReportActions.length, styles.flex1]);
+
+    // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+    const listEmptyComponent = useMemo(() => (!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined), [isOffline, showReportActionsLoadingState]);
+
     return (
         <View
             style={styles.flex1}
@@ -623,6 +651,10 @@ function MoneyRequestReportActionsList({
             <View style={styles.flex1}>
                 <InvertedFlatList
                     initialNumToRender={INITIAL_NUM_TO_RENDER}
+                    maxToRenderPerBatch={10}
+                    windowSize={21}
+                    removeClippedSubviews
+                    updateCellsBatchingPeriod={50}
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     testID="money-request-report-actions-list"
                     style={styles.overscrollBehaviorContain}
@@ -635,31 +667,15 @@ function MoneyRequestReportActionsList({
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListFooterComponent={
-                        <>
-                            <MoneyRequestViewReportFields
-                                report={report}
-                                policy={policy}
-                            />
-                            <MoneyRequestReportTransactionList
-                                report={report}
-                                transactions={transactions}
-                                newTransactions={newTransactions}
-                                reportActions={reportActions}
-                                hasComments={reportHasComments}
-                                isLoadingInitialReportActions={showReportActionsLoadingState}
-                                scrollToNewTransaction={scrollToNewTransaction}
-                            />
-                        </>
-                    }
-                    ListHeaderComponent={<View style={styles.flex1} />}
+                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onScroll={trackVerticalScrolling}
                     contentContainerStyle={styles.chatContentScrollView}
-                    ListFooterComponentStyle={[isEmpty(visibleReportActions) ? styles.flex1 : undefined]}
-                    ListHeaderComponentStyle={[isEmpty(visibleReportActions) ? undefined : styles.flex1]}
+                    ListFooterComponentStyle={listFooterComponentStyle}
+                    ListHeaderComponentStyle={listHeaderComponentStyle}
                     ref={reportScrollManager.ref}
-                    ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                    ListEmptyComponent={listEmptyComponent}
                     shouldEnableAutoScrollToTopThreshold
                     initialScrollKey={linkedReportActionID}
                 />
