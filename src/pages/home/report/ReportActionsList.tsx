@@ -214,7 +214,7 @@ function ReportActionsList({
     const linkedReportActionID = route?.params?.reportActionID;
     const scrollingVerticalOffsetRef = useRef(0);
 
-    // The previous scroll tracking implementation was made via a ref. This is
+    // The previous scroll tracking implementation was made via ref. This is
     // to ensure it will behave the same as before.
     useAnimatedReaction(
         () => {
@@ -838,10 +838,6 @@ function ReportActionsList({
                                     animatedProps,
                                     automaticallyAdjustContentInsets: false,
                                     contentInsetAdjustmentBehavior: 'never',
-                                },
-                                android: {
-                                    ...props,
-                                    onScroll,
                                 },
                                 default: {
                                     ...props,
