@@ -393,7 +393,6 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
             reportID: newReportID,
