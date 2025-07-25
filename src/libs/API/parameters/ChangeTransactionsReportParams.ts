@@ -8,8 +8,6 @@ type TransactionThreadInfo = {
     moneyRequestPreviewReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;
-    selfDMReportID?: string;
-    selfDMCreatedReportActionID?: string;
 };
 
 type ChangeTransactionsReportParams = {
