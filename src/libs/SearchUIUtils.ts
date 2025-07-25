@@ -236,9 +236,9 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
  *
  * These searches should be as static as possible, and should not contain conditionals, or any other logic
  */
-function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+function getSuggestedSearches(defaultFeedID: string | undefined, accountID: number = CONST.DEFAULT_NUMBER_ID): Record<ValueOf<typeof CONST.SEARCH.SEARCH_LIST>, SearchTypeMenuItem> {
     return {
-        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
+        [CONST.SEARCH.SEARCH_LIST.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             translationPath: 'common.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -248,7 +248,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
+        [CONST.SEARCH.SEARCH_LIST.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'common.reports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -258,7 +258,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
+        [CONST.SEARCH.SEARCH_LIST.CHATS]: {
             key: CONST.SEARCH.SEARCH_KEYS.CHATS,
             translationPath: 'common.chats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
@@ -268,53 +268,54 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
+        [CONST.SEARCH.SEARCH_LIST.SUBMIT]: {
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Pencil,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.SUBMIT, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
+        [CONST.SEARCH.SEARCH_LIST.APPROVE]: {
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.ThumbsUp,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.APPROVE, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: {
+        [CONST.SEARCH.SEARCH_LIST.PAY]: {
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyBag,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.PAY, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.PAY, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
+        [CONST.SEARCH.SEARCH_LIST.EXPORT]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CheckCircle,
-            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.EXPORT, accountID),
+            searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.EXPORT, accountID),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
+        [CONST.SEARCH.SEARCH_LIST.STATEMENTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             translationPath: 'search.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCard,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.CARDS,
                 feed: defaultFeedID ? [defaultFeedID] : undefined,
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
@@ -322,13 +323,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyHourglass,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
@@ -336,15 +338,46 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
             translationPath: 'search.unapprovedCompanyCards',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCardHourglass,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
                 feed: defaultFeedID ? [defaultFeedID] : undefined,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                feed: defaultFeedID ? [defaultFeedID] : undefined,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -415,18 +448,16 @@ function getSuggestedSearchesVisibility(
     });
 
     return {
-        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
-        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
-        [CONST.SEARCH.SEARCH_KEYS.CHATS]: true,
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
-        // s77rt remove DEV lock
-        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion && isDevelopment(),
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
-        // s77rt remove DEV lock
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: showShowUnapprovedCompanyCardsSuggestion && isDevelopment(),
+        [CONST.SEARCH.SEARCH_LIST.EXPENSES]: true,
+        [CONST.SEARCH.SEARCH_LIST.REPORTS]: true,
+        [CONST.SEARCH.SEARCH_LIST.CHATS]: true,
+        [CONST.SEARCH.SEARCH_LIST.SUBMIT]: shouldShowSubmitSuggestion,
+        [CONST.SEARCH.SEARCH_LIST.PAY]: shouldShowPaySuggestion,
+        [CONST.SEARCH.SEARCH_LIST.APPROVE]: shouldShowApproveSuggestion,
+        [CONST.SEARCH.SEARCH_LIST.EXPORT]: shouldShowExportSuggestion,
+        [CONST.SEARCH.SEARCH_LIST.STATEMENTS]: shouldShowStatementsSuggestion,
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
+        [CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS]: showShowUnapprovedCompanyCardsSuggestion,
     };
 }
 
@@ -1625,13 +1656,13 @@ function createTypeMenuSections(
         };
 
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPENSES]);
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_LIST.REPORTS]);
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_LIST.CHATS]);
         }
 
         if (exploreSection.menuItems.length > 0) {
@@ -1649,7 +1680,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.SUBMIT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
@@ -1694,7 +1725,7 @@ function createTypeMenuSections(
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.APPROVE],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
@@ -1704,7 +1735,7 @@ function createTypeMenuSections(
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.PAY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
@@ -1714,7 +1745,7 @@ function createTypeMenuSections(
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
             todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.EXPORT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
@@ -1737,7 +1768,7 @@ function createTypeMenuSections(
 
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.STATEMENTS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.GenericEmptyState,
                     title: 'search.searchResults.emptyStatementsResults.title',
@@ -1745,19 +1776,37 @@ function createTypeMenuSections(
                 },
             });
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH] && suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
+            accountingSection.menuItems.push(
+                {
+                    ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH],
+                    emptyState: {
+                        headerMedia: DotLottieAnimations.Fireworks,
+                        title: 'search.searchResults.emptyUnapprovedResults.title',
+                        subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                    },
+                },
+                {
+                    ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS],
+                    emptyState: {
+                        headerMedia: DotLottieAnimations.Fireworks,
+                        title: 'search.searchResults.emptyUnapprovedResults.title',
+                        subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                    },
+                },
+            );
+        } else if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_CASH_ONLY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
             });
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
+        } else if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_LIST.UNAPPROVED_COMPANY_CARDS_ONLY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -1766,7 +1815,8 @@ function createTypeMenuSections(
             });
         }
 
-        if (accountingSection.menuItems.length > 0) {
+        // s77rt remove DEV lock
+        if (accountingSection.menuItems.length > 0 && isDevelopment()) {
             typeMenuSections.push(accountingSection);
         }
     }
@@ -1881,4 +1931,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey as SuggestedSearchKey};
