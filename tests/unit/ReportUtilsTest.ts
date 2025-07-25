@@ -2979,7 +2979,12 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const result = findLastAccessedReport(false, undefined, undefined, undefined, {
+                [archivedReport.reportID]: reportNameValuePairs,
+            });
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report

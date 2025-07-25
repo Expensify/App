@@ -185,11 +185,11 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
+    ReportNameValuePairs,
     ReportNextStep,
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
-    ReportNameValuePairs,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
