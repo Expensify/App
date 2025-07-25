@@ -23,6 +23,9 @@ function TextInputWithCurrencySymbol({onSelectionChange = () => {}, ...props}: T
                 }
                 onSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end);
             }}
+            // Explicitly remove `height` style from currency inputs so that it stays aligned
+            // with currency symbol on Android (See https://github.com/Expensify/App/issues/67144)
+            touchableInputWrapperStyle={{height: undefined}}
         />
     );
 }
