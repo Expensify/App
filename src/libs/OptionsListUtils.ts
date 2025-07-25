@@ -2574,7 +2574,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 /**
  * Filter out selected options from personal details and recent reports
  * @param options - The options to filter
- * @param selectedOptions - The selected options to filter out. Keeping it as an array because it is unlikely to become big enough for Set to make a difference.
+ * @param selectedOptions - The selected options to filter out.
  * @returns The filtered options
  */
 function filterSelectedOptions(options: Options, selectedOptions: Set<number | undefined>): Options {
