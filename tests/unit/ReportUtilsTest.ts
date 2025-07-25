@@ -48,6 +48,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
+    getReportStatusTranslation,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
@@ -5105,6 +5106,42 @@ describe('ReportUtils', () => {
                 // Then it should return false because the user is not the manager, submitter, or admin
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('getReportStatusTranslation', () => {
+        it('should return "Draft" for state 0, status 0', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
+        });
+
+        it('should return "Outstanding" for state 1, status 1', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translateLocal('common.outstanding'));
+        });
+
+        it('should return "Done" for state 2, status 2', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translateLocal('common.done'));
+        });
+
+        it('should return "Approved" for state 2, status 3', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translateLocal('iou.approved'));
+        });
+
+        it('should return "Paid" for state 2, status 4', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+        });
+
+        it('should return "Paid" for state 3, status 4', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+        });
+
+        it('should return "Paid" for state 6, status 4', () => {
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+        });
+
+        it('should return an empty string when stateNum or statusNum is undefined', () => {
+            expect(getReportStatusTranslation(undefined, undefined)).toBe('');
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
+            expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
         });
     });
 });

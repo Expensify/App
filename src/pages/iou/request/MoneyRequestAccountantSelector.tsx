@@ -56,6 +56,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         shouldInitialize: didScreenTransitionEnd,
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -115,7 +116,16 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formatResults = formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            [],
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+            undefined,
+            reportAttributesDerived,
+        );
         newSections.push(formatResults.section);
 
         newSections.push({
@@ -138,7 +148,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -151,7 +161,17 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         );
 
         return [newSections, headerMessage];
-    }, [areOptionsInitialized, didScreenTransitionEnd, debouncedSearchTerm, chatOptions.recentReports, chatOptions.personalDetails, chatOptions.userToInvite, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        chatOptions.recentReports,
+        chatOptions.personalDetails,
+        chatOptions.userToInvite,
+        debouncedSearchTerm,
+        personalDetails,
+        translate,
+        reportAttributesDerived,
+    ]);
 
     const selectAccountant = useCallback(
         (option: Accountant) => {
