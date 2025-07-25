@@ -3247,6 +3247,9 @@ const translations = {
     session: {
         offlineMessageRetry: 'Het lijkt erop dat je offline bent. Controleer je verbinding en probeer het opnieuw.',
     },
+    event: {
+        header: 'Boek event',
+    },
     travel: {
         header: 'Boek reis',
         title: 'Reis slim',

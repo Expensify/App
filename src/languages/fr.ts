@@ -3234,6 +3234,9 @@ const translations = {
     session: {
         offlineMessageRetry: 'Il semble que vous soyez hors ligne. Veuillez vérifier votre connexion et réessayer.',
     },
+    event: {
+        header: 'Réserver un event'
+    },
     travel: {
         header: 'Réserver un voyage',
         title: 'Voyagez intelligemment',

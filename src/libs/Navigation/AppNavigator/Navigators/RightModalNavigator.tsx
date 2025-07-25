@@ -198,6 +198,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.EVENT}
+                            component={ModalStackNavigators.EventModalStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRAVEL}
                             component={ModalStackNavigators.TravelModalStackNavigator}
                         />

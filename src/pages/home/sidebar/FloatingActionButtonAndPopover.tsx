@@ -395,6 +395,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
     }, [activePolicy, isTravelEnabled]);
 
+    const navigateToEventBooking = useCallback(() => {
+        Navigation.navigate(ROUTES.EVENT_BOOK_EVENT);
+    }, []);
+
     const menuItems = [
         ...expenseMenuItems,
         ...(isManualDistanceTrackingEnabled
@@ -497,6 +501,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 text: translate('travel.bookTravel'),
                 rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
+            },
+        ],
+        ...[
+            {
+                icon: Expensicons.Emoji,
+                text: translate('event.header'),
+                rightIcon: undefined,
+                onSelected: () => interceptAnonymousUser(() => navigateToEventBooking()),
             },
         ],
         ...(!hasSeenTour

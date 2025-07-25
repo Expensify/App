@@ -3208,6 +3208,9 @@ const translations = {
     session: {
         offlineMessageRetry: '看起来您已离线。请检查您的连接并重试。',
     },
+    event: {
+        header: 'Event'
+    },
     travel: {
         header: '预订旅行',
         title: '聪明旅行',

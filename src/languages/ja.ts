@@ -3244,6 +3244,9 @@ const translations = {
     session: {
         offlineMessageRetry: 'オフラインのようです。接続を確認して、もう一度お試しください。',
     },
+    event: {
+        header: 'Event',
+    },
     travel: {
         header: '旅行を予約する',
         title: 'スマートに旅行する',

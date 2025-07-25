@@ -1,4 +1,5 @@
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
+import type Event from './Event';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -266,4 +267,5 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     HybridApp,
+    Event,
 };

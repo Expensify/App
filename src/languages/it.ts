@@ -3241,6 +3241,9 @@ const translations = {
     session: {
         offlineMessageRetry: 'Sembra che tu sia offline. Controlla la tua connessione e riprova.',
     },
+    event: {
+        header: 'Prenota event'
+    },
     travel: {
         header: 'Prenota viaggio',
         title: 'Viaggia con intelligenza',
