@@ -94,7 +94,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
-        clearIssueNewCardFormData(policyID);
+        clearIssueNewCardFormData();
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
