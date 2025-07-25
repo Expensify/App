@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isValidDisplayName} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,11 +47,11 @@ function KnowATeacherPage() {
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-            const errors = {};
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME]);
             const phoneLogin = getPhoneLogin(values.partnerUserID);
             const validateIfNumber = validateNumber(phoneLogin);
 
-            if (!values.firstName || !isValidDisplayName(values.firstName)) {
+            if (!isValidDisplayName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
                 addErrorMessage(
@@ -63,7 +63,7 @@ function KnowATeacherPage() {
                     }),
                 );
             }
-            if (!values.lastName || !isValidDisplayName(values.lastName)) {
+            if (!isValidDisplayName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
                 addErrorMessage(
