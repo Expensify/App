@@ -1167,7 +1167,7 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
  * - Are either open or submitted
  * - Belong to a workspace
  */
-const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>): ReportByPolicyMap => {
+const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>, accountID?: number): ReportByPolicyMap => {
     return Object.entries(reports ?? {}).reduce<ReportByPolicyMap>((acc, [reportID, report]) => {
         if (!report) {
             return acc;
@@ -1179,12 +1179,7 @@ const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>): ReportByPol
         // - Are either open or submitted
         // - Belong to a workspace
         // This condition is similar to reportsByPolicyID and getOutstandingReportsForUser function
-        if (
-            isExpenseReport(report) &&
-            report.policyID &&
-            report.ownerAccountID === currentUserAccountID &&
-            (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED
-        ) {
+        if (isExpenseReport(report) && report.policyID && report.ownerAccountID === accountID && (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED) {
             if (!acc[report.policyID]) {
                 acc[report.policyID] = {};
             }
