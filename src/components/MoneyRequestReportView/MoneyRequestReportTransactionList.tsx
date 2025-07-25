@@ -186,8 +186,9 @@ function MoneyRequestReportTransactionList({
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
+                violations: violations?.[transaction.transactionID] ?? [],
             }));
-    }, [newTransactions, sortBy, sortOrder, transactions]);
+    }, [newTransactions, sortBy, sortOrder, transactions, violations]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -308,10 +309,7 @@ function MoneyRequestReportTransactionList({
                                     disabled={isTransactionPendingDelete(transaction)}
                                 >
                                     <TransactionItemRow
-                                        transactionItem={{
-                                            ...transaction,
-                                            violations: violations?.[transaction.transactionID] ?? [],
-                                        }}
+                                        transactionItem={transaction}
                                         isSelected={isTransactionSelected(transaction.transactionID)}
                                         dateColumnSize={dateColumnSize}
                                         amountColumnSize={amountColumnSize}
