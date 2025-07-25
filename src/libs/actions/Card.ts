@@ -379,6 +379,10 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
     });
 }
 
+function clearIssueNewCardFormData(policyID: string | undefined) {
+    Onyx.set(ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM, {});
+}
+
 function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
@@ -967,5 +971,6 @@ export {
     deactivateCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,
+    clearIssueNewCardFormData,
 };
 export type {ReplacementReason};
