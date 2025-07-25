@@ -8,13 +8,13 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
@@ -31,6 +31,7 @@ import {
     getListItem,
     getSections,
     getSortedSections,
+    getSuggestedSearches,
     getWideAmountIndicators,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -41,6 +42,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -148,7 +150,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
-        setCurrentSearchHash,
+        setCurrentSearchHashAndKey,
         setSelectedTransactions,
         selectedTransactions,
         clearSelectedTransactions,
@@ -161,9 +163,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-
-    const {currentSearch} = useSearchTypeMenuSections(hash);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
@@ -180,6 +179,23 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             );
         },
     });
+    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
+
+    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+
+    const shouldCalculateTotals = useMemo(() => {
+        if (offset !== 0) {
+            return false;
+        }
+        if (!searchKey) {
+            return false;
+        }
+        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS];
+        return eligibleSearchKeys.includes(searchKey);
+    }, [offset, searchKey]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -195,8 +211,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     useFocusEffect(
         useCallback(() => {
             clearSelectedTransactions(hash);
-            setCurrentSearchHash(hash);
-        }, [hash, clearSelectedTransactions, setCurrentSearchHash]),
+            setCurrentSearchHashAndKey(hash, searchKey);
+        }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]),
     );
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -206,7 +222,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        const selectedKeys = Object.keys(selectedTransactions).filter((transactionKey) => selectedTransactions[transactionKey]);
         if (selectedKeys.length === 0 && isMobileSelectionModeEnabled && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
@@ -221,7 +237,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        const selectedKeys = Object.keys(selectedTransactions).filter((transactionKey) => selectedTransactions[transactionKey]);
         if (!isSmallScreenWidth) {
             if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
                 turnOffMobileSelectionMode();
@@ -240,11 +256,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        handleSearch({queryJSON, offset});
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON]);
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
     useEffect(() => {
         openSearch();
@@ -255,7 +271,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         transactions,
         previousTransactions,
         queryJSON,
+        searchKey,
         offset,
+        shouldCalculateTotals,
         reportActions,
         previousReportActions,
     });
@@ -273,8 +291,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, currentSearch?.key);
-    }, [currentSearch?.key, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+        // Group-by option cannot be used for chats or tasks
+        const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+        const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+        if (groupBy && (isChat || isTask)) {
+            return [];
+        }
+
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -520,8 +545,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = baseKey === newSearchResultKey;
+
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
@@ -529,6 +556,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                         return transactionKey === newSearchResultKey;
                     });
+
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 

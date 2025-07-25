@@ -11,9 +11,9 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBDSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -1850,11 +1850,10 @@ function pushTransactionViolationsOnyxData(
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
 
     getAllPolicyReports(policyID).forEach((report) => {
-        if (!report?.reportID) {
+        const isReportAnInvoice = isInvoiceReport(report);
+        if (!report?.reportID || isReportAnInvoice) {
             return;
         }
-
-        const isReportAnInvoice = isInvoiceReport(report);
 
         getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
@@ -4232,6 +4231,17 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+            return (
+                getOutstandingReportsForUser(
+                    moneyRequestReport?.policyID,
+                    moneyRequestReport?.ownerAccountID,
+                    reportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                ).length > 0
+            );
+        }
+
         return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
@@ -6088,18 +6098,9 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return {
-        reportName: getReportName(report) ?? report?.reportName ?? '',
-        reportUrl: `${environmentURL}/r/${reportID}`,
-    };
-}
-
-function getMovedTransactionMessage(action: ReportAction) {
-    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const {reportName, reportUrl} = getReportDetails(toReportID);
+function getMovedTransactionMessage(report: OnyxEntry<Report>) {
+    const reportName = getReportName(report) ?? report?.reportName ?? '';
+    const reportUrl = `${environmentURL}/r/${report?.reportID}`;
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
@@ -9679,14 +9680,22 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
 /**
  * Checks if report contains actions with errors
  */
-function hasActionsWithErrors(reportID: string | undefined): boolean {
+function hasActionWithErrorsForTransaction(reportID: string | undefined, transaction: Transaction | undefined): boolean {
     if (!reportID) {
         return false;
     }
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
     return Object.values(reportActions)
         .filter(Boolean)
-        .some((action) => !isEmptyObject(action.errors));
+        .some((action) => {
+            if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
+                if (getOriginalMessage(action)?.IOUTransactionID === transaction?.transactionID) {
+                    return !isEmptyObject(action.errors);
+                }
+                return false;
+            }
+            return !isEmptyObject(action.errors);
+        });
 }
 
 function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
@@ -9971,7 +9980,7 @@ function getOutstandingReportsForUser(
     }
     return Object.values(reports)
         .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
-        .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
+        .sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
 }
 
 /**
@@ -9987,7 +9996,7 @@ function sortOutstandingReportsBySelected(report1: OnyxEntry<Report>, report2: O
     if (report2?.reportID === selectedReportID) {
         return 1;
     }
-    return report1?.reportName?.localeCompare(report2?.reportName?.toLowerCase() ?? '') ?? 0;
+    return localeCompare(report1?.reportName?.toLowerCase() ?? '', report2?.reportName?.toLowerCase() ?? '');
 }
 
 /**
@@ -10747,6 +10756,23 @@ function getIntegrationIcon(connectionName?: ConnectionName) {
     return undefined;
 }
 
+function getIntegrationExportIcon(connectionName?: ConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        return XeroExport;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
+        return QBOExport;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return NetSuiteExport;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+        return SageIntacctExport;
+    }
+
+    return undefined;
+}
+
 function canBeExported(report: OnyxEntry<Report>) {
     if (!report?.statusNum) {
         return false;
@@ -11256,7 +11282,7 @@ export {
     getInvoicesChatName,
     getPayeeName,
     getQuickActionDetails,
-    hasActionsWithErrors,
+    hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
     hasHeldExpenses,
@@ -11407,6 +11433,7 @@ export {
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
+    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,
@@ -11481,6 +11508,7 @@ export type {
     OptimisticClosedReportAction,
     OptimisticConciergeCategoryOptionsAction,
     OptimisticCreatedReportAction,
+    OptimisticExportIntegrationAction,
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
     OptionData,

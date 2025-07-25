@@ -388,7 +388,7 @@ function MoneyRequestConfirmationList({
     const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
-    const isCategoryRequired = !!policy?.requiresCategory;
+    const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {

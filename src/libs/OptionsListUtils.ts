@@ -31,11 +31,13 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
+import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -67,6 +69,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReceiptScanFailedMessage,
+    getRenamedAction,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -90,6 +93,7 @@ import {
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
+    isRenamedAction,
     isReportPreviewAction,
     isTaskAction,
     isThreadParentMessage,
@@ -103,6 +107,7 @@ import {
     getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
+    getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
@@ -783,7 +788,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
+        const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
+        const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+        const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        lastMessageTextFromReport = getMovedTransactionMessage(toReport);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -845,6 +853,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
+    } else if (isRenamedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
+        lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -2561,7 +2573,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 }
 
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
-    return items.sort((a, b) => (a[key] ?? '').toLowerCase().localeCompare((b[key] ?? '').toLowerCase()));
+    return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
 function getEmptyOptions(): Options {
