@@ -2013,7 +2013,7 @@ function findLastAccessedReport(
     // and it prompts the user to use the Concierge chat instead.
     reportsValues =
         reportsValues.filter((report) => {
-            return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs?.[report?.reportID ?? 0]);
+            return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs?.[report?.reportID ?? CONST.DEFAULT_NUMBER_ID]);
         }) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
