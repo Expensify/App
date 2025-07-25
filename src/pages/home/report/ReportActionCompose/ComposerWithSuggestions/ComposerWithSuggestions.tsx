@@ -40,13 +40,12 @@ import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -843,16 +842,6 @@ function ComposerWithSuggestions(
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
             />
-
-            {isValidReportIDFromPath(reportID) && (
-                <SilentCommentUpdater
-                    reportID={reportID}
-                    value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
-                    isCommentPendingSaved={isCommentPendingSaved}
-                />
-            )}
 
             {/* Only used for testing so far */}
             {children}
