@@ -1,18 +1,21 @@
-import React, {memo, useCallback, useState} from 'react';
+import isEmpty from 'lodash/isEmpty';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchParticipantsOptions from '@hooks/useSearchParticipantsOptions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import type {Option} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
@@ -33,9 +36,11 @@ type UserSelectPopupProps = {
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -57,10 +62,64 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     });
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
-    const {sections, headerMessage, areOptionsInitialized} = useSearchParticipantsOptions({
-        selectedOptions: selectedOptions as OptionData[],
-        cleanSearchTerm,
-    });
+
+    // Get a list of all options/personal details and filter them by the current search term
+    const listData = useMemo(() => {
+        const optionsList = getValidOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeSelectedOptions: true,
+                includeCurrentUser: true,
+            },
+        );
+
+        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
+        });
+
+        const personalDetailList = filteredOptionsList
+            .map((participant) => ({
+                ...participant,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+            }))
+            .sort((a, b) => {
+                // Put the current user at the top of the list
+                if (a.accountID === accountID) {
+                    return -1;
+                }
+                if (b.accountID === accountID) {
+                    return 1;
+                }
+                return 0;
+            });
+
+        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
+
+    const {sections, headerMessage} = useMemo(() => {
+        const newSections: Section[] = [
+            {
+                title: '',
+                data: listData,
+                shouldShow: !isEmpty(listData),
+            },
+        ];
+
+        const noResultsFound = isEmpty(listData);
+        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+
+        return {
+            sections: newSections,
+            headerMessage: message,
+        };
+    }, [listData, translate]);
 
     const selectUser = useCallback(
         (option: Option) => {
@@ -113,7 +172,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 onSelectRow={selectUser}
                 onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
-                showLoadingPlaceholder={!areOptionsInitialized}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
