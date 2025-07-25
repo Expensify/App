@@ -722,7 +722,13 @@
         "rebooking",
         "Heathrow",
         "eticket",
-        "eraa"
+        "eraa",
+        "FWTV",
+        "EDIFACT",
+        "NLRA",
+        "NTSB",
+        "TBUM",
+        "iaco"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
