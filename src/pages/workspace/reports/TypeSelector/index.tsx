@@ -6,7 +6,7 @@ import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
-import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
+import type {ReportFieldItemType} from '@pages/workspace/reports/ReportFieldTypePicker';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';

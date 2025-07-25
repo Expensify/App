@@ -47,7 +47,7 @@ type ReportFieldForList = ListItem & {
     isDisabled: boolean;
 };
 
-type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
+type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS>;
 
 function WorkspaceReportFieldsPage({
     route: {
@@ -224,7 +224,7 @@ function WorkspaceReportFieldsPage({
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
@@ -240,7 +240,7 @@ function WorkspaceReportFieldsPage({
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                 policyID,
                                                 CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
-                                                ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID),
+                                                ROUTES.WORKSPACE_REPORTS.getRoute(policyID),
                                             ),
                                         );
                                         return;
@@ -271,7 +271,7 @@ function WorkspaceReportFieldsPage({
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                 policyID,
                                                 CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
-                                                ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID),
+                                                ROUTES.WORKSPACE_REPORTS.getRoute(policyID),
                                             ),
                                         );
                                         return;
