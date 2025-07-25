@@ -145,7 +145,7 @@ describe('getIcons', () => {
         expect(icons.at(0)?.name).toBe('Email One');
     });
 
-    it('should return the correct icons for archieved non expesnse request/report', () => {
+    it('should return the correct icons for archieved non expense request/report', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1], 0, true),
             type: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
