@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 export default function useMobileSelectionMode() {
-    const [isSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {initialValue: false, initWithStoredValues: false, canBeMissing: true});
+    const [isSelectionModeEnabled = false] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {initWithStoredValues: false, canBeMissing: true});
     const initialSelectionModeValueRef = useRef(isSelectionModeEnabled);
 
     useEffect(() => {
