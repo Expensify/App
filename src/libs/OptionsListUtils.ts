@@ -2598,6 +2598,21 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     };
 }
 
+/**
+ * Filter out selected options from personal details and recent reports
+ * @param options - The options to filter
+ * @param selectedOptions - The selected options to filter out.
+ * @returns The filtered options
+ */
+function filterSelectedOptions(options: Options, selectedOptions: Set<number | undefined>): Options {
+    const filteredOptions = {
+        ...options,
+        personalDetails: options.personalDetails.filter(({accountID}) => !selectedOptions.has(accountID)),
+        recentReports: options.recentReports.filter(({accountID}) => !selectedOptions.has(accountID)),
+    };
+    return filteredOptions;
+}
+
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
@@ -2707,6 +2722,7 @@ export {
     shallowOptionsListCompare,
     optionsOrderBy,
     recentReportComparator,
+    filterSelectedOptions,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
