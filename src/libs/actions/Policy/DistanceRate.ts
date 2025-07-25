@@ -17,6 +17,7 @@ import {getDistanceRateCustomUnit, goBackWhenEnableFeature, removePendingFieldsF
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
@@ -103,7 +104,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
+function enablePolicyDistanceRates(policyID: string, enabled: boolean, backTo?: Route) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -182,7 +183,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 

@@ -1461,11 +1461,11 @@ const ROUTES = {
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'workspaces/:policyID/more-features',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_MORE_FEATURES route');
             }
-            return `workspaces/${policyID}/more-features` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/more-features` as const, backTo);
         },
     },
     WORKSPACE_TAGS: {
