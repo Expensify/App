@@ -173,7 +173,7 @@ describe('ReportActionsView', () => {
     });
 
     describe('Skeleton Loading States', () => {
-        it('should show skeleton when shouldShowSkeletonForAppLoad is true (isLoadingApp is true and not offline)', () => {
+        it('should show skeleton when shouldShowSkeletonForAppLoad is true (isLoadingApp is true and isOffline is false)', () => {
             mockUseNetwork.mockReturnValue({
                 isOffline: false,
             });
@@ -194,14 +194,15 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
+            // Empty report actions to trigger isMissingReportActions condition
             renderReportActionsView({
-                reportActions: [], // Empty report actions to trigger isMissingReportActions condition
+                reportActions: [],
             });
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         });
 
-        it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is false)', () => {
+        it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is false and isOffline is false)', () => {
             mockUseNetwork.mockReturnValue({
                 isOffline: false,
             });
@@ -227,7 +228,7 @@ describe('ReportActionsView', () => {
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         });
 
-        it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isOffline is true)', () => {
+        it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is true and isOffline is true)', () => {
             mockUseNetwork.mockReturnValue({
                 isOffline: true,
             });
