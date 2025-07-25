@@ -1050,6 +1050,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined);
+                    // No need to pass `isReportArchived`, archived tasks are not shown on reports page
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
                     const parentReportIcon = icons?.at(0);
 

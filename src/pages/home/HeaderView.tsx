@@ -219,7 +219,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isArchived = isArchivedReport(reportNameValuePairs);
     const shouldShowSubscript = shouldReportShowSubscript(report, isArchived);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    const icons = getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy, isArchived);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);

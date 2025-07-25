@@ -3247,6 +3247,7 @@ function getIcons(
     defaultAccountID = -1,
     policy?: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
+    isReportArchived = false,
 ): Icon[] {
     if (isEmptyObject(report)) {
         return [
@@ -3270,15 +3271,9 @@ function getIcons(
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
     }
-    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (
-        isAdminRoom(report) ||
-        isAnnounceRoom(report) ||
-        isChatRoom(report) ||
-        (isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) && !chatIncludesConcierge(report))
-    ) {
+    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, isReportArchived) && !chatIncludesConcierge(report))) {
         return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isPolicyExpenseChat(report)) {

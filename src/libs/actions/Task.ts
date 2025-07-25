@@ -1000,6 +1000,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
+        // No need to pass `isReportArchived`, share destination cannot be an archived report
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
