@@ -152,6 +152,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -165,7 +166,16 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions as OptionData[], recentReports, personalDetails);
+        const formatResults = formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            selectedOptions as OptionData[],
+            recentReports,
+            personalDetails,
+            undefined,
+            undefined,
+            undefined,
+            reportAttributesDerived,
+        );
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
@@ -202,7 +212,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, reportAttributesDerived, translate, userToInvite]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
