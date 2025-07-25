@@ -18,6 +18,7 @@ import {
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -60,6 +61,27 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** User wallet */
+    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** Draft message for the report action */
+    draftMessage?: string;
+
+    /** Emoji reactions for the report action */
+    emojiReactions?: OnyxEntry<OnyxTypes.ReportActionReactions>;
+
+    /** Linked transaction route error */
+    linkedTransactionRouteError?: OnyxEntry<Errors>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -74,6 +96,13 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    userWallet,
+    isUserValidated,
+    personalDetails,
+    draftMessage,
+    emojiReactions,
+    linkedTransactionRouteError,
+    userBillingFundID,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -160,6 +189,13 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
+                            userWallet={userWallet}
+                            isUserValidated={isUserValidated}
+                            personalDetails={personalDetails}
+                            draftMessage={draftMessage}
+                            emojiReactions={emojiReactions}
+                            linkedTransactionRouteError={linkedTransactionRouteError}
+                            userBillingFundID={userBillingFundID}
                         />
                     </OfflineWithFeedback>
                 );
