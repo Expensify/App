@@ -741,23 +741,23 @@ function PureReportActionItem({
                 },
             ];
 
+            // Show categorize option for all users - it should be available during onboarding
+            options.push({
+                text: 'actionableMentionTrackExpense.categorize',
+                key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
+                onPress: () => {
+                    createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                },
+            });
+
             if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
-                options.push(
-                    {
-                        text: 'actionableMentionTrackExpense.categorize',
-                        key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                        onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
-                        },
+                options.push({
+                    text: 'actionableMentionTrackExpense.share',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
+                    onPress: () => {
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
-                    {
-                        text: 'actionableMentionTrackExpense.share',
-                        key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                        onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
-                        },
-                    },
-                );
+                });
             }
             options.push({
                 text: 'actionableMentionTrackExpense.nothing',
