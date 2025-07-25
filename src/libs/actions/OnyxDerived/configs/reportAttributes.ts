@@ -86,30 +86,33 @@ export default createOnyxDerivedValueConfig({
 
         if (isFullyComputed) {
             // if there are report-related updates, iterate over the updates
-            if (updates.length > 0) {
-                dataToIterate = prepareReportKeys(updates);
-            } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
-                let transactionReportIDs: string[] = [];
-                if (transactionsUpdates) {
-                    transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
+                if (updates.length > 0) {
+                    dataToIterate = prepareReportKeys(updates);
                 }
-                // Also handle transaction violations updates by extracting transaction IDs and finding their reports
-                if (transactionViolationsUpdates) {
-                    const violationTransactionIDs = Object.keys(transactionViolationsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ''));
-                    const violationReportIDs = violationTransactionIDs
-                        .map((transactionID) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID)
-                        .filter(Boolean)
-                        .map((reportID) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                if (!!transactionsUpdates || !!transactionViolationsUpdates) {
+                    let transactionReportIDs: string[] = [];
+                    if (transactionsUpdates) {
+                        transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+                    }
+                    // Also handle transaction violations updates by extracting transaction IDs and finding their reports
+                    if (transactionViolationsUpdates) {
+                        const violationTransactionIDs = Object.keys(transactionViolationsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ''));
+                        const violationReportIDs = violationTransactionIDs
+                            .map((transactionID) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID)
+                            .filter(Boolean)
+                            .map((reportID) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-                    // Also include chat reports for expense reports that have violations
-                    const chatReportIDs = violationReportIDs
-                        .map((reportKey) => reports?.[reportKey]?.chatReportID)
-                        .filter(Boolean)
-                        .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+                        // Also include chat reports for expense reports that have violations
+                        const chatReportIDs = violationReportIDs
+                            .map((reportKey) => reports?.[reportKey]?.chatReportID)
+                            .filter(Boolean)
+                            .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
 
-                    transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
+                        transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
+                    }
+                    dataToIterate.push(...prepareReportKeys(transactionReportIDs));
                 }
-                dataToIterate = prepareReportKeys(transactionReportIDs);
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
                 return currentValue ?? {reports: {}, locale: null};
