@@ -22,6 +22,9 @@ There should not be any aliases where different routes lead to the same place.
 ### - SHOULD be short
 Aim for the shortest possible URL that is also still human readable.
 
+Exceptions:
+- When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) for strategic purposes
+
 ### - MUST use kebab-case for all parts of a URL (eg. words separated by hyphens)
 ### - MUST use all lower case words
 ### - MUST be defined in `ROUTES.ts`
@@ -36,9 +39,6 @@ Example of the paths taken to manage a workspace member
 
 ### - MUST ALWAYS have the route parameters validated
 Since users can edit the route parameters at any time, to any value, the parameters must always be validated to ensure they are correct and the user has access.
-
-Exceptions:
-- When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) for strategic purposes
 
 ### - MUST NOT start with a slash
 ### - MUST NOT contain jargon or acronyms
