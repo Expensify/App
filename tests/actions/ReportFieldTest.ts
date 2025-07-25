@@ -78,10 +78,10 @@ describe('actions/ReportField', () => {
                 initialValue: 'Default Value',
             };
 
-            ReportField.createReportField(policyID, createReportFieldArguments);
-            await waitForBatchedUpdates();
-
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
+
+            ReportField.createReportField(policyID, createReportFieldArguments, [], [], policy, []);
+            await waitForBatchedUpdates();
 
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
@@ -129,10 +129,10 @@ describe('actions/ReportField', () => {
                 initialValue: defaultDate,
             };
 
-            ReportField.createReportField(policyID, createReportFieldArguments);
-            await waitForBatchedUpdates();
-
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
+
+            ReportField.createReportField(policyID, createReportFieldArguments, [], [], policy, []);
+            await waitForBatchedUpdates();
 
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
@@ -182,10 +182,10 @@ describe('actions/ReportField', () => {
                 initialValue: '',
             };
 
-            ReportField.createReportField(policyID, createReportFieldArguments);
-            await waitForBatchedUpdates();
-
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
+
+            ReportField.createReportField(policyID, createReportFieldArguments, [], [], policy, []);
+            await waitForBatchedUpdates();
 
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
@@ -237,7 +237,7 @@ describe('actions/ReportField', () => {
                 [reportFieldKey]: fakeReportField,
             });
 
-            ReportField.deleteReportFields(fakePolicy.id, [reportFieldKey]);
+            ReportField.deleteReportFields(fakePolicy.id, [reportFieldKey], fakePolicy);
             await waitForBatchedUpdates();
 
             // Check for success data
@@ -285,7 +285,7 @@ describe('actions/ReportField', () => {
 
             // Check for failure data
             mockFetch.fail();
-            ReportField.deleteReportFields(policyID, [reportFieldKey]);
+            ReportField.deleteReportFields(policyID, [reportFieldKey], fakePolicy);
             await waitForBatchedUpdates();
 
             mockFetch.resume();
@@ -328,7 +328,7 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue);
+            ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue, fakePolicy);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
@@ -379,7 +379,7 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue);
+            ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue, fakePolicy);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
@@ -437,7 +437,7 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesTpUpdate, false);
+            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesTpUpdate, false, fakePolicy);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
@@ -481,7 +481,7 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportField.addReportFieldListValue(policyID, reportFieldID, newListValueName);
+            ReportField.addReportFieldListValue(policyID, reportFieldID, newListValueName, fakePolicy);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
@@ -523,7 +523,7 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportField.removeReportFieldListValue(policyID, reportFieldID, [1, 2]);
+            ReportField.removeReportFieldListValue(policyID, reportFieldID, [1, 2], fakePolicy);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);

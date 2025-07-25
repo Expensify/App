@@ -102,13 +102,13 @@ function ReportFieldsListValuesPage({
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
-                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value);
+                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value, policy);
                 return;
             }
 
-            setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled([valueIndex], value, disabledListValues);
         },
-        [policyID, reportFieldID],
+        [policyID, reportFieldID, disabledListValues, policy],
     );
 
     useSearchBackPress({
@@ -126,10 +126,10 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues.at(index) ?? true,
+                enabled: !disabledListValues.at(index),
                 rightElement: (
                     <Switch
-                        isOn={!disabledListValues.at(index) ?? true}
+                        isOn={!disabledListValues.at(index)}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
                     />
@@ -175,9 +175,9 @@ function ReportFieldsListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete, policy);
         } else {
-            deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue(valuesToDelete, listValues, disabledListValues);
         }
 
         setDeleteValuesConfirmModalVisible(false);
@@ -242,11 +242,11 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false);
+                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false, policy);
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled(valuesToDisable, false, disabledListValues);
                     },
                 });
             }
@@ -274,11 +274,11 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true);
+                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true, policy);
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled(valuesToEnable, true, disabledListValues);
                     },
                 });
             }

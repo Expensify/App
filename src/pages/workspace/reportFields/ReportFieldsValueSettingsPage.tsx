@@ -39,6 +39,23 @@ function ReportFieldsValueSettingsPage({
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
+    const [listValues, disabledListValues] = useMemo(() => {
+        let reportFieldValues: string[];
+        let reportFieldDisabledValues: boolean[];
+
+        if (reportFieldID) {
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+            reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+            reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
+        } else {
+            reportFieldValues = formDraft?.listValues ?? [];
+            reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
+        }
+
+        return [reportFieldValues, reportFieldDisabledValues];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
+
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
     const [currentValueName, currentValueDisabled] = useMemo(() => {
@@ -66,9 +83,9 @@ function ReportFieldsValueSettingsPage({
     }
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
-            ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+            ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex], policy);
         } else {
-            ReportField.deleteReportFieldsListValue([valueIndex]);
+            ReportField.deleteReportFieldsListValue([valueIndex], listValues, disabledListValues);
         }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
@@ -76,11 +93,11 @@ function ReportFieldsValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value, policy);
             return;
         }
 
-        ReportField.setReportFieldsListValueEnabled([valueIndex], value);
+        ReportField.setReportFieldsListValueEnabled([valueIndex], value, disabledListValues);
     };
 
     const navigateToEditValue = () => {

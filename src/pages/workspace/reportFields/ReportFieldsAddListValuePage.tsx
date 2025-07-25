@@ -38,16 +38,22 @@ function ReportFieldsAddListValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const listValues = useMemo(() => {
-        let reportFieldListValues: string[];
+    const [listValues, disabledListValues] = useMemo(() => {
+        let reportFieldValues: string[];
+        let reportFieldDisabledValues: boolean[];
+
         if (reportFieldID) {
             const reportFieldKey = getReportFieldKey(reportFieldID);
-            reportFieldListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+
+            reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+            reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
         } else {
-            reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
+            reportFieldValues = formDraft?.listValues ?? [];
+            reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
         }
-        return reportFieldListValues;
-    }, [formDraft, policy?.fieldList, reportFieldID]);
+
+        return [reportFieldValues, reportFieldDisabledValues];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
@@ -58,14 +64,14 @@ function ReportFieldsAddListValuePage({
     const createValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (reportFieldID) {
-                addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+                addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME], policy);
             } else {
-                createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+                createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME], listValues, disabledListValues);
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [policyID, reportFieldID],
+        [policyID, reportFieldID, listValues, disabledListValues, policy],
     );
 
     return (

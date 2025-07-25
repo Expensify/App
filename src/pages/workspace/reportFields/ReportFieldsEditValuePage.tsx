@@ -49,12 +49,12 @@ function ReportFieldsEditValuePage({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
             if (currentValueName !== valueName) {
-                renameReportFieldsListValue(valueIndex, valueName);
+                renameReportFieldsListValue(valueIndex, valueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? []);
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [currentValueName, valueIndex],
+        [currentValueName, valueIndex, formDraft],
     );
 
     return (
