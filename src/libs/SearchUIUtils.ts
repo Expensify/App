@@ -1433,7 +1433,7 @@ function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Tran
         }
 
         const managerID = (transaction as SearchTransaction).managerID;
-        if (managerID && managerID !== currentAccountID) {
+        if (managerID && managerID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
             const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
         }
