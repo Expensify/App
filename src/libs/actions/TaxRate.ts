@@ -1,4 +1,4 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
@@ -25,13 +25,6 @@ import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Get tax value with percentage
@@ -421,8 +414,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
 
-function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, policy: OnyxEntry<Policy>) {
     const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
     const stringTaxValue = `${taxValue}%`;
 
@@ -487,8 +479,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
 }
 
-function renamePolicyTax(policyID: string, taxID: string, newName: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function renamePolicyTax(policyID: string, taxID: string, newName: string, policy: OnyxEntry<Policy>) {
     const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
     const onyxData: OnyxData = {
         optimisticData: [
@@ -551,8 +542,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
 }
 
-function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string, policy: OnyxEntry<Policy>) {
     const originalTaxRate = {...policy?.taxRates?.taxes[oldTaxCode]};
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {

@@ -489,7 +489,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
             const newTaxName = 'Tax rate 1 updated';
             mockFetch?.pause?.();
-            renamePolicyTax(fakePolicy.id, taxID, newTaxName);
+            renamePolicyTax(fakePolicy.id, taxID, newTaxName, fakePolicy);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -534,7 +534,7 @@ describe('actions/PolicyTax', () => {
             const newTaxName = 'Tax rate 1 updated';
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             mockFetch?.pause?.();
-            renamePolicyTax(fakePolicy.id, taxID, newTaxName);
+            renamePolicyTax(fakePolicy.id, taxID, newTaxName, fakePolicy);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -584,7 +584,7 @@ describe('actions/PolicyTax', () => {
             const newTaxValue = 10;
             const stringTaxValue = `${newTaxValue}%`;
             mockFetch?.pause?.();
-            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
+            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue, fakePolicy);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -630,7 +630,7 @@ describe('actions/PolicyTax', () => {
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             const stringTaxValue = `${newTaxValue}%`;
             mockFetch?.pause?.();
-            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
+            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue, fakePolicy);
             return waitForBatchedUpdates()
                 .then(
                     () =>

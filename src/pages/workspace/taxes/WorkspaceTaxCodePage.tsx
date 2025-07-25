@@ -40,10 +40,10 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return;
             }
 
-            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode);
+            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode, policy);
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
-        [currentTaxCode, policyID],
+        [currentTaxCode, policyID, policy],
     );
 
     const validate = useCallback(
