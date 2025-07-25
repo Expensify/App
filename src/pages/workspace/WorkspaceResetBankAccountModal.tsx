@@ -17,6 +17,9 @@ type WorkspaceResetBankAccountModalProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
+    /** Method to set the state of shouldShowContinueSetupButton */
+    setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
+
     /** Method to set the state of setUSDBankAccountStep */
     setUSDBankAccountStep?: (step: string | null) => void;
 
@@ -33,10 +36,11 @@ function WorkspaceResetBankAccountModal({
     setUSDBankAccountStep,
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
+    setShouldShowContinueSetupButton,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
@@ -51,11 +55,19 @@ function WorkspaceResetBankAccountModal({
                 setShouldShowConnectedVerifiedBankAccount(false);
             }
 
+            if (setShouldShowContinueSetupButton) {
+                setShouldShowContinueSetupButton(false);
+            }
+
             if (setNonUSDBankAccountStep) {
                 setNonUSDBankAccountStep(null);
             }
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID);
+
+            if (setShouldShowContinueSetupButton) {
+                setShouldShowContinueSetupButton(false);
+            }
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
