@@ -1160,6 +1160,45 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
     return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
 }
 
+/**
+ * Selector function to group reports by policy ID for reports that are:
+ * - Expense reports
+ * - Owned by the same user
+ * - Are either open or submitted
+ * - Belong to a workspace
+ */
+const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>): ReportByPolicyMap => {
+    return Object.entries(reports ?? {}).reduce<ReportByPolicyMap>((acc, [reportID, report]) => {
+        if (!report) {
+            return acc;
+        }
+
+        // Get all reports, which are the ones that are:
+        // - Expense reports
+        // - Owned by the same user
+        // - Are either open or submitted
+        // - Belong to a workspace
+        // This condition is similar to reportsByPolicyID and getOutstandingReportsForUser function
+        if (
+            isExpenseReport(report) &&
+            report.policyID &&
+            report.ownerAccountID === currentUserAccountID &&
+            (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED
+        ) {
+            if (!acc[report.policyID]) {
+                acc[report.policyID] = {};
+            }
+
+            acc[report.policyID] = {
+                ...acc[report.policyID],
+                [reportID]: report,
+            };
+        }
+
+        return acc;
+    }, {});
+};
+
 function getReportTransactions(reportID: string | undefined, allReportsTransactions: Record<string, Transaction[]> = reportsTransactions): Transaction[] {
     if (!reportID) {
         return [];
@@ -4238,6 +4277,13 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
                     reportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
+        }
+        const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
+
+        // Based on the getOutstandingReportsForUser below, expenses can be edited by the submitter
+        // So we are early return here to prevent unnecessary loop
+        if (!isUnreportedExpense && !isSubmitter) {
+            return false;
         }
 
         return isUnreportedExpense
@@ -11254,6 +11300,7 @@ export {
     getSearchReportName,
     getReportTransactions,
     reportTransactionsSelector,
+    reportsByPolicyIDSelector,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
