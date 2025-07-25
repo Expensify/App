@@ -1,7 +1,4 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,6 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -47,8 +45,6 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const amountValue = selectedSubRate?.rate ? convertToDisplayStringWithoutCurrency(Number(selectedSubRate.rate)) : undefined;
     const currencyValue = selectedRate?.currency ? `${selectedRate.currency} - ${getCurrencySymbol(selectedRate.currency)}` : undefined;
 
-    const FullPageBlockingView = isEmptyObject(selectedSubRate) ? FullPageOfflineBlockingView : View;
-
     const handleDeletePerDiemRate = () => {
         deleteWorkspacePerDiemRates(policyID, customUnit, [
             {
@@ -69,6 +65,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
+            shouldBeBlocked={isEmptyObject(selectedSubRate)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -86,46 +83,41 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <FullPageBlockingView
-                    style={!isEmptyObject(selectedSubRate) ? styles.flexGrow1 : []}
+                <ScrollView
                     addBottomSafeAreaPadding
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="always"
                 >
-                    <ScrollView
-                        addBottomSafeAreaPadding
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="always"
-                    >
-                        <MenuItemWithTopDescription
-                            title={selectedRate?.name}
-                            description={translate('common.destination')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID))}
-                            shouldShowRightIcon
-                        />
-                        <MenuItemWithTopDescription
-                            title={selectedSubRate?.name}
-                            description={translate('common.subrate')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID))}
-                            shouldShowRightIcon
-                        />
-                        <MenuItemWithTopDescription
-                            title={amountValue}
-                            description={translate('workspace.perDiem.amount')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID))}
-                            shouldShowRightIcon
-                        />
-                        <MenuItemWithTopDescription
-                            title={currencyValue}
-                            description={translate('common.currency')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID))}
-                            shouldShowRightIcon
-                        />
-                        <MenuItem
-                            icon={Expensicons.Trashcan}
-                            title={translate('common.delete')}
-                            onPress={() => setDeletePerDiemConfirmModalVisible(true)}
-                        />
-                    </ScrollView>
-                </FullPageBlockingView>
+                    <MenuItemWithTopDescription
+                        title={selectedRate?.name}
+                        description={translate('common.destination')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID))}
+                        shouldShowRightIcon
+                    />
+                    <MenuItemWithTopDescription
+                        title={selectedSubRate?.name}
+                        description={translate('common.subrate')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID))}
+                        shouldShowRightIcon
+                    />
+                    <MenuItemWithTopDescription
+                        title={amountValue}
+                        description={translate('workspace.perDiem.amount')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID))}
+                        shouldShowRightIcon
+                    />
+                    <MenuItemWithTopDescription
+                        title={currencyValue}
+                        description={translate('common.currency')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID))}
+                        shouldShowRightIcon
+                    />
+                    <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => setDeletePerDiemConfirmModalVisible(true)}
+                    />
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

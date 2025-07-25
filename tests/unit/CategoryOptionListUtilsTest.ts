@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('CategoryOptionListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
+    });
     it('getCategoryListSections()', () => {
         const search = 'Food';
         const emptySearch = '';

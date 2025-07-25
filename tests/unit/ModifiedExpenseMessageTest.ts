@@ -1,13 +1,18 @@
 import Onyx from 'react-native-onyx';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ModifiedExpenseMessage', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
     describe('getForAction', () => {
         const report = createRandomReport(1);
         describe('when the amount is changed', () => {

@@ -1,11 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
@@ -18,13 +18,25 @@ type UseSearchHighlightAndScroll = {
     reportActions: OnyxCollection<ReportActions>;
     previousReportActions: OnyxCollection<ReportActions>;
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 /**
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
-function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
+function useSearchHighlightAndScroll({
+    searchResults,
+    transactions,
+    previousTransactions,
+    reportActions,
+    previousReportActions,
+    queryJSON,
+    searchKey,
+    offset,
+    shouldCalculateTotals,
+}: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
@@ -34,6 +46,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
+    const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     const existingSearchResultIDs = useMemo(() => {
@@ -61,23 +74,29 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
-        const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
+        const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
+        const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
+        const hasTransactionsIDsChange = transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
-        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
+        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
             // If we're not focused, don't trigger search
             if (!isFocused) {
+                hasPendingSearchRef.current = true;
                 return;
             }
+            hasPendingSearchRef.current = false;
 
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
-            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));
+            const existingSearchResultIDsSet = new Set(existingSearchResultIDs);
+            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDsSet.has(id));
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && existingSearchResultIDs.length > 0) {
-                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDs.includes(id));
+                const newIDsSet = new Set(newIDs);
+                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDsSet.has(id));
                 if (!hasDeletedID) {
                     return;
                 }
@@ -91,12 +110,25 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, offset});
+            search({queryJSON, searchKey, offset, shouldCalculateTotals});
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
+    }, [
+        isFocused,
+        transactions,
+        previousTransactions,
+        queryJSON,
+        searchKey,
+        offset,
+        shouldCalculateTotals,
+        reportActions,
+        previousReportActions,
+        isChat,
+        searchResults?.data,
+        existingSearchResultIDs,
+    ]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
@@ -187,7 +219,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
                         return true;
                     }
 
-                    // Handle ReportListItemType with transactions array
+                    // Handle TransactionGroupListItemType with transactions array
                     if ('transactions' in item && Array.isArray(item.transactions)) {
                         return item.transactions.some((transaction) => transaction?.transactionID === newID);
                     }
@@ -224,9 +256,9 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
             transactionIDs.push((item as TransactionListItemType).transactionID);
         }
 
-        // Check for transactions array within the item (ReportListItemType)
-        if (Array.isArray((item as ReportListItemType)?.transactions)) {
-            (item as ReportListItemType).transactions.forEach((transaction) => {
+        // Check for transactions array within the item (TransactionGroupListItemType)
+        if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
+            (item as TransactionGroupListItemType).transactions.forEach((transaction) => {
                 if (!transaction?.transactionID) {
                     return;
                 }

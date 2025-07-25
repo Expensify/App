@@ -1,6 +1,6 @@
 import React from 'react';
 import type {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankInfo from './BankInfo/BankInfo';
@@ -14,7 +14,7 @@ type USDVerifiedBankAccountFlowProps = {
     USDBankAccountStep: string;
     policyID: string | undefined;
     onBackButtonPress: () => void;
-    requestorStepRef: React.RefObject<View>;
+    requestorStepRef: React.RefObject<View | null>;
     onfidoToken: string;
     setUSDBankAccountStep: (step: string | null) => void;
     setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;

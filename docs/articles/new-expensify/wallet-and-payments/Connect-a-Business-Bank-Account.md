@@ -72,6 +72,24 @@ To add a **business bank account** for **ACH reimbursements (US) or Expensify Ca
 - Enter a **physical address** for yourself, any **Beneficial Owner** (if applicable), and the **business**.
 - **US photo ID, address, and SSN** are required for all individuals associated with the account.
 
+## Are there certain industries or businesses for which Expensify cannot process automatic, in-app payments?
+Yes, Expensify cannot process direct payments for businesses in the following industries:
+
+- Security Brokers & Dealers
+- Dating & Escort Services
+- Massage Parlors
+- Casinos & Gambling/Betting Services
+- Non-FI, Money Orders
+- Wires, Money Orders
+- Government-Owned Lotteries
+- Government-Licensed Online Casinos (Online Gambling)
+- Government-Licensed Horse/Dog Racing
+- Crypto-currency businesses
+- Internet gambling
+- Marijuana-related businesses
+- Firearm-related businesses (manufacturing and selling)
+- NFT (non-fungible token) services
+
 ## What is a Beneficial Owner?
 A **Beneficial Owner** is an **individual** who owns **25% or more** of the business. If no individual meets this threshold, you do **not** need to list a **Beneficial Owner**.
 

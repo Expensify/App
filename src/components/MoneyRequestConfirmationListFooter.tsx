@@ -1,23 +1,31 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {
+    buildOptimisticExpenseReport,
+    getDefaultWorkspaceAvatar,
+    getOutstandingReportsForUser,
+    isMoneyRequestReport,
+    isReportOutstanding,
+    populateOptimisticReportFormula,
+} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -49,6 +57,14 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
+
+type TagVisibility = {
+    /** Flag indicating if the tag is required */
+    isTagRequired: boolean;
+
+    /** Flag indicating if the tag should be shown */
+    shouldShow: boolean;
+};
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -251,6 +267,7 @@ function MoneyRequestConfirmationListFooter({
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
@@ -290,7 +307,10 @@ function MoneyRequestConfirmationListFooter({
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
-    const shouldReportBeEditable = !!firstOutstandingReport;
+
+    // When creating an expense in an individual report, the report field becomes read-only
+    // since the destination is already determined and there's no need to show a selectable list.
+    const shouldReportBeEditable = !!firstOutstandingReport && !isMoneyRequestReport(reportID, allReports);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -328,7 +348,7 @@ function MoneyRequestConfirmationListFooter({
         () => ({
             anchor: null,
             report: undefined,
-            reportNameValuePairs: undefined,
+            isReportArchived: false,
             action: undefined,
             checkIfContextMenuActive: () => {},
             onShowContextMenu: () => {},
@@ -337,6 +357,31 @@ function MoneyRequestConfirmationListFooter({
         }),
         [],
     );
+
+    const tagVisibility: TagVisibility[] = policyTagLists.map(({tags, required}, index) => {
+        const isTagRequired = required ?? false;
+        let shouldShow = false;
+
+        if (shouldShowTags) {
+            if (hasDependentTags) {
+                if (index === 0) {
+                    shouldShow = true;
+                } else {
+                    const prevTagValue = getTagForDisplay(transaction, index - 1);
+                    shouldShow = !!prevTagValue;
+                }
+            } else {
+                shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
+            }
+        }
+
+        return {
+            isTagRequired,
+            shouldShow,
+        };
+    });
+
+    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
@@ -517,16 +562,21 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowDate,
         },
-        ...policyTagLists.map(({name, required, tags}, index) => {
-            const isTagRequired = required ?? false;
-            const shouldShow = shouldShowTags && (!isMultilevelTags || hasEnabledOptions(tags));
+        ...policyTagLists.map(({name}, index) => {
+            const tagVisibilityItem = tagVisibility.at(index);
+            const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
+            const shouldShow = tagVisibilityItem?.shouldShow ?? false;
+            const prevShouldShow = previousTagsVisibility.at(index) ?? false;
             return {
                 item: (
                     <MenuItemWithTopDescription
+                        highlighted={shouldShow && !getTagForDisplay(transaction, index) && !prevShouldShow}
                         key={name}
                         shouldShowRightIcon={!isReadOnly}
                         title={getTagForDisplay(transaction, index)}
                         description={name}
+                        shouldShowBasicTitle
+                        shouldShowDescriptionOnTop
                         numberOfLinesTitle={2}
                         onPress={() => {
                             if (!transactionID) {
@@ -801,6 +851,9 @@ function MoneyRequestConfirmationListFooter({
         ],
     );
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasReceiptImageOrThumbnail = receiptImage || receiptThumbnail;
+
     return (
         <>
             {isTypeInvoice && (
@@ -873,26 +926,21 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {!shouldShowMap && (
-                <View style={styles.mv3}>
-                    {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        receiptImage || receiptThumbnail
-                            ? receiptThumbnailContent
-                            : shouldShowReceiptEmptyState && (
-                                  <ReceiptEmptyState
-                                      onPress={() => {
-                                          if (!transactionID) {
-                                              return;
-                                          }
+                <View style={!hasReceiptImageOrThumbnail && !shouldShowReceiptEmptyState ? undefined : styles.mv3}>
+                    {hasReceiptImageOrThumbnail
+                        ? receiptThumbnailContent
+                        : shouldShowReceiptEmptyState && (
+                              <ReceiptEmptyState
+                                  onPress={() => {
+                                      if (!transactionID) {
+                                          return;
+                                      }
 
-                                          Navigation.navigate(
-                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
-                                          );
-                                      }}
-                                      style={styles.expenseViewImageSmall}
-                                  />
-                              )
-                    }
+                                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                                  }}
+                                  style={styles.expenseViewImageSmall}
+                              />
+                          )}
                 </View>
             )}
             <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
@@ -905,7 +953,7 @@ MoneyRequestConfirmationListFooter.displayName = 'MoneyRequestConfirmationListFo
 export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.action, nextProps.action) &&
+        deepEqual(prevProps.action, nextProps.action) &&
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
@@ -927,21 +975,21 @@ export default memo(
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        lodashIsEqual(prevProps.policy, nextProps.policy) &&
-        lodashIsEqual(prevProps.policyTagLists, nextProps.policyTagLists) &&
+        deepEqual(prevProps.policy, nextProps.policy) &&
+        deepEqual(prevProps.policyTagLists, nextProps.policyTagLists) &&
         prevProps.rate === nextProps.rate &&
         prevProps.receiptFilename === nextProps.receiptFilename &&
         prevProps.receiptPath === nextProps.receiptPath &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.reportID === nextProps.reportID &&
-        lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
+        deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         prevProps.shouldDisplayFieldError === nextProps.shouldDisplayFieldError &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
         prevProps.shouldShowCategories === nextProps.shouldShowCategories &&
         prevProps.shouldShowMerchant === nextProps.shouldShowMerchant &&
         prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
-        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+        deepEqual(prevProps.transaction, nextProps.transaction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.unit === nextProps.unit,
 );

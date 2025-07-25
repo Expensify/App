@@ -4,7 +4,6 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,7 +13,9 @@ import TextBlock from '@components/TextBlock';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +28,7 @@ import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -54,11 +56,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
@@ -206,7 +212,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, itemReportNameValuePairs);
+            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
@@ -235,6 +241,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+                    activePolicyID={activePolicyID}
+                    onboardingPurpose={introSelected?.choice}
+                    isFullscreenVisible={isFullscreenVisible}
+                    isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                 />
             );
@@ -256,6 +266,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             isOffline,
             firstReportIDWithGBRorRBR,
+            activePolicyID,
+            introSelected?.choice,
+            isFullscreenVisible,
+            isReportsSplitNavigatorLast,
             isScreenFocused,
         ],
     );
@@ -276,6 +290,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             isOffline,
             isScreenFocused,
+            isReportsSplitNavigatorLast,
         ],
         [
             reportActions,
@@ -292,6 +307,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             isOffline,
             isScreenFocused,
+            isReportsSplitNavigatorLast,
         ],
     );
 

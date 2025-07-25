@@ -1,23 +1,20 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {isReceiptError} from '@libs/ErrorUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type ReportAction from '@src/types/onyx/ReportAction';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
     /** Transaction item */
@@ -30,70 +27,18 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-/**
- * Extracts unique error messages from errors and actions
- */
-const extractErrorMessages = (errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleContextProps['translate']): string[] => {
-    const uniqueMessages = new Set<string>();
-
-    // Combine transaction and action errors
-    let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...errors};
-    errorActions.forEach((action) => {
-        if (!action.errors) {
-            return;
-        }
-        allErrors = {...allErrors, ...action.errors};
-    });
-
-    // Extract error messages
-    Object.values(allErrors).forEach((errorValue) => {
-        if (!errorValue) {
-            return;
-        }
-        if (typeof errorValue === 'string') {
-            uniqueMessages.add(errorValue);
-        } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
-        } else {
-            Object.values(errorValue).forEach((nestedErrorValue) => {
-                if (!nestedErrorValue) {
-                    return;
-                }
-                uniqueMessages.add(nestedErrorValue);
-            });
-        }
-    });
-
-    return Array.from(uniqueMessages);
-};
-
 function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const {translate} = useLocalize();
     const theme = useTheme();
-
-    const {sortedAllReportActions: transactionActions} = usePaginatedReportActions(transaction.reportID);
+    const {sortedAllReportActions: transactionActions, report} = usePaginatedReportActions(transaction.reportID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const transactionThreadId = transactionActions ? getIOUActionForTransactionID(transactionActions, transaction.transactionID)?.childReportID : undefined;
     const {sortedAllReportActions: transactionThreadActions} = usePaginatedReportActions(transactionThreadId);
-    const getErrorMessages = useCallback(
-        (errors: Errors | ReceiptErrors | undefined = {}, errorActions: ReportAction[] | undefined = []) => extractErrorMessages(errors, errorActions, translate),
-        [translate],
-    );
 
-    const RBRMessages = [
-        ...getErrorMessages(
-            transaction?.errors,
-            transactionThreadActions?.filter((e) => !!e.errors),
-        ),
-        ...(missingFieldError ? [`${missingFieldError}.`] : []),
-        // Some violations end with a period already so lets make sure the connected messages have only single period between them
-        // and end with a single dot.
-        ...transactionViolations.map((violation) => {
-            const message = ViolationsUtils.getViolationTranslation(violation, translate);
-            return message.endsWith('.') ? message : `${message}.`;
-        }),
-    ].join(' ');
+    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, transactionViolations, translate, missingFieldError, transactionThreadActions, policyTags);
+
     return (
         RBRMessages.length > 0 && (
             <View

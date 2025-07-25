@@ -1,8 +1,9 @@
 import {renderHook} from '@testing-library/react-native';
 import {format} from 'date-fns';
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {
     addSplitExpenseField,
@@ -14,6 +15,7 @@ import {
     canUnapproveIOU,
     createDistanceRequest,
     deleteMoneyRequest,
+    getIOUReportActionToApproveOrPay,
     initMoneyRequest,
     initSplitExpense,
     payMoneyRequest,
@@ -21,6 +23,7 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
+    saveSplitTransactions,
     sendInvoice,
     setDraftSplitTransaction,
     setMoneyRequestCategory,
@@ -32,8 +35,9 @@ import {
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
+import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -57,12 +61,13 @@ import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -71,11 +76,12 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
@@ -97,12 +103,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
     getActiveRoute: jest.fn(),
-}));
-
-jest.mock('@src/libs/Navigation/navigationRef', () => ({
-    getRootState: () => ({
-        routes: [],
-    }),
+    navigationRef: {
+        getRootState: jest.fn(),
+    },
 }));
 
 jest.mock('@react-navigation/native');
@@ -122,7 +125,12 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
     getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
         hash: 12345,
         query: 'test',
+        type: 'invoice',
+        status: '',
+        flatFilters: [],
     })),
+    getTodoSearchQuery: jest.fn(),
+    buildSearchQueryJSON: jest.fn(),
 }));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -148,6 +156,9 @@ describe('actions/IOU', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
+        initOnyxDerivedValues();
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     let mockFetch: MockFetch;
@@ -785,6 +796,22 @@ describe('actions/IOU', () => {
 
                                     expect(transaction?.merchant).toBe(merchant);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                                waitForCollectionCallback: true,
+                                callback: (snapshotData) => {
+                                    Onyx.disconnect(connection);
+
+                                    // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
+                                    expect(snapshotData).toBeUndefined();
                                     resolve();
                                 },
                             });
@@ -1830,7 +1857,8 @@ describe('actions/IOU', () => {
                                     // 5. The chat report with Rory + Vit (new)
                                     vitChatReport = Object.values(allReports ?? {}).find(
                                         (report) =>
-                                            report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
+                                            report?.type === CONST.REPORT.TYPE.CHAT &&
+                                            deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                     );
                                     expect(isEmptyObject(vitChatReport)).toBe(false);
                                     expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1844,7 +1872,7 @@ describe('actions/IOU', () => {
                                     groupChat = Object.values(allReports ?? {}).find(
                                         (report) =>
                                             report?.type === CONST.REPORT.TYPE.CHAT &&
-                                            isEqual(report.participants, {
+                                            deepEqual(report.participants, {
                                                 [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
                                                 [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
                                                 [VIT_ACCOUNT_ID]: VIT_PARTICIPANT,
@@ -2287,6 +2315,123 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('saveSplitTransactions', () => {
+        it('should delete the original transaction thread report', async () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                amount: 100,
+                currency: 'USD',
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                merchant: 'test',
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2),
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: expenseReport.reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            const draftTransaction: OnyxEntry<Transaction> = {
+                ...transaction,
+                comment: {
+                    originalTransactionID: transaction.transactionID,
+                },
+            };
+            saveSplitTransactions(draftTransaction, 1);
+
+            await waitForBatchedUpdates();
+
+            const originalTransactionThread = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouAction.childReportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            expect(originalTransactionThread).toBe(undefined);
+        });
+
+        it('should remove the original transaction from the search snapshot data', async () => {
+            // Given a single expense
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                amount: 100,
+                currency: 'USD',
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                merchant: 'test',
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2),
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: expenseReport.reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            const draftTransaction: OnyxEntry<Transaction> = {
+                ...transaction,
+                comment: {
+                    originalTransactionID: transaction.transactionID,
+                },
+            };
+
+            // When splitting the expense
+            const hash = 1;
+            saveSplitTransactions(draftTransaction, hash);
+
+            await waitForBatchedUpdates();
+
+            // Then the original expense/transaction should be removed from the search snapshot data
+            const searchSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            expect(searchSnapshot?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
+        });
+    });
+
     describe('payMoneyRequestElsewhere', () => {
         it('clears outstanding IOUReport', () => {
             const amount = 10000;
@@ -2614,7 +2759,7 @@ describe('actions/IOU', () => {
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
                                             lastMessageText: `paid $${amount / 100}.00 with Expensify`,
                                             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-                                            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                                            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -5125,7 +5270,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scan failure transactions', async () => {
@@ -5180,7 +5326,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scan failure transaction', async () => {
@@ -5226,7 +5373,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
@@ -5277,7 +5425,8 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
             // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
-            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
@@ -6110,6 +6259,291 @@ describe('actions/IOU', () => {
             });
 
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+        });
+    });
+
+    describe('changeTransactionsReport', () => {
+        it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
+            let personalDetailsList: OnyxEntry<PersonalDetailsList>;
+            let expenseReport: OnyxEntry<Report>;
+            let transaction: OnyxEntry<Transaction>;
+
+            // Given a signed in account, which owns a workspace, and has a policy expense chat
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
+
+            const policyID = generatePolicyID();
+            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+            createNewReport(creatorPersonalDetails, policyID);
+            // Create a tracked expense
+            const selfDMReport: Report = {
+                ...createRandomReport(1),
+                reportID: '10',
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            const amount = 100;
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    currency: CONST.CURRENCY.USD,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'merchant',
+                    billable: false,
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    transaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    expenseReport = Object.values(allReports ?? {}).find((r) => r?.type === CONST.REPORT.TYPE.EXPENSE);
+                },
+            });
+
+            let iouReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
+            let trackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                waitForCollectionCallback: true,
+                callback: (allReportActions) => {
+                    iouReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                    );
+                    trackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    );
+                },
+            });
+
+            expect(isMoneyRequestAction(iouReportActionOnSelfDMReport) ? getOriginalMessage(iouReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(transaction?.transactionID);
+            expect(trackExpenseActionableWhisper).toBeDefined();
+
+            if (!transaction || !expenseReport) {
+                return;
+            }
+
+            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID);
+
+            let updatedTransaction: OnyxEntry<Transaction>;
+            let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
+            let updatedTrackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    updatedTransaction = Object.values(allTransactions ?? {}).find((t) => t?.transactionID === transaction?.transactionID);
+                },
+            });
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                waitForCollectionCallback: true,
+                callback: (allReportActions) => {
+                    updatedIOUReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                    );
+                    updatedTrackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    );
+                },
+            });
+
+            expect(updatedTransaction?.reportID).toBe(expenseReport?.reportID);
+            expect(isMoneyRequestAction(updatedIOUReportActionOnSelfDMReport) ? getOriginalMessage(updatedIOUReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(undefined);
+            expect(updatedTrackExpenseActionableWhisper).toBe(undefined);
+        });
+
+        describe('saveSplitTransactions', () => {
+            it("should update split transaction's description correctly ", async () => {
+                const amount = 10000;
+                let expenseReport: OnyxEntry<Report>;
+                let chatReport: OnyxEntry<Report>;
+                let originalTransactionID;
+
+                const policyID = generatePolicyID();
+                createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+
+                // Change the approval mode for the policy since default is Submit and Close
+                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                await waitForBatchedUpdates();
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                    },
+                });
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+                    },
+                    transactionParams: {
+                        amount,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'NASDAQ',
+                        comment: '*hey* `hey`',
+                    },
+                });
+                await waitForBatchedUpdates();
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+                    },
+                });
+                await getOnyxData({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (allReportsAction) => {
+                        const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                            isMoneyRequestAction(reportAction),
+                        );
+                        const originalMessage = isMoneyRequestAction(iouActions?.at(0)) ? getOriginalMessage(iouActions?.at(0)) : undefined;
+                        originalTransactionID = originalMessage?.IOUTransactionID;
+                    },
+                });
+
+                const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                const draftTransaction: Transaction = {
+                    reportID: originalTransaction?.reportID ?? '456',
+                    transactionID: originalTransaction?.transactionID ?? '234',
+                    amount,
+                    created: originalTransaction?.created ?? DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    merchant: originalTransaction?.merchant ?? '',
+                    comment: {
+                        originalTransactionID,
+                        comment: originalTransaction?.comment?.comment ?? '',
+                        splitExpenses: [
+                            {
+                                transactionID: '235',
+                                amount: amount / 2,
+                                description: '<strong>hey</strong><br /><code>hey</code>',
+                                created: DateUtils.getDBTime(),
+                            },
+                            {
+                                transactionID: '234',
+                                amount: amount / 2,
+                                description: '*hey1* `hey`',
+                                created: DateUtils.getDBTime(),
+                            },
+                        ],
+                        attendees: [],
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    },
+                };
+
+                saveSplitTransactions(draftTransaction, -2);
+                await waitForBatchedUpdates();
+
+                const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
+                expect(split1?.comment?.comment).toBe('<strong>hey</strong><br /><code>hey</code>');
+                const split2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}234`);
+                expect(split2?.comment?.comment).toBe('<strong>hey1</strong> <code>hey</code>');
+            });
+        });
+    });
+
+    describe('getIOUReportActionToApproveOrPay', () => {
+        it('should exclude deleted actions', async () => {
+            const reportID = '1';
+            const policyID = '2';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const fakeTransaction1: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            };
+            const fakeTransaction2: Transaction = {
+                ...createRandomTransaction(1),
+                reportID,
+                amount: 27,
+                receipt: {
+                    source: 'test',
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                },
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+            };
+            const fakeTransaction3: Transaction = {
+                ...createRandomTransaction(2),
+                reportID,
+                amount: 100,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction3.transactionID}`, fakeTransaction3);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const deletedReportAction = {
+                reportActionID: '0',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 18:70:44.171',
+                childReportID: reportID,
+            };
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                [deletedReportAction.reportActionID]: deletedReportAction,
+                [reportID]: {
+                    reportActionID: reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created: '2024-08-08 19:70:44.171',
+                    childReportID: reportID,
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: 'Hello world!',
+                        },
+                    ],
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
+
+            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 });

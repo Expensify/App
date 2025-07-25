@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
@@ -47,9 +47,14 @@ function DebugReportActionCreatePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
@@ -99,7 +104,8 @@ function DebugReportActionCreatePage({
                                 multiline
                                 value={draftReportAction}
                                 onChangeText={editJSON}
-                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
+                                // We need to explicitly add styles.pt5 and styles.pb5 to override the default top and bottom padding of the text input
+                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.ph5, styles.pt5, styles.pb5]}
                             />
                         </View>
                         <View>
@@ -107,6 +113,7 @@ function DebugReportActionCreatePage({
                             {!error ? (
                                 <ReportActionItem
                                     allReports={allReports}
+                                    policies={policies}
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
                                     report={{reportID}}
                                     reportActions={[]}
@@ -117,6 +124,10 @@ function DebugReportActionCreatePage({
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
+                                    userWallet={userWallet}
+                                    isUserValidated={isUserValidated}
+                                    personalDetails={personalDetailsList}
+                                    userBillingFundID={userBillingFundID}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

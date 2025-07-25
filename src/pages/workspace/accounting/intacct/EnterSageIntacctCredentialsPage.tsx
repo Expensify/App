@@ -11,7 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -45,7 +45,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 if (values[formItem]) {
                     return;
                 }
-                ErrorUtils.addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+                addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
             });
             return errors;
         },
@@ -55,6 +55,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={EnterSageIntacctCredentialsPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}

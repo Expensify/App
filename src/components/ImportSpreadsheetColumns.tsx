@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,6 +116,7 @@ function ImportSpreadsheetColumns({
                         onPress={importFunction}
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
+                        pressOnEnter
                         success
                         large
                     />

@@ -4,7 +4,9 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
+import {RequestError} from '@octokit/request-error';
 import type {Writable} from 'type-fest';
+import CONST from '@github/libs/CONST';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -299,42 +301,42 @@ describe('GithubUtils', () => {
                 number: 1,
                 title: 'Test PR 1',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 2,
                 title: 'Test PR 2',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 3,
                 title: 'Test PR 3',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 4,
                 title: '[NO QA] Test No QA PR uppercase',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 5,
                 title: '[NoQa] Test No QA PR Title Case',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 6,
                 title: '[Internal QA] Another Test Internal QA PR',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [
                     {
                         id: 1234,
@@ -351,7 +353,7 @@ describe('GithubUtils', () => {
                 number: 7,
                 title: '[Internal QA] Another Test Internal QA PR',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [
                     {
                         id: 1234,
@@ -613,6 +615,164 @@ describe('GithubUtils', () => {
                 );
                 expect(issue.issueAssignees).toEqual(['octocat']);
             });
+        });
+    });
+
+    const commitHistoryData = {
+        emptyResponse: {
+            data: {
+                commits: [],
+            },
+        },
+        singleCommit: {
+            data: {
+                commits: [
+                    {
+                        sha: 'abc123',
+                        commit: {
+                            message: 'Test commit message',
+                            author: {
+                                name: 'Test Author',
+                            },
+                        },
+                        author: {
+                            login: 'username',
+                        },
+                    },
+                ],
+            },
+        },
+        expectedFormattedCommit: [
+            {
+                commit: 'abc123',
+                subject: 'Test commit message',
+                authorName: 'Test Author',
+            },
+        ],
+        multipleCommitsResponse: {
+            data: {
+                commits: [
+                    {
+                        sha: 'abc123',
+                        commit: {
+                            message: 'First commit',
+                            author: {name: 'Author One'},
+                        },
+                    },
+                    {
+                        sha: 'def456',
+                        commit: {
+                            message: 'Second commit',
+                            author: {name: 'Author Two'},
+                        },
+                    },
+                ],
+            },
+        },
+    };
+
+    describe('getCommitHistoryBetweenTags', () => {
+        let mockCompareCommits: jest.Mock;
+
+        beforeEach(() => {
+            jest.spyOn(core, 'getInput').mockImplementation((name) => {
+                if (name === 'GITHUB_TOKEN') {
+                    return 'mock-token';
+                }
+                return '';
+            });
+
+            // Prepare the mocked GitHub API
+            mockCompareCommits = jest.fn();
+            const mockOctokitInstance = {
+                rest: {
+                    repos: {
+                        compareCommits: mockCompareCommits,
+                    },
+                },
+                paginate: jest.fn(),
+            } as unknown as InternalOctokit;
+
+            // Replace the real initOctokit with our mocked one
+            jest.spyOn(GithubUtils, 'initOctokit').mockImplementation(() => {});
+            GithubUtils.internalOctokit = mockOctokitInstance;
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('should call GitHub API with correct parameters', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
+
+            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1');
+
+            expect(mockCompareCommits).toHaveBeenCalledWith({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                base: 'v1.0.0',
+                head: 'v1.0.1',
+                page: 1,
+                per_page: 250,
+            });
+        });
+
+        test('should return empty array when no commits found', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
+
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            expect(result).toEqual([]);
+        });
+
+        test('should return formatted commit history when commits exist', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
+
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
+        });
+
+        test('should handle multiple commits correctly', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
+
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+
+            expect(result).toHaveLength(2);
+            expect(result.at(0)).toEqual({
+                commit: 'abc123',
+                subject: 'First commit',
+                authorName: 'Author One',
+            });
+            expect(result.at(1)).toEqual({
+                commit: 'def456',
+                subject: 'Second commit',
+                authorName: 'Author Two',
+            });
+        });
+
+        test('should handle 404 RequestError with specific error message', async () => {
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const requestError = new RequestError('Not Found', 404, {
+                request: {
+                    method: 'GET',
+                    url: '/repos/compare',
+                    headers: {},
+                },
+            });
+
+            mockCompareCommits.mockRejectedValue(requestError);
+
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow(requestError);
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
+                ),
+            );
+        });
+
+        test('should handle generic API errors gracefully', async () => {
+            mockCompareCommits.mockRejectedValue(new Error('API Error'));
+
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
         });
     });
 

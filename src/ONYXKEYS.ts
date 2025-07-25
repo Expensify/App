@@ -1,7 +1,8 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
-import type {OnboardingCompanySize} from './CONST';
+import type {OnboardingAccounting} from './CONST';
+import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
@@ -164,18 +165,21 @@ const ONYXKEYS = {
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
 
     /**
-     * This NVP contains if user has ever seen the instant submit explanation modal and user intent to not show the instant submit explanation modal again
+     * This NVP contains if user has ever seen the ASAP submit explanation modal and user intent to not show the ASAP submit explanation modal again
      * undefined : user has never seen the modal
      * false : user has seen the modal but has not chosen "do not show again"
      * true : user has seen the modal and does not want to see it again
      */
-    NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION: 'nvp_dismissedInstantSubmitExplanation',
+    NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION: 'nvp_dismissedASAPSubmitExplanation',
 
     /** This NVP contains the training modals the user denied showing again */
     NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
 
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
+
+    /** Whether the app is currently loading a translation */
+    ARE_TRANSLATIONS_LOADING: 'areTranslationsLoading',
 
     /** Whether the user has tried focus mode yet */
     NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
@@ -374,6 +378,9 @@ const ONYXKEYS = {
     /** Onboarding company size selected by the user during Onboarding flow */
     ONBOARDING_COMPANY_SIZE: 'onboardingCompanySize',
 
+    /** Onboarding user reported integration selected by the user during Onboarding flow */
+    ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
+
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
 
@@ -403,6 +410,9 @@ const ONYXKEYS = {
 
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
+
+    /** Indicates whether we should record troubleshoot data or not */
+    SHOULD_RECORD_TROUBLESHOOT_DATA: 'shouldRecordTroubleshootData',
 
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
@@ -470,9 +480,6 @@ const ONYXKEYS = {
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
-    /** States whether we transitioned from OldDot to show only certain group of screens. It should be undefined on pure NewDot. */
-    IS_SINGLE_NEW_DOT_ENTRY: 'isSingleNewDotEntry',
-
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
@@ -534,6 +541,9 @@ const ONYXKEYS = {
 
     /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
+
+    /** List of transaction thread IDs used when navigating to prev/next transaction when viewing it in RHP */
+    TRANSACTION_THREAD_NAVIGATION_REPORT_IDS: 'transactionThreadNavigationReportIDs',
 
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
@@ -840,7 +850,11 @@ const ONYXKEYS = {
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
+        REPORT_TRANSACTIONS_AND_VIOLATIONS: 'reportTransactionsAndViolations',
     },
+
+    /** Stores HybridApp specific state required to interoperate with OldDot */
+    HYBRID_APP: 'hybridApp',
 } as const;
 
 type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
@@ -1060,7 +1074,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
-    [ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION]: boolean;
+    [ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
@@ -1075,6 +1089,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
+    [ONYXKEYS.ARE_TRANSLATIONS_LOADING]: boolean;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
@@ -1134,6 +1149,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
@@ -1145,7 +1161,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
-    [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;
+    [ONYXKEYS.MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
@@ -1161,7 +1177,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
-    [ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY]: boolean | undefined;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
@@ -1186,10 +1201,14 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
+    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
+    [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
+    [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
 
 type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
+    [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
