@@ -77,6 +77,7 @@ import {
     isInvoiceReport,
     isMoneyRequestReport,
     isOpenExpenseReport,
+    isOpenReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
@@ -1368,7 +1369,7 @@ function getSortedSections(
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
  */
-function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false): Record<SortableColumnName, boolean> {
+function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false): Record<SortableColumnName, boolean> {
     const columns: Record<string, boolean> = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
@@ -1433,18 +1434,19 @@ function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTy
 
         const managerID = (transaction as SearchTransaction).managerID;
         if (managerID && managerID !== currentAccountID) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = true;
+            const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
         }
     };
 
-    if (Array.isArray(transactions)) {
-        transactions.forEach(updateColumns);
+    if (Array.isArray(data)) {
+        data.forEach(updateColumns);
     } else {
-        Object.keys(transactions).forEach((key) => {
+        Object.keys(data).forEach((key) => {
             if (!isTransactionEntry(key)) {
                 return;
             }
-            updateColumns(transactions[key]);
+            updateColumns(data[key]);
         });
     }
 
