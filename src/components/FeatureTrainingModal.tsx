@@ -1,13 +1,16 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -208,6 +211,11 @@ function FeatureTrainingModal({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const hasHelpButtonBeenPressed = useRef(false);
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [contentHeight, setContentHeight] = useState(0);
+    const insets = useSafeAreaInsets();
+    const {isKeyboardActive} = useKeyboardState();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -346,7 +354,20 @@ function FeatureTrainingModal({
         onConfirm?.(willShowAgain);
     }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
+    // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
+    useEffect(() => {
+        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView) {
+            return;
+        }
+        scrollViewRef.current?.scrollToEnd({animated: false});
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
+
     const Wrapper = shouldUseScrollView ? ScrollView : View;
+
+    const wrapperStyles = useMemo(
+        () => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {}),
+        [shouldUseScrollView, StyleUtils, insets, isKeyboardActive],
+    );
 
     return (
         <Modal
@@ -375,11 +396,16 @@ function FeatureTrainingModal({
                 onHelp();
             }}
             shouldUseReanimatedModal
+            shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
         >
             <Wrapper
-                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
-                contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
+                scrollsToTop={false}
+                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style]}
+                contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
+                ref={shouldUseScrollView ? scrollViewRef : undefined}
+                onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
+                onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
@@ -387,9 +413,20 @@ function FeatureTrainingModal({
                 </View>
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                     {!!title && !!description && (
-                        <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
+                        <View
+                            style={[
+                                onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [shouldRenderHTMLDescription ? styles.mb5 : styles.mb10],
+                                contentInnerContainerStyles,
+                            ]}
+                        >
                             {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
-                            {shouldRenderHTMLDescription ? <RenderHTML html={description} /> : <Text style={styles.textSupporting}>{description}</Text>}
+                            {shouldRenderHTMLDescription ? (
+                                <View style={styles.mb2}>
+                                    <RenderHTML html={description} />
+                                </View>
+                            ) : (
+                                <Text style={styles.textSupporting}>{description}</Text>
+                            )}
                             {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                             {children}
                         </View>

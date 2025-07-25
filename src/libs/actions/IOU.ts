@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -178,7 +179,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -11503,6 +11504,59 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
+const expenseReportStatusFilterMapping = {
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport: OnyxEntry<OnyxTypes.Report>) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
+};
+
+//  Determines whether the current search results should be optimistically updated
+function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSON, iouReport: OnyxEntry<OnyxTypes.Report>, isInvoice: boolean | undefined) {
+    if (currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return false;
+    }
+    let shouldOptimisticallyUpdateByStatus;
+    const status = currentSearchQueryJSON.status;
+    if (Array.isArray(status)) {
+        shouldOptimisticallyUpdateByStatus = status.some((val) => {
+            const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+            return expenseReportStatusFilterMapping[expenseStatus](iouReport);
+        });
+    } else {
+        const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+        shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport);
+    }
+
+    if (!shouldOptimisticallyUpdateByStatus) {
+        return false;
+    }
+
+    const submitQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, userAccountID);
+
+    const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
+
+    const approveQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, userAccountID);
+    const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
+
+    const validSearchTypes =
+        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
+
+    return (
+        shouldOptimisticallyUpdateByStatus &&
+        validSearchTypes &&
+        (currentSearchQueryJSON.flatFilters.length === 0 || [submitQueryJSON?.hash, approveQueryJSON?.hash].includes(currentSearchQueryJSON.hash))
+    );
+}
+
 function getSearchOnyxUpdate({
     participant,
     transaction,
@@ -11517,11 +11571,7 @@ function getSearchOnyxUpdate({
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        const validSearchTypes =
-            (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
-        const shouldOptimisticallyUpdate = currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes && currentSearchQueryJSON.flatFilters.length === 0;
-
-        if (shouldOptimisticallyUpdate) {
+        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice)) {
             const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
             const successData = [];
             if (isOptimisticToAccountData) {
