@@ -135,11 +135,12 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 }
 
 function useKeyboardAnimation(isModalVisible?: boolean) {
-    const progress = useSharedValue(0);
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
     const scrollY = useSharedValue(0);
     const keyboardAbsoluteHeight = useSharedValue(0);
+    const contentSizeHeight = useSharedValue(0);
+    const layoutMeasurementHeight = useSharedValue(0);
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -148,7 +149,6 @@ function useKeyboardAnimation(isModalVisible?: boolean) {
             const scrollYValueAtStart = scrollY.get();
             const prevHeight = height.get();
 
-            progress.set(e.progress);
             height.set(e.height);
 
             const willKeyboardOpen = e.progress === 1;
@@ -176,20 +176,17 @@ function useKeyboardAnimation(isModalVisible?: boolean) {
         onInteractive: (e) => {
             'worklet';
 
-            progress.set(e.progress);
             height.set(e.height);
             offset.set(scrollY.get() + e.height);
         },
         onMove: (e) => {
             'worklet';
 
-            progress.set(e.progress);
             height.set(e.height);
         },
         onEnd: (e) => {
             'worklet';
 
-            progress.set(e.progress);
             height.set(e.height);
         },
     });
@@ -199,10 +196,12 @@ function useKeyboardAnimation(isModalVisible?: boolean) {
             'worklet';
 
             scrollY.set(e.contentOffset.y);
+            contentSizeHeight.set(e.contentSize.height);
+            layoutMeasurementHeight.set(e.layoutMeasurement.height);
         },
     });
 
-    return {height, progress, onScroll, offset, scrollY};
+    return {height, onScroll, offset, scrollY, contentSizeHeight, layoutMeasurementHeight};
 }
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
@@ -237,7 +236,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll} = useKeyboardAnimation(modal?.isPopover);
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll, contentSizeHeight, layoutMeasurementHeight} = useKeyboardAnimation(modal?.isPopover);
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
@@ -956,6 +955,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            keyboardHeight={keyboardHeight}
+                                            composerHeight={composerHeight}
+                                            isComposerFullSize={isComposerFullSize}
+                                            onScroll={onScroll}
+                                            scrollingVerticalOffset={scrollY}
+                                            contentSizeHeight={contentSizeHeight}
+                                            layoutMeasurementHeight={layoutMeasurementHeight}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
