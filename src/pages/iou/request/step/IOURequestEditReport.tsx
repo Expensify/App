@@ -32,7 +32,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         changeTransactionsReport(selectedTransactionIDs, item.value);
         clearSelectedTransactions(true);
-        Navigation.dismissModalWithReport({reportID: item.value});
+        Navigation.dismissModal();
     };
 
     return (
