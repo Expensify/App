@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -112,6 +112,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
     }, [policy?.maxExpenseAge, translate]);
 
+    const reimbursableMode = getCashExpenseReimbursableMode(policyID) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
+    const reimbursableModeText = translate(`workspace.rules.individualExpenseRules.${reimbursableMode}`);
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
     const prohibitedExpenses = useMemo(() => {
@@ -163,6 +165,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAge',
             action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAge,
+        },
+        {
+            title: reimbursableModeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.cashExpenseDefault',
+            action: () => Navigation.navigate(ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
             title: billableModeText,
