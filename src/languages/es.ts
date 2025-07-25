@@ -5953,7 +5953,7 @@ const translations = {
         },
         statements: 'Extractos',
         unapprovedCash: 'Efectivo no aprobado',
-        unapprovedCards: 'Tarjetas no aprobadas',
+        unapprovedCard: 'Tarjeta no aprobada',
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',

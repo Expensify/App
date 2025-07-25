@@ -5965,7 +5965,7 @@ const translations = {
         },
         statements: 'Declarações',
         unapprovedCash: 'Dinheiro não aprovado',
-        unapprovedCards: 'Cartões não aprovados',
+        unapprovedCard: 'Cartão não aprovado',
         saveSearch: 'Salvar pesquisa',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',

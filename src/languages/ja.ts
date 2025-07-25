@@ -5933,7 +5933,7 @@ const translations = {
         },
         statements: 'ステートメント',
         unapprovedCash: '未承認現金',
-        unapprovedCards: '未承認のカード',
+        unapprovedCard: '未承認のカード',
         saveSearch: '検索を保存',
         deleteSavedSearch: '保存された検索を削除',
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',

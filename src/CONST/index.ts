@@ -6431,7 +6431,7 @@ const CONST = {
             EXPORT: 'export',
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
-            UNAPPROVED_CARDS: 'unapprovedCards',
+            UNAPPROVED_CARD: 'unapprovedCard',
         },
     },
 
