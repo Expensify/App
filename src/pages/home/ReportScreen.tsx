@@ -487,8 +487,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        report?.type,
-        report?.errorFields?.notFound,
+        report,
         isOffline,
         route.params?.moneyRequestReportActionID,
         route.params?.transactionID,
