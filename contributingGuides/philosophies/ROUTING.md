@@ -62,7 +62,7 @@ Examples:
 - `settings/wallet/card/:cardID` the route for a specific credit card
 - `workspace/:policyID` the route for a specific workspace
 
-### - MUST use plural nouns when there are multiple objects that can exist
+### - SHOULD use plural nouns when there are multiple objects that can exist
 Exceptions:
 
 - When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) then plurality does not matter
