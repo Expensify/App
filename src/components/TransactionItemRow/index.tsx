@@ -444,13 +444,13 @@ function TransactionItemRow({
                                 />
                             </View>
                         )}
-                        {shouldShowErrors &&
+                        {shouldShowErrors && (
                             <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
                                 containerStyles={[styles.mt2, styles.minHeight4]}
                                 missingFieldError={missingFieldError}
                             />
-                        }
+                        )}
                     </View>
                     {shouldRenderChatBubbleCell && (
                         <ChatBubbleCell
@@ -492,12 +492,12 @@ function TransactionItemRow({
                     </View>
                 )}
             </View>
-            {shouldShowErrors &&
+            {shouldShowErrors && (
                 <TransactionItemRowRBRWithOnyx
                     transaction={transactionItem}
                     missingFieldError={missingFieldError}
                 />
-            }
+            )}
         </View>
     );
 }
