@@ -103,6 +103,7 @@ import {
     isDeletedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
+    isTestTransactionReport,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -176,7 +177,6 @@ import {
     isSelectedManagerMcTest,
     isSelfDM,
     isSettled,
-    isTestTransactionReport,
     isTrackExpenseReport,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
