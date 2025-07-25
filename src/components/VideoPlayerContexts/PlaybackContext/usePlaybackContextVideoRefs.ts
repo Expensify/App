@@ -1,24 +1,17 @@
-import {useCallback, useEffect, useMemo, useRef} from 'react';
-import Visibility from '@libs/Visibility';
+import {useCallback, useMemo, useRef} from 'react';
 import type {PlaybackContextVideoRefs, StopVideo} from './types';
 
 function usePlaybackContextVideoRefs(resetCallback: () => void) {
     const currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'] = useRef(null);
     const currentVideoViewRef: PlaybackContextVideoRefs['viewRef'] = useRef(null);
-    const videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'] = useRef(0);
-    const isPlayPendingRef = useRef(false);
 
     const playVideo: PlaybackContextVideoRefs['play'] = useCallback(() => {
-        if (!Visibility.isVisible()) {
-            isPlayPendingRef.current = true;
-            return;
-        }
         currentVideoPlayerRef.current?.play();
-    }, [currentVideoPlayerRef]);
+    }, []);
 
     const pauseVideo: PlaybackContextVideoRefs['pause'] = useCallback(() => {
         currentVideoPlayerRef.current?.pause();
-    }, [currentVideoPlayerRef]);
+    }, []);
 
     const stopVideo: StopVideo = useCallback(() => {
         if (!currentVideoPlayerRef.current) {
@@ -35,21 +28,10 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
 
     const resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'] = useCallback(() => {
         stopVideo();
-        videoResumeTryNumberRef.current = 0;
         currentVideoPlayerRef.current = null;
         currentVideoViewRef.current = null;
         resetCallback();
     }, [resetCallback, stopVideo]);
-
-    useEffect(() => {
-        return Visibility.onVisibilityChange(() => {
-            if (!(Visibility.isVisible() && isPlayPendingRef.current)) {
-                return;
-            }
-            playVideo();
-            isPlayPendingRef.current = false;
-        });
-    }, [playVideo]);
 
     const updateCurrentVideoPlayerRefs: PlaybackContextVideoRefs['updateRefs'] = (playerRef, viewRef) => {
         currentVideoPlayerRef.current = playerRef;
@@ -60,7 +42,6 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         (): PlaybackContextVideoRefs => ({
             playerRef: currentVideoPlayerRef,
             viewRef: currentVideoViewRef,
-            resumeTryNumberRef: videoResumeTryNumberRef,
             play: playVideo,
             pause: pauseVideo,
             isPlaying: checkIfVideoIsPlaying,

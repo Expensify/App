@@ -34,7 +34,6 @@ type PlaybackContextVideoRefs = {
     play: () => void;
     pause: () => void;
     isPlaying: (statusCallback: StatusCallback) => void;
-    resumeTryNumberRef: RefObject<number>;
     playerRef: RefObject<VideoPlayer | null>;
     viewRef: RefObject<VideoView | null>;
     updateRefs: (playerRef: VideoPlayer | null, viewRef: VideoView | null) => void;
@@ -45,7 +44,6 @@ type PlaybackContext = PlaybackContextValues & {
     playVideo: PlaybackContextVideoRefs['play'];
     pauseVideo: PlaybackContextVideoRefs['pause'];
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
-    videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'];
     currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
     currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
 };

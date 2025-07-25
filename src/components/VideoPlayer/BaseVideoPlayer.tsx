@@ -50,25 +50,16 @@ function NewBaseVideoPlayer({
     reportID,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
-    const {
-        pauseVideo,
-        playVideo,
-        currentlyPlayingURL,
-        sharedElement,
-        originalParent,
-        shareVideoPlayerElements,
-        currentVideoPlayerRef,
-        updateCurrentURLAndReportID,
-        videoResumeTryNumberRef,
-        setCurrentlyPlayingURL,
-    } = usePlaybackContext();
+    const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentURLAndReportID, setCurrentlyPlayingURL} =
+        usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [hasError, setHasError] = useState(false);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
     // const newSourceURL1 = `https://dev.new.expensify.com:8082${sourceURL}`;
-    // const newSourceURL1 = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
+    // const sourceURL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -82,9 +73,6 @@ function NewBaseVideoPlayer({
     /* eslint-disable no-param-reassign */
     const videoPlayer = useVideoPlayer(sourceURL, (player) => {
         player.loop = isLooping;
-        if (shouldPlay) {
-            player.play();
-        }
         player.muted = true;
         player.timeUpdateEventInterval = 0.05;
     });
@@ -126,15 +114,14 @@ function NewBaseVideoPlayer({
 
     const togglePlayCurrentVideo = useCallback(() => {
         setIsEnded(false);
-        videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
-        } else if (videoPlayer.playing) {
+        } else if (videoPlayer.playing && !isLoading) {
             pauseVideo();
-        } else {
+        } else if (!isLoading) {
             playVideo();
         }
-    }, [isCurrentlyURLSet, pauseVideo, playVideo, videoPlayer.playing, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, videoPlayer.playing, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, playVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -198,21 +185,6 @@ function NewBaseVideoPlayer({
         setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
     };
 
-    // fix for iOS mWeb: preventing iOS native player default behavior from pausing the video when exiting fullscreen
-    const preventPausingWhenExitingFullscreen = useCallback(
-        (isVideoPlaying: boolean) => {
-            if (videoResumeTryNumberRef.current === 0 || isVideoPlaying) {
-                return;
-            }
-            if (videoResumeTryNumberRef.current === 1) {
-                playVideo();
-            }
-            // eslint-disable-next-line react-compiler/react-compiler
-            videoResumeTryNumberRef.current -= 1;
-        },
-        [playVideo, videoResumeTryNumberRef],
-    );
-
     useEventListener(videoPlayer, 'mutedChange', (payload: MutedChangeEventPayload) => {
         if (payload.muted || !payload.oldMuted) {
             return;
@@ -222,19 +194,15 @@ function NewBaseVideoPlayer({
 
     useEventListener(videoPlayer, 'playingChange', (payload: PlayingChangeEventPayload) => {
         const isVideoPlaying = payload.isPlaying;
-        preventPausingWhenExitingFullscreen(isVideoPlaying);
         if (isVideoPlaying && isEnded) {
             setIsEnded(false);
         }
     });
 
     useEventListener(videoPlayer, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (payload.status === 'readyToPlay') {
-            videoPlayer.play();
-        }
-        if (payload.status === 'loading') {
-            preventPausingWhenExitingFullscreen(false);
-            videoPlayer.pause();
+        if (payload.status === 'readyToPlay' && isFirstLoad) {
+            playVideo();
+            setIsFirstLoad(false);
         }
         if (payload.error) {
             // No need to set hasError while offline, since the offline indicator is already shown.
@@ -269,6 +237,7 @@ function NewBaseVideoPlayer({
             }
             if (currentVideoPlayerRef.current) {
                 currentVideoPlayerRef.current.pause();
+                // eslint-disable-next-line react-compiler/react-compiler
                 currentVideoPlayerRef.current.currentTime = 0;
                 currentVideoPlayerRef.current = null;
             }
@@ -433,14 +402,6 @@ function NewBaseVideoPlayer({
 
                                                 // Sync volume updates in full screen mode after leaving it
                                                 updateVolume(videoPlayer.muted ? 0 : videoPlayer.volume || 1);
-
-                                                // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
-                                                // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
-                                                if (videoPlayer.playing) {
-                                                    pauseVideo();
-                                                    playVideo();
-                                                    videoResumeTryNumberRef.current = 3;
-                                                }
                                             }}
                                         />
                                     </View>
@@ -451,7 +412,7 @@ function NewBaseVideoPlayer({
                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
                             )}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {((controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded)) || true) && (
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                 <VideoPlayerControls
                                     duration={duration ?? 0}
                                     position={currentTime ?? 0}
