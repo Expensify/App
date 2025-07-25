@@ -40,6 +40,17 @@ export default function useReportUnreadMessageScrollTracking({
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number}>({reportID, unreadMarkerReportActionIndex, previousViewableItems: []});
+    const wasManuallySetRef = useRef(false);
+
+    const setVisibility = useCallback((visible: boolean) => {
+        wasManuallySetRef.current = true;
+        setIsFloatingMessageCounterVisible(visible);
+
+        requestAnimationFrame(() => {
+            wasManuallySetRef.current = false;
+        });
+    }, []);
+
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
     useEffect(() => {
@@ -61,6 +72,10 @@ export default function useReportUnreadMessageScrollTracking({
             };
         },
         ({offsetY, kHeight}) => {
+            if (wasManuallySetRef.current) {
+                return;
+            }
+
             const correctedOffsetY = Platform.OS === 'ios' ? kHeight + offsetY : offsetY;
             const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
@@ -120,7 +135,7 @@ export default function useReportUnreadMessageScrollTracking({
 
     return {
         isFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible,
+        setIsFloatingMessageCounterVisible: setVisibility,
         onViewableItemsChanged,
     };
 }
