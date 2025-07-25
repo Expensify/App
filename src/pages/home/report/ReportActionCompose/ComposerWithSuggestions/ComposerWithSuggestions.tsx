@@ -12,7 +12,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -59,6 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import findNodeHandle from '@src/utils/findNodeHandle';
 
 type SyncSelection = {
     position: number;
