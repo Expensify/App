@@ -11141,7 +11141,7 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
  * ========================================
  */
 function getReportStatusTranslation(stateNum?: number, statusNum?: number): string {
-    if (!stateNum || !statusNum) {
+    if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
 
