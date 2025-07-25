@@ -21,6 +21,7 @@ import {
     orderOptions,
     orderWorkspaceOptions,
     recentReportComparator,
+    sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -29,6 +30,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -1931,6 +1933,28 @@ describe('OptionsListUtils', () => {
             expect(result.at(0)!.reportID).toBe('1');
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(1)!.reportID).toBe('3');
+        });
+    });
+
+    describe('sortAlphabetically', () => {
+        it('should sort options alphabetically by text', () => {
+            const options: OptionData[] = [{text: 'Banana', reportID: '1'} as OptionData, {text: 'Apple', reportID: '2'} as OptionData, {text: 'Cherry', reportID: '3'} as OptionData];
+            const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
+            expect(sortedOptions.at(0)?.reportID).toBe('2');
+            expect(sortedOptions.at(1)?.reportID).toBe('1');
+            expect(sortedOptions.at(2)?.reportID).toBe('3');
+        });
+
+        it('should handle empty array', () => {
+            const sortedOptions = sortAlphabetically([], 'abc', localeCompare);
+            expect(sortedOptions).toEqual([]);
+        });
+
+        it('should handle single option', () => {
+            const options: OptionData[] = [{text: 'Single', reportID: '1'} as OptionData];
+            const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
+            expect(sortedOptions.length).toBe(1);
+            expect(sortedOptions.at(0)?.text).toBe('Single');
         });
     });
 });

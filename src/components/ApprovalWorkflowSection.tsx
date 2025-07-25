@@ -24,7 +24,7 @@ type ApprovalWorkflowSectionProps = {
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const approverTitle = useCallback(
@@ -38,10 +38,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
             return translate('workspace.common.everyone');
         }
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName')
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
             .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     return (
         <PressableWithoutFeedback
