@@ -3341,7 +3341,7 @@ const translations = {
         departs: 'Vertrekt',
         errorMessage: 'Er is iets misgegaan. Probeer het later opnieuw.',
         phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
-            `<comment><phone-error>Alstublieft <a href="${phoneErrorMethodsRoute}">voeg een werk e-mailadres toe als je primaire login</a> om te reizen boeken.</phone-error></comment>`,
+            `<rbr><a href="${phoneErrorMethodsRoute}">Voeg een werkmail toe als uw primaire login</a> om reizen te boeken.</rbr>`,
         domainSelector: {
             title: 'Domein',
             subtitle: 'Kies een domein voor de installatie van Expensify Travel.',

@@ -3337,7 +3337,7 @@ const translations = {
         departs: '出発します',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
         phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
-            `<comment><phone-error>お願いします <a href="${phoneErrorMethodsRoute}">勤務用メールアドレスをプライマリログインとして追加してください。</a> 旅行を予約するために。</phone-error></comment>`,
+            `<rbr>旅行予約のための<a href="${phoneErrorMethodsRoute}">プライマリログインとして、仕事の電子メールを追加して</a>ください。</rbr>`,
         domainSelector: {
             title: 'ドメイン',
             subtitle: 'Expensify Travelのセットアップ用にドメインを選択してください。',
