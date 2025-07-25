@@ -379,7 +379,7 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
     });
 }
 
-function clearIssueNewCardFormData(policyID: string | undefined) {
+function clearIssueNewCardFormData() {
     Onyx.set(ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM, {});
 }
 
