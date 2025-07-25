@@ -17,7 +17,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 When adding new routes, or refactoring existing routes, follow these rules:
 
 ### - MUST be unique
-There should not be any aliases where different routes lead to the same place.
+There are no aliases where different routes lead to the same place.
 
 ### - SHOULD be short
 Aim for the shortest possible URL that is also still human readable.
