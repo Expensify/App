@@ -2983,7 +2983,7 @@ describe('ReportUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
             const result = findLastAccessedReport(false, undefined, undefined, undefined, {
-                [archivedReport.reportID]: reportNameValuePairs,
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: reportNameValuePairs,
             });
 
             // Even though the archived report has a more recent lastVisitTime,
