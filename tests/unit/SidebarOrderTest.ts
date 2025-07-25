@@ -53,14 +53,14 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        it('is not rendered when there are no props passed to it', () => {
+        it('is rendered with empty state when no reports are available', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Then it should render nothing and be null
-            // This is expected because there is an early return when there are no personal details
-            expect(screen.toJSON()).toBe(null);
+            // Then it should render with the empty state message and not show the reports list
+            expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
+            expect(screen.queryByTestId('lhn-options-list')).not.toBeOnTheScreen();
         });
 
         it('is rendered with an empty list when personal details exist', () =>
