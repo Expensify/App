@@ -16,7 +16,6 @@ const FAKE_POLICY_ID = '1';
 const FAKE_TRANSACTION_ID = '1';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
-const FAKE_OWNER_ACCOUNT_ID = 2;
 
 /**
  * Mock the OptionListContextProvider to provide test data for the component.
@@ -71,7 +70,7 @@ describe('IOURequestEditReportCommon', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
                     reportID: FAKE_REPORT_ID,
                     reportName: 'Expense Report',
-                    ownerAccountID: FAKE_OWNER_ACCOUNT_ID,
+                    ownerAccountID: FAKE_ACCOUNT_ID,
                     policyID: FAKE_POLICY_ID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -93,7 +92,7 @@ describe('IOURequestEditReportCommon', () => {
                 {
                     reportID: FAKE_TRANSACTION_ID,
                     reportName: 'Transaction Report',
-                    ownerAccountID: FAKE_OWNER_ACCOUNT_ID,
+                    ownerAccountID: FAKE_ACCOUNT_ID,
                     policyID: FAKE_POLICY_ID,
                 } as Report,
             ];
