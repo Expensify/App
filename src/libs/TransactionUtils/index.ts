@@ -1501,7 +1501,7 @@ function updateDuplicatesTransactionsViolations(
 
         const duplicateTransactionViolations = duplicateViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
-        if (duplicateTransactionViolations.length == 0) {
+        if (duplicateTransactionViolations.length === 0) {
             continue;
         }
 
