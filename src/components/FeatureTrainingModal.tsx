@@ -413,7 +413,12 @@ function FeatureTrainingModal({
         >
             <Wrapper
                 scrollsToTop={false}
-                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style]}
+                style={[
+                    styles.mh100,
+                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                    wrapperStyles.style,
+                    shouldUseScrollView && shouldDisableScrollViewBounce && styles.overscrollBehaviorNone,
+                ]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}

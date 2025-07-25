@@ -24,6 +24,10 @@ export default {
         overscrollBehaviorX: 'none',
     },
 
+    overscrollBehaviorNone: {
+        overscrollBehavior: 'none',
+    },
+
     overscrollBehaviorContain,
 
     overflowAuto,
