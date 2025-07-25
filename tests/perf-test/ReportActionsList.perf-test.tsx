@@ -30,9 +30,7 @@ jest.mock('@libs/Fullstory', () => ({
     default: {
         consentAndIdentify: jest.fn(),
     },
-    getFSAttributes: jest.fn(),
-    getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
-    parseFSAttributes: jest.fn(),
+    getChatFSClass: jest.fn().mockReturnValue('mockFSClass'),
 }));
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {

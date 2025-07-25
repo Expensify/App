@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import type {ForwardFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -77,94 +78,95 @@ type PopoverMenuItem = MenuItemProps & {
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
 
-type PopoverMenuProps = Partial<PopoverModalProps> & {
-    /** Callback method fired when the user requests to close the modal */
-    onClose: () => void;
+type PopoverMenuProps = Partial<PopoverModalProps> &
+    ForwardFSClassProps & {
+        /** Callback method fired when the user requests to close the modal */
+        onClose: () => void;
 
-    /** Optional callback passed to popover's children container */
-    onLayout?: (e: LayoutChangeEvent) => void;
+        /** Optional callback passed to popover's children container */
+        onLayout?: (e: LayoutChangeEvent) => void;
 
-    /** Callback method fired when the modal is shown */
-    onModalShow?: () => void;
+        /** Callback method fired when the modal is shown */
+        onModalShow?: () => void;
 
-    /** Callback method fired when the modal is hidden */
-    onModalHide?: () => void;
+        /** Callback method fired when the modal is hidden */
+        onModalHide?: () => void;
 
-    /** State that determines whether to display the modal or not */
-    isVisible: boolean;
+        /** State that determines whether to display the modal or not */
+        isVisible: boolean;
 
-    /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+        /** Callback to fire when a CreateMenu item is selected */
+        onItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
 
-    /** Menu items to be rendered on the list */
-    menuItems: PopoverMenuItem[];
+        /** Menu items to be rendered on the list */
+        menuItems: PopoverMenuItem[];
 
-    /** Optional non-interactive text to display as a header for any create menu */
-    headerText?: string;
+        /** Optional non-interactive text to display as a header for any create menu */
+        headerText?: string;
 
-    /** Whether disable the animations */
-    disableAnimation?: boolean;
+        /** Whether disable the animations */
+        disableAnimation?: boolean;
 
-    /** The horizontal and vertical anchors points for the popover */
-    anchorPosition: AnchorPosition;
+        /** The horizontal and vertical anchors points for the popover */
+        anchorPosition: AnchorPosition;
 
-    /** Ref of the anchor */
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+        /** Ref of the anchor */
+        anchorRef: RefObject<View | HTMLDivElement | null>;
 
-    /** Where the popover should be positioned relative to the anchor points. */
-    anchorAlignment?: AnchorAlignment;
+        /** Where the popover should be positioned relative to the anchor points. */
+        anchorAlignment?: AnchorAlignment;
 
-    /** Whether we don't want to show overlay */
-    withoutOverlay?: boolean;
+        /** Whether we don't want to show overlay */
+        withoutOverlay?: boolean;
 
-    /** Should we announce the Modal visibility changes? */
-    shouldSetModalVisibility?: boolean;
+        /** Should we announce the Modal visibility changes? */
+        shouldSetModalVisibility?: boolean;
 
-    /** Whether we want to show the popover on the right side of the screen */
-    fromSidebarMediumScreen?: boolean;
+        /** Whether we want to show the popover on the right side of the screen */
+        fromSidebarMediumScreen?: boolean;
 
-    /**
-     * Whether the modal should enable the new focus manager.
-     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
-     * */
-    shouldEnableNewFocusManagement?: boolean;
+        /**
+         * Whether the modal should enable the new focus manager.
+         * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+         * */
+        shouldEnableNewFocusManagement?: boolean;
 
-    /** How to re-focus after the modal is dismissed */
-    restoreFocusType?: BaseModalProps['restoreFocusType'];
+        /** How to re-focus after the modal is dismissed */
+        restoreFocusType?: BaseModalProps['restoreFocusType'];
 
-    /** Whether to show the selected option checkmark */
-    shouldShowSelectedItemCheck?: boolean;
+        /** Whether to show the selected option checkmark */
+        shouldShowSelectedItemCheck?: boolean;
 
-    /** The style of content container which wraps all child views */
-    containerStyles?: StyleProp<ViewStyle>;
+        /** The style of content container which wraps all child views */
+        containerStyles?: StyleProp<ViewStyle>;
 
-    /** Used to apply styles specifically to the header text */
-    headerStyles?: StyleProp<TextStyle>;
+        /** Used to apply styles specifically to the header text */
+        headerStyles?: StyleProp<TextStyle>;
 
-    /** Modal container styles  */
-    innerContainerStyle?: ViewStyle;
+        /** Modal container styles  */
+        innerContainerStyle?: ViewStyle;
 
-    /** These styles will be applied to the scroll view content container which wraps all of the child views */
-    scrollContainerStyle?: StyleProp<ViewStyle>;
+        /** These styles will be applied to the scroll view content container which wraps all of the child views */
+        scrollContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether we should wrap the list item in a scroll view */
-    shouldUseScrollView?: boolean;
+        /** Whether we should wrap the list item in a scroll view */
+        shouldUseScrollView?: boolean;
 
-    /** Whether we should set a max height to the popover content */
-    shouldEnableMaxHeight?: boolean;
+        /** Whether we should set a max height to the popover content */
+        shouldEnableMaxHeight?: boolean;
 
-    /** Whether to update the focused index on a row select */
-    shouldUpdateFocusedIndex?: boolean;
+        /** Whether to update the focused index on a row select */
+        shouldUpdateFocusedIndex?: boolean;
 
-    /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
-    shouldUseModalPaddingStyle?: boolean;
+        /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
+        shouldUseModalPaddingStyle?: boolean;
 
-    /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
-    shouldAvoidSafariException?: boolean;
+        /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
+        shouldAvoidSafariException?: boolean;
 
-    /** Used to locate the component in the tests */
-    testID?: string;
-};
+        /** Used to locate the component in the tests */
+        testID?: string;
+    };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
     if (shouldUseScrollView) {
@@ -215,6 +217,7 @@ function PopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     testID,
+    forwardFSClass,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -439,6 +442,7 @@ function PopoverMenu({
                 <View
                     onLayout={onLayout}
                     style={[menuContainerStyle, containerStyles]}
+                    fsClass={forwardFSClass}
                 >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}

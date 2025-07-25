@@ -75,6 +75,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
             parser={parserWorklet}
             ref={inputRef}
             formatSelection={toggleSelectionFormat}
+            fsClass={CONST.FULL_STORY.MASK}
             // eslint-disable-next-line
             {...props}
             /**

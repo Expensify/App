@@ -258,7 +258,10 @@ function OptionRowLHN({
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                             >
-                                <View style={sidebarInnerRowStyle}>
+                                <View
+                                    style={sidebarInnerRowStyle}
+                                    fsClass={CONST.FULL_STORY.MASK}
+                                >
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length &&
                                             firstIcon &&

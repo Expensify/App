@@ -36,6 +36,7 @@ function SearchRouterModal() {
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseReanimatedModal={shouldUseNarrowLayout}
+            forwardFSClass={CONST.FULL_STORY.MASK}
         >
             <ScreenWrapperContainer
                 testID={SearchRouterModal.displayName}
