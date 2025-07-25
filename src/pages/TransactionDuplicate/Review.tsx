@@ -75,10 +75,12 @@ function TransactionDuplicateReview() {
     if (isLoadingPage) {
         return (
             <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
-                <View style={[styles.borderBottom]}>
-                    <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                <View style={[styles.flex1]}>
+                    <View style={[styles.appContentHeader, styles.borderBottom]}>
+                        <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+                    </View>
+                    <ReportActionsSkeletonView />
                 </View>
-                <ReportActionsSkeletonView />
             </ScreenWrapper>
         );
     }
