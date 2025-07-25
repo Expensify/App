@@ -16,6 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
@@ -61,6 +62,7 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1388,6 +1390,163 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
+/**
+ * Extracts a set of valid duplicate transaction IDs associated with a given transaction,
+ * excluding:
+ * - the transaction itself
+ * - duplicate IDs that appear more than once
+ * - duplicates referencing missing or invalid transactions
+ * - settled or approved transactions
+ *
+ * @param transactionID - The ID of the transaction being validated.
+ * @param transactionCollection - A collection of all transactions and their duplicates.
+ * @param currentTransactionViolations - The list of violations associated with this transaction.
+ * @returns A set of valid duplicate transaction IDs.
+ */
+function getValidDuplicateTransactionIDs(transactionID: string, transactionCollection: OnyxCollection<Transaction>, currentTransactionViolations: TransactionViolation[]): Set<string> {
+    const result = new Set<string>();
+    const seen = new Set<string>();
+    let foundDuplicateViolation = false;
+
+    if (!transactionCollection) {
+        return result;
+    }
+
+    for (const violation of currentTransactionViolations) {
+        if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) {
+            continue;
+        }
+
+        // Skip further violations
+        if (foundDuplicateViolation) {
+            Log.warn(`Multiple duplicate violations found for transaction ${transactionID}. Only one expected.`);
+            continue;
+        }
+
+        foundDuplicateViolation = true;
+
+        const duplicatesID = violation?.data?.duplicates;
+        if (!duplicatesID || duplicatesID.length === 0) {
+            Log.warn(`Violation ${violation.name} lacks duplicates. Transaction ID: ${transactionID}`);
+            break;
+        }
+
+        const validTransactions: Transaction[] = [];
+
+        for (const duplicateID of duplicatesID) {
+            // Skip self-reference
+            if (duplicateID === transactionID) {
+                continue;
+            }
+
+            if (seen.has(duplicateID)) {
+                Log.warn(`Duplicate ID ${duplicateID} is repeated in violation for transaction ${transactionID}.`);
+                continue;
+            }
+
+            seen.add(duplicateID);
+
+            const transaction = transactionCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`];
+            if (!transaction?.transactionID) {
+                Log.warn(`Transaction ${duplicateID} does not exist or is invalid. Found in transaction ${transactionID}.`);
+                continue;
+            }
+
+            validTransactions.push(transaction);
+        }
+
+        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
+        const filtered = removeSettledAndApprovedTransactions(validTransactions);
+
+        for (const transaction of filtered) {
+            result.add(transaction.transactionID);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Adds onyx updates to the passed onyxData to update the DUPLICATED_TRANSACTION violation data
+ * by removing the passed transactionID from any violation that referenced it.
+ * @param onyxData - An object to store optimistic and failure updates.
+ * @param transactionID - The ID of the transaction being deleted or updated.
+ * @param transactions - A collection of all transactions and their duplicates.
+ * @param transactionViolations - The collection of the transaction violations including the duplicates violations.
+ *
+ */
+function updateDuplicatesTransactionsViolations(
+    onyxData: OnyxData,
+    transactionID: string,
+    transactions: OnyxCollection<Transaction>,
+    transactionViolations: OnyxCollection<TransactionViolations>,
+) {
+    if (!transactionID || !transactions || !transactionViolations) {
+        return;
+    }
+    const violations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+    if (!violations) {
+        return;
+    }
+
+    const duplicateIDs = getValidDuplicateTransactionIDs(transactionID, transactions, violations);
+
+    for (const duplicateID of duplicateIDs) {
+        const duplicateViolations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
+
+        if (!duplicateViolations) {
+            continue;
+        }
+
+        const duplicateTransactionViolations = duplicateViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+        if (duplicateTransactionViolations.length === 0) {
+            continue;
+        }
+
+        if (duplicateTransactionViolations.length > 1) {
+            Log.warn(`There are ${duplicateTransactionViolations.length} duplicate transaction violations for transactionID: ${duplicateID}. This should not happen.`);
+            continue;
+        }
+
+        const duplicateTransactionViolation = duplicateTransactionViolations.at(0);
+        if (!duplicateTransactionViolation?.data?.duplicates) {
+            continue;
+        }
+
+        // If the transactionID is not in the duplicates list, we don't need to update the violation
+        const duplicateTransactionIDs = duplicateTransactionViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
+        if (duplicateTransactionIDs.length === duplicateTransactionViolation.data.duplicates.length) {
+            continue;
+        }
+
+        const optimisticViolations = duplicateTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+        if (duplicateTransactionIDs.length > 0) {
+            optimisticViolations.push({
+                ...duplicateTransactionViolation,
+                data: {
+                    ...duplicateTransactionViolation.data,
+                    duplicates: duplicateTransactionIDs,
+                },
+            });
+        }
+
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+            value: optimisticViolations.length > 0 ? optimisticViolations : null,
+        });
+
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+            value: duplicateViolations,
+        });
+    }
+}
+
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
     return transactions.filter((transaction) => !!transaction && !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID)) as Transaction[];
 }
@@ -1747,6 +1906,7 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
+    getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
@@ -1787,6 +1947,7 @@ export {
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
+    updateDuplicatesTransactionsViolations,
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
