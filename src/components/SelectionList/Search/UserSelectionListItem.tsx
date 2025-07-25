@@ -60,6 +60,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            shouldAddCurrentUserPostfix: true,
         });
     }, [item.accountID]);
 
