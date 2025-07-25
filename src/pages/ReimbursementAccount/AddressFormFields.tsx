@@ -137,6 +137,7 @@ function AddressFormFields({
                 defaultValue={defaultValues?.city}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
                 containerStyles={styles.mt6}
+                autoFocus={false}
             />
 
             {shouldDisplayStateSelector && (
@@ -168,6 +169,7 @@ function AddressFormFields({
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
+                autoFocus={false}
             />
             {shouldDisplayCountrySelector && (
                 <View style={[styles.mt3, styles.mhn5]}>
