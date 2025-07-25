@@ -4,7 +4,7 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -290,7 +290,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction);
             }
         } else if (reportAction) {
-            deleteReportComment(reportIDRef.current, reportAction);
+            InteractionManager.runAfterInteractions(() => {
+                deleteReportComment(reportIDRef.current, reportAction);
+            });
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
