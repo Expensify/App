@@ -630,7 +630,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         if (connectedIntegration && policyID) {
-                            removePolicyConnection(connectedIntegration, policy);
+                            removePolicyConnection(policy, connectedIntegration);
                         }
                         setIsDisconnectModalOpen(false);
                     }}

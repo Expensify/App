@@ -139,7 +139,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                         if (!policyID || !activeIntegration?.integrationToDisconnect) {
                             return;
                         }
-                        removePolicyConnection(activeIntegration?.integrationToDisconnect, policy);
+                        removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
                         closeConfirmationModal();
                     }}
                     integrationToConnect={activeIntegration?.name}

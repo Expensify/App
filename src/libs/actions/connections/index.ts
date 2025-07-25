@@ -14,7 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
-function removePolicyConnection(connectionName: PolicyConnectionName, policy: Policy) {
+function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
