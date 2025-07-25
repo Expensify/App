@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,6 +81,8 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
+
+    const {paddingBottom} = useSafeAreaPaddings(true);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -265,7 +268,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     shouldUseScrollView
-                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
