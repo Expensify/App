@@ -42,6 +42,7 @@ function SubmitDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {canBeMissing: true});
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
@@ -67,8 +68,10 @@ function SubmitDetailsPage({
             policy,
             currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            report,
+            parentReport,
         });
-    }, [reportOrAccountID, policy]);
+    }, [reportOrAccountID, policy, report, parentReport]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) => (participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant)));

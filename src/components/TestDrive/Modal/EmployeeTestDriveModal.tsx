@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
+import useOnyx from '@hooks/useOnyx';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
@@ -26,10 +27,14 @@ import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function EmployeeTestDriveModal() {
     const {translate} = useLocalize();
+    const reportID = generateReportID();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TestDriveModalNavigatorParamList, typeof SCREENS.TEST_DRIVE_MODAL.ROOT>>();
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
@@ -57,11 +62,13 @@ function EmployeeTestDriveModal() {
                     'jpg',
                     (source, _, filename) => {
                         const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                        const reportID = generateReportID();
+
                         initMoneyRequest({
                             reportID,
                             isFromGlobalCreate: false,
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                            report,
+                            parentReport,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);

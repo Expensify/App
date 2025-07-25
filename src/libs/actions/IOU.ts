@@ -259,6 +259,8 @@ type InitMoneyRequestParams = {
     isFromGlobalCreate?: boolean;
     currentIouRequestType?: IOURequestType | undefined;
     newIouRequestType: IOURequestType;
+    report: OnyxEntry<OnyxTypes.Report>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type MoneyRequestInformation = {
@@ -895,8 +897,10 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
  * @param policy
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
+ * @param report the report to attach the transaction to
+ * @param parentReport the parent report to attach the transaction to
  */
-function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouRequestType, newIouRequestType}: InitMoneyRequestParams) {
+function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouRequestType, newIouRequestType, report, parentReport}: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -952,7 +956,7 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
             },
         };
         if (!isFromGlobalCreate) {
-            const {customUnitID, category} = getCustomUnitID(reportID);
+            const {customUnitID, category} = getCustomUnitID(report, parentReport);
             comment.customUnit = {...comment.customUnit, customUnitID};
             requestCategory = category ?? null;
         }
