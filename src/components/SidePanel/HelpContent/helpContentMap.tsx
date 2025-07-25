@@ -5,6 +5,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';
+import NumberedList from '@components/SidePanel/HelpComponents/HelpNumberedList';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {ThemeStyles} from '@styles/index';
@@ -126,159 +127,38 @@ const helpContentMap: HelpContent = {
                 </View>
             ),
         },
-        ':action': {
-            children: {
-                ':iouType': {
-                    children: {
-                        start: {
-                            children: {
-                                ':transactionID': {
-                                    children: {
-                                        ':reportID': {
-                                            children: {
-                                                distance: {
-                                                    children: {
-                                                        ':backToReport': {
-                                                            content: ({styles}: {styles: ThemeStyles}) => (
-                                                                <View>
-                                                                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Distance Expense</Text>
-                                                                    <Text style={[styles.textNormal]}>
-                                                                        Easily track mileage costs using Expensify’s built-in map feature. Create and submit distance-based expenses right
-                                                                        from the web, desktop, or mobile app.
-                                                                    </Text>
-                                                                    <BulletList
-                                                                        styles={styles}
-                                                                        items={[
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={[styles.textNormal]}>
-                                                                                    <Text style={styles.textBold}>Create distance expenses:</Text> Click the green + button and choose Create
-                                                                                    expense, then select Distance. Enter your starting point and destination. You can also add stops if
-                                                                                    needed.
-                                                                                </Text>
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={[styles.textNormal]}>
-                                                                                    <Text style={styles.textBold}>Submit for approval:</Text> Choose your workspace and confirm the distance,
-                                                                                    amount, and date. Add optional notes or categories, then click Create expense to submit the mileage
-                                                                                    expense for approval.
-                                                                                </Text>
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={[styles.textNormal]}>
-                                                                                    <Text style={styles.textBold}>Log a round-trip:</Text> To log a round-trip, use the same location for both
-                                                                                    start and finish, and include any stops along the way.
-                                                                                </Text>
-                                                                            </Text>,
-                                                                        ]}
-                                                                    />
-                                                                </View>
-                                                            ),
-                                                        },
-                                                    },
-                                                },
-                                                scan: {
-                                                    children: {
-                                                        ':backToReport': {
-                                                            content: ({styles}: {styles: ThemeStyles}) => (
-                                                                <View>
-                                                                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Scan Receipt</Text>
-                                                                    <Text style={[styles.textNormal]}>SmartScan automatically extracts expense details from receipt images.</Text>
-                                                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>How to Scan</Text>
-
-                                                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>What SmartScan Detects</Text>
-                                                                    <BulletList
-                                                                        styles={styles}
-                                                                        items={[
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Amount</Text> and currency
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Merchant</Text> name and location
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Date</Text> of purchase
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Tax</Text> information (when visible)
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Category</Text> suggestions based on merchant type
-                                                                            </Text>,
-                                                                        ]}
-                                                                    />
-                                                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Supported Receipt Types</Text>
-                                                                    <BulletList
-                                                                        styles={styles}
-                                                                        items={[
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Photos</Text> - Take with your device camera
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Email receipts</Text> - Forward to receipts@expensify.com
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>PDF receipts</Text> - Upload from your device
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <Text style={styles.textBold}>Screenshots</Text> - From apps or websites
-                                                                            </Text>,
-                                                                        ]}
-                                                                    />
-                                                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Tips for Best Results</Text>
-                                                                    <BulletList
-                                                                        styles={styles}
-                                                                        items={[
-                                                                            <Text style={styles.textNormal}>Ensure receipt text is clear and readable</Text>,
-                                                                            <Text style={styles.textNormal}>Include the full receipt in the image</Text>,
-                                                                            <Text style={styles.textNormal}>Good lighting improves accuracy</Text>,
-                                                                            <Text style={styles.textNormal}>Straight angles work better than tilted photos</Text>,
-                                                                        ]}
-                                                                    />
-                                                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>After Scanning</Text>
-                                                                    <BulletList
-                                                                        styles={styles}
-                                                                        items={[
-                                                                            <Text style={styles.textNormal}>Review extracted details for accuracy</Text>,
-                                                                            <Text style={styles.textNormal}>Add description, category, or tags as needed</Text>,
-                                                                            <Text style={styles.textNormal}>SmartScan learns from your corrections</Text>,
-                                                                        ]}
-                                                                    />
-                                                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
-                                                                    <BulletList
-                                                                        styles={styles}
-                                                                        items={[
-                                                                            <Text style={styles.textNormal}>
-                                                                                <TextLink
-                                                                                    href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense"
-                                                                                    style={styles.link}
-                                                                                >
-                                                                                    Create an Expense
-                                                                                </TextLink>
-                                                                            </Text>,
-                                                                            <Text style={styles.textNormal}>
-                                                                                <TextLink
-                                                                                    href="https://help.expensify.com/articles/new-expensify/getting-started/Free-Features-in-Expensify"
-                                                                                    style={styles.link}
-                                                                                >
-                                                                                    Free Features in Expensify
-                                                                                </TextLink>
-                                                                            </Text>,
-                                                                        ]}
-                                                                    />
-                                                                </View>
-                                                            ),
-                                                        },
-                                                    },
-                                                },
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
+        distance: {
+            content: ({styles}: {styles: ThemeStyles}) => (
+                <View>
+                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Distance Expense</Text>
+                    <Text style={[styles.textNormal]}>
+                        Easily track mileage costs using Expensify’s built-in map feature. Create and submit distance-based expenses right from the web, desktop, or mobile app.
+                    </Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Create distance expenses:</Text> Click the green + button and choose Create expense, then select Distance. Enter your
+                                    starting point and destination. You can also add stops if needed.
+                                </Text>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Submit for approval:</Text> Choose your workspace and confirm the distance, amount, and date. Add optional notes or
+                                    categories, then click Create expense to submit the mileage expense for approval.
+                                </Text>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Log a round-trip:</Text> To log a round-trip, use the same location for both start and finish, and include any stops along
+                                    the way.
+                                </Text>
+                            </Text>,
+                        ]}
+                    />
+                </View>
+            ),
         },
         r: {
             children: {
@@ -573,6 +453,112 @@ const helpContentMap: HelpContent = {
                             </Text>,
                             <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Focus</Text> – Only lists chats with unread messages, sorted alphabetically.
+                            </Text>,
+                        ]}
+                    />
+                </View>
+            ),
+        },
+        scan: {
+            content: ({styles}: {styles: ThemeStyles}) => (
+                <View>
+                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Scan Receipt</Text>
+                    <Text style={[styles.textNormal]}>SmartScan automatically extracts expense details from receipt images.</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>How to Scan</Text>
+                    <NumberedList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                Click the <Text style={styles.textBold}>+</Text> button and select <Text style={styles.textBold}>Create expense</Text>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                Choose <Text style={styles.textBold}>Scan</Text>
+                            </Text>,
+                            <Text style={styles.textNormal}>Upload an image or take a photo of your receipt</Text>,
+                            <Text style={styles.textNormal}>SmartScan extracts merchant, date, amount, and currency</Text>,
+                            <Text style={styles.textNormal}>Choose your workspace and add any required details</Text>,
+                            <Text style={styles.textNormal}>
+                                Click <Text style={styles.textBold}>Create expense</Text>
+                            </Text>,
+                        ]}
+                    />
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>What SmartScan Detects</Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Amount</Text> and currency
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Merchant</Text> name and location
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Date</Text> of purchase
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Tax</Text> information (when visible)
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Category</Text> suggestions based on merchant type
+                            </Text>,
+                        ]}
+                    />
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Supported Receipt Types</Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Photos</Text> - Take with your device camera
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Email receipts</Text> - Forward to receipts@expensify.com
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>PDF receipts</Text> - Upload from your device
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={styles.textBold}>Screenshots</Text> - From apps or websites
+                            </Text>,
+                        ]}
+                    />
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Tips for Best Results</Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>Ensure receipt text is clear and readable</Text>,
+                            <Text style={styles.textNormal}>Include the full receipt in the image</Text>,
+                            <Text style={styles.textNormal}>Good lighting improves accuracy</Text>,
+                            <Text style={styles.textNormal}>Straight angles work better than tilted photos</Text>,
+                        ]}
+                    />
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>After Scanning</Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>Review extracted details for accuracy</Text>,
+                            <Text style={styles.textNormal}>Add description, category, or tags as needed</Text>,
+                            <Text style={styles.textNormal}>SmartScan learns from your corrections</Text>,
+                        ]}
+                    />
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                <TextLink
+                                    href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense"
+                                    style={styles.link}
+                                >
+                                    Create an Expense
+                                </TextLink>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <TextLink
+                                    href="https://help.expensify.com/articles/new-expensify/getting-started/Free-Features-in-Expensify"
+                                    style={styles.link}
+                                >
+                                    Free Features in Expensify
+                                </TextLink>
                             </Text>,
                         ]}
                     />
@@ -1099,7 +1085,20 @@ const helpContentMap: HelpContent = {
                                     />
 
                                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Adding Members</Text>
-
+                                    <NumberedList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>
+                                                Under <Text style={styles.textBold}>Workspaces &gt; [Workspace Name] &gt; Members</Text>, click{' '}
+                                                <Text style={styles.textBold}>Invite Member</Text>
+                                            </Text>,
+                                            <Text style={styles.textNormal}>Enter name, email, or phone number</Text>,
+                                            <Text style={styles.textNormal}>Choose a role (defaults to Member)</Text>,
+                                            <Text style={styles.textNormal}>
+                                                Click <Text style={styles.textBold}>Invite</Text>
+                                            </Text>,
+                                        ]}
+                                    />
                                     <Text style={[styles.textNormal]}>
                                         <Text style={styles.textBold}>Alternative:</Text> Share the workspace URL or QR code from{' '}
                                         <Text style={styles.textBold}>Account &gt; Profile &gt; Share</Text>
@@ -1109,12 +1108,44 @@ const helpContentMap: HelpContent = {
                                     <Text style={[styles.textNormal]}>
                                         <Text style={styles.textBold}>Change Role:</Text>
                                     </Text>
-
+                                    <NumberedList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>Click the member’s name</Text>,
+                                            <Text style={styles.textNormal}>
+                                                Click <Text style={styles.textBold}>Role</Text> and select new role
+                                            </Text>,
+                                            <Text style={styles.textNormal}>Confirm changes</Text>,
+                                        ]}
+                                    />
                                     <Text style={[styles.textNormal]}>
                                         <Text style={styles.textBold}>Remove Member:</Text>
                                     </Text>
+                                    <NumberedList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>Click the member’s name</Text>,
+                                            <Text style={styles.textNormal}>
+                                                Click <Text style={styles.textBold}>Remove from Workspace</Text>
+                                            </Text>,
+                                            <Text style={styles.textNormal}>Confirm removal</Text>,
+                                        ]}
+                                    />
 
                                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Transfer Ownership of a Workspace</Text>
+                                    <NumberedList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>
+                                                Go to <Text style={styles.textBold}>Members</Text> and click current <Text style={styles.textBold}>Owner</Text>
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                Click <Text style={styles.textBold}>Transfer Owner</Text>
+                                            </Text>,
+                                            <Text style={styles.textNormal}>Confirm transfer</Text>,
+                                            <Text style={styles.textNormal}>You become the new owner</Text>,
+                                        ]}
+                                    />
 
                                     <Text style={[styles.textHeadlineH2, styles.mv4]}>Learn More</Text>
                                     <BulletList
@@ -1209,7 +1240,17 @@ const helpContentMap: HelpContent = {
                                     <Text style={[styles.textNormal]}>
                                         <Text style={styles.textBold}>Note:</Text> This setting requires the Control plan.
                                     </Text>
-
+                                    <NumberedList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>
+                                                Under <Text style={styles.textBold}>Workspaces &gt; More Features</Text>, toggle on <Text style={styles.textBold}>Report fields</Text>
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                Head to <Text style={styles.textBold}>Workspaces &gt; [Workspace Name] &gt; Reports</Text> to add, edit, or delete fields
+                                            </Text>,
+                                        ]}
+                                    />
                                     <Text style={[styles.textNormal]}>
                                         You can choose from field types like Text, Date, or a List with predefined options — whatever best fits your workflow. Learn more ➡️{' '}
                                         <Text style={styles.textBold}>Enable Report Fields</Text>.
@@ -1797,83 +1838,118 @@ const helpContentMap: HelpContent = {
         search: {
             content: ({styles}: {styles: ThemeStyles}) => (
                 <View>
-                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Reports</Text>
-                    <Text style={[styles.textNormal]}>Virtually all data can be analyzed and reported upon in the Reports page. The major elements of this page include:</Text>
-                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Data type</Text>
-                    <Text style={[styles.textNormal]}>Start first by choosing the type of data you want to analyze, which can be:</Text>
+                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Reports Page</Text>
+                    <Text style={[styles.textNormal]}>
+                        The Reports page helps you explore and filter all reports and related expenses. It complements the Inbox by giving you a complete view of your expense history and
+                        what expenses and reports require your action. Use this page to create and download spending reports, track report actions, and view the recent expense activity on
+                        your workspace(s).
+                    </Text>
+
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Expenses &amp; Reports</Text>
                     <BulletList
                         styles={styles}
                         items={[
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Expense</Text> - Individual standalone expenses.
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Managing expenses</Text>: Click on any expense row to see its details in a side panel. Use checkboxes to select multiple
+                                    expenses, then use bulk actions like Move, Download, or Delete from the action menu.
+                                </Text>
                             </Text>,
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Expense reports</Text> - Groups of expenses processed in a batch.
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Filters</Text>: Looking for something specific? Use filters to narrow things down by date, category, merchant, tag,
+                                    workspace, or report status. You can also combine filters with keywords for even more precise results.
+                                </Text>
                             </Text>,
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Chats</Text> - Comments written by you and others.
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Sort reports by status</Text>: - Draft – Only you can see it - Outstanding – Waiting on someone else - Approved – Ready to
+                                    pay - Done or Paid – All wrapped up
+                                </Text>
                             </Text>,
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Invoices</Text> - Expenses submitted to clients for payment.
-                            </Text>,
-                            <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Trips</Text> - Travel expenses booked with Expensify Travel or scanned with SmartScan.
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Download what you need</Text>: Generate a report to download filtered expense data as a CSV. Perfect for spreadsheets,
+                                    monthly close, or syncing with accounting.
+                                </Text>
                             </Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Search</Text>
-                    <Text style={[styles.textNormal]}>A quick method of narrowing the results by keyword or more.</Text>
-                    <Text style={[styles.textHeadlineH2, styles.mv4]}>State filter</Text>
-                    <Text style={[styles.textNormal]}>Simple methods to filter the results by “state”, including:</Text>
+
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Chats</Text>
                     <BulletList
                         styles={styles}
                         items={[
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>All</Text>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Viewing report previews</Text>: Each report preview shows up right in your workspace chat with the status, up to 10
+                                    expenses, and buttons like Submit or Approve, depending on your role.
+                                </Text>
                             </Text>,
-                            <>
-                                <Text style={styles.textBold}>Expenses/Expense/Invoices reports:</Text>
-
-                                <BulletList
-                                    styles={styles}
-                                    items={[
-                                        <Text style={styles.textNormal}>Draft - Only you can see that hasn’t been shared yet.</Text>,
-                                        <Text style={styles.textNormal}>Outstanding - Submitted to someone and awaiting action.</Text>,
-                                        <Text style={styles.textNormal}>Approved - Approved, but awaiting payment.</Text>,
-                                        <Text style={styles.textNormal}>Done - Fully processed, no further action needed.</Text>,
-                                        <Text style={styles.textNormal}>Paid - Fully paid, no further action needed.</Text>,
-                                    ]}
-                                />
-                            </>,
-                            <>
-                                <Text style={styles.textBold}>Chats:</Text>
-
-                                <BulletList
-                                    styles={styles}
-                                    items={[
-                                        <Text style={styles.textNormal}>Unread - Not seen yet by you.</Text>,
-                                        <Text style={styles.textNormal}>Sent - Sent by you.</Text>,
-                                        <Text style={styles.textNormal}>Attachments - Image, movie, or document.</Text>,
-                                        <Text style={styles.textNormal}>Links - Hyperlinks.</Text>,
-                                        <Text style={styles.textNormal}>Pinned - Highlighted by you as important.</Text>,
-                                    ]}
-                                />
-                            </>,
-                            <>
-                                <Text style={styles.textBold}>Trips:</Text>
-
-                                <BulletList
-                                    styles={styles}
-                                    items={[<Text style={styles.textNormal}>Current - Happening or in the future.</Text>, <Text style={styles.textNormal}>Past - Already happened.</Text>]}
-                                />
-                            </>,
+                            <Text style={styles.textNormal}>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Filter chats:</Text> Use filters to find the exact chat you’re looking for.
+                                </Text>
+                            </Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Results</Text>
-                    <Text style={[styles.textNormal]}>The core of the Reports page are the search results themselves.</Text>
+
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>To-Do</Text>
                     <BulletList
                         styles={styles}
-                        items={[<Text style={styles.textNormal}>Select a row to see additional options.</Text>, <Text style={styles.textNormal}>Tap on a row to see more detail.</Text>]}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Stay on top of tasks</Text>: The To-do section shows exactly what needs your attention. This is your go-to spot to keep
+                                    things moving.
+                                </Text>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <Text style={[styles.textNormal]}>
+                                    <Text style={styles.textBold}>Action items:</Text> Whether you need to submit, approve, or pay expenses, you can click the corresponding action to
+                                    complete any outstanding to-dos.
+                                </Text>
+                            </Text>,
+                        ]}
+                    />
+
+                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Learn More</Text>
+                    <BulletList
+                        styles={styles}
+                        items={[
+                            <Text style={styles.textNormal}>
+                                <TextLink
+                                    href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page"
+                                    style={styles.link}
+                                >
+                                    The Reports Page
+                                </TextLink>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <TextLink
+                                    href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions"
+                                    style={styles.link}
+                                >
+                                    Understanding Reports Statuses and Actions
+                                </TextLink>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <TextLink
+                                    href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Suggested-Search"
+                                    style={styles.link}
+                                >
+                                    Suggested Search
+                                </TextLink>
+                            </Text>,
+                            <Text style={styles.textNormal}>
+                                <TextLink
+                                    href="https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses"
+                                    style={styles.link}
+                                >
+                                    Search and Download Expenses
+                                </TextLink>
+                            </Text>,
+                        ]}
                     />
                 </View>
             ),
