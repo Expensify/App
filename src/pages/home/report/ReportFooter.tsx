@@ -24,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import {isChromeIOS, isMobileSafari} from '@libs/Browser';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -215,8 +214,6 @@ function ReportFooter({
 
     const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
 
-    const shouldUseCalculatedHeight = isChromeIOS() || isMobileSafari();
-
     const animatedStyle = useAnimatedStyle(() => {
         const correctedHeaderHeight = Platform.OS === 'ios' ? (unmodifiedPaddings.top ?? 0) + headerHeight : headerHeight;
 
@@ -242,12 +239,6 @@ function ReportFooter({
                 transform,
                 height: getHeight(),
                 paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
-            };
-        }
-
-        if (shouldUseCalculatedHeight) {
-            return {
-                height: getHeight(),
             };
         }
 
