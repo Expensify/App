@@ -417,6 +417,9 @@ const ONYXKEYS = {
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
 
+    /** Indicates whether we should force offline mode or not */
+    SHOULD_FORCE_OFFLINE: 'shouldForceOffline',
+
     /** Stores new group chat draft */
     NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
 
@@ -1151,6 +1154,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
+    [ONYXKEYS.SHOULD_FORCE_OFFLINE]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
