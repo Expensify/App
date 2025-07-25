@@ -482,6 +482,22 @@ function ReportAvatar({
         return CONST.AVATAR_SIZE.SMALLER;
     }, [isFocusMode, size]);
 
+    const subscriptAvatarStyle = useMemo(() => {
+        if (size === CONST.AVATAR_SIZE.SMALL) {
+            return styles.secondAvatarSubscriptCompact;
+        }
+
+        if (size === CONST.AVATAR_SIZE.SMALL_NORMAL) {
+            return styles.secondAvatarSubscriptSmallNormal;
+        }
+
+        if (size === CONST.AVATAR_SIZE.X_LARGE) {
+            return styles.secondAvatarSubscriptXLarge;
+        }
+
+        return styles.secondAvatarSubscript;
+    }, [size, styles]);
+
     const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
         if (!shouldDisplayAvatarsInRows || icons.length <= maxAvatarsInRow) {
@@ -506,7 +522,6 @@ function ReportAvatar({
         !shouldShowConvertedSubscriptAvatar
     ) {
         const isSmall = size === CONST.AVATAR_SIZE.SMALL;
-        const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
         const containerStyle = StyleUtils.getContainerStyles(size);
 
         const mainAvatar = primaryAvatar ?? subscriptFallbackIcon;
@@ -544,7 +559,7 @@ function ReportAvatar({
                         icon={secondaryAvatar}
                     >
                         <View
-                            style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+                            style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}
                             // Hover on overflowed part of icon will not work on Electron if dragArea is true
                             // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                             dataSet={{dragArea: false}}
@@ -718,7 +733,7 @@ function ReportAvatar({
                 </View>
             ))
         ) : (
-            <View style={[avatarContainerStyles, useHugeBottomMargin && styles.mb5]}>
+            <View style={[avatarContainerStyles, useHugeBottomMargin && styles.mb7]}>
                 <View
                     style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}
                     testID="ReportAvatar-MultipleAvatars"
