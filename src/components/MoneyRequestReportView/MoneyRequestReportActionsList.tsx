@@ -641,25 +641,23 @@ function MoneyRequestReportActionsList({
                                 report={report}
                                 policy={policy}
                             />
-                            {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
-                                <SearchMoneyRequestReportEmptyState />
-                            ) : (
-                                <MoneyRequestReportTransactionList
-                                    report={report}
-                                    transactions={transactions}
-                                    newTransactions={newTransactions}
-                                    reportActions={reportActions}
-                                    hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
-                                    scrollToNewTransaction={scrollToNewTransaction}
-                                />
-                            )}
+                            <MoneyRequestReportTransactionList
+                                report={report}
+                                transactions={transactions}
+                                newTransactions={newTransactions}
+                                reportActions={reportActions}
+                                hasComments={reportHasComments}
+                                isLoadingInitialReportActions={showReportActionsLoadingState}
+                                scrollToNewTransaction={scrollToNewTransaction}
+                            />
                         </>
                     }
+                    ListHeaderComponent={<View style={styles.flex1} />}
                     keyboardShouldPersistTaps="handled"
                     onScroll={trackVerticalScrolling}
                     contentContainerStyle={styles.chatContentScrollView}
-                    ListFooterComponentStyle={styles.flex1}
+                    ListFooterComponentStyle={[isEmpty(visibleReportActions) ? styles.flex1 : undefined]}
+                    ListHeaderComponentStyle={[isEmpty(visibleReportActions) ? undefined : styles.flex1]}
                     ref={reportScrollManager.ref}
                     ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     shouldEnableAutoScrollToTopThreshold
