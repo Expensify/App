@@ -33,7 +33,6 @@ import {
     updateReportFieldListValueEnabled as updateReportFieldListValueEnabledReportField,
 } from '@libs/actions/Policy/ReportField';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
@@ -69,7 +68,7 @@ function ReportFieldsListValuesPage({
     },
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -144,7 +143,7 @@ function ReportFieldsListValuesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return itemText.includes(normalizedSearchInput);
     }, []);
-    const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
     const sections = useMemo(() => [{data: filteredListValues, isDisabled: false}], [filteredListValues]);
 
