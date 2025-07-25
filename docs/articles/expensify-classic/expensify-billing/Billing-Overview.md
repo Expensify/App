@@ -38,7 +38,7 @@ Collect is perfect for small teams that need an easy way to track receipts and g
 
 ## 🌍 Localized Pricing
 
-- Equivalent pricing available in **GBP**, **AUD**, and **NZD**
+- Equivalent pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🔄 Flexible Scaling
 
