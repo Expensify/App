@@ -109,7 +109,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
@@ -177,20 +177,23 @@ function ReportListItemHeader<TItem extends ListItem>({
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
     };
     return !isLargeScreenWidth ? (
-        <View>
-            <HeaderFirstRow
-                report={reportItem}
-                policy={policy}
-                onCheckboxPress={onCheckboxPress}
-                isDisabled={isDisabled}
-                canSelectMultiple={canSelectMultiple}
-                avatarBorderColor={avatarBorderColor}
-            />
-            <UserInfoAndActionButtonRow
-                item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
-                shouldShowUserInfo={showUserInfo}
-            />
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+            <View style={styles.flex1}>
+                <HeaderFirstRow
+                    report={reportItem}
+                    policy={policy}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabled}
+                    canSelectMultiple={canSelectMultiple}
+                    avatarBorderColor={avatarBorderColor}
+                />
+                <UserInfoAndActionButtonRow
+                    item={reportItem}
+                    handleActionButtonPress={handleOnButtonPress}
+                    shouldShowUserInfo={showUserInfo}
+                    containerStyle={styles.pr0}
+                />
+            </View>
         </View>
     ) : (
         <View>
@@ -204,9 +207,6 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
             />
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }

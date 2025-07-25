@@ -47,7 +47,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.flex1]}>
                         <UserDetailsTooltip accountID={memberItem.accountID}>
                             <View>
                                 <Avatar
@@ -70,9 +70,6 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                         </View>
                     </View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
             </View>
         </View>
     );

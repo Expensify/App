@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -185,40 +186,44 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
             >
                 <View style={styles.flex1}>
-                    {getHeader}
-                    {isEmpty ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('search.moneyRequestReport.emptyStateTitle')}
-                            </Text>
-                        </View>
-                    ) : (
-                        groupItem.transactions.map((transaction) => (
-                            <TransactionItemRow
-                                key={transaction.transactionID}
-                                transactionItem={transaction}
-                                isSelected={!!transaction.isSelected}
-                                dateColumnSize={dateColumnSize}
-                                amountColumnSize={amountColumnSize}
-                                taxAmountColumnSize={taxAmountColumnSize}
-                                shouldShowTooltip={showTooltip}
-                                shouldUseNarrowLayout={!isLargeScreenWidth}
-                                shouldShowCheckbox={!!canSelectMultiple}
-                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns}
-                                onButtonPress={() => {
-                                    openReportInRHP(transaction);
-                                }}
-                                isParentHovered={hovered}
-                                columnWrapperStyles={[styles.ph3, styles.pv1Half]}
-                                isReportItemChild
-                                isInSingleTransactionReport={groupItem.transactions.length === 1}
-                            />
-                        ))
-                    )}
+                    <AnimatedCollapsible
+                        header={getHeader}
+                        disabled={!!isDisabledOrEmpty}
+                    >
+                        {isEmpty ? (
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('search.moneyRequestReport.emptyStateTitle')}
+                                </Text>
+                            </View>
+                        ) : (
+                            groupItem.transactions.map((transaction) => (
+                                <TransactionItemRow
+                                    key={transaction.transactionID}
+                                    transactionItem={transaction}
+                                    isSelected={!!transaction.isSelected}
+                                    dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
+                                    shouldShowTooltip={showTooltip}
+                                    shouldUseNarrowLayout={!isLargeScreenWidth}
+                                    shouldShowCheckbox={!!canSelectMultiple}
+                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                    columns={columns}
+                                    onButtonPress={() => {
+                                        openReportInRHP(transaction);
+                                    }}
+                                    isParentHovered={hovered}
+                                    columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                    isReportItemChild
+                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                />
+                            ))
+                        )}
+                    </AnimatedCollapsible>
                 </View>
             </PressableWithFeedback>
         </OfflineWithFeedback>
