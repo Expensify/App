@@ -136,10 +136,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportHeaderView = useMemo(() => {
         if (isTransactionThreadView) {
             // Extract transaction ID from parent report action to get specific violations
-            const transactionID = isMoneyRequestAction(parentReportAction)
-                ? getOriginalMessage(parentReportAction)?.IOUTransactionID
-                : undefined;
-            const transactionViolations = transactionID && reportViolations ? (reportViolations as Record<string, unknown>)[transactionID] as OnyxTypes.TransactionViolation[] | undefined : undefined;
+            const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+            const transactionViolations =
+                transactionID && reportViolations ? ((reportViolations as Record<string, unknown>)[transactionID] as OnyxTypes.TransactionViolation[] | undefined) : undefined;
 
             return (
                 <MoneyRequestHeader
@@ -160,24 +159,22 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
         return (
             <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={isLoadingInitialReportActions}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
-            );
-    },
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, reportViolations, transactionThreadReportID],
-    );
+                report={report}
+                policy={policy}
+                reportActions={reportActions}
+                transactionThreadReportID={transactionThreadReportID}
+                isLoadingInitialReportActions={isLoadingInitialReportActions}
+                shouldDisplayBackButton
+                onBackButtonPress={() => {
+                    if (!backToRoute) {
+                        goBackFromSearchMoneyRequest();
+                        return;
+                    }
+                    Navigation.goBack(backToRoute);
+                }}
+            />
+        );
+    }, [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, reportViolations, transactionThreadReportID]);
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
         return <InitialLoadingSkeleton styles={styles} />;
