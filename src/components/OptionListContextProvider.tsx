@@ -266,11 +266,13 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
     const prevOptions = useRef<OptionList>(null);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
             setInternalOptions(optionsList);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
         /**
@@ -283,7 +285,8 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
             return;
         }
         setInternalOptions(optionsList);
-    }, [optionsList]);
+        setAreInternalOptionsInitialized(areOptionsInitialized);
+    }, [optionsList, areOptionsInitialized]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
@@ -293,14 +296,19 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
 
+    const resetInternalOptions = useCallback(() => {
+        setAreInternalOptionsInitialized(false);
+        resetOptions();
+    }, [resetOptions]);
+
     return useMemo(
         () => ({
             initializeOptions,
             options: internalOptions,
-            areOptionsInitialized,
-            resetOptions,
+            areOptionsInitialized: areInternalOptionsInitialized,
+            resetOptions: resetInternalOptions,
         }),
-        [initializeOptions, internalOptions, areOptionsInitialized, resetOptions],
+        [initializeOptions, internalOptions, resetInternalOptions, areInternalOptionsInitialized],
     );
 };
 
