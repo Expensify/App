@@ -10,6 +10,7 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -96,6 +97,14 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
+function isTransactionGroupListItemArray(data: SearchListItem[]): data is TransactionGroupListItemType[] {
+    if (data.length <= 0) {
+        return false;
+    }
+    const firstElement = data.at(0);
+    return typeof firstElement === 'object' && 'transactions' in firstElement;
+}
+
 function SearchList(
     {
         data,
@@ -125,19 +134,23 @@ function SearchList(
 
     const {initialHeight, initialWidth} = useInitialWindowDimensions();
     const {hash, groupBy, type} = queryJSON;
-    const flattenedTransactions = groupBy ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-
-    const flattenedTransactionWithoutPendingDelete = useMemo(
-        () => flattenedTransactions.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [flattenedTransactions],
-    );
+    const flattenedItems = useMemo(() => {
+        if (groupBy) {
+            if (!isTransactionGroupListItemArray(data)) {
+                return data;
+            }
+            return data.flatMap((item) => item.transactions);
+        }
+        return data;
+    }, [data, groupBy]);
+    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(
         () =>
-            flattenedTransactions.reduce((acc, item) => {
+            flattenedItems.reduce((acc, item) => {
                 return item?.isSelected ? acc + 1 : acc;
             }, 0),
-        [flattenedTransactions],
+        [flattenedItems],
     );
 
     const {translate} = useLocalize();
@@ -161,6 +174,12 @@ function SearchList(
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+
+    const personalDetails = usePersonalDetails();
+
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -222,7 +241,7 @@ function SearchList(
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: flattenedTransactions.length - 1,
+        maxIndex: flattenedItems.length - 1,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index);
@@ -245,7 +264,7 @@ function SearchList(
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused,
+        isActive: isFocused && focusedIndex >= 0,
         shouldStopPropagation: true,
     });
 
@@ -330,6 +349,10 @@ function SearchList(
                     isDisabled={isDisabled}
                     allReports={allReports}
                     groupBy={groupBy}
+                    userWallet={userWallet}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetails}
+                    userBillingFundID={userBillingFundID}
                 />
             );
         },
@@ -337,8 +360,8 @@ function SearchList(
             ListItem,
             canSelectMultiple,
             focusedIndex,
-            handleLongPressRow,
             itemsToHighlight,
+            handleLongPressRow,
             onCheckboxPress,
             onSelectRow,
             policies,
@@ -347,12 +370,16 @@ function SearchList(
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
+            userWallet,
+            isUserValidated,
+            personalDetails,
+            userBillingFundID,
         ],
     );
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
     const getItemHeight = useMemo(
         () =>
@@ -407,11 +434,11 @@ function SearchList(
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
-                            disabled={flattenedTransactions.length === 0}
+                            disabled={flattenedItems.length === 0}
                         />
                     )}
 
