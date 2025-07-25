@@ -87,7 +87,7 @@
     "@expensify/nitro-utils": "file:./modules/ExpensifyNitroUtils",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
-    "@expensify/react-native-live-markdown": "git+https://github.com/Expensify/react-native-live-markdown.git#00d643a32d46280950baab2bae8a6a88dcdb7318",
+    "@expensify/react-native-live-markdown": "0.1.298",
     "@expensify/react-native-wallet": "^0.1.5",
     "@expo/metro-runtime": "^5.0.4",
     "@firebase/app": "^0.13.2",
