@@ -30,6 +30,7 @@ function SettingsSplitNavigator() {
     const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
     return (

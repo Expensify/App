@@ -20,6 +20,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
     // These options can be used here because the full screen navigator has the same structure as the split navigator in terms of the central screens, but it does not have a sidebar.
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
 
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
     return (
