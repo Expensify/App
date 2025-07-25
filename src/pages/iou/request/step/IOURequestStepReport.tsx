@@ -120,6 +120,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
             policyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+            isEditing={isEditing}
         />
     );
 }
