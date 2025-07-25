@@ -107,7 +107,8 @@ module Jekyll
         'View' => content.include?('<View'),
         'Text' => content.include?('<Text'),
         'TextLink' => content.include?('<TextLink'),
-        'BulletList' => content.include?('<BulletList')
+        'BulletList' => content.include?('<BulletList'),
+        'NumberedList' => content.include?('<NumberedList')
       }
       components.select { |_, used| used }.keys
     end
@@ -126,6 +127,7 @@ module Jekyll
       component_imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if components.include?('BulletList')
       component_imports << "import Text from '@components/Text';" if components.include?('Text')
       component_imports << "import TextLink from '@components/TextLink';" if components.include?('TextLink')
+      component_imports << "import NumberedList from '@components/SidePanel/HelpComponents/HelpNumberedList';" if components.include?('NumberedList')
 
       # Add style imports
       base_imports << "import type {ThemeStyles} from '@styles/index';"
@@ -199,6 +201,7 @@ module Jekyll
         'div' => method(:process_div),
         'p' => method(:process_paragraph),
         'ul' => method(:process_unordered_list),
+        'ol' => method(:process_ordered_list),
         'li' => method(:process_list_item),
         'h1' => method(:process_heading),
         'h2' => method(:process_heading),
@@ -256,6 +259,33 @@ module Jekyll
 
       <<~TS.chomp
         #{'  ' * indent_level}<BulletList
+        #{'  ' * indent_level}  styles={styles}
+        #{'  ' * indent_level}  items={[
+        #{items.join(",\n")}
+        #{'  ' * indent_level}  ]}
+        #{'  ' * indent_level}/>
+      TS
+    end
+
+    def self.process_ordered_list(node, indent_level)
+      items = node.xpath('./li').map do |li|
+        contains_ol = li.xpath('.//ol').any?
+
+        li_parts = li.children.map { |child| html_node_to_RN(child, 0) }
+
+        if contains_ol
+          indented_li_parts = li_parts.map do |part|
+            part.lines.map { |line| "#{'  ' * (indent_level + 3)}#{line.rstrip}" }.join("\n")
+          end.join("\n")
+
+          "#{'  ' * (indent_level + 2)}<>\n#{indented_li_parts}\n#{'  ' * (indent_level + 2)}</>"
+        else
+          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts.join.strip}</Text>"
+        end
+      end
+
+      <<~TS.chomp
+        #{'  ' * indent_level}<NumberedList
         #{'  ' * indent_level}  styles={styles}
         #{'  ' * indent_level}  items={[
         #{items.join(",\n")}
