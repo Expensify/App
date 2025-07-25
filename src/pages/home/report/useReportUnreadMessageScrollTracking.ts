@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import {useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {Platform} from 'react-native';
 import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -35,6 +35,16 @@ export default function useReportUnreadMessageScrollTracking({
     keyboardHeight,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(floatingMessageVisibleInitialValue);
+    const wasManuallySetRef = useRef(false);
+
+    const setVisibility = useCallback((visible: boolean) => {
+        wasManuallySetRef.current = true;
+        setIsFloatingMessageCounterVisible(visible);
+
+        requestAnimationFrame(() => {
+            wasManuallySetRef.current = false;
+        });
+    }, []);
 
     /**
      * On every scroll event we want to:
@@ -50,6 +60,10 @@ export default function useReportUnreadMessageScrollTracking({
             };
         },
         ({offsetY, kHeight}) => {
+            if (wasManuallySetRef.current) {
+                return;
+            }
+
             const correctedOffsetY = Platform.OS === 'ios' ? kHeight + offsetY : offsetY;
 
             // display floating button if we're scrolled more than the offset
@@ -68,11 +82,10 @@ export default function useReportUnreadMessageScrollTracking({
                 runOnJS(setIsFloatingMessageCounterVisible)(false);
             }
         },
-        [hasUnreadMarkerReportAction, isFloatingMessageCounterVisible, reportID, readActionSkippedRef],
     );
 
     return {
         isFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible,
+        setIsFloatingMessageCounterVisible: setVisibility,
     };
 }
