@@ -1556,7 +1556,9 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
-        test('Should only show columns when at least one transaction has a value for them', () => {
+        test('Should only show columns when at least one transaction has a value for them', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
 
@@ -1569,8 +1571,8 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: adminAccountID,
-                managerID: adminAccountID,
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
             };
 
             const merchantTransaction = {
@@ -1581,8 +1583,8 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: adminAccountID,
-                managerID: adminAccountID,
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
             };
 
             const categoryTransaction = {
@@ -1593,8 +1595,8 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: 'Office Supplies',
                 tag: '',
-                accountID: adminAccountID,
-                managerID: adminAccountID,
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
             };
 
             const tagTransaction = {
@@ -1605,8 +1607,8 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: 'Project A',
-                accountID: adminAccountID,
-                managerID: adminAccountID,
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
             };
 
             const descriptionTransaction = {
@@ -1617,8 +1619,8 @@ describe('SearchUIUtils', () => {
                 comment: {comment: 'Business meeting lunch'},
                 category: '',
                 tag: '',
-                accountID: adminAccountID,
-                managerID: adminAccountID,
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
             };
 
             const differentUsersTransaction = {
@@ -1629,8 +1631,9 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID, // Different from current user
-                managerID: approverAccountID, // Different from current user
+                accountID: approverAccountID, // Different from current user
+                managerID: adminAccountID, // Different from current user
+                reportID: reportID2, // Needs to be a submitter report for 'To' to show
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
@@ -1663,7 +1666,13 @@ describe('SearchUIUtils', () => {
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
             // Test 6: From/To columns should show when at least one transaction has different users
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, differentUsersTransaction], false);
+            // @ts-expect-error -- no need to construct all data again, the function below only needs the report and transactions
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
+                [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
+            };
+            columns = SearchUIUtils.getColumnsToShow(data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
 
