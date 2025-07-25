@@ -386,8 +386,10 @@ function IOURequestStepConfirmation({
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
-                if (!isLocalFile && item.receipt) {
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                if (!isLocalFile) {
+                    if (item.receipt) {
+                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    }
                     return;
                 }
 
