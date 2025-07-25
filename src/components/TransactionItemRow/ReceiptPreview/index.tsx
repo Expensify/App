@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
+const verticalPreviewMargin = 120; // 60px top margin and 60px bottom margin
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
@@ -55,9 +56,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
             hasMeasured.current = false;
             return;
         }
-        if (height * eReceiptScaleFactor > windowHeight - 120) {
-            // 120 value is taken from this comment: https://github.com/Expensify/App/pull/65184#issuecomment-3052852162
-            setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / (windowHeight - 120));
+        if (height * eReceiptScaleFactor > windowHeight - verticalPreviewMargin) {
+            setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / (windowHeight - verticalPreviewMargin));
             return;
         }
         setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / height);
