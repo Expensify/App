@@ -4723,66 +4723,37 @@ describe('ReportUtils', () => {
 
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
-            const report: Report = {
-                ...createRandomReport(0),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('common.draft'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            const report: Report = {
-                ...createRandomReport(1),
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('common.outstanding'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translateLocal('common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            const report: Report = {
-                ...createRandomReport(2),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('common.done'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translateLocal('common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            const report: Report = {
-                ...createRandomReport(3),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.approved'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translateLocal('iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            const report: Report = {
-                ...createRandomReport(4),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            const report: Report = {
-                ...createRandomReport(5),
-                stateNum: CONST.REPORT.STATE_NUM.BILLING,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            const report: Report = {
-                ...createRandomReport(6),
-                stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            };
-            expect(getReportStatusTranslation(report)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+        });
+
+        it('should return an empty string when stateNum or statusNum is undefined', () => {
+            expect(getReportStatusTranslation(undefined, undefined)).toBe('');
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
+            expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
         });
     });
 });
