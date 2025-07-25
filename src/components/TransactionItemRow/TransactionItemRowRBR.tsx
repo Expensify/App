@@ -7,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Parser from '@libs/Parser';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import type {TransactionViolations} from '@src/types/onyx';
@@ -40,7 +41,8 @@ function TransactionItemRowRBR({transactionViolations, containerStyles, missingF
         ...(transactionViolations
             ? transactionViolations.map((violation) => {
                   const message = ViolationsUtils.getViolationTranslation(violation, translate);
-                  return message.endsWith('.') ? message : `${message}.`;
+                  const textMessage = Parser.htmlToText(message);
+                  return textMessage.endsWith('.') ? message : `${message}.`;
               })
             : []),
     ].join(' ');

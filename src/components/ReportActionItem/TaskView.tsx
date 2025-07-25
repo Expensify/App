@@ -9,7 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -73,7 +73,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         () => ({
             anchor: null,
             report,
-            reportNameValuePairs: undefined,
+            isReportArchived: false,
             action,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},

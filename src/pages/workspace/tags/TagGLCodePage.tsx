@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,11 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTagList, hasAccountingConnections} from '@libs/PolicyUtils';
+import {getTagListByOrderWeight, hasAccountingConnections} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyTagGLCode} from '@userActions/Policy/Tag';
@@ -37,7 +37,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
-    const {tags} = getTagList(policyTags, orderWeight);
+    const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE;
 

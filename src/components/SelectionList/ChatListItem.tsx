@@ -1,6 +1,5 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -24,12 +23,14 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
     policies,
     allReports,
+    userWallet,
+    isUserValidated,
+    personalDetails,
+    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        canBeMissing: true,
-    });
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -96,6 +97,10 @@ function ChatListItem<TItem extends ListItem>({
                 }
                 policies={policies}
                 shouldShowBorder
+                userWallet={userWallet}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );
