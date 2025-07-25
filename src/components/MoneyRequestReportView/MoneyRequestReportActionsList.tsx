@@ -37,7 +37,7 @@ import {
     getFirstVisibleReportActionID,
     getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
-    hasNextActionMadeBySameActor,
+    isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
@@ -466,7 +466,7 @@ function MoneyRequestReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const displayAsGroup =
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                hasNextActionMadeBySameActor(visibleReportActions, index);
+                isConsecutiveActionMadeByPreviousActor(visibleReportActions, index);
 
             return (
                 <ReportActionsListItemRenderer
