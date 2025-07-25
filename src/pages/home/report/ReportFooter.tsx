@@ -211,6 +211,8 @@ function ReportFooter({
 
     const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
 
+    const shouldUseCalculatedHeight = isChromeIOS() || isMobileSafari();
+
     const animatedStyle = useAnimatedStyle(() => {
         const correctedHeaderHeight = Platform.OS === 'ios' ? (unmodifiedPaddings.top ?? 0) + headerHeight : headerHeight;
 
@@ -226,29 +228,6 @@ function ReportFooter({
             return Platform.OS === 'ios' ? composerHeight : 'auto';
         };
 
-        const getPaddingBottom = () => {
-            if (isComposerFullSize) {
-                if (isKeyboardActive) {
-                    return 16;
-                }
-
-                return unmodifiedPaddingBottom + 16;
-            }
-
-            if (isKeyboardActive) {
-                return 0;
-            }
-
-            return unmodifiedPaddingBottom;
-        };
-
-        if (Platform.OS === 'android') {
-            return {
-                height: getHeight(),
-                paddingBottom: getPaddingBottom(),
-            };
-        }
-
         const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}];
 
         if (Platform.OS === 'ios') {
@@ -262,7 +241,7 @@ function ReportFooter({
             };
         }
 
-        if (isChromeIOS() || isMobileSafari()) {
+        if (shouldUseCalculatedHeight) {
             return {
                 height: getHeight(),
             };
