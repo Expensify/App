@@ -10,11 +10,22 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestReportTotalSpendProps = {
-    hasComments: boolean;
-    isLoadingReportActions: boolean;
-    isEmptyTransactions: boolean;
-    totalDisplaySpend: number;
+    /** Report for which the total spend is being displayed */
     report: OnyxTypes.Report;
+
+    /** Whether the report has any comments */
+    hasComments: boolean;
+
+    /** Whether the report is loading report actions */
+    isLoadingReportActions: boolean;
+
+    /** Whether the report has any transactions */
+    isEmptyTransactions: boolean;
+
+    /** The total display spend of the report */
+    totalDisplaySpend: number;
+
+    /** Whether the report has any pending actions */
     hasPendingAction: boolean;
 };
 

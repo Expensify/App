@@ -29,15 +29,34 @@ const allReportColumns = [
 ];
 
 type MoneyRequestReportTransactionItemProps = {
+    /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
+
+    /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
+
+    /** Callback function triggered upon pressing a transaction checkbox. */
     toggleTransaction: (transactionID: string) => void;
+
+    /** Callback function triggered upon pressing a transaction. */
     handleOnPress: (transactionID: string) => void;
+
+    /** Callback function triggered upon long pressing a transaction. */
     handleLongPress: (transactionID: string) => void;
+
+    /** Whether the transaction is selected */
     isSelected: boolean;
+
+    /** The size of the date column */
     dateColumnSize: TableColumnSize;
+
+    /** The size of the amount column */
     amountColumnSize: TableColumnSize;
+
+    /** The size of the tax amount column */
     taxAmountColumnSize: TableColumnSize;
+
+    /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
 };
 
