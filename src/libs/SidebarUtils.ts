@@ -5,7 +5,16 @@ import type {ValueOf} from 'type-fest';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    DraftReportComments,
+    PersonalDetails,
+    PersonalDetailsList,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -15,7 +24,6 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
@@ -207,6 +215,7 @@ function shouldDisplayReportInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ) {
     if (!report) {
         return {shouldDisplay: false};
@@ -238,7 +247,12 @@ function shouldDisplayReportInLHN(
     const isSystemChat = isSystemChatUtil(report);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        !!draftReportComments?.[report.reportID] ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -269,6 +283,7 @@ function getReportsToDisplayInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -288,6 +303,7 @@ function getReportsToDisplayInLHN(
             transactionViolations,
             reportNameValuePairs,
             reportAttributes,
+            draftReportComments,
         );
 
         if (shouldDisplay) {
@@ -305,10 +321,10 @@ function updateReportsToDisplayInLHN(
     currentReportId: string | undefined,
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
@@ -326,6 +342,7 @@ function updateReportsToDisplayInLHN(
             transactionViolations,
             reportNameValuePairs,
             reportAttributes,
+            draftReportComments,
         );
 
         if (shouldDisplay) {
@@ -346,6 +363,7 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -382,7 +400,7 @@ function sortReportsToDisplayInLHN(
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
-        } else if (hasValidDraftComment(report?.reportID)) {
+        } else if (draftReportComments?.[report?.reportID]) {
             draftReports.push(miniReport);
         } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
             archivedReports.push(miniReport);
