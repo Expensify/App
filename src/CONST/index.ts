@@ -1047,6 +1047,7 @@ const CONST = {
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            REMOVE_HOLD: 'removeHold',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
@@ -1087,6 +1088,7 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
+            REMOVE_HOLD: 'removeHold',
             SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
