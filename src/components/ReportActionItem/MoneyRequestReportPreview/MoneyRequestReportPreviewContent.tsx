@@ -289,7 +289,7 @@ function MoneyRequestReportPreviewContent({
         [translate, numberOfRequests],
     );
 
-    const reportStatus = useMemo(() => getReportStatusTranslation(iouReport), [iouReport]);
+    const reportStatus = useMemo(() => getReportStatusTranslation(iouReport?.stateNum, iouReport?.statusNum), [iouReport?.stateNum, iouReport?.statusNum]);
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsBaseline];
 
