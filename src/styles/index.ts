@@ -5678,6 +5678,18 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        receiptPreviewEReceiptsContainer: {
+            ...sizing.w100,
+            ...sizing.h100,
+            backgroundColor: colors.green800,
+        },
+
+        receiptPreviewEReceipt: {
+            ...flex.flexColumn,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
+        },
+
         topBarWrapper: {
             zIndex: 15,
         },

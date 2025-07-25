@@ -7,29 +7,64 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import BaseImage from '@components/Image/BaseImage';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isDistanceRequest} from '@libs/TransactionUtils';
-import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
-const showPreviewDelay = 270;
-const animationDuration = 200;
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
 
-type ReceiptPreviewProps = {source: string; hovered: boolean; isEReceipt: boolean; transactionItem: Transaction};
+type ReceiptPreviewProps = {
+    /** Path to the image to be opened in the preview */
+    source: string;
+
+    /** Whether the preview should be shown (e.g. if we are hovered over certain ReceiptCell) */
+    hovered: boolean;
+
+    /** Is preview for an e-receipt */
+    isEReceipt: boolean;
+
+    /** Transaction object related to the preview */
+    transactionItem: Transaction;
+};
 
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
     const isDistanceEReceipt = isDistanceRequest(transactionItem);
-    const [shouldShow, setShouldShow] = useState(false);
-    const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
     const styles = useThemeStyles();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
+    const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
+    const [shouldShow, debounceShouldShow, setShouldShow] = useDebouncedState(false, CONST.TIMING.SHOW_HOVER_PREVIEW_DELAY);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const hasMeasured = useRef(false);
+    const {windowHeight} = useWindowDimensions();
 
-    const updateAspectRatio = useCallback(
+    const handleDistanceEReceiptLayout = (e: LayoutChangeEvent) => {
+        if (hasMeasured.current) {
+            return;
+        }
+        hasMeasured.current = true;
+
+        const {height, width} = e.nativeEvent.layout;
+        if (height === 0) {
+            // on the initial layout, measured height is 0, so we want to set everything on the second one
+            hasMeasured.current = false;
+            return;
+        }
+        if (height * eReceiptScaleFactor > windowHeight - 120) {
+            // 120 value is taken from this comment: https://github.com/Expensify/App/pull/65184#issuecomment-3052852162
+            setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / (windowHeight - 120));
+            return;
+        }
+        setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / height);
+        setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
+    };
+
+    const updateImageAspectRatio = useCallback(
         (width: number, height: number) => {
             if (!source) {
                 return;
@@ -44,35 +79,21 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
         (event: ImageOnLoadEvent) => {
             const {width, height} = event.nativeEvent;
 
-            updateAspectRatio(width, height);
+            updateImageAspectRatio(width, height);
         },
-        [updateAspectRatio],
+        [updateImageAspectRatio],
     );
 
-    const onLayout = (e: LayoutChangeEvent) => {
+    const handleEReceiptLayout = (e: LayoutChangeEvent) => {
         const {width} = e.nativeEvent.layout;
         setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
     };
 
     useEffect(() => {
-        if (hovered) {
-            debounceTimeout.current = setTimeout(() => {
-                setShouldShow(true);
-            }, showPreviewDelay);
-        } else {
-            setShouldShow(false);
-        }
+        setShouldShow(hovered);
+    }, [hovered, setShouldShow]);
 
-        return () => {
-            if (!debounceTimeout.current) {
-                return;
-            }
-            clearTimeout(debounceTimeout.current);
-            debounceTimeout.current = null;
-        };
-    }, [hovered]);
-
-    if (shouldUseNarrowLayout || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt)) {
+    if (shouldUseNarrowLayout || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt)) {
         return null;
     }
 
@@ -81,8 +102,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
 
     return ReactDOM.createPortal(
         <Animated.View
-            entering={FadeIn.duration(animationDuration)}
-            exiting={FadeOut.duration(animationDuration)}
+            entering={FadeIn.duration(CONST.TIMING.SHOW_HOVER_PREVIEW_ANIMATION_DURATION)}
+            exiting={FadeOut.duration(CONST.TIMING.SHOW_HOVER_PREVIEW_ANIMATION_DURATION)}
             style={[styles.receiptPreview, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentStart]}
         >
             {shouldShowImage ? (
@@ -94,15 +115,21 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     />
                 </View>
             ) : (
-                <View style={[styles.w100, styles.h100]}>
+                <View style={styles.receiptPreviewEReceiptsContainer}>
                     {shouldShowDistanceEReceipt ? (
-                        <View style={[styles.mhv5, styles.w100, styles.justifyContentCenter, styles.alignItemsCenter, {backgroundColor: colors.green800}]}>
-                            <DistanceEReceipt transaction={transactionItem} />
+                        <View
+                            onLayout={handleDistanceEReceiptLayout}
+                            style={[{transformOrigin: 'center', scale: eReceiptScaleFactor, aspectRatio: distanceEReceiptAspectRatio}]}
+                        >
+                            <DistanceEReceipt
+                                transaction={transactionItem}
+                                hoverPreview
+                            />
                         </View>
                     ) : (
                         <View
-                            onLayout={onLayout}
-                            style={[styles.w100, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
+                            onLayout={handleEReceiptLayout}
+                            style={[styles.receiptPreviewEReceipt, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
                         >
                             <EReceipt
                                 transactionID={transactionItem.transactionID}
