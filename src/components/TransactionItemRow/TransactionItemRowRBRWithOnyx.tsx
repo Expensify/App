@@ -9,11 +9,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
@@ -25,11 +25,13 @@ type TransactionItemRowRBRProps = {
 
     /** Error message for missing required fields in the transaction */
     missingFieldError?: string;
+
+    /** Precomputed violations for the transaction */
+    violations?: TransactionViolation[];
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFieldError, violations = []}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
-    const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const {translate} = useLocalize();
     const theme = useTheme();
     const {sortedAllReportActions: transactionActions, report} = usePaginatedReportActions(transaction.reportID);
@@ -37,7 +39,7 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFie
     const transactionThreadId = transactionActions ? getIOUActionForTransactionID(transactionActions, transaction.transactionID)?.childReportID : undefined;
     const {sortedAllReportActions: transactionThreadActions} = usePaginatedReportActions(transactionThreadId);
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, transactionViolations, translate, missingFieldError, transactionThreadActions, policyTags);
+    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations, translate, missingFieldError, transactionThreadActions, policyTags);
 
     return (
         RBRMessages.length > 0 && (
