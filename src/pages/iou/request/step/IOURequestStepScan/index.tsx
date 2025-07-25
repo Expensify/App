@@ -629,7 +629,7 @@ function IOURequestStepScan({
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     /**
@@ -965,8 +965,19 @@ function IOURequestStepScan({
         </>
     );
 
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
+    const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
+    /*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */
+    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+
     const desktopUploadView = () => (
-        <>
+        <View
+            style={[styles.alignItemsCenter, styles.justifyContentCenter]}
+            onLayout={(e) => {
+                setDesktopUploadViewHeight(e.nativeEvent.layout.height);
+            }}
+        >
             {PDFValidationComponent}
             <ReceiptUpload
                 width={CONST.RECEIPT.ICON_SIZE}
@@ -1005,7 +1016,7 @@ function IOURequestStepScan({
                     />
                 )}
             </AttachmentPicker>
-        </>
+        </View>
     );
 
     return (
@@ -1017,7 +1028,8 @@ function IOURequestStepScan({
         >
             {(isDraggingOverWrapper) => (
                 <View
-                    onLayout={() => {
+                    onLayout={(event) => {
+                        setContainerHeight(event.nativeEvent.layout.height);
                         if (!onLayout) {
                             return;
                         }
@@ -1034,11 +1046,10 @@ function IOURequestStepScan({
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
-                    {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
-                    {!isMobile() && <DownloadAppBanner />}
+                    {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal
