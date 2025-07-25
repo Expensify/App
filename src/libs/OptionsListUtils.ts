@@ -458,12 +458,6 @@ Onyx.connect({
     callback: (value) => (nvpDismissedProductTraining = value),
 });
 
-let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'] | undefined;
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => (reportAttributesDerivedValue = value?.reports),
-});
-
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
