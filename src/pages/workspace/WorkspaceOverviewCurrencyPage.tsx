@@ -7,10 +7,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
-import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency, updateGeneralSettings} from '@userActions/Policy/Policy';
@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import filterValidExistingAccounts from './workflows/utils/filterValidExistingAccounts';
 
 type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -34,6 +35,9 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const {isBetaEnabled} = usePermissions();
     const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, {canBeMissing: true});
     const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: (value) => value?.achData?.state === BankAccount.STATE.OPEN, canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const hasValidExistingAccounts = filterValidExistingAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
@@ -47,8 +51,12 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             setIsForcedToChangeCurrency(false);
 
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false)) {
-                navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), {forceReplace: true});
-                return;
+                if (hasValidExistingAccounts) {
+                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policy.id));
+                } else {
+                    navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), {forceReplace: true});
+                    return;
+                }
             }
         }
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);

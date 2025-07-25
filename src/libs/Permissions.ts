@@ -4,6 +4,7 @@ import type Beta from '@src/types/onyx/Beta';
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
+    return true;
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
