@@ -184,42 +184,43 @@ function WorkspacesListPage() {
             ];
 
             if (isOwner) {
-                threeDotsMenuItems.push(
-                    {
-                        icon: Expensicons.Trashcan,
-                        text: translate('workspace.common.delete'),
-                        shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
-                        onSelected: () => {
-                            if (loadingSpinnerIconIndex !== null) {
-                                return;
-                            }
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('workspace.common.delete'),
+                    shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
+                    onSelected: () => {
+                        if (loadingSpinnerIconIndex !== null) {
+                            return;
+                        }
 
-                            if (isSupportalAction) {
-                                setIsSupportalActionRestrictedModalOpen(true);
-                                return;
-                            }
+                        if (isSupportalAction) {
+                            setIsSupportalActionRestrictedModalOpen(true);
+                            return;
+                        }
 
-                            setPolicyIDToDelete(item.policyID);
-                            setPolicyNameToDelete(item.title);
+                        setPolicyIDToDelete(item.policyID);
+                        setPolicyNameToDelete(item.title);
 
-                            if (shouldCalculateBillNewDot) {
-                                setIsDeletingPaidWorkspace(true);
-                                calculateBillNewDot();
-                                setLoadingSpinnerIconIndex(index);
-                                return;
-                            }
+                        if (shouldCalculateBillNewDot) {
+                            setIsDeletingPaidWorkspace(true);
+                            calculateBillNewDot();
+                            setLoadingSpinnerIconIndex(index);
+                            return;
+                        }
 
-                            setIsDeleteModalOpen(true);
-                        },
-                        shouldKeepModalOpen: shouldCalculateBillNewDot,
-                        shouldCallAfterModalHide: !shouldCalculateBillNewDot,
+                        setIsDeleteModalOpen(true);
                     },
-                    {
-                        icon: Expensicons.Copy,
-                        text: translate('workspace.common.duplicateWorkspace'),
-                        onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
-                    },
-                );
+                    shouldKeepModalOpen: shouldCalculateBillNewDot,
+                    shouldCallAfterModalHide: !shouldCalculateBillNewDot,
+                });
+            }
+
+            if (isAdmin) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Copy,
+                    text: translate('workspace.common.duplicateWorkspace'),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
+                });
             }
 
             if (!(isAdmin || isOwner)) {

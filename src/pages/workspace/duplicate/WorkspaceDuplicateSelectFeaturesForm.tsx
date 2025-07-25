@@ -11,11 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
-import {getStatusOptions} from '@libs/SearchUIUtils';
+import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {openWorkspaceMembersPage} from '@userActions/Policy/Member';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceDuplicateFormProps = {
@@ -37,6 +35,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const categoriesCount = Object.keys(policyCategories ?? {}).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const ratesCount = Object.keys(customUnit?.rates ?? {}).length;
+
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
         !isEmptyObject(policy) && !isEmptyObject(policy.address)
@@ -54,11 +55,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 value: 'overview',
                 alternateText: `${policy?.name}, ${policy?.outputCurrency} ${translate('common.currency')}, ${formattedAddress}`,
             },
-            {
-                translation: translate('workspace.common.members'),
-                value: 'members',
-                alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members')}` : undefined,
-            },
+            totalMembers > 1
+                ? {
+                      translation: translate('workspace.common.members'),
+                      value: 'members',
+                      alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members').toLowerCase()}` : undefined,
+                  }
+                : undefined,
             {
                 translation: translate('workspace.common.reports'),
                 value: 'reports',
@@ -72,17 +75,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             {
                 translation: translate('workspace.common.tags'),
                 value: 'tags',
-                alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags')}` : undefined,
+                alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
             },
             {
                 translation: translate('workspace.common.categories'),
                 value: 'categories',
-                alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.common.categories')}` : undefined,
+                alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.common.categories').toLowerCase()}` : undefined,
             },
             {
                 translation: translate('workspace.common.taxes'),
                 value: 'taxes',
-                alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes')}` : undefined,
+                alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
             },
             {
                 translation: translate('workspace.common.workflows'),
@@ -97,7 +100,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             {
                 translation: translate('workspace.common.distanceRates'),
                 value: 'distanceRates',
-                alternateText: 'eqwewq',
+                alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
             },
             {
                 translation: translate('workspace.common.perDiem'),
@@ -111,8 +114,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             },
         ];
 
-        return result;
-    }, [categoriesCount, formattedAddress, policy?.name, policy?.outputCurrency, taxesLength, totalMembers, totalTags, translate]);
+        return result.filter((item): item is NonNullable<typeof item> => item !== undefined);
+    }, [categoriesCount, formattedAddress, policy?.name, policy?.outputCurrency, ratesCount, taxesLength, totalMembers, totalTags, translate]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((option) => ({
