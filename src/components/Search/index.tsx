@@ -241,7 +241,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         const screenParam = screenParamMatch ? decodeURIComponent(screenParamMatch[1]) : null;
         const isMigratedModalDisplay = activeRoute.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true)) || screenParam === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
 
-        if (!(isFocused || isMigratedModalDisplay) || isOffline) {
+        if ((!isFocused && !isMigratedModalDisplay) || isOffline) {
             return;
         }
 
