@@ -967,7 +967,7 @@ function IOURequestStepConfirmation({
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            validateFiles([file]);
+            validateFiles([file], Array.from(e.dataTransfer?.items));
         }
     };
 
