@@ -113,7 +113,6 @@ import {
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
     getIcons,
-    getMoneyRequestSpendBreakdown,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -125,23 +124,19 @@ import {
     getReportName,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportSubtitlePrefix,
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
-    isDefaultRoom,
     isDM,
     isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
     isInvoiceRoom,
-    isIOUOwnedByCurrentUser,
     isMoneyRequest,
     isPolicyAdmin,
-    isUnread,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
     isChatReport as reportUtilsIsChatReport,
@@ -154,7 +149,6 @@ import {
     isTaskReport as reportUtilsIsTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
-    shouldReportShowSubscript,
 } from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
@@ -969,7 +963,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
         // Core identification - used in SearchOption context
-        reportID: report?.reportID ?? '',
+        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         accountID: 0, // Set conditionally below
         login: undefined, // Set conditionally below
         policyID: report?.policyID,
@@ -1035,13 +1029,14 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         const allReportErrors = reportAttributesDerivedValue?.[report.reportID]?.reportErrors ?? {};
         result.brickRoadIndicator = !isEmptyObject(allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails ? (getDisplayNameForParticipant({accountID: accountIDs.at(0)}) ?? formatPhoneNumber(personalDetail?.login ?? '')) : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
