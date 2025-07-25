@@ -397,6 +397,7 @@ function MoneyRequestReportPreviewContent({
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
 
+    // We also show icons in case of Approved or Paid report for easier identification at glance
     const isIconNeeded = useMemo(() => {
         return iouSettled || isApproved;
     }, [iouSettled, isApproved]);
