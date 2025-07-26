@@ -1,10 +1,12 @@
+import {differenceInCalendarDays} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
@@ -19,10 +22,10 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {getReservationsFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {formatAirportInfo, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
+import type {Reservation} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 type ReservationViewProps = {
@@ -39,15 +42,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const reservationIcon = getTripReservationIcon(reservation.type);
-
-    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => {
-        const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
-        let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
-
-        shortName = longName && shortName ? `(${shortName})` : shortName;
-
-        return `${longName}${shortName}`;
-    };
 
     const getFormattedDate = () => {
         switch (reservation.type) {
@@ -164,16 +158,58 @@ type TripDetailsViewProps = {
 function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const getTripDescription = useCallback(
+        (amount: number, currency: string, reservations: ReservationData[]) => {
+            const trips = `${reservations.length} ${reservations.length === 1 ? translate('travel.trip') : translate('travel.trips')}`;
+            return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
+        },
+        [translate],
+    );
+
+    const getTripTitle = useCallback(
+        (reservations: ReservationData[]) => {
+            if (reservations.length === 0) {
+                return '';
+            }
+
+            const firstReservation = reservations.at(0)?.reservation;
+            const lastReservation = reservations.at(reservations.length - 1)?.reservation;
+
+            if (!lastReservation || !firstReservation) {
+                return '';
+            }
+
+            switch (firstReservation?.type) {
+                case CONST.RESERVATION_TYPE.FLIGHT:
+                    return `${translate('travel.flightTo')} ${formatAirportInfo(lastReservation.end, true)}`;
+                case CONST.RESERVATION_TYPE.TRAIN:
+                    return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
+                case CONST.RESERVATION_TYPE.HOTEL: {
+                    const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
+                    return `${nights} ${nights > 1 ? translate('travel.nightsIn') : translate('travel.nightIn')} ${firstReservation.start.longName}`;
+                }
+                case CONST.RESERVATION_TYPE.CAR: {
+                    const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
+                    return `${days} ${days > 1 ? translate('travel.daysCarRental') : translate('travel.dayCarRental')}`;
+                }
+                default:
+                    return '';
+            }
+        },
+        [translate],
+    );
 
     if (!tripRoomReport) {
         return null;
     }
 
-    const reservationsData: ReservationData[] = getReservationsFromTripReport(tripRoomReport, tripTransactions);
+    const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, tripTransactions);
 
     return (
-        <View>
-            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+        <View style={[styles.flex1, styles.ph5]}>
+            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.pv3]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
                         style={[styles.textLabelSupporting]}
@@ -184,18 +220,30 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                 </View>
             </View>
             <>
-                {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
-                    return (
-                        <OfflineWithFeedback>
-                            <ReservationView
-                                reservation={reservation}
-                                transactionID={transactionID}
-                                tripRoomReportID={tripRoomReport.reportID}
-                                sequenceIndex={sequenceIndex}
-                            />
-                        </OfflineWithFeedback>
-                    );
-                })}
+                {reservationsData.map(({reservations, pnrID, currency, totalFareAmount}) => (
+                    <Section
+                        key={pnrID}
+                        title={getTripTitle(reservations)}
+                        subtitle={getTripDescription(totalFareAmount, currency, reservations)}
+                        containerStyles={[styles.ph0, styles.mh0, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                        titleStyles={[styles.textStrong, styles.ph5]}
+                        subtitleStyles={[styles.textLabelSupporting, styles.ph5, styles.pb2]}
+                        subtitleMuted
+                    >
+                        {reservations.map(({reservation, transactionID, sequenceIndex}) => {
+                            return (
+                                <OfflineWithFeedback>
+                                    <ReservationView
+                                        reservation={reservation}
+                                        transactionID={transactionID}
+                                        tripRoomReportID={tripRoomReport.reportID}
+                                        sequenceIndex={sequenceIndex}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })}
+                    </Section>
+                ))}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
