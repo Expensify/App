@@ -198,6 +198,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
+                            component={ModalStackNavigators.MergeTransactionStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRAVEL}
                             component={ModalStackNavigators.TravelModalStackNavigator}
                         />

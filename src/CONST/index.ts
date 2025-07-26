@@ -1060,6 +1060,7 @@ const CONST = {
             REOPEN: 'reopen',
             EXPORT: 'export',
             PAY: 'pay',
+            MERGE: 'merge',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1090,6 +1091,7 @@ const CONST = {
             SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            MERGE: 'merge',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -3055,6 +3057,7 @@ const CONST = {
         FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
         'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
         Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        MERGE_EXPENSES: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses',
     },
 
     CUSTOM_UNITS: {
