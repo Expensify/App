@@ -19,7 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileWebKit} from '@libs/Browser';
+import {isMobileChrome, isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
@@ -261,7 +261,8 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    inputMode={CONST.INPUT_MODE.EMAIL}
+                    inputMode={isMobileChrome() ? CONST.INPUT_MODE.TEXT : CONST.INPUT_MODE.EMAIL}
+                    keyboardType={isMobileChrome() ? 'email-address' : undefined}
                     errorText={formError ? translate(formError) : undefined}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
