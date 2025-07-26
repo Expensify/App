@@ -1,10 +1,12 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {FlatList, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import type {FlatList, LayoutChangeEvent, ViewStyle} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
+import {KeyboardController, KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -132,6 +134,76 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
+function useKeyboardAnimation(isModalVisible?: boolean) {
+    const height = useSharedValue(0);
+    const offset = useSharedValue(0);
+    const scrollY = useSharedValue(0);
+    const keyboardAbsoluteHeight = useSharedValue(0);
+    const contentSizeHeight = useSharedValue(0);
+    const layoutMeasurementHeight = useSharedValue(0);
+
+    useKeyboardHandler({
+        onStart: (e) => {
+            'worklet';
+
+            const scrollYValueAtStart = scrollY.get();
+            const prevHeight = height.get();
+
+            height.set(e.height);
+
+            const willKeyboardOpen = e.progress === 1;
+
+            if (willKeyboardOpen) {
+                if (e.height > 0) {
+                    keyboardAbsoluteHeight.set(e.height);
+                }
+
+                // Do nothing when the keyboard opens again after the modal closes, since the current position is preserved
+                if (isModalVisible) {
+                    return;
+                }
+            }
+
+            if (isModalVisible) {
+                // Since the keyboard will close immediately when a modal opens, this is to preserve the current scroll position before it closes
+                offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
+                return;
+            }
+
+            // Preserve the current scroll position the the keyboard starts its movement
+            offset.set(scrollYValueAtStart + prevHeight);
+        },
+        onInteractive: (e) => {
+            'worklet';
+
+            height.set(e.height);
+            offset.set(scrollY.get() + e.height);
+        },
+        onMove: (e) => {
+            'worklet';
+
+            height.set(e.height);
+        },
+        onEnd: (e) => {
+            'worklet';
+
+            height.set(e.height);
+        },
+    });
+
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: (e) => {
+            'worklet';
+
+            scrollY.set(e.contentOffset.y);
+            contentSizeHeight.set(e.contentSize.height);
+            layoutMeasurementHeight.set(e.layoutMeasurement.height);
+        },
+    });
+
+    return {height, onScroll, offset, scrollY, contentSizeHeight, layoutMeasurementHeight};
+}
+
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,6 +220,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
@@ -163,8 +236,17 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
+    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll, contentSizeHeight, layoutMeasurementHeight} = useKeyboardAnimation(modal?.isPopover);
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                KeyboardController.dismiss();
+            };
+        }, []),
+    );
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -275,6 +357,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro.
+    const [headerHeight, setHeaderHeight] = useState<number>(73);
 
     const wasReportAccessibleRef = useRef(false);
 
@@ -357,6 +442,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         Navigation.goBack();
     }, [isInNarrowPaneModal, backTo]);
+
+    const onHeaderLayout = useCallback((e: LayoutChangeEvent) => {
+        setHeaderHeight(e.nativeEvent.layout.height);
+    }, []);
 
     let headerView = (
         <HeaderView
@@ -762,6 +851,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
     );
 
+    const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -774,94 +865,119 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     return (
-        <ActionListContext.Provider value={actionListValue}>
-            <ReactionListWrapper>
-                <ScreenWrapper
-                    navigation={navigation}
-                    style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                    testID={`report-screen-${reportID}`}
-                >
-                    <FullPageNotFoundView
-                        shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
-                        subtitleStyle={[styles.textSupporting]}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
-                        shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkKey="notFound.noAccess"
-                        onLinkPress={navigateToEndOfReport}
-                        shouldDisplaySearchRouter
+        <KeyboardGestureArea
+            style={styles.flex1}
+            offset={composerHeight}
+            interpolator="ios"
+            textInputNativeID="composer"
+            enableSwipeToDismiss={!isComposerFullSize}
+        >
+            <ActionListContext.Provider value={actionListValue}>
+                <ReactionListWrapper>
+                    <ScreenWrapper
+                        navigation={navigation}
+                        style={screenWrapperStyle}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
+                        testID={`report-screen-${reportID}`}
+                        includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={reportPendingAction}
-                            errors={reportErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                            subtitleStyle={[styles.textSupporting]}
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
+                            shouldShowLink={shouldShowNotFoundLinkedAction}
+                            linkKey="notFound.noAccess"
+                            onLinkPress={navigateToEndOfReport}
+                            shouldDisplaySearchRouter
                         >
-                            {headerView}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
-                                text={chatWithAccountManagerText}
-                                onClose={dismissBanner}
-                                onButtonPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                                icon={Expensicons.Lightbulb}
-                                shouldShowIcon
-                                shouldShowButton
-                            />
-                        )}
-                        <DragAndDropProvider isDisabled={isEditingDisabled}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                testID="report-actions-view-wrapper"
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                errors={reportErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
                             >
-                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                    <ReportActionsView
-                                        report={report}
-                                        reportActions={reportActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                        hasNewerActions={hasNewerActions}
-                                        hasOlderActions={hasOlderActions}
-                                        parentReportAction={parentReportAction}
-                                        transactionThreadReportID={transactionThreadReportID}
-                                    />
-                                ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                    <MoneyRequestReportActionsList
-                                        report={report}
-                                        policy={policy}
-                                        reportActions={reportActions}
-                                        transactions={visibleTransactions}
-                                        newTransactions={newTransactions}
-                                        hasOlderActions={hasOlderActions}
-                                        hasNewerActions={hasNewerActions}
-                                        showReportActionsLoadingState={showReportActionsLoadingState}
-                                    />
-                                ) : null}
-                                {isCurrentReportLoadedFromOnyx ? (
-                                    <ReportFooter
-                                        report={report}
-                                        reportMetadata={reportMetadata}
-                                        policy={policy}
-                                        pendingAction={reportPendingAction}
-                                        isComposerFullSize={!!isComposerFullSize}
-                                        lastReportAction={lastReportAction}
-                                        reportTransactions={reportTransactions}
-                                    />
-                                ) : null}
-                            </View>
-                            <PortalHost name="suggestions" />
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                </ScreenWrapper>
-            </ReactionListWrapper>
-        </ActionListContext.Provider>
+                                <View onLayout={onHeaderLayout}>{headerView}</View>
+                            </OfflineWithFeedback>
+                            {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                                    text={chatWithAccountManagerText}
+                                    onClose={dismissBanner}
+                                    onButtonPress={chatWithAccountManager}
+                                    shouldShowCloseButton
+                                    icon={Expensicons.Lightbulb}
+                                    shouldShowIcon
+                                    shouldShowButton
+                                />
+                            )}
+                            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <View
+                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                    testID="report-actions-view-wrapper"
+                                >
+                                    {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                    {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                        <ReportActionsView
+                                            report={report}
+                                            reportActions={reportActions}
+                                            isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                            hasNewerActions={hasNewerActions}
+                                            hasOlderActions={hasOlderActions}
+                                            parentReportAction={parentReportAction}
+                                            transactionThreadReportID={transactionThreadReportID}
+                                            onScroll={onScroll}
+                                            scrollingVerticalOffset={scrollY}
+                                            keyboardOffset={keyboardOffset}
+                                            composerHeight={composerHeight}
+                                            keyboardHeight={keyboardHeight}
+                                            isComposerFullSize={isComposerFullSize}
+                                        />
+                                    ) : null}
+                                    {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                        <MoneyRequestReportActionsList
+                                            report={report}
+                                            policy={policy}
+                                            reportActions={reportActions}
+                                            transactions={reportTransactions}
+                                            newTransactions={newTransactions}
+                                            hasOlderActions={hasOlderActions}
+                                            hasNewerActions={hasNewerActions}
+                                            showReportActionsLoadingState={showReportActionsLoadingState}
+                                            keyboardHeight={keyboardHeight}
+                                            composerHeight={composerHeight}
+                                            isComposerFullSize={isComposerFullSize}
+                                            onScroll={onScroll}
+                                            scrollingVerticalOffset={scrollY}
+                                            contentSizeHeight={contentSizeHeight}
+                                            layoutMeasurementHeight={layoutMeasurementHeight}
+                                        />
+                                    ) : null}
+                                    {isCurrentReportLoadedFromOnyx ? (
+                                        <ReportFooter
+                                            report={report}
+                                            reportMetadata={reportMetadata}
+                                            policy={policy}
+                                            pendingAction={reportPendingAction}
+                                            isComposerFullSize={!!isComposerFullSize}
+                                            lastReportAction={lastReportAction}
+                                            nativeID="composer"
+                                            keyboardHeight={keyboardHeight}
+                                            onLayout={onComposerLayout}
+                                            headerHeight={headerHeight}
+                                        />
+                                    ) : null}
+                                </View>
+                                <PortalHost name="suggestions" />
+                            </DragAndDropProvider>
+                        </FullPageNotFoundView>
+                    </ScreenWrapper>
+                </ReactionListWrapper>
+            </ActionListContext.Provider>
+        </KeyboardGestureArea>
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

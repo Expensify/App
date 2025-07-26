@@ -2,6 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -62,6 +63,25 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** The animated scroll handler callback */
+    onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
+
+    scrollingVerticalOffset: SharedValue<number>;
+
+    /** The current keyboard height, updated on every keyboard movement frame */
+    keyboardHeight: SharedValue<number>;
+
+    /** The content offset to be set on the flatlist according to the
+     * keyboard and scroll positions
+     */
+    keyboardOffset: SharedValue<number>;
+
+    /** The current composer height */
+    composerHeight: number;
+
+    /** Whether the composer is in full size */
+    isComposerFullSize?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -74,6 +94,12 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    onScroll,
+    scrollingVerticalOffset,
+    keyboardOffset,
+    composerHeight,
+    keyboardHeight,
+    isComposerFullSize,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -307,6 +333,12 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                onScroll={onScroll}
+                scrollingVerticalOffset={scrollingVerticalOffset}
+                keyboardOffset={keyboardOffset}
+                composerHeight={composerHeight}
+                keyboardHeight={keyboardHeight}
+                isComposerFullSize={isComposerFullSize}
             />
             <UserTypingEventListener report={report} />
         </>
