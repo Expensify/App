@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +20,7 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {getReservationsFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {formatAirportInfo, getPNRReservationDataFromTripReport, getReservationsFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
@@ -39,15 +40,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const reservationIcon = getTripReservationIcon(reservation.type);
-
-    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => {
-        const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
-        let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
-
-        shortName = longName && shortName ? `(${shortName})` : shortName;
-
-        return `${longName}${shortName}`;
-    };
 
     const getFormattedDate = () => {
         switch (reservation.type) {
@@ -169,7 +161,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         return null;
     }
 
-    const reservationsData: ReservationData[] = getReservationsFromTripReport(tripRoomReport, tripTransactions);
+    const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, tripTransactions);
 
     return (
         <View>
@@ -184,18 +176,28 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                 </View>
             </View>
             <>
-                {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
-                    return (
-                        <OfflineWithFeedback>
-                            <ReservationView
-                                reservation={reservation}
-                                transactionID={transactionID}
-                                tripRoomReportID={tripRoomReport.reportID}
-                                sequenceIndex={sequenceIndex}
-                            />
-                        </OfflineWithFeedback>
-                    );
-                })}
+                {reservationsData.map(({reservations, pnrID, title}) => (
+                    <Section
+                        key={pnrID}
+                        title={title}
+                        containerStyles={[styles.ph0]}
+                        titleStyles={[styles.textStrong, styles.ph5]}
+                        subtitleMuted
+                    >
+                        {reservations.map(({reservation, transactionID, sequenceIndex}) => {
+                            return (
+                                <OfflineWithFeedback>
+                                    <ReservationView
+                                        reservation={reservation}
+                                        transactionID={transactionID}
+                                        tripRoomReportID={tripRoomReport.reportID}
+                                        sequenceIndex={sequenceIndex}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })}
+                    </Section>
+                ))}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
