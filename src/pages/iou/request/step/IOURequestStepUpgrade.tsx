@@ -69,7 +69,12 @@ function IOURequestStepUpgrade({
                     <UpgradeIntro
                         feature={feature}
                         onUpgrade={() => {
-                            const policyData = Policy.createWorkspace('', false, '', undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+                            const policyData = Policy.createWorkspace({
+                                policyOwnerEmail: '',
+                                makeMeAdmin: false,
+                                policyName: '',
+                                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                            });
                             setIsUpgraded(true);
                             policyDataRef.current = policyData;
                         }}

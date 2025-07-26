@@ -71,11 +71,11 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace();
+        createWorkspace({});
         await waitForBatchedUpdates();
-        createWorkspace();
+        createWorkspace({});
         await waitForBatchedUpdates();
-        createWorkspace();
+        createWorkspace({});
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
