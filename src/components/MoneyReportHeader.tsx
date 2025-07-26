@@ -169,6 +169,7 @@ function MoneyReportHeader({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
     const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -716,8 +717,9 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
+            betas,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived, betas]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
