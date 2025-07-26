@@ -11,6 +11,7 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
@@ -21,7 +22,6 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
-import useContactsImporter from '@libs/ContactPermission/useContactsImporter';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
@@ -61,7 +61,7 @@ function useOptions() {
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const {contacts} = useContactsImporter();
+    const {contacts} = useContactImport();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -78,9 +78,9 @@ function useOptions() {
             },
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
 
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions, contacts]);
+    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {

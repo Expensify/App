@@ -3,15 +3,15 @@ import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
+import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import getContacts from '@libs/ContactUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {PersonalDetails} from '@src/types/onyx';
-import useContactPermissions from './useContactPermissions';
 
 /**
- * Return type of the useContactsImporter hook.
+ * Return type of the useContactImport hook.
  */
-type UseContactsImporterResult = {
+type useContactImportResult = {
     contacts: Array<SearchOption<PersonalDetails>>;
     contactPermissionState: PermissionStatus;
     importAndSaveContacts: () => void;
@@ -23,7 +23,7 @@ type UseContactsImporterResult = {
  * managing permissions, and transforming contact data
  * into a format suitable for use in the app.
  */
-function useContactsImporter(): UseContactsImporterResult {
+function useContactImport(): useContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
 
@@ -50,4 +50,4 @@ function useContactsImporter(): UseContactsImporterResult {
     };
 }
 
-export default useContactsImporter;
+export default useContactImport;

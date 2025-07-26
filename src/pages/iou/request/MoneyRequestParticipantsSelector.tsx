@@ -26,7 +26,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useContactsImporter from '@libs/ContactPermission/useContactsImporter';
+import useContactImport from '@hooks/useContactImport';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
@@ -100,7 +100,7 @@ function MoneyRequestParticipantsSelector(
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactsImporter();
+    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
