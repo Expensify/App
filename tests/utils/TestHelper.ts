@@ -346,6 +346,16 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
+/**
+ * @private
+ * This is a custom collator only for testing purposes.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+function localeCompare(a: string, b: string): number {
+    return customCollator.compare(a, b);
+}
+
 export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
@@ -363,4 +373,5 @@ export {
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,
+    localeCompare,
 };
