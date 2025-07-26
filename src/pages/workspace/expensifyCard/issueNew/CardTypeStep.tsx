@@ -9,10 +9,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Navigation from '@libs/Navigation/Navigation';
 
 type CardTypeStepProps = {
     /** ID of the policy */

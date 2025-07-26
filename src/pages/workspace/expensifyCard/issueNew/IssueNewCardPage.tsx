@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import type { OnyxEntry } from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
@@ -60,15 +60,45 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const getCurrentStep = () => {
         switch (currentStep) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
-                return <AssigneeStep policy={policy} stepNames={stepNames} startFrom={startFrom} />;
+                return (
+                    <AssigneeStep
+                        policy={policy}
+                        stepNames={stepNames}
+                        startFrom={startFrom}
+                    />
+                );
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
-                return <CardTypeStep policyID={policyID} stepNames={stepNames} startFrom={startFrom} />;
+                return (
+                    <CardTypeStep
+                        policyID={policyID}
+                        stepNames={stepNames}
+                        startFrom={startFrom}
+                    />
+                );
             case CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE:
-                return <LimitTypeStep policy={policy} stepNames={stepNames} startFrom={startFrom} />;
+                return (
+                    <LimitTypeStep
+                        policy={policy}
+                        stepNames={stepNames}
+                        startFrom={startFrom}
+                    />
+                );
             case CONST.EXPENSIFY_CARD.STEP.LIMIT:
-                return <LimitStep policyID={policyID} stepNames={stepNames} startFrom={startFrom} />;
+                return (
+                    <LimitStep
+                        policyID={policyID}
+                        stepNames={stepNames}
+                        startFrom={startFrom}
+                    />
+                );
             case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
-                return <CardNameStep policyID={policyID} stepNames={stepNames} startFrom={startFrom} />;
+                return (
+                    <CardNameStep
+                        policyID={policyID}
+                        stepNames={stepNames}
+                        startFrom={startFrom}
+                    />
+                );
             case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
                 return (
                     <ConfirmationStep
@@ -79,7 +109,13 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     />
                 );
             default:
-                return <AssigneeStep policy={policy} stepNames={stepNames} startFrom={startFrom} />;
+                return (
+                    <AssigneeStep
+                        policy={policy}
+                        stepNames={stepNames}
+                        startFrom={startFrom}
+                    />
+                );
         }
     };
 
