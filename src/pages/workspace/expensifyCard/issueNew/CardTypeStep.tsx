@@ -8,17 +8,24 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Navigation from '@libs/Navigation/Navigation';
 
 type CardTypeStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
+
+    /** Start from step index */
+    startFrom?: number;
 };
 
-function CardTypeStep({policyID}: CardTypeStepProps) {
+function CardTypeStep({policyID, stepNames, startFrom}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
@@ -41,6 +48,11 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
             setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
+        if (issueNewCard?.data?.isFromWorkspaceMembersPage === true) {
+            Navigation.goBack();
+            clearIssueNewCardFlow(policyID);
+            return;
+        }
         setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE, policyID});
     };
 
@@ -52,8 +64,8 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
             offlineIndicatorStyle={styles.mtAuto}
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={1}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startFrom}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>

@@ -17,9 +17,15 @@ import type * as OnyxTypes from '@src/types/onyx';
 type LimitTypeStepProps = {
     // The policy that the card will be issued under
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Start from step index */
+    startFrom?: number;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
-function LimitTypeStep({policy}: LimitTypeStepProps) {
+function LimitTypeStep({policy, stepNames, startFrom}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -89,8 +95,8 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={2}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startFrom}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>

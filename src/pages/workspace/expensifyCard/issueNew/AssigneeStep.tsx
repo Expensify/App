@@ -27,9 +27,15 @@ const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 type AssigneeStepProps = {
     // The policy that the card will be issued under
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
+
+    /** Start from step index */
+    startFrom?: number;
 };
 
-function AssigneeStep({policy}: AssigneeStepProps) {
+function AssigneeStep({policy, stepNames, startFrom}: AssigneeStepProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -139,8 +145,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startFrom}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>

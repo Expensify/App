@@ -21,9 +21,15 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 type CardNameStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
+
+    /** Start from step index */
+    startFrom?: number;
 };
 
-function CardNameStep({policyID}: CardNameStepProps) {
+function CardNameStep({policyID, stepNames, startFrom}: CardNameStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -73,8 +79,8 @@ function CardNameStep({policyID}: CardNameStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startFrom}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>

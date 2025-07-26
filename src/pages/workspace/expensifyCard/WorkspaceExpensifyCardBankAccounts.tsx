@@ -25,7 +25,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {configureExpensifyCardsForPolicy} from '@userActions/Card';
+import {configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -161,6 +161,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             pressOnEnter
                             onPress={() => {
                                 Navigation.dismissModal();
+                                setIssueNewCardStepAndData({policyID, data: {isFromWorkspaceMembersPage: false}});
                                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
                             }}
                         />
