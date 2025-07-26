@@ -2,6 +2,7 @@ import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import AmountSelectorModal from './AmountSelectorModal';
@@ -16,6 +17,7 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        blurActiveElement();
     };
 
     const updateInput = (updatedValue: string) => {

@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useOnyx from '@hooks/useOnyx';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import InitialListValueSelectorModal from './InitialListValueSelectorModal';
@@ -30,6 +31,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        blurActiveElement();
     };
 
     const updateValueInput = (initialValue: string) => {

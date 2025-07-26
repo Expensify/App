@@ -166,6 +166,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
     /** Render extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
     /**

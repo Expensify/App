@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
 import CONST from '@src/CONST';
@@ -36,6 +37,7 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        blurActiveElement();
     };
 
     const updateTypeInput = (reportField: ReportFieldItemType) => {
