@@ -34,8 +34,8 @@ type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingPr
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
@@ -111,6 +111,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             errors: null,
+            originalApprovers: currentApprovalWorkflow.approvers,
         });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
