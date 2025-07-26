@@ -67,6 +67,7 @@ const WRITE_COMMANDS = {
     UPDATE_SELECTED_TIMEZONE: 'UpdateSelectedTimezone',
     UPDATE_USER_AVATAR: 'UpdateUserAvatar',
     UPDATE_GROUP_CHAT_AVATAR: 'UpdateGroupChatAvatar',
+    UPDATE_ROOM_AVATAR: 'UpdateRoomAvatar',
     DELETE_USER_AVATAR: 'DeleteUserAvatar',
     REFER_TEACHERS_UNITE_VOLUNTEER: 'ReferTeachersUniteVolunteer',
     ADD_SCHOOL_PRINCIPAL: 'AddSchoolPrincipal',
@@ -601,6 +602,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.INVITE_TO_ROOM]: Parameters.InviteToRoomParams;
     [WRITE_COMMANDS.INVITE_TO_GROUP_CHAT]: Parameters.InviteToGroupChatParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR]: Parameters.UpdateGroupChatAvatarParams;
+    [WRITE_COMMANDS.UPDATE_ROOM_AVATAR]: Parameters.UpdateRoomAvatarParams;
     [WRITE_COMMANDS.PUSHER_PING]: Parameters.PusherPingParams;
     [WRITE_COMMANDS.LEAVE_GROUP_CHAT]: Parameters.LeaveGroupChatParams;
     [WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT]: Parameters.RemoveFromGroupChatParams;
