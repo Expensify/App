@@ -1057,7 +1057,7 @@ const translations = {
         canceled: 'Geannuleerd',
         posted: 'Geplaatst',
         deleteReceipt: 'Verwijder bonnetje',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave in dit rapport, ${merchant} - ${amount}`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave in dit rapport (${merchant} - ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'heeft deze uitgave naar uw persoonlijke ruimte verplaatst',
