@@ -170,21 +170,14 @@
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
 
-### [react-native+0.79.2+024+restore-old-line-height-algorithm.patch](react-native+0.79.2+024+restore-old-line-height-algorithm.patch)
-
-- Reason: This patch fixes line height calculation issues in Android text rendering by replacing the web-based CSS implementation with a priority-based approach that properly handles cases where font metrics exceed the specified line height, ensuring better text display consistency and preventing text clipping
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: https://github.com/Expensify/App/pull/60421
-
-### [react-native+0.79.2+025+fix-display-contents-not-updating-nodes.patch](react-native+0.79.2+025+fix-display-contents-not-updating-nodes.patch)
+### [react-native+0.79.2+024+fix-display-contents-not-updating-nodes.patch](react-native+0.79.2+024+fix-display-contents-not-updating-nodes.patch)
 
 - Reason: This patch updates Yoga to correctly update the subtrees of `display: contents` nodes so that they are in sync with their React Native counterparts.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/52530
 - E/App issue: https://github.com/Expensify/App/issues/65268
 - PR introducing patch: [#65925](https://github.com/Expensify/App/pull/65925)
 
-### [react-native+0.79.2+026+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch](react-native+0.79.2+026+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch)
+### [react-native+0.79.2+025+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch](react-native+0.79.2+025+fix-textinput-oncontentsizechange-dispatched-only-once-ios.patch)
 
 - Reason: This patch updates RCTTextInputComponentView.mm to fix an issue where the TextInput onContentSizeChange event is dispatched only once on iOS instead of being triggered for subsequent content size changes.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/50782
