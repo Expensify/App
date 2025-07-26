@@ -5995,9 +5995,7 @@ describe('actions/IOU', () => {
                 reportID: '456',
             };
 
-            const reportID = '456';
-
-            initSplitExpense(transaction, reportID);
+            initSplitExpense(transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6009,7 +6007,6 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.amount).toBe(100);
             expect(draftTransaction?.currency).toBe('USD');
             expect(draftTransaction?.merchant).toBe('Test Merchant');
-            expect(draftTransaction?.reportID).toBe(reportID);
 
             expect(splitExpenses?.[0].amount).toBe(50);
             expect(splitExpenses?.[0].description).toBe('Test comment');
@@ -6023,9 +6020,8 @@ describe('actions/IOU', () => {
         });
         it('should not initialize split expense for null transaction', async () => {
             const transaction: Transaction | undefined = undefined;
-            const reportID = '456';
 
-            initSplitExpense(transaction, reportID);
+            initSplitExpense(transaction);
             await waitForBatchedUpdates();
 
             expect(transaction).toBeFalsy();
