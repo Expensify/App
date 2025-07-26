@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -54,7 +55,17 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-    const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
+    const statementCloseDate = useMemo(() => {
+        if (!selectedFeedData?.statementPeriodEndDay) {
+            return undefined;
+        }
+
+        if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
+            return selectedFeedData.statementPeriodEndDay;
+        }
+
+        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
     // s77rt remove DEV lock
     const shouldShowStatementCloseDate = isDevelopment;
@@ -119,14 +130,17 @@ function WorkspaceCompanyCardsSettingsPage({
                             onPress={navigateToChangeFeedName}
                         />
                         {shouldShowStatementCloseDate && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={statementPeriodEndDay}
-                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                onPress={navigateToChangeStatementCloseDate}
-                            />
+                            <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={statementCloseDate?.toString()}
+                                    description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    onPress={navigateToChangeStatementCloseDate}
+                                    brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
                         )}
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
