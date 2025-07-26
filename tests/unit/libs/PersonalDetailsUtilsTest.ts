@@ -4,16 +4,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
 describe('PersonalDetailsUtils', () => {
-    beforeAll(async () => {
-        await Onyx.merge(ONYXKEYS.COUNTRY_CODE, 1);
-    });
-
     test('getPersonalDetailsOnyxDataForOptimisticUsers should return correct optimistic and finally data', () => {
-        const newLogins = ['3322076524', 'test2@test.com'];
-        const newAccountIDs = [1, 2];
-
+        const newLogins = ['3322076524', 'test2@test.com', '+14185438090'];
+        const newAccountIDs = [1, 2, 3];
         const result = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-
         const expected = {
             optimisticData: [
                 {
@@ -34,6 +28,13 @@ describe('PersonalDetailsUtils', () => {
                             isOptimisticPersonalDetail: true,
                             login: 'test2@test.com',
                         },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '3': {
+                            accountID: 3,
+                            displayName: '(418) 543-8090',
+                            isOptimisticPersonalDetail: true,
+                            login: '+14185438090',
+                        },
                     },
                 },
             ],
@@ -46,11 +47,12 @@ describe('PersonalDetailsUtils', () => {
                         '1': null,
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '2': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '3': null,
                     },
                 },
             ],
         };
-
         expect(result).toEqual(expected);
     });
 });
