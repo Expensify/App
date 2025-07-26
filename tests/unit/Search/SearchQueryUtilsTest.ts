@@ -2,9 +2,17 @@
 // we need "dirty" object key names in these tests
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import {
+    buildFilterFormValuesFromQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    getQueryWithUpdatedValues,
+    shouldHighlight,
+    sortOptionsWithEmptyValue,
+} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {localeCompare} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -266,6 +274,22 @@ describe('SearchQueryUtils', () => {
 
         it('does not match words out of order', () => {
             expect(shouldHighlight('Take a 2-minute tour', 'tour 2-minute')).toBe(false);
+        });
+    });
+
+    describe('sortOptionsWithEmptyValue', () => {
+        it('should prioritize empty values at the start', () => {
+            const options = ['B', 'A', CONST.SEARCH.CATEGORY_EMPTY_VALUE, 'C'];
+            const sortedOptions = options.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare));
+
+            expect(sortedOptions).toEqual([CONST.SEARCH.CATEGORY_EMPTY_VALUE, 'A', 'B', 'C']);
+        });
+
+        it('should not change order of non-empty values', () => {
+            const options = ['B', 'A', 'C'];
+            const sortedOptions = options.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare));
+
+            expect(sortedOptions).toEqual(['A', 'B', 'C']);
         });
     });
 });
