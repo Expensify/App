@@ -50,6 +50,9 @@ type ReportActionsViewProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** The oldest unread report action ID */
+    oldestUnreadReportActionID?: string;
+
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
@@ -74,6 +77,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    oldestUnreadReportActionID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -230,7 +234,6 @@ function ReportActionsView({
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
-        reportActionID,
         reportActions,
         allReportActionIDs,
         transactionThreadReport,
@@ -300,11 +303,13 @@ function ReportActionsView({
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
+                oldestUnreadReportActionID={oldestUnreadReportActionID}
                 sortedReportActions={reportActions}
                 sortedVisibleReportActions={visibleReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
+                hasNewerActions={hasNewerActions}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />

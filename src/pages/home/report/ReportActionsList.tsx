@@ -79,6 +79,9 @@ type ReportActionsListProps = {
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** The oldest unread report action ID */
+    oldestUnreadReportActionID?: string;
+
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
@@ -99,6 +102,9 @@ type ReportActionsListProps = {
 
     /** Function to load newer chats */
     loadNewerChats: (force?: boolean) => void;
+
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -143,6 +149,8 @@ function ReportActionsList({
     mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
+    hasNewerActions,
+    oldestUnreadReportActionID,
     onLayout,
     isComposerFullSize,
     listID,
@@ -323,16 +331,21 @@ function ReportActionsList({
     const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
 
+    const trackScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+        onScroll?.(event);
+
+        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+    };
+
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-            onScroll?.(event);
-        },
+        onTrackScrolling: trackScrolling,
+        hasNewerActions,
     });
 
     useEffect(() => {
@@ -361,30 +374,65 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
+    const initialScrollKey = useMemo(() => {
+        return linkedReportActionID ?? oldestUnreadReportActionID ?? unreadMarkerReportActionID;
+    }, [linkedReportActionID, oldestUnreadReportActionID, unreadMarkerReportActionID]);
+
+    const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
+    const handleListInitiallyLoaded = useCallback(() => {
+        setIsListInitiallyLoaded(true);
+    }, []);
+
+    const isReportUnread = useMemo(
+        () => isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)),
+        [report, transactionThreadReport, lastAction],
+    );
+
+    // Mark the report as read when the user initially opens the report and there are unread messages
+    const didMarkReportAsReadInitially = useRef(false);
+    useEffect(() => {
+        if (!isListInitiallyLoaded) {
+            return;
+        }
+
+        if (!isReportUnread || didMarkReportAsReadInitially.current) {
+            didMarkReportAsReadInitially.current = true;
+            return;
+        }
+
+        didMarkReportAsReadInitially.current = true;
+        readNewestAction(report.reportID);
+    }, [isListInitiallyLoaded, isReportUnread, report.reportID]);
+
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
         }
 
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
-            // On desktop, when the notification center is displayed, isVisible will return false.
-            // Currently, there's no programmatic way to dismiss the notification center panel.
-            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
-            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                readNewestAction(report.reportID);
-                if (isFromNotification) {
-                    Navigation.setParams({referrer: undefined});
-                }
-            } else {
-                readActionSkipped.current = true;
-            }
+        if (!isListInitiallyLoaded || !isReportUnread) {
+            return;
         }
+
+        // On desktop, when the notification center is displayed, isVisible will return false.
+        // Currently, there's no programmatic way to dismiss the notification center panel.
+        // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+        const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+        const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+
+        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+            readNewestAction(report.reportID);
+            if (isFromNotification) {
+                Navigation.setParams({referrer: undefined});
+            }
+            return;
+        }
+
+        readActionSkipped.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isListInitiallyLoaded, hasNewerActions]);
 
     useEffect(() => {
-        if (linkedReportActionID) {
+        if (!!linkedReportActionID || !!unreadMarkerReportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
@@ -536,7 +584,7 @@ function ReportActionsList({
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
     useEffect(() => {
-        if (report.reportID !== prevReportID) {
+        if (report.reportID !== prevReportID || !isListInitiallyLoaded) {
             return;
         }
 
@@ -673,7 +721,7 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const onStartReached = useCallback(() => {
+    const handleStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
@@ -714,18 +762,19 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
+                    onInitiallyLoaded={handleListInitiallyLoaded}
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
