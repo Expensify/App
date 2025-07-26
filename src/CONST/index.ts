@@ -236,7 +236,6 @@ const CONST = {
     ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
-    IMAGE_SVG_TRANSITION_DURATION: 200,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
@@ -1346,6 +1345,7 @@ const CONST = {
             SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
+            AUTOREIMBURSED: 6,
         },
         STATUS_NUM: {
             OPEN: 0,
@@ -5205,7 +5205,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
