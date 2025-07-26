@@ -330,6 +330,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
+            if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
+                turnOffMobileSelectionMode();
+            }
         });
     };
 
