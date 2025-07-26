@@ -99,7 +99,6 @@ const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemTy
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader
                     report={reportItem}
-                    policy={mockPolicy}
                     onSelectRow={jest.fn()}
                     onCheckboxPress={jest.fn()}
                     isDisabled={false}

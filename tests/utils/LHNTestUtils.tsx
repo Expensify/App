@@ -19,9 +19,6 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
-    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar?: boolean;
-
     /** Report for this action */
     report: Report;
 
@@ -333,14 +330,13 @@ function internalRender(component: ReactElement) {
     }
 }
 
-function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction}: MockedReportActionItemSingleProps) {
+function MockedReportActionItemSingle({report, reportAction}: MockedReportActionItemSingleProps) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
                 showHeader
-                shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                 hasBeenFlagged={false}
                 iouReport={undefined}
                 isHovered={false}
@@ -349,13 +345,12 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report,
     );
 }
 
-function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report?: Report, reportAction?: ReportAction) {
+function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction) {
     const currentReport = report ?? getFakeReport();
     const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
     internalRender(
         <MockedReportActionItemSingle
-            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
             report={currentReport}
             reportAction={currentReportAction}
         />,
