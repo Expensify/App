@@ -5283,6 +5283,10 @@ function getReportNameInternal({
         formattedName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetails});
     }
 
+    if (isConciergeChatReport(report)) {
+        formattedName = CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
     if (formattedName) {
         return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
     }
@@ -5290,7 +5294,9 @@ function getReportNameInternal({
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
+    const finalName = formattedName || (report?.reportName ?? '');
+
+    return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
 }
 
 /**
