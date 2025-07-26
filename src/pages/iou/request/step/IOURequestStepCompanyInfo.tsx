@@ -39,6 +39,8 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
 
     const policy = usePolicy(getIOURequestPolicyID(transaction, report));
@@ -72,7 +74,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        sendInvoice(currentUserPersonalDetails.accountID, transaction, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
+        sendInvoice(currentUserPersonalDetails.accountID, transaction, reportNameValuePairs, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
     };
 
     return (

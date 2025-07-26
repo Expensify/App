@@ -3100,6 +3100,7 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     currentUserAccountID: number,
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receipt?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -3122,7 +3123,7 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
+        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, reportNameValuePairs, senderWorkspaceID) ?? null;
     }
 
     if (!chatReport) {
@@ -5684,6 +5685,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 function sendInvoice(
     currentUserAccountID: number,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receiptFile?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -5710,7 +5712,18 @@ function sendInvoice(
         createdReportActionIDForThread,
         reportActionID,
         onyxData,
-    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
+    } = getSendInvoiceInformation(
+        transaction,
+        currentUserAccountID,
+        reportNameValuePairs,
+        invoiceChatReport,
+        receiptFile,
+        policy,
+        policyTagList,
+        policyCategories,
+        companyName,
+        companyWebsite,
+    );
 
     const parameters: SendInvoiceParams = {
         createdIOUReportActionID,
