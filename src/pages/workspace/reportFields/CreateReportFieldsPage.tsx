@@ -43,19 +43,30 @@ function WorkspaceCreateReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [policyExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: (value) => Object.values(value ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE),
+    });
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            createReportField(policyID, {
-                name: values[INPUT_IDS.NAME],
-                type: values[INPUT_IDS.TYPE],
-                initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
-            });
+            createReportField(
+                policyID,
+                {
+                    name: values[INPUT_IDS.NAME],
+                    type: values[INPUT_IDS.TYPE],
+                    initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
+                },
+                formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+                formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+                policy,
+                policyExpenseReports ?? [],
+            );
             Navigation.goBack();
         },
-        [availableListValuesLength, policyID],
+        [availableListValuesLength, policyID, policyExpenseReports, formDraft, policy],
     );
 
     const validateForm = useCallback(
