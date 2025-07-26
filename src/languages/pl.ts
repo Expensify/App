@@ -83,7 +83,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -6154,7 +6153,6 @@ const translations = {
                     return `Zmieniono przestrzeń roboczą na ${toPolicyName}${fromPolicyName ? ` (wcześniej ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `zmieniono typ z ${oldType} na ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `wysłał ten raport do ${delegateUser}, ponieważ ${originalManager} jest na urlopie`,
                 exportedToCSV: `wyeksportowano do CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `wyeksportowano do ${label}`,
