@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
@@ -27,28 +27,13 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
-let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    callback: (val) => {
-        lastPaymentMethod = val;
-    },
-});
-
-let allSnapshots: OnyxCollection<SearchResults>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    callback: (val) => {
-        allSnapshots = val;
-    },
-    waitForCollectionCallback: true,
-});
-
 function handleActionButtonPress(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
     isInMobileSelectionMode: boolean,
+    snapshot: OnyxEntry<SearchResults>,
+    lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SuggestedSearchKey,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
@@ -56,7 +41,6 @@ function handleActionButtonPress(
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
-
     if (hasHeldExpense || isInMobileSelectionMode) {
         goToItem();
         return;
@@ -64,13 +48,13 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            getPayActionCallback(hash, item, goToItem, currentSearchKey);
+            getPayActionCallback(hash, item, goToItem, snapshot, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as SearchPolicy;
+            const policy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as SearchPolicy;
             submitMoneyRequestOnSearch(hash, [item], [policy], transactionID, currentSearchKey);
             return;
         }
@@ -79,7 +63,7 @@ function handleActionButtonPress(
                 return;
             }
 
-            const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as Policy;
+            const policy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as Policy;
             const connectedIntegration = getValidConnectedIntegration(policy);
 
             if (!connectedIntegration) {
@@ -108,7 +92,14 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
     return lastPolicyPaymentMethod;
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, currentSearchKey?: SuggestedSearchKey) {
+function getPayActionCallback(
+    hash: number,
+    item: TransactionListItemType | TransactionReportGroupListItemType,
+    goToItem: () => void,
+    snapshot: OnyxEntry<SearchResults>,
+    lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
+    currentSearchKey?: SuggestedSearchKey,
+) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
@@ -116,7 +107,7 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Tran
         return;
     }
 
-    const report = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`] ?? {}) as SearchReport;
+    const report = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`] ?? {}) as SearchReport;
     const amount = Math.abs((report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0));
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
 
@@ -125,7 +116,7 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Tran
         return;
     }
 
-    const hasVBBA = !!allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.bankAccountID;
+    const hasVBBA = !!snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.bankAccountID;
     if (hasVBBA) {
         payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID, currentSearchKey);
         return;

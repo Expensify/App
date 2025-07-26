@@ -7,6 +7,7 @@ import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -169,12 +171,21 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
+    const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
+        handleActionButtonPress(
+            currentSearchHash,
+            reportItem,
+            () => onSelectRow(reportItem as unknown as TItem),
+            shouldUseNarrowLayout && !!canSelectMultiple,
+            snapshot,
+            lastPaymentMethod,
+            currentSearchKey,
+        );
     };
     return !isLargeScreenWidth ? (
         <View>
