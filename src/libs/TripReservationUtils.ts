@@ -465,7 +465,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
         const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
         return {
             ...pnrData,
-            totalFareAmount: (pnrPayloadData?.data?.totalFareAmount?.base?.amount ?? 0) * 100,
+            totalFareAmount: ((pnrPayloadData?.data?.totalFareAmount?.base?.amount ?? 0) + (pnrPayloadData?.data?.totalFareAmount?.tax?.amount ?? 0)) * 100,
             currency: pnrPayloadData?.data?.totalFareAmount?.base?.currencyCode ?? '',
         };
     });

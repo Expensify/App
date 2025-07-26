@@ -208,8 +208,8 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
     const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, tripTransactions);
 
     return (
-        <View>
-            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv3]}>
+        <View style={[styles.flex1, styles.ph5]}>
+            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.pv3]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
                         style={[styles.textLabelSupporting]}
@@ -225,7 +225,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                         key={pnrID}
                         title={getTripTitle(reservations)}
                         subtitle={getTripDescription(totalFareAmount, currency, reservations)}
-                        containerStyles={[styles.ph0, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                        containerStyles={[styles.ph0, styles.mh0, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
                         titleStyles={[styles.textStrong, styles.ph5]}
                         subtitleStyles={[styles.textLabelSupporting, styles.ph5, styles.pb2]}
                         subtitleMuted
