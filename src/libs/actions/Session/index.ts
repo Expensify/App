@@ -872,7 +872,7 @@ function clearSignInData() {
 /**
  * Reset navigation to a brand new state with Home as the initial screen.
  */
-function resetNavigation() {
+function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
         navigationRef.navigate(
             NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -902,7 +902,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetNavigation();
+    resetNavigationState();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
