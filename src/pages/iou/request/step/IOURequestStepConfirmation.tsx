@@ -96,9 +96,9 @@ function IOURequestStepConfirmation({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -322,15 +322,8 @@ function IOURequestStepConfirmation({
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
-                const shouldUseNewScanFlow = iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT;
-                const backToReportID =
-                    shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
-                        ? reportID
-                        : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                          transaction?.reportID || reportID;
-                const iouTypeForRoute = shouldUseNewScanFlow ? CONST.IOU.TYPE.CREATE : iouType;
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouTypeForRoute, initialTransactionID, backToReportID, undefined, action), {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
                     compareParams: false,
                 });
                 return;
