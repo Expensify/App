@@ -11,7 +11,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 /**
  * Return type of the useContactImport hook.
  */
-type useContactImportResult = {
+type UseContactImportResult = {
     contacts: Array<SearchOption<PersonalDetails>>;
     contactPermissionState: PermissionStatus;
     importAndSaveContacts: () => void;
@@ -23,7 +23,7 @@ type useContactImportResult = {
  * managing permissions, and transforming contact data
  * into a format suitable for use in the app.
  */
-function useContactImport(): useContactImportResult {
+function useContactImport(): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
 
