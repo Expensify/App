@@ -117,6 +117,9 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
+    /** Saves favourite events */
+    FAVOURITE_EVENTS: 'favourite_events',
+
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
@@ -1022,6 +1025,8 @@ type OnyxCollectionValuesMapping = {
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+
+    [ONYXKEYS.FAVOURITE_EVENTS]: string[];
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 

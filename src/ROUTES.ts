@@ -1925,6 +1925,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    EVENT_BOOK_EVENT: 'event',
     TRAVEL_DOT_LINK_WEB_VIEW: {
         route: 'travel-dot-link',
         getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,

@@ -25,6 +25,9 @@ const SCREENS = {
     BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    EVENT: {
+        BOOK_EVENTS: 'Event_BookEvents',
+    },
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
@@ -209,6 +212,7 @@ const SCREENS = {
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
+        EVENT: 'Event',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',

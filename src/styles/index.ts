@@ -4326,6 +4326,31 @@ const styles = (theme: ThemeColors) =>
             margin: 'auto',
         },
 
+        eventListItemContainer: {
+            height: 200,
+            alignItems: 'center'
+        },
+
+        eventViewImage: {
+            aspectRatio: 3 / 2,
+            height: 150,
+            borderRadius: 10,
+        },
+
+        eventDate: {
+            borderLeftWidth: 1,
+            borderLeftColor: theme.borderFocus,
+            paddingLeft: 10,
+        },
+
+        eventSvgContainer: {
+            position: 'absolute',
+            height: 25,
+            width: 25,
+            top: 10,
+            right: 5,
+        },
+
         splashScreenHider: {
             backgroundColor: theme.splashBG,
             alignItems: 'center',
