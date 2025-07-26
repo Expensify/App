@@ -239,9 +239,10 @@ function AttachmentPicker({
             destination: 'documentDirectory',
         });
 
-        return pickedFiles.map((file, index) => {
-            const localCopy = localCopies[index];
-            if (localCopy.status !== 'success') {
+        return pickedFiles.map((file) => {
+            const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
+
+            if (!localCopy || localCopy.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
 
