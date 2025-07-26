@@ -704,11 +704,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_EDIT_REPORT: {
         route: ':action/:iouType/report/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '') => {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? `?shouldTurnOffSelectionMode=true` : ``}`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {

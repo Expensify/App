@@ -1061,6 +1061,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Haz fotos de todos tus recibos a la vez y confirma los detalles tú mismo o nosotros lo haremos por ti.',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
+        removeFromReport: 'Eliminar del informe',
+        moveToPersonalSpace: 'Mover gastos a tu espacio personal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
