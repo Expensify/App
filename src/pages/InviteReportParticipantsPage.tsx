@@ -55,7 +55,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     });
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
@@ -198,7 +198,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             }
             invitedEmailsToAccountIDs[login] = accountID;
         });
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
+        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
     }, [selectedOptions, goBack, reportID, validate]);
 
