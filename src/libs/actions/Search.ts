@@ -26,6 +26,7 @@ import type {LastPaymentMethod, LastPaymentMethodType, Policy, SearchResults} fr
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {saveLastSearchParams, setActiveReportsIDs} from './ReportNavigation';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -43,6 +44,14 @@ Onyx.connect({
     },
     waitForCollectionCallback: true,
 });
+
+type OnyxSearchResponse = {
+    data: [];
+    search: {
+        offset: number;
+        hasMoreResults: boolean;
+    };
+};
 
 function handleActionButtonPress(
     hash: number,
@@ -276,17 +285,43 @@ function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
-function search({queryJSON, offset, shouldCalculateTotals = false}: {queryJSON: SearchQueryJSON; offset?: number; shouldCalculateTotals?: boolean}) {
+function search({queryJSON, offset, prevReports}: {queryJSON: SearchQueryJSON; offset?: number; prevReports?: string[]}, shouldCalculateTotals = false) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
         offset,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
     };
     const jsonQuery = JSON.stringify(query);
 
-    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+        const reports = Object.keys(response?.data ?? {})
+            .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+            .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+        if (response?.search?.offset) {
+            if (prevReports) {
+                setActiveReportsIDs(reports, true);
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    hasMoreResults: !!response?.search?.hasMoreResults,
+                    previousLengthOfResults: prevReports.length,
+                });
+            }
+        } else {
+            setActiveReportsIDs(reports);
+            saveLastSearchParams({
+                queryJSON,
+                offset,
+                hasMoreResults: !!response?.search?.hasMoreResults,
+                previousLengthOfResults: reports.length,
+            });
+        }
+    });
 }
 
 /**

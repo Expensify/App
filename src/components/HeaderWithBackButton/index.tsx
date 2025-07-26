@@ -71,6 +71,7 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = true,
     shouldDisplaySearchRouter = false,
+    navigationComponent,
     progressBarPercentage,
     style,
     subTitleLink = '',
@@ -307,6 +308,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
+                {!!navigationComponent && navigationComponent}
                 {shouldDisplayHelpButton && <HelpButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
             </View>
