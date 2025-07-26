@@ -821,7 +821,16 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID, policy, invoiceReceiverPolicy);
+    result.icons = getIcons(
+        report,
+        personalDetails,
+        personalDetail?.avatar,
+        personalDetail?.login,
+        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        policy,
+        invoiceReceiverPolicy,
+        !!result.private_isArchived,
+    );
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
