@@ -214,7 +214,6 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                         name: getTravelerName(traveler),
                         email: traveler?.email ?? '',
                     },
-                    totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
                 };
 
                 reservationList.push({reservation: reservationObject, reservationIndex: index});
@@ -273,7 +272,6 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserv
                 name: getTravelerName(traveler),
                 email: traveler?.email ?? '',
             },
-            totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
         },
     });
 
@@ -322,7 +320,6 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                 name: getTravelerName(traveler),
                 email: traveler?.email ?? '',
             },
-            totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
         },
     });
 
@@ -383,7 +380,6 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                         name: getTravelerName(traveler),
                         email: traveler?.email ?? '',
                     },
-                    totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
                 },
             });
         });
