@@ -176,9 +176,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
      */
     shouldScrollToEnd?: boolean;
-
-    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
 };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {

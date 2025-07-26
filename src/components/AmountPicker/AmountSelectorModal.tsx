@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -77,10 +77,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             large
                             pressOnEnter
                             text={translate('common.save')}
-                            onPress={() => {
-                                onValueSelected?.(currentValue ?? '');
-                                Keyboard.dismiss();
-                            }}
+                            onPress={() => onValueSelected?.(currentValue ?? '')}
                             style={styles.mh5}
                         />
                     </View>
