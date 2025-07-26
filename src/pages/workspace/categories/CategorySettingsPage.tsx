@@ -128,7 +128,10 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, policyTagLists, allTransactionViolations);
+        if (policy === undefined) {
+            return;
+        }
+        setWorkspaceCategoryEnabled(policy, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, policyTagLists, allTransactionViolations);
     };
 
     const navigateToEditCategory = () => {
@@ -138,7 +141,9 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], policyTagLists, allTransactionViolations);
+        if (policy !== undefined) {
+            deleteWorkspaceCategories(policy, [categoryName], policyTagLists, allTransactionViolations);
+        }
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

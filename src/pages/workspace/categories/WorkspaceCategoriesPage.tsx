@@ -116,9 +116,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, policyTagLists, allTransactionViolations);
+            if (policy === undefined) {
+                return;
+            }
+            setWorkspaceCategoryEnabled(policy, {[categoryName]: {name: categoryName, enabled: value}}, policyTagLists, allTransactionViolations);
         },
-        [policyId, policyTagLists, allTransactionViolations],
+        [policy, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -229,7 +232,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories, policyTagLists, allTransactionViolations);
+        if (policy !== undefined && selectedCategories.length >= 0) {
+            deleteWorkspaceCategories(policy, selectedCategories, policyTagLists, allTransactionViolations);
+        }
         setDeleteCategoriesConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -333,7 +338,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, policyTagLists, allTransactionViolations);
+                        if (policy === undefined) {
+                            return;
+                        }
+                        setWorkspaceCategoryEnabled(policy, categoriesToDisable, policyTagLists, allTransactionViolations);
                     },
                 });
             }
@@ -355,7 +363,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, policyTagLists, allTransactionViolations);
+                        if (policy === undefined) {
+                            return;
+                        }
+                        setWorkspaceCategoryEnabled(policy, categoriesToEnable, policyTagLists, allTransactionViolations);
                     },
                 });
             }
