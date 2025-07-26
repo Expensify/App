@@ -4,6 +4,8 @@ import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEng
 import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+// eslint-disable-next-line no-restricted-imports
+import themeColors from '@styles/theme/themes/dark';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
@@ -55,6 +57,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                         return {...styles.formError, ...styles.mb0};
                     }
                     return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
+            'micro-text': HTMLElementModel.fromCustomModel({
+                tagName: 'micro-text',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.mutedNormalTextLabel, ...styles.mb0};
+                    }
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, color: themeColors.textSupporting, textDecorationLine: 'none'};
                 },
                 contentModel: HTMLContentModel.block,
             }),
@@ -180,7 +192,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing={false}
+            enableCSSInlineProcessing
             systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
