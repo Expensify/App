@@ -24,6 +24,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -38,7 +39,7 @@ import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
-import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -534,6 +535,8 @@ function IOURequestStepScan({
         });
     };
 
+    const {shouldStartLocationPermissionFlow} = useIOUUtils();
+
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
@@ -602,7 +605,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+        [initialTransaction?.amount, iouType, navigateToConfirmationStep, shouldSkipConfirmation, shouldStartLocationPermissionFlow],
     );
 
     const capturePhoto = useCallback(() => {

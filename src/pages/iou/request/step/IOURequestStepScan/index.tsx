@@ -26,6 +26,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -38,7 +39,7 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -276,6 +277,8 @@ function IOURequestStepScan({
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
+
+    const {shouldStartLocationPermissionFlow} = useIOUUtils();
 
     // this effect will pre-fetch location in web and desktop if the location permission is already granted to optimize the flow
     useEffect(() => {
@@ -670,7 +673,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+        [initialTransaction?.amount, iouType, navigateToConfirmationStep, shouldSkipConfirmation, shouldStartLocationPermissionFlow],
     );
 
     const getScreenshot = useCallback(() => {
