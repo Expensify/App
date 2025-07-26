@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
-import {addAttachment, addComment} from '@libs/actions/Report';
 import {rand64} from '@libs/NumberUtils';
-import type {Attachment} from '@src/types/onyx';
+import {getCachedAttachment} from '@userActions/Attachment';
+import {addAttachment, addComment, deleteReportComment} from '@userActions/Report';
+import CONST from '@src/CONST';
+import type {Attachment, ReportAction} from '@src/types/onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,7 +37,10 @@ describe('AttachmentStorage', () => {
             keys: ONYXKEYS,
         });
     });
-    beforeEach(() => {
+    beforeEach(async () => {
+        Onyx.clear();
+        await waitForBatchedUpdates();
+
         global.fetch = TestHelper.getGlobalFetchMock();
     });
 
@@ -44,7 +49,7 @@ describe('AttachmentStorage', () => {
         const fileData = {
             name: `TEST_ATTACHMENT_FILE`,
             type: 'image/jpeg',
-            uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8',
+            uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500',
         };
 
         // Then upload the attachment
@@ -77,8 +82,7 @@ describe('AttachmentStorage', () => {
     });
     it('should store markdown text link attachments in Onyx', async () => {
         // Given the attachment data consisting of sourceURL and markdown comment text
-        const sourceURL =
-            'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8';
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
         const markdownTextLinkAttachment = `![](${sourceURL})`;
 
         // Then send the comment
@@ -106,8 +110,234 @@ describe('AttachmentStorage', () => {
         expect(attachment).toEqual({
             attachmentID,
             source: 'file:///mocked/path/to/file',
-            remoteSource:
-                'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8',
+            remoteSource: sourceURL,
         });
+    });
+    it('should re-cache when attachment file is changed', async () => {
+        // Given the attachment data consisting of name, type and uri
+        const fileData = {
+            name: `TEST_ATTACHMENT_FILE`,
+            type: 'image/jpeg',
+            uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500',
+        };
+
+        let attachments: OnyxCollection<Attachment>;
+
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                if (!value) {
+                    return;
+                }
+                attachments = value;
+            },
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then upload the attachment
+        addAttachment(reportID, fileData);
+
+        await waitForBatchedUpdates();
+
+        const attachment = Object.values(attachments ?? {}).at(0);
+        const attachmentID = attachment?.attachmentID;
+
+        // Then the attachmentID and attachment value should be defined
+        expect(attachmentID).toBeDefined();
+        expect(attachment).toEqual({
+            attachmentID,
+            source: 'file:///mocked/path/to/file',
+            remoteSource: fileData.uri,
+        });
+
+        if (!attachmentID) {
+            return;
+        }
+
+        // Given the new markdown attachment link
+        const newSourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=100';
+        getCachedAttachment(attachmentID, newSourceURL);
+
+        await waitForBatchedUpdates();
+
+        const newAttachment = Object.values(attachments ?? {}).at(0);
+
+        // Then the attachment should be updated with new attachment
+        expect(newAttachment).toEqual({
+            attachmentID,
+            source: 'file:///mocked/path/to/file',
+            remoteSource: newSourceURL,
+        });
+    });
+    it('should re-cache when markdown image link is changed', async () => {
+        // Given the attachment data consisting of sourceURL and markdown comment text
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const markdownTextLinkAttachment = `![](${sourceURL})`;
+
+        let attachments: OnyxCollection<Attachment>;
+
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                if (!value) {
+                    return;
+                }
+                attachments = value;
+            },
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then send the comment
+        addComment(reportID, markdownTextLinkAttachment);
+
+        await waitForBatchedUpdates();
+
+        const attachment = Object.values(attachments ?? {}).at(0);
+        const attachmentID = attachment?.attachmentID;
+
+        // Then the attachmentID and attachment value should be defined
+        expect(attachmentID).toBeDefined();
+        expect(attachment).toEqual({
+            attachmentID,
+            source: 'file:///mocked/path/to/file',
+            remoteSource: sourceURL,
+        });
+
+        if (!attachmentID) {
+            return;
+        }
+
+        // Given the new markdown attachment link
+        const newSourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=100';
+        getCachedAttachment(attachmentID, newSourceURL);
+
+        await waitForBatchedUpdates();
+
+        const newAttachment = Object.values(attachments ?? {}).at(0);
+
+        // Then the attachment should be updated with new attachment link
+        expect(newAttachment).toEqual({
+            attachmentID,
+            source: 'file:///mocked/path/to/file',
+            remoteSource: newSourceURL,
+        });
+    });
+    it('should remove attachment file when deleting attachment comment', async () => {
+        // Given the attachment data consisting of name, type and uri
+        const fileData = {
+            name: `TEST_ATTACHMENT_FILE`,
+            type: 'image/jpeg',
+            uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500',
+        };
+
+        let reportActions: OnyxCollection<ReportAction>;
+        let attachments: OnyxCollection<Attachment>;
+
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            callback: (val) => (reportActions = val),
+        });
+
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                if (!value) {
+                    return;
+                }
+                attachments = value;
+            },
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then upload the attachment
+        addAttachment(reportID, fileData);
+
+        await waitForBatchedUpdates();
+
+        const attachmentAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+        const newAttachment = Object.values(attachments ?? {}).at(0);
+        const attachmentID = newAttachment?.attachmentID;
+
+        // Then the attachmentID and attachment value should be defined
+        expect(attachmentID).toBeDefined();
+        expect(newAttachment).toEqual({
+            attachmentID,
+            source: 'file:///mocked/path/to/file',
+            remoteSource: fileData.uri,
+        });
+
+        if (!attachmentAction) {
+            return;
+        }
+
+        // Delete attachment
+        deleteReportComment(reportID, attachmentAction);
+        await waitForBatchedUpdates();
+
+        // Then the attachment should be removed
+        const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+        expect(removedAttachment).toBeUndefined();
+    });
+    it('should remove markdown attachment when deleting comment', async () => {
+        // Given the attachment data consisting of sourceURL and markdown comment text
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const markdownTextLinkAttachment = `![](${sourceURL})`;
+
+        let reportActions: OnyxCollection<ReportAction>;
+        let attachments: OnyxCollection<Attachment>;
+
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            callback: (val) => (reportActions = val),
+        });
+
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                if (!value) {
+                    return;
+                }
+                attachments = value;
+            },
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then send the comment
+        addComment(reportID, markdownTextLinkAttachment);
+
+        await waitForBatchedUpdates();
+
+        const attachmentAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+        const newAttachment = Object.values(attachments ?? {}).at(0);
+        const attachmentID = newAttachment?.attachmentID;
+
+        // Then the attachmentID and attachment value should be defined
+        expect(attachmentID).toBeDefined();
+        expect(newAttachment).toEqual({
+            attachmentID,
+            source: 'file:///mocked/path/to/file',
+            remoteSource: sourceURL,
+        });
+
+        if (!attachmentAction) {
+            return;
+        }
+
+        // Delete attachment
+        deleteReportComment(reportID, attachmentAction);
+        await waitForBatchedUpdates();
+
+        const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+
+        // Then the attachment should be removed
+        expect(removedAttachment).toBeUndefined();
     });
 });
