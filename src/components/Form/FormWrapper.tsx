@@ -84,6 +84,7 @@ function FormWrapper({
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
+    enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
     isLoading = false,
@@ -188,6 +189,7 @@ function FormWrapper({
             ),
         [
             disablePressOnEnter,
+            enterKeyEventListenerPriority,
             enabledWhenOffline,
             errorMessage,
             errors,
