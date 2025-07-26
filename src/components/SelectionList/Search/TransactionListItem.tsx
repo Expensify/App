@@ -8,6 +8,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -16,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -37,6 +39,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
     const pressableStyle = [
         styles.transactionListItemStyle,
@@ -79,8 +83,8 @@ function TransactionListItem<TItem extends ListItem>({
     );
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
-    }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
+        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple, snapshot, lastPaymentMethod, currentSearchKey);
+    }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem, snapshot, lastPaymentMethod]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
