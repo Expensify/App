@@ -223,6 +223,9 @@ type IssueNewCardData = {
 
     /** Name of the card */
     cardTitle: string;
+
+    /** Whether the flow is triggered from workspace members page */
+    isFromWorkspaceMembersPage: boolean;
 };
 
 /** Model of Issue new card flow */

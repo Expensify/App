@@ -249,6 +249,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data: {
                 assigneeEmail: memberLogin,
+                isFromWorkspaceMembersPage: true,
             },
             isEditing: false,
             policyID,
