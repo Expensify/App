@@ -5802,6 +5802,15 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
+/**
+ * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
+ */
+function changeReportApprover(reportID: string, policyID: string, memberAccountID: number) {
+    if (!reportID || !policyID) {
+        return;
+    }
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -5914,4 +5923,5 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
+    changeReportApprover,
 };
