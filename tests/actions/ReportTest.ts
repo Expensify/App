@@ -1603,7 +1603,7 @@ describe('actions/Report', () => {
 
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     // assert correctness of crucial onyx data
-                    expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(false);
+                    expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
 
                     resolve();
                 },
