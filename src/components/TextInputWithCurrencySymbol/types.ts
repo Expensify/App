@@ -83,7 +83,7 @@ type BaseTextInputWithCurrencySymbolProps = {
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress' | 'submitBehavior'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type TextInputWithCurrencySymbolProps = Omit<BaseTextInputWithCurrencySymbolProps, 'onSelectionChange'> & {
     onSelectionChange?: (start: number, end: number) => void;
