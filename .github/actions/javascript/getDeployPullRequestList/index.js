@@ -11917,25 +11917,26 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
     const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? versionUpdater_1.SEMANTIC_VERSION_LEVELS.PATCH : versionUpdater_1.SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    core.info(`[git log] Getting pull requests merged between the following tags: ${fromTag} ${toTag}`);
+    core.startGroup('[git log] Fetching commits');
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
         const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
+        core.info(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = (0, child_process_1.spawn)('git', args);
-        spawnedProcess.on('message', console.log);
+        spawnedProcess.on('message', core.info);
         spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
+            core.info(chunk.toString());
             stdout += chunk.toString();
         });
         spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
+            core.error(chunk.toString());
             stderr += chunk.toString();
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
-                console.log('code: ', code);
+                core.error(`Git command failed with code: ${code}`);
                 return reject(new Error(`${stderr}`));
             }
             resolve(stdout);
@@ -11946,6 +11947,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
         // Then remove newlines, format as JSON and convert to a proper JS object
         const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        core.endGroup();
         return JSON.parse(json);
     });
 }
@@ -11976,27 +11978,24 @@ function getValidMergedPRs(commits) {
 }
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * This function is being refactored to use the GitHub API instead of the git log command, but for now the
- * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
 async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
-    // Test the new GitHub API method
-    // eslint-disable-next-line deprecation/deprecation
+    core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
     const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[api] Found ${apiCommitList.length} commits.`);
     core.startGroup('[api] Parsed PRs:');
-    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
-    return gitLogPullRequestNumbers;
+    // Print diff between git log and API results for debugging
+    const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
+    const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
+    core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
+    return apiPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
@@ -12257,7 +12256,10 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                // Warn deployers about potential bugs with the new process
+                issueBody +=
+                    '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
