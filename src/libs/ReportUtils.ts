@@ -8307,7 +8307,7 @@ function getChatByParticipants(
 function getInvoiceChatByParticipants(
     receiverID: string | number,
     receiverType: InvoiceReceiverType,
-    reportNameValuePairs1: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs1?: OnyxCollection<ReportNameValuePairs>,
     policyID?: string,
     reports: OnyxCollection<Report> = allReports,
 ): OnyxEntry<Report> {

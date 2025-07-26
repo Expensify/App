@@ -8939,7 +8939,7 @@ function getPayMoneyRequestParams(
     recipient: Participant,
     paymentMethodType: PaymentMethodType,
     full: boolean,
-    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
