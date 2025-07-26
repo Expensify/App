@@ -37,6 +37,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
         {text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE},
+        {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
+        {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
     ];
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
@@ -74,15 +76,29 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
+        const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
+        const membersForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+        const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
+        const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
             let role: string = CONST.POLICY.ROLE.USER;
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
             }
+            let submitsTo = '';
+            if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
+                submitsTo = membersSubmitsTo?.[containsHeader ? index + 1 : index];
+            }
+            let forwardsTo = '';
+            if (membersForwardsToColumn !== -1 && membersForwardsTo?.[containsHeader ? index + 1 : index]) {
+                forwardsTo = membersForwardsTo?.[containsHeader ? index + 1 : index];
+            }
 
             return {
                 email,
                 role,
+                submitsTo,
+                forwardsTo,
             };
         });
 
