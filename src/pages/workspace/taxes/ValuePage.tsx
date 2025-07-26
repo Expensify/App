@@ -47,10 +47,10 @@ function ValuePage({
                 goBack();
                 return;
             }
-            updatePolicyTaxValue(policyID, taxID, Number(values.value));
+            updatePolicyTaxValue(policyID, taxID, Number(values.value), policy);
             goBack();
         },
-        [goBack, policyID, taxID, defaultValue],
+        [goBack, policyID, taxID, defaultValue, policy],
     );
 
     if (!currentTaxRate) {
