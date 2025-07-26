@@ -770,8 +770,4 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
-// Further analysis required and more details can be seen here:
-// https://github.com/Expensify/App/issues/50560
-// eslint-disable-next-line
 export default AuthScreensMemoized;
