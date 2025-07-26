@@ -1,0 +1,111 @@
+---
+name: Onboard or offboard an expert contributor from the team
+description: In order to get access to the HybridApp setup, expert contributors need to be added to our GitHub Organization. They also need to be added to the necessary rooms in Slack
+title: "Expert Contributor Change Request - <insert-name>"
+labels: ["Daily", "Task", "Access Change"]
+
+body:
+  - type: markdown
+    attributes:
+        value: |
+          # Expert Contributor Details
+
+          Use this form to request a member of your team to be onboarded or offboarded from Expensify.
+
+  - type: dropdown
+    id: onboard_or_offboard
+    attributes:
+      label: Onboard or Offboarding?
+      description: "Which action do you wish to take for this team member?"
+      options:
+        - Onboard - Add to team
+        - Offboard - Remove from team
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: full_name
+    attributes:
+      label: "Full Name"
+      description: "The contributors full name"
+      placeholder: "George Hammond"
+    validations:
+      required: true
+
+  - type: input
+    id: email
+    attributes:
+      label: "Email Address"
+      description: "The email address"
+      placeholder: "george.hammond@sgc.example.com"
+    validations:
+      required: true
+
+  - type: input
+    id: github_username
+    attributes:
+      label: "GitHub"
+      description: "The contributors's GitHub Username"
+      placeholder: "@HammondOfTexas"
+    validations:
+      required: true
+
+  - type: input
+    id: slack_post_link
+    attributes:
+      label: "Slack Notification Post"
+      description: "Slack post in your team channel with this request for visibility"
+      placeholder: "https://expensify.slack.com/archives/......."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contributor_team
+    attributes:
+      label: Contributor Team
+      description: What is the third-party employer of the contributor?
+      options:
+        - Callstack
+        - Margelo
+        - Software Mansion
+      default: 0
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## STOP HERE
+        Click Create, then complete your actionable steps below and mark when done.
+
+        ---
+
+  - type: checkboxes
+    id: requester_tasks
+    attributes:
+      label: Requester Tasks
+      description: Add / Remove from the following Slack channels via Slack Connect
+      options:
+        - label: "[#quality](https://expensify.enterprise.slack.com/archives/C05LX9D6E07)"
+          required: false
+        - label: "[#convert](https://expensify.enterprise.slack.com/archives/C07HPDRELLD)"
+          required: false
+        - label: "[#retain](https://expensify.enterprise.slack.com/archives/C07NZ8B1VTQ)"
+          required: false
+        - label: "[#migrate](https://expensify.enterprise.slack.com/archives/C07NMDKEFMH)"
+          required: false
+        - label: "[#expensify-bugs](https://expensify.enterprise.slack.com/archives/C049HHMV9SM)"
+          required: false
+        - label: "[#expensify-open-source](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q)"
+          required: false
+        - label: "[#expert-contributors](https://expensify.enterprise.slack.com/archives/C08CZDJFJ77)"
+          required: false
+
+  - type: checkboxes
+    id: ring0_tasks
+    attributes:
+      label: ring0 Tasks
+      options:
+        - label: Add to / remove from the appropriate GitHub child team of [external-expert-contributors](https://github.com/orgs/Expensify/teams/external-expert-contributors/teams) (each agency must have its own child team)
+          required: false
