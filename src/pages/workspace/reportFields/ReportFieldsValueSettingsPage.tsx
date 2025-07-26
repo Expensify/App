@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeReportFieldListValue, deleteReportFieldsListValue, updateReportFieldListValueEnabled, setReportFieldsListValueEnabled} from '@libs/actions/Policy/ReportField';
+import {deleteReportFieldsListValue, removeReportFieldListValue, setReportFieldsListValueEnabled, updateReportFieldListValueEnabled} from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
