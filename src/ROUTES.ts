@@ -1,3 +1,8 @@
+/**
+ * NOTE!!!!
+ *
+ * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
+ */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
