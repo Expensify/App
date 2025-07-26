@@ -43,6 +43,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -1612,7 +1613,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
             });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+            expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
     });
 
