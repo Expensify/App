@@ -1,5 +1,3 @@
-import {differenceInCalendarDays} from 'date-fns';
-import {Str} from 'expensify-common';
 import type {ArrayValues} from 'type-fest';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -28,7 +26,8 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
 type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number};
 type ReservationPNRData = {
     pnrID: string;
-    title: string;
+    totalFareAmount: number;
+    currency: string;
     reservations: ReservationData[];
 };
 
@@ -215,6 +214,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                         name: getTravelerName(traveler),
                         email: traveler?.email ?? '',
                     },
+                    totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
                 };
 
                 reservationList.push({reservation: reservationObject, reservationIndex: index});
@@ -273,6 +273,7 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserv
                 name: getTravelerName(traveler),
                 email: traveler?.email ?? '',
             },
+            totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
         },
     });
 
@@ -321,6 +322,7 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                 name: getTravelerName(traveler),
                 email: traveler?.email ?? '',
             },
+            totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
         },
     });
 
@@ -381,6 +383,7 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                         name: getTravelerName(traveler),
                         email: traveler?.email ?? '',
                     },
+                    totalFareAmount: pnr.data?.totalFareAmount?.base?.amount ?? 0,
                 },
             });
         });
@@ -428,43 +431,13 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
     return [];
 }
 
-function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails) {
+function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails, hideAirportCode = false): string {
     const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
     let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
 
     shortName = longName && shortName ? `(${shortName})` : shortName;
 
-    return `${longName}${shortName}`;
-}
-
-function getPNRtitleFromReservations(reservations: ReservationData[]): string {
-    if (reservations.length === 0) {
-        return '';
-    }
-
-    const firstReservation = reservations.at(0)?.reservation;
-    const lastReservation = reservations.at(reservations.length - 1)?.reservation;
-
-    if (!lastReservation || !firstReservation) {
-        return '';
-    }
-
-    switch (firstReservation?.type) {
-        case CONST.RESERVATION_TYPE.FLIGHT:
-            return `Flight to ${formatAirportInfo(lastReservation.end)}`;
-        case CONST.RESERVATION_TYPE.TRAIN:
-            return `Train to ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
-        case CONST.RESERVATION_TYPE.HOTEL: {
-            const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
-            return `${nights} night${nights > 1 ? 's' : ''} in ${firstReservation.start.longName}`;
-        }
-        case CONST.RESERVATION_TYPE.CAR: {
-            const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
-            return `${days} day${days > 1 ? 's' : ''} car rental`;
-        }
-        default:
-            return 'Trip Reservation';
-    }
+    return !hideAirportCode ? `${longName}${shortName}` : longName;
 }
 
 function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
@@ -480,17 +453,22 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
         if (!pnrMap[pnrID]) {
             pnrMap[pnrID] = {
                 pnrID,
-                title: '',
+                totalFareAmount: 0,
+                currency: '',
                 reservations: [],
             };
         }
         pnrMap[pnrID].reservations.push(reservation);
     });
 
-    return Object.values(pnrMap).map((pnrData) => ({
-        ...pnrData,
-        title: getPNRtitleFromReservations(pnrData.reservations),
-    }));
+    return Object.values(pnrMap).map((pnrData) => {
+        const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
+        return {
+            ...pnrData,
+            totalFareAmount: (pnrPayloadData?.data?.totalFareAmount?.base?.amount ?? 0) * 100,
+            currency: pnrPayloadData?.data?.totalFareAmount?.base?.currencyCode ?? '',
+        };
+    });
 }
 
 function getTripTotal(tripReport: Report): {
