@@ -6,6 +6,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -29,6 +30,8 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
+    const termsURL = CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL;
+    const privacyURL = CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL;
 
     const policyID = policy?.id;
 
@@ -84,21 +87,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             footerContent={
                 <>
                     <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                        {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                        >
-                            {translate('workspace.changeOwner.addPaymentCardTerms')}
-                        </TextLink>{' '}
-                        {translate('workspace.changeOwner.addPaymentCardAnd')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                        >
-                            {translate('workspace.changeOwner.addPaymentCardPrivacy')}
-                        </TextLink>{' '}
-                        {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart2')}
+                        <RenderHTML html={translate('workspace.changeOwner.addPaymentCardReadAndAcceptText', {termsURL, privacyURL})} />
                     </Text>
                     <Section
                         icon={Illustrations.ShieldYellow}
