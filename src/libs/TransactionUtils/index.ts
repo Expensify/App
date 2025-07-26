@@ -1185,7 +1185,7 @@ function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: Tr
     if (!transaction || !violation) {
         return false;
     }
-    return transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
+    return !!transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail];
 }
 
 /**
