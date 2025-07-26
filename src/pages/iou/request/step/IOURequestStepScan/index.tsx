@@ -115,6 +115,7 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
@@ -608,7 +609,7 @@ function IOURequestStepScan({
             setReceiptFiles(newReceiptFiles);
             const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
             if (gpsRequired) {
-                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt);
 
                 if (beginLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
@@ -661,7 +662,7 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
                 if (gpsRequired) {
-                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow(lastLocationPermissionPrompt);
                     if (beginLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
                         return;
@@ -670,7 +671,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+        [initialTransaction, iouType, lastLocationPermissionPrompt, navigateToConfirmationStep, shouldSkipConfirmation],
     );
 
     const getScreenshot = useCallback(() => {
