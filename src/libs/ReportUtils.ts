@@ -8307,19 +8307,12 @@ function getChatByParticipants(
 function getInvoiceChatByParticipants(
     receiverID: string | number,
     receiverType: InvoiceReceiverType,
-    reportNameValuePairs1?: OnyxCollection<ReportNameValuePairs>,
+    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     policyID?: string,
     reports: OnyxCollection<Report> = allReports,
 ): OnyxEntry<Report> {
     return Object.values(reports ?? {}).find((report) => {
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        let reportNameValuePairs;
-        if (reportNameValuePairs1) {
-            reportNameValuePairs = reportNameValuePairs1?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        } else {
-            reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-        }
+        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReport(report, isReportArchived)) {
             return false;
