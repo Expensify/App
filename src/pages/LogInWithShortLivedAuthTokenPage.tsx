@@ -26,7 +26,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         const token = shortLivedAuthToken || shortLivedToken;
 
         // This is to prevent re-authenticating when logging out if the initial URL (deep link) hasn't changed.
-        if (token && token === lastShortLivedToken) {
+        if (token === lastShortLivedToken) {
             return;
         }
 
