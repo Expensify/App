@@ -39,8 +39,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
-    const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`);
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
     const pressableStyle = [
         styles.transactionListItemStyle,
