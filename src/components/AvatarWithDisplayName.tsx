@@ -209,7 +209,7 @@ function AvatarWithDisplayName({
     }, [parentReportActions, report]);
 
     const goToDetailsPage = useCallback(() => {
-        navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+        navigateToDetailsPage(report, Navigation.getActiveRoute());
     }, [report]);
 
     const showActorDetails = useCallback(() => {
