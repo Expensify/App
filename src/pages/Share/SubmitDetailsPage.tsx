@@ -17,6 +17,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -47,6 +48,7 @@ function SubmitDetailsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: false});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
@@ -71,7 +73,9 @@ function SubmitDetailsPage({
     }, [reportOrAccountID, policy]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
-    const participants = selectedParticipants.map((participant) => (participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant)));
+    const participants = selectedParticipants.map((participant) =>
+        participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived),
+    );
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -200,7 +204,9 @@ function SubmitDetailsPage({
                     onDeny={() => {
                         updateLastLocationPermissionPrompt();
                         setStartLocationPermissionFlow(false);
-                        onConfirm(false);
+                        navigateAfterInteraction(() => {
+                            onConfirm(false);
+                        });
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
