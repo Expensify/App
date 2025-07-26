@@ -45,6 +45,7 @@ function SearchTransactionsChangeReport() {
             backTo={undefined}
             transactionsReports={transactionsReports}
             selectReport={selectReport}
+            isEditing
         />
     );
 }
