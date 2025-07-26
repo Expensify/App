@@ -66,7 +66,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 styles.link,
                 {
                     fontSize: HTMLEngineUtils.getFontSizeOfRBRChild(tnode),
-                    textDecorationLine: 'underline',
                 },
             ];
         }
