@@ -498,6 +498,36 @@ class GithubUtils {
     }
 
     /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(
+        options: {
+            per_page?: number;
+            status?:
+                | 'completed'
+                | 'action_required'
+                | 'cancelled'
+                | 'failure'
+                | 'neutral'
+                | 'skipped'
+                | 'stale'
+                | 'success'
+                | 'timed_out'
+                | 'in_progress'
+                | 'queued'
+                | 'requested'
+                | 'waiting';
+        } = {},
+    ) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && {status: options.status}),
+        });
+    }
+
+    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number): string {

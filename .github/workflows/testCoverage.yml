@@ -35,188 +35,27 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Check if src files changed
+      - name: Check Changed Coverage src/ Files
         id: check-src-changes
-        run: |
-          # Get changed files in src directory
-          readarray -t ALL_CHANGED_FILES < <(git diff --name-only origin/main...HEAD | grep '^src/' | grep -E '\.(ts|tsx|js|jsx)$' || true)
-          
-          # Filter out excluded directories and files
-          CHANGED_FILES=()
-          for file in "${ALL_CHANGED_FILES[@]}"; do
-            # Skip excluded directories
-            if [[ "$file" =~ ^src/(CONST|languages|setup|stories|styles|types)/ ]]; then
-              echo "Skipping excluded directory: $file"
-              continue
-            fi
-            
-            # Skip excluded files in src root
-            filename=$(basename "$file")
-            if [[ "$filename" =~ ^(App\.tsx|CONFIG\.ts|Expensify\.tsx|HybridAppHandler\.tsx|NAICS\.ts|NAVIGATORS\.ts|ONYXKEYS\.ts|ROUTES\.ts|SCREENS\.ts|SplashScreenStateContext\.tsx|TIMEZONES\.ts)$ ]]; then
-              echo "Skipping excluded file: $file"
-              continue
-            fi
-            
-            # Add to coverage collection
-            CHANGED_FILES+=("$file")
-          done
-          
-          # Check if any files remain for coverage
-          if [ ${#CHANGED_FILES[@]} -eq 0 ]; then
-            echo "No relevant src files changed (all changes were in excluded directories/files), skipping coverage"
-            echo "run_coverage=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          
-          echo "Changed src files for coverage:"
-          printf '%s\n' "${CHANGED_FILES[@]}"
-          echo "run_coverage=true" >> "$GITHUB_OUTPUT"
-          
-          # Save changed files for coverage collection
-          printf '%s\n' "${CHANGED_FILES[@]}" > changed_files.txt
+        run: ./.github/scripts/checkCoverageChanges.sh
 
-      - name: Wait for Jest tests to complete
+      - name: Wait for Jest Tests to Complete
         if: steps.check-src-changes.outputs.run_coverage == 'true'
-        uses: actions/github-script@v7
+        uses: ./.github/actions/javascript/waitforJestTests
         with:
-          script: |
-            const maxWaitTime = 30 * 60 * 1000; // 30 minutes
-            const pollInterval = 30 * 1000; // 30 seconds
-            const startTime = Date.now();
-            
-            console.log(`Looking for test workflow runs for PR #${context.payload.pull_request.number}`);
-            console.log(`Head SHA: ${context.sha}`);
-            console.log(`PR head SHA: ${context.payload.pull_request.head.sha}`);
-            
-            while (Date.now() - startTime < maxWaitTime) {
-              // Get all recent workflow runs for this repo
-              const workflows = await github.rest.actions.listWorkflowRunsForRepo({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                per_page: 50, // Increased to handle many concurrent workflows
-                status: 'completed' // Only look at completed runs first
-              });
-              
-              console.log(`Found ${workflows.data.workflow_runs.length} recent workflow runs`);
-              
-              // Look for test workflow runs that match our criteria
-              const testRuns = workflows.data.workflow_runs.filter(run => {
-                // Check if it's the Jest Unit Tests workflow specifically
-                const isTestWorkflow = run.name === 'Jest Unit Tests' || 
-                                     run.path === '.github/workflows/test.yml';
-                
-                // Check if it's for our PR
-                const matchesPR = run.head_sha === context.sha || 
-                                run.head_sha === context.payload.pull_request.head.sha;
-                
-                // Check if it's a pull request event
-                const isPREvent = run.event === 'pull_request' || 
-                                run.event === 'pull_request_target';
-                
-                return isTestWorkflow && matchesPR && isPREvent;
-              });
-              
-              console.log(`Found ${testRuns.length} matching test runs`);
-              
-              if (testRuns.length > 0) {
-                const testRun = testRuns[0]; // Get the most recent matching run
-                console.log(`Test workflow status: ${testRun.status}, conclusion: ${testRun.conclusion}`);
-                console.log(`Test workflow name: ${testRun.name}, path: ${testRun.path}`);
-                
-                if (testRun.status === 'completed') {
-                  if (testRun.conclusion === 'success') {
-                    console.log('Test workflow completed successfully!');
-                    return;
-                  } else {
-                    core.setFailed(`Test workflow failed with conclusion: ${testRun.conclusion}`);
-                    return;
-                  }
-                }
-              } else {
-                // If no completed runs found, check for in-progress runs
-                const inProgressWorkflows = await github.rest.actions.listWorkflowRunsForRepo({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  per_page: 50 // Same increased scope for in-progress runs
-                });
-                
-                const inProgressTestRuns = inProgressWorkflows.data.workflow_runs.filter(run => {
-                  const isTestWorkflow = run.name === 'Jest Unit Tests' || 
-                                       run.path === '.github/workflows/test.yml';
-                  
-                  const matchesPR = run.head_sha === context.sha || 
-                                  run.head_sha === context.payload.pull_request.head.sha;
-                  
-                  const isPREvent = run.event === 'pull_request' || 
-                                  run.event === 'pull_request_target';
-                  
-                  return isTestWorkflow && matchesPR && isPREvent && 
-                         (run.status === 'in_progress' || run.status === 'queued');
-                });
-                
-                if (inProgressTestRuns.length > 0) {
-                  console.log(`Found ${inProgressTestRuns.length} in-progress test runs, continuing to wait...`);
-                } else {
-                  console.log('No matching test workflow runs found, checking if tests are required...');
-                  
-                  // Check if there might be no test workflow triggered
-                  // This could happen if the PR doesn't have testable changes
-                  const allRecentRuns = workflows.data.workflow_runs.filter(run => 
-                    run.head_sha === context.sha || 
-                    run.head_sha === context.payload.pull_request.head.sha
-                  );
-                  
-                  console.log(`Found ${allRecentRuns.length} workflow runs for this SHA`);
-                  
-                  if (allRecentRuns.length === 0) {
-                    console.log('No workflow runs found for this SHA, tests might not be required');
-                    return; // Assume tests passed if no workflow runs exist
-                  }
-                }
-              }
-              
-              await new Promise(resolve => setTimeout(resolve, pollInterval));
-            }
-            
-            core.setFailed('Test workflow did not complete within timeout');
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Run coverage for changed files
+      - name: Run Coverage for Changed Files
         if: steps.check-src-changes.outputs.run_coverage == 'true'
-        run: |
-          # Read changed files and create arrays instead of string concatenation
-          readarray -t CHANGED_FILES_ARRAY < changed_files.txt
-          
-          # Build coverage patterns array
-          COVERAGE_ARGS=()
-          for file in "${CHANGED_FILES_ARRAY[@]}"; do
-            COVERAGE_ARGS+=("--collectCoverageFrom=$file")
-          done
-          
-          echo "Running coverage with focused patterns..."
-          echo "Coverage patterns: ${COVERAGE_ARGS[*]}"
-          
-          # Run Jest with coverage focused on changed files only
-          NODE_OPTIONS="--max-old-space-size=4096 --experimental-vm-modules" npx jest \
-            --coverage \
-            --coverageDirectory=coverage \
-            "${COVERAGE_ARGS[@]}" \
-            --collectCoverageFrom="!src/**/*.d.ts" \
-            --collectCoverageFrom="!src/**/*.stories.tsx" \
-            --collectCoverageFrom="!src/**/*.test.{ts,tsx,js,jsx}" \
-            --collectCoverageFrom="!src/**/*.spec.{ts,tsx,js,jsx}" \
-            --collectCoverageFrom="!src/**/__tests__/**" \
-            --collectCoverageFrom="!src/**/__mocks__/**" \
-            --coverageReporters=json-summary \
-            --coverageReporters=lcov \
-            --coverageReporters=html \
-            --coverageReporters=text-summary \
-            --maxWorkers=2 \
-            --testTimeout=30000 \
-            --silent
+        run: ./.github/scripts/runCoverage.sh
         env:
           CI: true
 
-      - name: Upload coverage artifacts
+      - name: Generate Baseline Coverage From The Main Branch
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        run: ./.github/scripts/generateBaselineCoverage.sh
+
+      - name: Upload Coverage Artifacts
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         uses: actions/upload-artifact@v4
         with:
@@ -224,27 +63,23 @@ jobs:
           path: coverage/
           retention-days: 7
 
-      - name: Deploy coverage static to Surge.sh
+      - name: Configure AWS Credentials
         if: steps.check-src-changes.outputs.run_coverage == 'true'
-        run: |
-          # Install surge globally
-          npm install -g surge
-          
-          # Create a unique subdomain for this PR and run
-          DOMAIN="expensify-coverage-pr${{ github.event.pull_request.number }}-run${{ github.run_id }}.surge.sh"
-          
-          # Deploy to surge with token
-          surge ./coverage "$DOMAIN" --token 11512099a3961174ba9461a37d74e1db
-          
-          # Save the coverage URL for the next step
-          echo "COVERAGE_URL=https://$DOMAIN" >> "$GITHUB_ENV"
-          echo "Coverage report deployed to: https://$DOMAIN"
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      - name: Post coverage to PR
+      - name: Deploy Coverage Static to S3
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        run: ./.github/scripts/deployCoverageS3.sh "${{ github.event.pull_request.number }}" "${{ github.run_id }}"
+
+      - name: Post Coverage to PR
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         uses: ./.github/actions/javascript/postTestCoverageComment
         with:
           OS_BOTIFY_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          COVERAGE_ARTIFACT_NAME: coverage-report
           COVERAGE_URL: ${{ env.COVERAGE_URL }}
+          BASE_COVERAGE_PATH: ./baseline-coverage

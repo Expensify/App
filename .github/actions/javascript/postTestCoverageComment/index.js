@@ -11577,7 +11577,9 @@ const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const COVERAGE_SECTION_START = '<!-- START_COVERAGE_SECTION -->';
 const COVERAGE_SECTION_END = '<!-- END_COVERAGE_SECTION -->';
+const COVERAGE_SECTION_HEADER = `## 📊 Test Coverage Report`;
 /**
  * Get list of changed files in the PR
  */
@@ -11620,7 +11622,7 @@ function parseCoverageSummary(coveragePath) {
 function generateCoverageData(coverage, changedFiles, baseCoverage) {
     const overall = {
         statements: coverage.total.statements.pct,
-        branches: coverage.total.branches.pct,
+        branches: coverage.total.branches?.pct,
         functions: coverage.total.functions.pct,
         lines: coverage.total.lines.pct,
     };
@@ -11641,7 +11643,6 @@ function generateCoverageData(coverage, changedFiles, baseCoverage) {
                 file,
                 coverage: fileCoverage.lines.pct,
                 lines: `${fileCoverage.lines.covered}/${fileCoverage.lines.total}`,
-                branches: `${fileCoverage.branches.covered}/${fileCoverage.branches.total}`,
             }
             : null;
     })
@@ -11662,97 +11663,168 @@ function generateCoverageData(coverage, changedFiles, baseCoverage) {
     return result;
 }
 /**
+ * Simple mustache-like template engine
+ */
+function renderTemplate(template, data) {
+    let result = template;
+    // Handle array iterations FIRST (before conditional blocks to avoid conflicts)
+    result = result.replace(/\{\{#([^}]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, arrayName, content) => {
+        const array = getNestedValue(data, arrayName);
+        if (Array.isArray(array)) {
+            return array.map((item) => renderTemplate(content, { ...data, ...item })).join('');
+        }
+        // If not an array, treat as conditional block
+        const value = getNestedValue(data, arrayName);
+        return value ? renderTemplate(content, data) : '';
+    });
+    // Handle inverted conditional blocks {{^condition}} ... {{/condition}}
+    result = result.replace(/\{\{\^([^}]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, condition, content) => {
+        const value = getNestedValue(data, condition);
+        return !value ? renderTemplate(content, data) : '';
+    });
+    // Handle variable substitutions {{variable}}
+    result = result.replace(/\{\{([^}#^/]+)\}\}/g, (match, variable) => {
+        const value = getNestedValue(data, variable.trim());
+        return value !== undefined ? value : '';
+    });
+    return result;
+}
+/**
+ * Get nested value from object using dot notation
+ */
+function getNestedValue(obj, path) {
+    return path.split('.').reduce((current, key) => {
+        return current && current[key] !== undefined ? current[key] : undefined;
+    }, obj);
+}
+/**
  * Generate coverage status emoji and text based on comparison with baseline
  */
-function getCoverageStatus(current, base) {
-    if (!base) {
-        return { emoji: '📊', status: 'Overall Coverage', diff: 0 };
-    }
-    const diff = current - base;
-    if (Math.abs(diff) < 0.01) {
-        return { emoji: '📊', status: 'Overall Coverage', diff: 0 };
+function getCoverageStatus(current, baseline) {
+    const diff = current - (baseline || 0);
+    if (!baseline || Math.abs(diff) < 0.01) {
+        return { emoji: '', status: '', diff: 0 };
     }
     if (diff > 0) {
-        return { emoji: '🟢', status: 'Coverage up!', diff };
+        return { emoji: '🟢', status: 'Coverage up', diff };
     }
-    return { emoji: '🔴', status: 'Coverage dropped!', diff };
+    return { emoji: '🔴', status: 'Coverage dropped', diff };
+}
+/**
+ * Calculate coverage change with formatting
+ */
+function calculateChange(current, baseline) {
+    const diff = current - baseline;
+    if (!baseline || Math.abs(diff) < 0.01) {
+        return '0.0%';
+    }
+    // Negative sign is already handled by the diff calculation
+    return `${diff > 0 ? '+' : ''}${diff?.toFixed(1)}%`;
 }
 /**
  * Generate enhanced coverage section markdown with better formatting
  */
 function generateCoverageSection(coverageData, artifactUrl, workflowRunId) {
     const { overall, changedFiles, baseCoverage } = coverageData;
+    // Local template for easy editing
+    const coverageTemplate = `${COVERAGE_SECTION_HEADER}
+
+{{#status.hasChange}}### {{status.emoji}} **{{status.text}}**{{/status.hasChange}}
+{{#hasBaseline}}{{#status.hasChange}}
+\`\`\`diff
+{{#status.isIncrease}}+ 📈 Overall Coverage: ↑ {{current.lines}}% (main: {{baseline.lines}}%){{/status.isIncrease}}{{#status.isDecrease}}- 📉 Overall Coverage: ↓ {{current.lines}}% (main: {{baseline.lines}}%){{/status.isDecrease}}
+\`\`\`
+{{/status.hasChange}}{{/hasBaseline}}{{#status.hasChange}}
+> {{#status.isIncrease}}[!TIP]{{/status.isIncrease}}{{#status.isDecrease}}[!CAUTION]{{/status.isDecrease}}
+> {{status.changeEmoji}} **{{status.changeText}}**
+{{/status.hasChange}}{{^status.hasChange}}{{#hasBaseline}}
+\`\`\`diff
+🔁 Overall Coverage: {{current.lines}}% (unchanged from main)
+\`\`\`
+{{/hasBaseline}}{{^hasBaseline}}
+\`\`\`diff
+🔁 **Overall Coverage**: {{current.lines}}%
+\`\`\`
+{{/hasBaseline}}{{/status.hasChange}}
+<details>
+<summary><strong>📁 Coverage details</strong></summary>
+<br>
+{{#hasChangedFiles}}
+| File | Coverage | Lines |
+|------|----------|-------|
+{{#changedFiles}}| \`{{displayFile}}\` | {{coverage}}% | {{lines}} |{{/changedFiles}}
+{{/hasChangedFiles}}
+{{^hasChangedFiles}}*No coverage changed files found.*{{/hasChangedFiles}}
+**🔄 Overall Coverage Summary**
+{{#hasBaseline}}
+- **Lines**: {{current.lines}}% ({{changes.lines}})
+- **Statements**: {{current.statements}}% ({{changes.statements}})
+- **Functions**: {{current.functions}}% ({{changes.functions}})
+{{/hasBaseline}}
+{{^hasBaseline}}
+- **Lines**: {{current.lines}}%
+- **Statements**: {{current.statements}}%
+- **Functions**: {{current.functions}}%
+{{/hasBaseline}}
+
+</details>
+
+📄 [View Web Report]({{links.coverageReport}})
+⚙️ [View Workflow Run]({{links.workflowRun}})
+
+<!-- END_COVERAGE_SECTION -->`;
     // Get coverage status for overall lines coverage
     const coverageStatus = getCoverageStatus(overall.lines, baseCoverage?.lines);
-    let coverageSection = '';
-    // Enhanced header with status - using both diff-style and emoji format
-    if (baseCoverage) {
-        // Diff-style format at the top
-        if (coverageStatus.diff !== 0) {
-            const diffPrefix = coverageStatus.diff > 0 ? '+' : '-';
-            coverageSection += '```diff\n';
-            coverageSection += `${diffPrefix} 📊 Overall Coverage: ${overall.lines.toFixed(2)}% ${coverageStatus.diff > 0 ? '↑' : '↓'} (baseline: ${baseCoverage.lines.toFixed(2)}%)\n`;
-            coverageSection += '```\n\n';
+    // Calculate changes for all metrics
+    const changes = baseCoverage
+        ? {
+            lines: calculateChange(overall.lines, baseCoverage.lines),
+            statements: calculateChange(overall.statements, baseCoverage.statements),
+            functions: calculateChange(overall.functions, baseCoverage.functions),
         }
-        // Emoji-style format below
-        coverageSection += `${coverageStatus.emoji} **${coverageStatus.status}**\n`;
-        if (coverageStatus.diff !== 0) {
-            const arrow = coverageStatus.diff > 0 ? '↑' : '↓';
-            const gain = coverageStatus.diff > 0 ? 'gain' : 'drop';
-            coverageSection += `📈 Overall Coverage: ${overall.lines.toFixed(1)}% ${arrow}\n`;
-            coverageSection += `${coverageStatus.diff > 0 ? '🚀' : '⚠️'} ${Math.abs(coverageStatus.diff).toFixed(1)}% ${gain} from baseline\n`;
-        }
-        else {
-            coverageSection += `📊 Overall Coverage: ${overall.lines.toFixed(1)}% (unchanged)\n`;
-        }
-    }
-    else {
-        coverageSection += `📊 **Overall Coverage**: ${overall.lines.toFixed(1)}%\n`;
-    }
-    // Changed files summary
-    if (changedFiles.length > 0) {
-        const avgChangedCoverage = changedFiles.reduce((sum, file) => sum + file.coverage, 0) / changedFiles.length;
-        coverageSection += `📈 **Changed Files**: ${avgChangedCoverage.toFixed(1)}% average coverage\n`;
-    }
-    // Details section
-    coverageSection += '\n<details>\n<summary>📋 Coverage Details</summary>\n\n';
-    // Changed files table
-    if (changedFiles.length > 0) {
-        coverageSection += '| File | Coverage | Lines | Branches |\n';
-        coverageSection += '|------|----------|-------|----------|\n';
-        changedFiles.forEach((file) => {
-            const displayFile = file.file.length > 50 ? `...${file.file.slice(-47)}` : file.file;
-            coverageSection += `| \`${displayFile}\` | ${file.coverage.toFixed(1)}% | ${file.lines} | ${file.branches} |\n`;
-        });
-        coverageSection += '\n';
-    }
-    else {
-        coverageSection += '*No changed files with coverage data found.*\n\n';
-    }
-    // Overall coverage summary with comparisons
-    coverageSection += '### Overall Coverage Summary\n';
-    const formatMetric = (name, current, base) => {
-        if (!base) {
-            return `- **${name}**: ${current.toFixed(2)}%`;
-        }
-        const diff = current - base;
-        if (Math.abs(diff) < 0.01) {
-            return `- **${name}**: ${current.toFixed(2)}%`;
-        }
-        const sign = diff > 0 ? '+' : '';
-        const emoji = diff > 0 ? '📈' : '📉';
-        return `- **${name}**: ${current.toFixed(2)}% (${emoji} ${sign}${diff.toFixed(2)}%)`;
+        : {};
+    // Process changed files for template
+    const processedChangedFiles = changedFiles.map((file) => ({
+        ...file,
+        displayFile: file.file.length > 50 ? `...${file.file.slice(-47)}` : file.file,
+        coverage: file.coverage != null ? file.coverage.toFixed(1) : '0.0',
+    }));
+    const avgChangedCoverage = changedFiles.length > 0 ? (changedFiles.reduce((sum, file) => sum + file.coverage, 0) / changedFiles.length).toFixed(1) : 0;
+    // Prepare template data
+    const templateData = {
+        hasBaseline: !!baseCoverage,
+        hasChangedFiles: changedFiles.length > 0,
+        avgChangedCoverage,
+        current: {
+            lines: overall.lines?.toFixed(1),
+            functions: overall.functions?.toFixed(1),
+            statements: overall.statements?.toFixed(1),
+        },
+        baseline: baseCoverage
+            ? {
+                lines: baseCoverage.lines?.toFixed(1),
+                functions: baseCoverage.functions?.toFixed(1),
+                statements: baseCoverage.statements?.toFixed(1),
+            }
+            : null,
+        status: {
+            emoji: coverageStatus.emoji,
+            text: coverageStatus.status,
+            hasChange: coverageStatus.diff !== 0,
+            isIncrease: coverageStatus.diff > 0,
+            isDecrease: coverageStatus.diff < 0,
+            arrow: coverageStatus.diff > 0 ? '↑' : '↓',
+            changeEmoji: coverageStatus.diff > 0 ? '🚀' : '⚠️',
+            changeText: `${Math.abs(coverageStatus.diff)?.toFixed(1)}% ${coverageStatus.diff > 0 ? 'increase' : 'decrease'} from main`,
+        },
+        changes,
+        changedFiles: processedChangedFiles,
+        links: {
+            coverageReport: artifactUrl,
+            workflowRun: `https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${workflowRunId}`,
+        },
     };
-    coverageSection += `${formatMetric('Lines', overall.lines, baseCoverage?.lines)}\n`;
-    coverageSection += `${formatMetric('Statements', overall.statements, baseCoverage?.statements)}\n`;
-    coverageSection += `${formatMetric('Functions', overall.functions, baseCoverage?.functions)}\n`;
-    coverageSection += `${formatMetric('Branches', overall.branches, baseCoverage?.branches)}\n`;
-    // Links section
-    coverageSection += '\n</details>\n\n';
-    coverageSection += `📄 [View Full Coverage Report](${artifactUrl})\n`;
-    coverageSection += `🔗 [View Workflow Run](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${workflowRunId})\n`;
-    coverageSection += `\n${COVERAGE_SECTION_END}`;
-    return coverageSection;
+    return renderTemplate(coverageTemplate, templateData);
 }
 /**
  * Update PR body with coverage information
@@ -11767,19 +11839,18 @@ async function updatePRBody(prNumber, coverageSection) {
         });
         const currentBody = prResponse.data.body ?? '';
         // Check if coverage section already exists
-        const coverageStartIndex = currentBody.indexOf('<!-- START_COVERAGE_SECTION -->');
+        const coverageStartIndex = currentBody.indexOf(COVERAGE_SECTION_START);
         const coverageEndIndex = currentBody.indexOf(COVERAGE_SECTION_END);
         let newBody;
         if (coverageStartIndex !== -1 && coverageEndIndex !== -1) {
             // Replace existing coverage section
             const beforeCoverage = currentBody.substring(0, coverageStartIndex);
             const afterCoverage = currentBody.substring(coverageEndIndex + COVERAGE_SECTION_END.length);
-            newBody = `${beforeCoverage}\n<!-- START_COVERAGE_SECTION -->\n${coverageSection}\n${afterCoverage}`;
+            newBody = `${beforeCoverage}${COVERAGE_SECTION_START}\n${coverageSection}${afterCoverage}`;
         }
         else {
-            // Add coverage section at the end
-            const separator = currentBody.trim() ? '\n\n---\n\n' : '';
-            newBody = `${currentBody + separator}\n<!-- START_COVERAGE_SECTION -->\n${coverageSection}`;
+            // Add coverage section at the end of the PR body
+            newBody = `${currentBody}\n\n${COVERAGE_SECTION_START}\n${coverageSection}`;
         }
         // Update PR body
         await GithubUtils_1.default.octokit.pulls.update({
@@ -11798,8 +11869,8 @@ async function updatePRBody(prNumber, coverageSection) {
 /**
  * Get coverage report URL - either from direct input or fallback to workflow artifacts
  */
-function getCoverageUrl(coverageUrl, artifactName, workflowRunId) {
-    // If we have a direct URL (e.g., from Surge.sh), use it
+function getCoverageUrl(coverageUrl, workflowRunId) {
+    // If we have a direct URL (e.g., from S3), use it
     if (coverageUrl) {
         return coverageUrl;
     }
@@ -11814,7 +11885,6 @@ async function run() {
         const osBotifyToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
         GithubUtils_1.default.initOctokitWithToken(osBotifyToken);
         const prNumber = parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
-        const coverageArtifactName = core.getInput('COVERAGE_ARTIFACT_NAME', { required: false }) || 'coverage-report';
         const baseCoveragePath = core.getInput('BASE_COVERAGE_PATH', { required: false });
         const coverageUrl = core.getInput('COVERAGE_URL', { required: false });
         console.log(`Processing test coverage for PR #${prNumber}`);
@@ -11837,15 +11907,22 @@ async function run() {
         const coverageData = generateCoverageData(coverage, changedFiles, baseCoverage);
         // Get coverage URL
         const workflowRunId = github_1.context.runId.toString();
-        const reportUrl = getCoverageUrl(coverageUrl, coverageArtifactName, workflowRunId);
+        const reportUrl = getCoverageUrl(coverageUrl, workflowRunId);
         // Generate coverage section
         const coverageSection = generateCoverageSection(coverageData, reportUrl, workflowRunId);
         // Update PR body with coverage information
         await updatePRBody(prNumber, coverageSection);
+        // Add coverage information to GitHub Job Summary (displays on workflow run page)
+        await core.summary
+            .addHeading(`📊 Test Coverage Report for PR #${prNumber}`, 2)
+            .addRaw(coverageSection.replace(COVERAGE_SECTION_HEADER, ''))
+            .addSeparator()
+            .addRaw('💡 This summary is also available at the end of the PR description.')
+            .write();
         // Set outputs
         core.setOutput('coverage-summary', JSON.stringify(coverageData.overall));
         core.setOutput('coverage-changed', changedFiles.length > 0);
-        console.log('Test coverage information added to PR body successfully');
+        console.log('Test coverage information added to PR body and workflow summary successfully');
     }
     catch (error) {
         console.error('Error in postTestCoverageComment:', error);
@@ -11854,9 +11931,8 @@ async function run() {
         }
     }
 }
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
+// Run the action
+run();
 exports["default"] = run;
 
 
@@ -12304,6 +12380,17 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(options = {}) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && { status: options.status }),
+        });
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.

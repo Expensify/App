@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -116,7 +116,6 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
-            Keyboard.dismiss();
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }

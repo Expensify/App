@@ -7,10 +7,6 @@ inputs:
   PR_NUMBER:
     description: 'Pull request number'
     required: true
-  COVERAGE_ARTIFACT_NAME:
-    description: 'Name of the coverage artifact'
-    required: false
-    default: 'coverage-report'
   BASE_COVERAGE_PATH:
     description: 'Path to base coverage summary for comparison'
     required: false
