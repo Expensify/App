@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -126,7 +127,7 @@ function MoneyRequestReportTransactionItem({
                     shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                     shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                     onCheckboxPress={toggleTransaction}
-                    columns={columns}
+                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                     isDisabled={isPendingDelete}
                 />
             </PressableWithFeedback>
