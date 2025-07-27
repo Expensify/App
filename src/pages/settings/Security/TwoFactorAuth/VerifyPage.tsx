@@ -1,5 +1,7 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -70,6 +72,15 @@ function VerifyPage({route}: VerifyPageProps) {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const handleInputFocus = useCallback(() => {
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                scrollViewRef.current?.scrollToEnd({animated: true});
+            });
+        });
+    }, []);
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
@@ -80,8 +91,10 @@ function VerifyPage({route}: VerifyPageProps) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
+            shouldEnableViewportOffsetTop
         >
             <ScrollView
+                ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
             >
@@ -116,11 +129,14 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
+                <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+                    <TwoFactorAuthForm
+                        innerRef={formRef}
+                        onFocus={handleInputFocus}
+                    />
+                </View>
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
-                <View style={[styles.mh5, styles.mb4]}>
-                    <TwoFactorAuthForm innerRef={formRef} />
-                </View>
                 <Button
                     success
                     large

@@ -2530,6 +2530,9 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
             borderBottomWidth: 0,
         },
+        borderTransparent: {
+            borderColor: 'transparent',
+        },
 
         borderRight: {
             borderRightWidth: 1,
