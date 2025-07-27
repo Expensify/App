@@ -57,7 +57,7 @@ import {
 } from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (!isReportSubmitter || reportTransactions.length === 0) {
         return false;
@@ -96,7 +96,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
 
@@ -132,7 +132,7 @@ function isSubmitAction(
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === getCurrentUserAccountID();
@@ -185,7 +185,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
@@ -332,7 +332,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isReportSender = isCurrentUserSubmitter(report.reportID);
+    const isReportSender = isCurrentUserSubmitter(report);
 
     if (isInvoiceReport && isReportSender) {
         return true;
@@ -400,7 +400,7 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     }
 
     const isOpenReport = isOpenReportUtils(report);
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isSubmitter = isCurrentUserSubmitter(report);
     const isReportManager = isReportManagerUtils(report);
 
     if (isOpenReport && (isSubmitter || isReportManager)) {
@@ -459,7 +459,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
             return false;
         }
 
-        const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+        const isReportSubmitter = isCurrentUserSubmitter(report);
         const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
 
@@ -479,7 +479,7 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     if (!isReportSubmitter) {
         return false;
     }
@@ -600,14 +600,6 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
-    }
-
-    if (isMarkAsExportedAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
-    }
-
     if (isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
@@ -628,7 +620,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
@@ -641,6 +633,22 @@ function getSecondaryReportActions({
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
+
+    return options;
+}
+
+function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
+    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
+
+    if (isExportAction(report, policy, reportActions)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+    }
+
+    if (isMarkAsExportedAction(report, policy)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+    }
+
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     return options;
 }
@@ -673,4 +681,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions};

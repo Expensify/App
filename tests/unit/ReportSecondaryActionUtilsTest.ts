@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -48,7 +48,7 @@ describe('getSecondaryAction', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy})).toEqual(result);
     });
 
@@ -542,141 +542,6 @@ describe('getSecondaryAction', () => {
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
-    });
-
-    it('does not include EXPORT option for invoice reports', async () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.INVOICE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-        } as unknown as Report;
-        const policy = {
-            connections: {
-                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {},
-            },
-        } as unknown as Policy;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(false);
-    });
-
-    it('includes EXPORT option for expense report with payments enabled', () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        } as unknown as Report;
-        const policy = {
-            role: CONST.POLICY.ROLE.ADMIN,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
-        } as unknown as Policy;
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
-    });
-
-    it('includes EXPORT option for expense report with payments disabled', () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        } as unknown as Report;
-        const policy = {
-            role: CONST.POLICY.ROLE.ADMIN,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
-        } as unknown as Policy;
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
-    });
-
-    it('includes MARK_AS_EXPORTED option for invoice report sender', async () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.INVOICE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-        } as unknown as Report;
-        const policy = {
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
-        } as unknown as Policy;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
-    });
-
-    it('includes MARK_AS_EXPORTED option for expense report with payments enabled', () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        } as unknown as Report;
-        const policy = {
-            role: CONST.POLICY.ROLE.ADMIN,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
-        } as unknown as Policy;
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
-    });
-
-    it('includes MARK_AS_EXPORTED option for expense report with payments disabled', () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        } as unknown as Report;
-        const policy = {
-            role: CONST.POLICY.ROLE.ADMIN,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
-        } as unknown as Policy;
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
-    });
-
-    it('includes MARK_AS_EXPORTED option for expense report preferred exporter', () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        } as unknown as Report;
-        const policy = {
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: EMPLOYEE_EMAIL}, autoSync: {enabled: false}}}},
-        } as unknown as Policy;
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
-    });
-
-    it('includes MARK_AS_EXPORTED option for expense report admin', () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        } as unknown as Report;
-        const policy = {
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: ADMIN_EMAIL}, autoSync: {enabled: true}}}},
-            role: CONST.POLICY.ROLE.ADMIN,
-        } as unknown as Policy;
-
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
     it('includes HOLD option ', () => {
@@ -1176,7 +1041,6 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
-
     it('include DELETE option for demo transaction', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -1208,35 +1072,179 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
+});
 
-    it('include EXPORT_TO_ACCOUNTING option for settled expense report', async () => {
+describe('getSecondaryExportReportActions', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        Onyx.clear();
+        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+    });
+
+    it('should always return default option', () => {
+        const report = {} as unknown as Report;
+        const policy = {} as unknown as Policy;
+
+        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV];
+        expect(getSecondaryExportReportActions(report, policy)).toEqual(result);
+    });
+
+    it('does not include EXPORT option for invoice reports', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {},
+            },
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
+    });
+
+    it('includes EXPORT option for expense report with payments enabled', () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            policyID: POLICY_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         } as unknown as Report;
-
-        const TRANSACTION_ID = 'TRANSACTION_ID';
-        const transaction = {
-            transactionID: TRANSACTION_ID,
-            reportID: REPORT_ID,
-        } as unknown as Transaction;
-
         const policy = {
-            connections: {
-                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {},
-            },
-            id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
-        } as Policy;
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
+        } as unknown as Policy;
 
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
+    });
+
+    it('includes EXPORT option for expense report with payments disabled', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
+        } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for invoice report sender', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
+        } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report preferred exporter', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: EMPLOYEE_EMAIL}, autoSync: {enabled: false}}}},
+        } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report with payments enabled', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
+        } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report with payments disabled', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
+        } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report preferred exporter', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: EMPLOYEE_EMAIL}, autoSync: {enabled: false}}}},
+        } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report admin', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: ADMIN_EMAIL}, autoSync: {enabled: true}}}},
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
     it('includes REMOVE HOLD option for admin', () => {

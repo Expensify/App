@@ -19,7 +19,7 @@ import {translateLocal} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
-    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnitRate,
     getPolicy,
     getTaxByID,
@@ -837,7 +837,7 @@ function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): 
 }
 
 function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
-    return getCleanedTagName(getTag(transaction, tagIndex));
+    return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
 function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -958,7 +958,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
         return false;
     }
 
-    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) {
         return true;
     }
 
@@ -997,8 +997,8 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 /**
  * Check if the user should see the violation
  */
-function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName): boolean {
-    const isSubmitter = isCurrentUserSubmitter(iouReport?.reportID);
+function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, violationName: ViolationName, shouldShowRterForSettledReport = true): boolean {
+    const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(currentUserEmail, policy?.id);
     const isReportOpen = isOpenExpenseReport(iouReport);
 
@@ -1011,7 +1011,7 @@ function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
-        return isSubmitter || isInstantSubmitEnabled(policy);
+        return (isSubmitter || isInstantSubmitEnabled(policy)) && (shouldShowRterForSettledReport || !isSettled(iouReport));
     }
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
@@ -1040,9 +1040,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
     if (hasRTERPendingViolation) {
         return true;
     }
-    return (
-        shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
-    );
+    return shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report);
 }
 
 /**
@@ -1195,9 +1193,6 @@ function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: Tr
  */
 function doesTransactionSupportViolations(transaction: Transaction | undefined): transaction is Transaction {
     if (!transaction) {
-        return false;
-    }
-    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
         return false;
     }
     return true;

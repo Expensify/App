@@ -3361,7 +3361,12 @@ function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
-function openReportFromDeepLink(url: string) {
+function openReportFromDeepLink(
+    url: string,
+    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
+    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
+    onboardingInitialPath: OnyxEntry<string>,
+) {
     const reportID = getReportIDFromLink(url);
     const isAuthenticated = hasAuthToken();
 
@@ -3387,6 +3392,11 @@ function openReportFromDeepLink(url: string) {
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
+        return;
+    }
+
+    // If the route is the transition route, we don't want to navigate and start the onboarding flow
+    if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
         return;
     }
 
@@ -3430,6 +3440,11 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
+                            // Navigation for signed users is handled by react-navigation.
+                            if (isAuthenticated) {
+                                return;
+                            }
+
                             // Check if the report exists in the collection
                             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
@@ -3458,6 +3473,9 @@ function openReportFromDeepLink(url: string) {
                                     onboardingValuesParam: val,
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
                                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                                    currentOnboardingPurposeSelected,
+                                    currentOnboardingCompanySize,
+                                    onboardingInitialPath,
                                 }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
@@ -5663,6 +5681,22 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
             [optimisticMovedReportAction.reportActionID]: {
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
+        },
+    });
+
+    // 5. Make sure the expense report is not archived
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        value: {
+            private_isArchived: null,
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        value: {
+            private_isArchived: DateUtils.getDBTime(),
         },
     });
 
