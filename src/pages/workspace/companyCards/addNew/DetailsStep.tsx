@@ -51,24 +51,27 @@ function DetailsStep({policyID}: DetailsStepProps) {
     // s77rt remove DEV lock
     const shouldSelectStatementCloseDate = isDevelopment;
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
-        if (!addNewCard?.data) {
-            return;
-        }
+    const submit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
+            if (!addNewCard?.data) {
+                return;
+            }
 
-        const feedDetails = {
-            ...values,
-            bankName: addNewCard.data.bankName ?? 'Amex',
-        };
+            const feedDetails = {
+                ...values,
+                bankName: addNewCard.data.bankName ?? 'Amex',
+            };
 
-        if (shouldSelectStatementCloseDate) {
-            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
-            return;
-        }
+            if (shouldSelectStatementCloseDate) {
+                setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
+                return;
+            }
 
-        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, undefined, undefined, lastSelectedFeed);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    };
+            addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, undefined, undefined, lastSelectedFeed);
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        },
+        [addNewCard?.data, policyID, cardFeeds, lastSelectedFeed],
+    );
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
