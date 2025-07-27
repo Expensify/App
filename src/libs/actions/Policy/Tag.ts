@@ -328,7 +328,20 @@ function setWorkspaceTagEnabled(
         ],
     };
 
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policy, policyCategories, policyTags, transactionViolations, {}, {}, optimisticPolicyTagsData);
+    ReportUtils.pushTransactionViolationsOnyxData(
+        onyxData,
+        policy,
+        policyCategories,
+        policyTags,
+        transactionViolations,
+        {},
+        {},
+        {
+            [policyTag.name]: {
+                tags: optimisticPolicyTagsData,
+            },
+        }
+    );
 
     const parameters: SetPolicyTagsEnabled = {
         policyID,
