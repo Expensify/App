@@ -340,7 +340,7 @@ function setWorkspaceTagEnabled(
             [policyTag.name]: {
                 tags: optimisticPolicyTagsData,
             },
-        }
+        },
     );
 
     const parameters: SetPolicyTagsEnabled = {

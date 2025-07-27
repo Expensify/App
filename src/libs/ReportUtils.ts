@@ -1862,40 +1862,39 @@ function pushTransactionViolationsOnyxData(
     const optimisticPolicyCategories: PolicyCategories = isPolicyCategoriesUpdateEmpty
         ? policyCategories
         : {
-            ...policyCategories,
-            ...Object.entries(policyCategoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
-                acc[categoryName] = {
-                    ...(policyCategories?.[categoryName] ?? {}),
-                    ...categoryUpdate,
-                };
-                return acc;
-            }, {}),
-        };
+              ...policyCategories,
+              ...Object.entries(policyCategoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
+                  acc[categoryName] = {
+                      ...(policyCategories?.[categoryName] ?? {}),
+                      ...categoryUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
 
     // Merge the existing PolicyTagLists with the optimistic updates
     const optimisticPolicyTagLists: PolicyTagLists = isPolicyTagListsUpdateEmpty
         ? policyTagLists
         : {
-            ...policyTagLists,
-            ...Object.entries(policyTagListsUpdate).reduce<PolicyTagLists>((acc, [tagListName, tagListUpdate]) => {
-                acc[tagListName] = {
-                    ...(policyTagLists?.[tagListName] ?? {}),
-                    ...tagListUpdate,
-                };
-                return acc;
-            }, {}),
-        };
+              ...policyTagLists,
+              ...Object.entries(policyTagListsUpdate).reduce<PolicyTagLists>((acc, [tagListName, tagListUpdate]) => {
+                  acc[tagListName] = {
+                      ...(policyTagLists?.[tagListName] ?? {}),
+                      ...tagListUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
 
     // Merge the existing Policy with the optimistic updates
     const optimisticPolicy = {...policy, ...policyUpdate};
-    
+
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
 
     const processedTransactionIDs = new Set<string>();
 
     // Iterate through all reports to find transactions that need optimistic violations
     for (const report of reports) {
-        
         // Skipping invoice report because should not have any category or tag violations
         if (!report?.reportID || isInvoiceReport(report)) {
             continue;
@@ -1904,7 +1903,6 @@ function pushTransactionViolationsOnyxData(
         const transactions = getReportTransactions(report.reportID);
 
         for (const transaction of transactions) {
-            
             // Skip it if transaction's optimistic violations already is pushed to ensure one update per transaction
             const transactionID = transaction?.transactionID;
             if (!transactionID || processedTransactionIDs.has(transactionID)) {
