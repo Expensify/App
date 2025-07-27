@@ -441,8 +441,27 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+    const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
+    const optimisticData: OnyxUpdate[] = [
+        ...loadingOptimisticData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: { 
+                data: Object.fromEntries(transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}])) as Partial<SearchTransaction>
+            },
+        },
+    ]
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: { 
+                data: Object.fromEntries(transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null}])) as Partial<SearchTransaction>
+            },
+        },
+    ]
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
 }
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
