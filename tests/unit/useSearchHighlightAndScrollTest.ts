@@ -60,8 +60,6 @@ describe('useSearchHighlightAndScroll', () => {
             hash: 123,
             recentSearchHash: 456,
         },
-        searchKey: undefined,
-        shouldCalculateTotals: false,
         offset: 0,
     };
 
@@ -95,7 +93,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, offset: 0});
     });
 
     it('should not trigger search when not focused', () => {
@@ -153,7 +151,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, offset: 0});
     });
 
     it('should not trigger search when new transaction removed and focused', () => {
