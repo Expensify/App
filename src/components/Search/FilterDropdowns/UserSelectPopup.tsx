@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import memoize from '@libs/memoize';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -27,6 +28,8 @@ const optionsMatch = (opt1: Option, opt2: Option) => {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
 };
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 type UserSelectPopupProps = {
     /** The currently selected users */
@@ -77,28 +80,28 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [selectedOptions]);
 
     const optionsList = useMemo(() => {
-        return getValidOptions(
+        return memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelectedOptions: true,
                 includeCurrentUser: true,
             },
         );
     }, [options.reports, options.personalDetails, selectedOptions]);
 
-    const listData = useMemo(() => {
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+    const filteredOptions = useMemo(() => {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
+    }, [optionsList, cleanSearchTerm]);
 
-        const personalDetailList = filteredOptionsList
+    const listData = useMemo(() => {
+        const personalDetailList = filteredOptions.personalDetails
             .map((participant) => ({
                 ...participant,
                 isSelected: selectedAccountIDs.has(participant.accountID),
@@ -114,8 +117,16 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 return 0;
             });
 
-        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [optionsList, cleanSearchTerm, selectedAccountIDs, accountID]);
+        const recentReportsList = filteredOptions.recentReports.map((report) => {
+            const isSelected = selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID);
+            return {
+                ...report,
+                isSelected,
+            };
+        });
+
+        return [...personalDetailList, ...recentReportsList];
+    }, [filteredOptions, selectedOptions, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
