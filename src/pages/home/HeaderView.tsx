@@ -14,7 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
@@ -230,7 +230,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     );
 
     const multipleAvatars = (
-        <ReportAvatar
+        <ReportActionAvatars
             reportID={report?.reportID}
             size={shouldShowSubscript ? defaultSubscriptSize : undefined}
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}

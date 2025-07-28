@@ -2,7 +2,7 @@ import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,7 +61,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
                 onSecondaryInteraction={onSecondaryInteraction}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                    <ReportAvatar
+                    <ReportActionAvatars
                         size={CONST.AVATAR_SIZE.SMALL}
                         accountIDs={accountIDs}
                         horizontalStacking={{

@@ -33,7 +33,7 @@ import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ReportAvatar from './ReportAvatar';
+import ReportActionAvatars from './ReportActionAvatars';
 import type {TransactionListItemType} from './SelectionList/types';
 import Text from './Text';
 
@@ -220,7 +220,7 @@ function AvatarWithDisplayName({
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
     const multipleAvatars = (
-        <ReportAvatar
+        <ReportActionAvatars
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
             subscriptAvatarBorderColor={avatarBorderColor}
             size={size}

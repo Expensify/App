@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import {View as MockedAvatarData} from 'react-native';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -270,23 +270,23 @@ const onyxState = {
 
 /* --- Helpers --- */
 
-function renderAvatar(props: Parameters<typeof ReportAvatar>[0]) {
+function renderAvatar(props: Parameters<typeof ReportActionAvatars>[0]) {
     return render(
         <OnyxListItemProvider>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <ReportAvatar {...props} />
+            <ReportActionAvatars {...props} />
         </OnyxListItemProvider>,
     );
 }
 
-async function retrieveDataFromAvatarView(props: Parameters<typeof ReportAvatar>[0]) {
+async function retrieveDataFromAvatarView(props: Parameters<typeof ReportActionAvatars>[0]) {
     renderAvatar(props);
 
     await waitForBatchedUpdatesWithAct();
 
     const images = screen.queryAllByTestId('MockedAvatarData');
     const icons = screen.queryAllByTestId('MockedIconData');
-    const reportAvatarFragments = screen.queryAllByTestId('ReportAvatar-', {
+    const reportAvatarFragments = screen.queryAllByTestId('ReportActionAvatars-', {
         exact: false,
     });
 
@@ -312,12 +312,12 @@ function isSubscriptAvatarRendered({
     workspaceIconAsPrimaryAvatar?: boolean;
     negate?: boolean;
 }) {
-    const isEveryAvatarFragmentASubscript = fragments.every((fragment) => fragment.startsWith('ReportAvatar-Subscript')) && fragments.length !== 0;
+    const isEveryAvatarFragmentASubscript = fragments.every((fragment) => fragment.startsWith('ReportActionAvatars-Subscript')) && fragments.length !== 0;
     const isUserAvatarCorrect = images.some(
-        (image) => image.uri === USER_AVATAR && image.parent === `ReportAvatar-Subscript-${workspaceIconAsPrimaryAvatar ? 'SecondaryAvatar' : 'MainAvatar'}`,
+        (image) => image.uri === USER_AVATAR && image.parent === `ReportActionAvatars-Subscript-${workspaceIconAsPrimaryAvatar ? 'SecondaryAvatar' : 'MainAvatar'}`,
     );
     const isWorkspaceAvatarCorrect = images.some(
-        (image) => image.uri === DEFAULT_WORKSPACE_AVATAR.name && image.parent === `ReportAvatar-Subscript-${workspaceIconAsPrimaryAvatar ? 'MainAvatar' : 'SecondaryAvatar'}`,
+        (image) => image.uri === DEFAULT_WORKSPACE_AVATAR.name && image.parent === `ReportActionAvatars-Subscript-${workspaceIconAsPrimaryAvatar ? 'MainAvatar' : 'SecondaryAvatar'}`,
     );
 
     expect(isEveryAvatarFragmentASubscript).toBe(!negate);
@@ -340,19 +340,23 @@ function isMultipleAvatarRendered({
     secondUserAvatar?: string;
     stacked?: boolean;
 }) {
-    const isEveryAvatarFragmentAMultiple = fragments.every((fragment) => fragment.startsWith('ReportAvatar-MultipleAvatars')) && fragments.length !== 0;
+    const isEveryAvatarFragmentAMultiple = fragments.every((fragment) => fragment.startsWith('ReportActionAvatars-MultipleAvatars')) && fragments.length !== 0;
 
     const isUserAvatarCorrect = images.some(
         (image) =>
             image.uri === USER_AVATAR &&
             image.parent ===
-                (stacked ? 'ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar' : `ReportAvatar-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'SecondaryAvatar' : 'MainAvatar'}`),
+                (stacked
+                    ? 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar'
+                    : `ReportActionAvatars-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'SecondaryAvatar' : 'MainAvatar'}`),
     );
     const isWorkspaceAvatarCorrect = images.some(
         (image) =>
             image.uri === (secondUserAvatar ?? DEFAULT_WORKSPACE_AVATAR.name) &&
             image.parent ===
-                (stacked ? 'ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar' : `ReportAvatar-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'MainAvatar' : 'SecondaryAvatar'}`),
+                (stacked
+                    ? 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar'
+                    : `ReportActionAvatars-MultipleAvatars-${workspaceIconAsPrimaryAvatar ? 'MainAvatar' : 'SecondaryAvatar'}`),
     );
 
     expect(isEveryAvatarFragmentAMultiple).toBe(!negate);
@@ -362,13 +366,13 @@ function isMultipleAvatarRendered({
 
 function isSingleAvatarRendered({images, negate = false, userAvatar}: {images: AvatarData[]; negate?: boolean; userAvatar?: string}) {
     const isUserAvatarCorrect = images.some(
-        (image) => image.uri === (userAvatar ?? USER_AVATAR) && ['ReportAvatar-SingleAvatar', 'ReportAvatar-MultipleAvatars-OneIcon'].includes(image.parent),
+        (image) => image.uri === (userAvatar ?? USER_AVATAR) && ['ReportActionAvatars-SingleAvatar', 'ReportActionAvatars-MultipleAvatars-OneIcon'].includes(image.parent),
     );
 
     expect(isUserAvatarCorrect).toBe(!negate);
 }
 
-describe('ReportAvatar', () => {
+describe('ReportActionAvatars', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,

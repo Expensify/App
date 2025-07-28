@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportAvatar, {getPrimaryAndSecondaryAvatar} from '@components/ReportAvatar';
+import ReportActionAvatars, {getPrimaryAndSecondaryAvatar} from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -206,7 +206,7 @@ function ReportActionItemSingle({
                 role={CONST.ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>
-                    <ReportAvatar
+                    <ReportActionAvatars
                         singleAvatarContainerStyle={[styles.actionAvatar]}
                         subscriptAvatarBorderColor={getBackgroundColor()}
                         noRightMarginOnSubscriptContainer

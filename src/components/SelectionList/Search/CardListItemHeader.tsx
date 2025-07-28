@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -54,7 +54,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                         />
                     )}
                     <View style={[styles.flexRow, styles.gap3]}>
-                        <ReportAvatar
+                        <ReportActionAvatars
                             subscriptCardFeed={cardItem.bank as CompanyCardFeed}
                             subscriptAvatarBorderColor={backgroundColor}
                             noRightMarginOnSubscriptContainer

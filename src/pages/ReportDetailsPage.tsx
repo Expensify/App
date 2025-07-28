@@ -18,7 +18,7 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -572,7 +572,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
-                    <ReportAvatar
+                    <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
                         size={CONST.AVATAR_SIZE.X_LARGE}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}

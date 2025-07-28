@@ -75,7 +75,7 @@ type HorizontalStacking =
       }>
     | boolean;
 
-type ReportAvatarProps = {
+type ReportActionAvatarsProps = {
     horizontalStacking?: HorizontalStacking;
 
     /** IOU Report ID for single avatar */
@@ -307,7 +307,7 @@ function getPrimaryAndSecondaryAvatar({
     return [primaryAvatar, secondaryAvatar];
 }
 
-function ReportAvatar({
+function ReportActionAvatars({
     reportID: potentialReportID,
     action: passedAction,
     accountIDs: passedAccountIDs,
@@ -321,7 +321,7 @@ function ReportAvatar({
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
-}: ReportAvatarProps) {
+}: ReportActionAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -506,7 +506,7 @@ function ReportAvatar({
         return (
             <View
                 style={[containerStyle, noRightMarginOnSubscriptContainer ? styles.mr0 : {}]}
-                testID="ReportAvatar-Subscript"
+                testID="ReportActionAvatars-Subscript"
             >
                 <UserDetailsTooltip
                     shouldRender={shouldShowTooltip}
@@ -525,7 +525,7 @@ function ReportAvatar({
                             avatarID={primaryAvatar.id}
                             type={primaryAvatar.type}
                             fallbackIcon={primaryAvatar.fallbackIcon}
-                            testID="ReportAvatar-Subscript-MainAvatar"
+                            testID="ReportActionAvatars-Subscript-MainAvatar"
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -553,7 +553,7 @@ function ReportAvatar({
                                 avatarID={secondaryAvatar.id}
                                 type={secondaryAvatar.type}
                                 fallbackIcon={secondaryAvatar.fallbackIcon}
-                                testID="ReportAvatar-Subscript-SecondaryAvatar"
+                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -578,7 +578,7 @@ function ReportAvatar({
                             width={variables.cardAvatarWidth}
                             height={variables.cardAvatarHeight}
                             additionalStyles={styles.alignSelfCenter}
-                            testID="ReportAvatar-Subscript-CardIcon"
+                            testID="ReportActionAvatars-Subscript-CardIcon"
                         />
                     </View>
                 )}
@@ -611,7 +611,7 @@ function ReportAvatar({
                             avatarID={icons.at(0)?.id}
                             type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
                             fallbackIcon={icons.at(0)?.fallbackIcon}
-                            testID="ReportAvatar-MultipleAvatars-OneIcon"
+                            testID="ReportActionAvatars-MultipleAvatars-OneIcon"
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -634,7 +634,7 @@ function ReportAvatar({
                     style={avatarContainerStyles}
                     /* eslint-disable-next-line react/no-array-index-key */
                     key={`avatarRow-${rowIndex}`}
-                    testID="ReportAvatar-MultipleAvatars-StackedHorizontally-Row"
+                    testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row"
                 >
                     {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                         <UserDetailsTooltip
@@ -665,7 +665,7 @@ function ReportAvatar({
                                     avatarID={icon.id}
                                     type={icon.type}
                                     fallbackIcon={icon.fallbackIcon}
-                                    testID="ReportAvatar-MultipleAvatars-StackedHorizontally-Avatar"
+                                    testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
                                 />
                             </View>
                         </UserDetailsTooltip>
@@ -677,7 +677,7 @@ function ReportAvatar({
                             shouldRender={shouldShowTooltip}
                         >
                             <View
-                                testID="ReportAvatar-MultipleAvatars-StackedHorizontally-LimitReached"
+                                testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-LimitReached"
                                 style={[
                                     styles.alignItemsCenter,
                                     styles.justifyContentCenter,
@@ -712,7 +712,7 @@ function ReportAvatar({
             <View style={[avatarContainerStyles, useHugeBottomMargin && styles.mb7]}>
                 <View
                     style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}
-                    testID="ReportAvatar-MultipleAvatars"
+                    testID="ReportActionAvatars-MultipleAvatars"
                 >
                     <UserDetailsTooltip
                         accountID={Number(icons.at(0)?.id)}
@@ -732,7 +732,7 @@ function ReportAvatar({
                                 type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
                                 avatarID={icons.at(0)?.id}
                                 fallbackIcon={icons.at(0)?.fallbackIcon}
-                                testID="ReportAvatar-MultipleAvatars-MainAvatar"
+                                testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -761,7 +761,7 @@ function ReportAvatar({
                                         avatarID={icons.at(1)?.id}
                                         type={icons.at(1)?.type ?? CONST.ICON_TYPE_AVATAR}
                                         fallbackIcon={icons.at(1)?.fallbackIcon}
-                                        testID="ReportAvatar-MultipleAvatars-SecondaryAvatar"
+                                        testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -772,7 +772,7 @@ function ReportAvatar({
                             >
                                 <View
                                     style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}
-                                    testID="ReportAvatar-MultipleAvatars-LimitReached"
+                                    testID="ReportActionAvatars-MultipleAvatars-LimitReached"
                                 >
                                     <Text
                                         style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
@@ -804,12 +804,12 @@ function ReportAvatar({
                     avatarID={primaryAvatar.id}
                     size={size}
                     fallbackIcon={fallbackIcon}
-                    testID="ReportAvatar-SingleAvatar"
+                    testID="ReportActionAvatars-SingleAvatar"
                 />
             </View>
         </UserDetailsTooltip>
     );
 }
 
-export default ReportAvatar;
+export default ReportActionAvatars;
 export {getPrimaryAndSecondaryAvatar};

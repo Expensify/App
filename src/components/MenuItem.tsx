@@ -37,7 +37,7 @@ import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
-import ReportAvatar from './ReportAvatar';
+import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -714,7 +714,7 @@ function MenuItem(
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (
-                                                        <ReportAvatar
+                                                        <ReportActionAvatars
                                                             subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                             size={avatarSize}
@@ -901,7 +901,7 @@ function MenuItem(
                                                 )}
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                                        <ReportAvatar
+                                                        <ReportActionAvatars
                                                             subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
                                                             reportID={rightIconReportID}

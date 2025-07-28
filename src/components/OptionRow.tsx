@@ -18,7 +18,7 @@ import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import ReportAvatar from './ReportAvatar';
+import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
@@ -207,7 +207,7 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
-                                    <ReportAvatar
+                                    <ReportActionAvatars
                                         subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                         reportID={option.iouReportID ?? option.reportID}
                                         size={CONST.AVATAR_SIZE.DEFAULT}

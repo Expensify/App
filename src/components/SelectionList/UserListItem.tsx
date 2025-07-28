@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -100,7 +100,7 @@ function UserListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )}
                     {!!item.icons && (
-                        <ReportAvatar
+                        <ReportActionAvatars
                             subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
                             secondaryAvatarContainerStyle={[

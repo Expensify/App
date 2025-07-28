@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
-import ReportAvatar from '@components/ReportAvatar';
 import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
@@ -242,7 +242,7 @@ function TransactionPreviewContent({
                                         <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <ReportAvatar
+                                                <ReportActionAvatars
                                                     accountIDs={participantAccountIDs}
                                                     horizontalStacking={{
                                                         sort: 'byID',

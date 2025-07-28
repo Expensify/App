@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -102,7 +102,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {!!item.icons && (
-                            <ReportAvatar
+                            <ReportActionAvatars
                                 subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 shouldShowTooltip={showTooltip}
                                 secondaryAvatarContainerStyle={[

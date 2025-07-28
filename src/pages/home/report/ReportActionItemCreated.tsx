@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,7 +58,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                         >
-                            <ReportAvatar
+                            <ReportActionAvatars
                                 reportID={reportID}
                                 size={CONST.AVATAR_SIZE.X_LARGE}
                                 horizontalStacking={{

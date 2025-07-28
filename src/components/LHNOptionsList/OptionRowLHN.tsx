@@ -10,7 +10,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -260,7 +260,7 @@ function OptionRowLHN({
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length && !!firstIcon && (
-                                            <ReportAvatar
+                                            <ReportActionAvatars
                                                 subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                                 useMidSubscriptSizeForMultipleAvatars={isInFocusMode}
                                                 size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}

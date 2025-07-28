@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import ReportAvatar from '@components/ReportAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -108,7 +108,7 @@ function TableListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )}
                     {!!item.accountID && (
-                        <ReportAvatar
+                        <ReportActionAvatars
                             accountIDs={[item.accountID]}
                             shouldShowTooltip={showTooltip}
                             secondaryAvatarContainerStyle={[
