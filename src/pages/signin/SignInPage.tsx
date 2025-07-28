@@ -234,6 +234,8 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
     }
 
+    console.error(shouldShowSMSDeliveryFailurePage);
+
     let welcomeHeader = '';
     let welcomeText = '';
     const headerText = translate('login.hero.header');
