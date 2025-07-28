@@ -2594,8 +2594,14 @@ describe('ReportUtils', () => {
                 [convertedInvoiceChat.reportID]: convertedInvoiceChat,
             };
 
+            const mockReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${convertedInvoiceChat.reportID}`]: {
+                    type: CONST.REPORT.TYPE.CHAT,
+                } as ReportNameValuePairs,
+            };
+
             // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
-            const invoiceChatReport = getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
+            const invoiceChatReport = getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, mockReportNameValuePairs, convertedInvoiceChat.policyID, reports);
 
             // Then no invoice chat should be returned because the receiver type does not match
             expect(invoiceChatReport).toBeUndefined();
