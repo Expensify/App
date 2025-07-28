@@ -1839,7 +1839,6 @@ const translations = {
         sendAndReceiveMoney: "Envoyez et recevez de l'argent avec des amis. Comptes bancaires américains uniquement.",
         enableWallet: 'Activer le portefeuille',
         addBankAccountToSendAndReceive: 'Soyez remboursé pour les dépenses que vous soumettez à un espace de travail.',
-        addBankAccount: 'Ajouter un compte bancaire',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: "Ce sont des cartes attribuées par un administrateur d'espace de travail pour gérer les dépenses de l'entreprise.",
         expensifyCard: 'Expensify Card',
@@ -1907,7 +1906,6 @@ const translations = {
         addApprovalButton: "Ajouter un flux de travail d'approbation",
         addApprovalTip: "Ce flux de travail par défaut s'applique à tous les membres, sauf si un flux de travail plus spécifique existe.",
         approver: 'Approbateur',
-        connectBankAccount: 'Connecter un compte bancaire',
         addApprovalsDescription: "Exiger une approbation supplémentaire avant d'autoriser un paiement.",
         makeOrTrackPaymentsTitle: 'Effectuer ou suivre des paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
@@ -3130,7 +3128,6 @@ const translations = {
         termsAndConditions: 'termes et conditions',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Connecter un compte bancaire',
         finishButtonText: 'Terminer la configuration',
         validateYourBankAccount: 'Validez votre compte bancaire',
         validateButtonText: 'Valider',
@@ -3224,7 +3221,6 @@ const translations = {
         pleaseUploadTheDirect: 'Veuillez téléverser les accords de prélèvement automatique et la page de signature Docusign.',
     },
     finishStep: {
-        connect: 'Connecter un compte bancaire',
         letsFinish: 'Terminons dans le chat !',
         thanksFor:
             "Merci pour ces détails. Un agent de support dédié va maintenant examiner vos informations. Nous reviendrons vers vous si nous avons besoin de quelque chose d'autre, mais en attendant, n'hésitez pas à nous contacter si vous avez des questions.",
@@ -3416,7 +3412,6 @@ const translations = {
             plan: 'Planification',
             profile: 'Aperçu',
             bankAccount: 'Compte bancaire',
-            connectBankAccount: 'Connecter un compte bancaire',
             testTransactions: 'Tester les transactions',
             issueAndManageCards: 'Émettre et gérer des cartes',
             reconcileCards: 'Rapprocher les cartes',
@@ -5186,7 +5181,6 @@ const translations = {
                 personal: 'Personnel',
                 business: 'Entreprise',
                 chooseInvoiceMethod: 'Choisissez un mode de paiement ci-dessous :',
-                addBankAccount: 'Ajouter un compte bancaire',
                 payingAsIndividual: "Payer en tant qu'individu",
                 payingAsBusiness: "Payer en tant qu'entreprise",
             },
@@ -6319,7 +6313,8 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitez-les',
+        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
+        inviteToChat: 'Inviter uniquement à discuter',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {

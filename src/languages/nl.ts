@@ -1832,7 +1832,6 @@ const translations = {
         sendAndReceiveMoney: 'Stuur en ontvang geld met vrienden. Alleen Amerikaanse bankrekeningen.',
         enableWallet: 'Portemonnee inschakelen',
         addBankAccountToSendAndReceive: 'Word terugbetaald voor uitgaven die je indient bij een werkruimte.',
-        addBankAccount: 'Bankrekening toevoegen',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
         expensifyCard: 'Expensify Card',
@@ -1899,7 +1898,6 @@ const translations = {
         addApprovalButton: 'Goedkeuringsworkflow toevoegen',
         addApprovalTip: 'Deze standaard workflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Goedkeurder',
-        connectBankAccount: 'Bankrekening koppelen',
         addApprovalsDescription: 'Vereis extra goedkeuring voordat een betaling wordt geautoriseerd.',
         makeOrTrackPaymentsTitle: 'Betalingen maken of volgen',
         makeOrTrackPaymentsDescription: 'Voeg een geautoriseerde betaler toe voor betalingen gedaan in Expensify of volg betalingen die elders zijn gedaan.',
@@ -3146,7 +3144,6 @@ const translations = {
         termsAndConditions: 'algemene voorwaarden',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Bankrekening koppelen',
         finishButtonText: 'Voltooi de installatie',
         validateYourBankAccount: 'Valideer uw bankrekening',
         validateButtonText: 'Valideren',
@@ -3238,7 +3235,6 @@ const translations = {
         pleaseUploadTheDirect: 'Upload de automatische incassoregelingen en de Docusign-handtekeningenpagina.',
     },
     finishStep: {
-        connect: 'Bankrekening koppelen',
         letsFinish: 'Laten we in de chat afronden!',
         thanksFor:
             'Bedankt voor deze details. Een toegewijde supportmedewerker zal nu uw informatie bekijken. We nemen contact met u op als we nog iets van u nodig hebben, maar in de tussentijd kunt u gerust contact met ons opnemen als u vragen heeft.',
@@ -3430,7 +3426,6 @@ const translations = {
             plan: 'Plan',
             profile: 'Overzicht',
             bankAccount: 'Bankrekening',
-            connectBankAccount: 'Bankrekening koppelen',
             testTransactions: 'Testtransacties',
             issueAndManageCards: 'Kaarten uitgeven en beheren',
             reconcileCards: 'Reconcileer kaarten',
@@ -5188,7 +5183,6 @@ const translations = {
                 personal: 'Persoonlijk',
                 business: 'Business',
                 chooseInvoiceMethod: 'Kies hieronder een betaalmethode:',
-                addBankAccount: 'Bankrekening toevoegen',
                 payingAsIndividual: 'Betalen als individu',
                 payingAsBusiness: 'Betalen als een bedrijf',
             },
@@ -6315,8 +6309,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',

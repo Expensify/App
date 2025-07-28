@@ -1831,7 +1831,6 @@ const translations = {
         sendAndReceiveMoney: 'Envie e receba dinheiro com amigos. Apenas contas bancárias dos EUA.',
         enableWallet: 'Ativar carteira',
         addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
-        addBankAccount: 'Adicionar conta bancária',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -1898,7 +1897,6 @@ const translations = {
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
-        connectBankAccount: 'Conectar conta bancária',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         makeOrTrackPaymentsTitle: 'Fazer ou rastrear pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
@@ -3145,7 +3143,6 @@ const translations = {
         termsAndConditions: 'termos e condições',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Conectar conta bancária',
         finishButtonText: 'Concluir configuração',
         validateYourBankAccount: 'Valide sua conta bancária',
         validateButtonText: 'Validar',
@@ -3237,7 +3234,6 @@ const translations = {
         pleaseUploadTheDirect: 'Por favor, envie os Acordos de Débito Direto e a página de assinatura do Docusign.',
     },
     finishStep: {
-        connect: 'Conectar conta bancária',
         letsFinish: 'Vamos terminar no chat!',
         thanksFor:
             'Obrigado por esses detalhes. Um agente de suporte dedicado agora revisará suas informações. Entraremos em contato se precisarmos de mais alguma coisa de você, mas, enquanto isso, sinta-se à vontade para nos contatar caso tenha alguma dúvida.',
@@ -3427,7 +3423,6 @@ const translations = {
             plan: 'Plano',
             profile: 'Visão geral',
             bankAccount: 'Conta bancária',
-            connectBankAccount: 'Conectar conta bancária',
             testTransactions: 'Testar transações',
             issueAndManageCards: 'Emitir e gerenciar cartões',
             reconcileCards: 'Conciliar cartões',
@@ -5183,7 +5178,6 @@ const translations = {
                 personal: 'Pessoal',
                 business: 'Negócio',
                 chooseInvoiceMethod: 'Escolha um método de pagamento abaixo:',
-                addBankAccount: 'Adicionar conta bancária',
                 payingAsIndividual: 'Pagando como indivíduo',
                 payingAsBusiness: 'Pagando como uma empresa',
             },
@@ -6313,7 +6307,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
