@@ -1324,7 +1324,7 @@ const translations = {
             noEligibleExpenseFound: 'No se encontraron gastos válidos',
             noEligibleExpenseFoundSubtitle: `No tienes ningún gasto que pueda fusionarse con éste. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Obtén más información</a> sobre gastos válidos.`,
             mergeButton: 'Fusionar transacciones',
-            selectTransactionToMerge: `Selecciona un <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">gasto elegible</a> para fusionar`,
+            selectTransactionToMerge: `Selecciona un <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">gasto válido</a> con el que fusionar`,
         },
         receiptPage: {
             header: 'Selecciona el comprobante',
@@ -1334,7 +1334,7 @@ const translations = {
             header: 'Selecciona los detalles',
             pageTitle: 'Selecciona los detalles que deseas conservar:',
             noDifferences: 'No se encontraron diferencias entre las transacciones',
-            pleaseSelectError: ({field}: {field: string}) => `Por favor selecciona un(a) ${field}`,
+            pleaseSelectError: ({field}: {field: string}) => `Por favor, selecciona un(a) ${field}`,
             selectAllDetailsError: 'Selecciona todos los detalles antes de continuar.',
         },
         confirmationPage: {
