@@ -9965,7 +9965,7 @@ function getOutstandingReportsForUser(
     reportOwnerAccountID: number | undefined,
     reports: OnyxCollection<Report> = allReports,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
-    allowSubmitted = false,
+    allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {
         return [];
