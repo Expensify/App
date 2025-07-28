@@ -132,12 +132,38 @@ When working with React Profiler, you can compare the results using [this tool](
 
 **Suggested:** [Deep Dive with the React DevTools creator](https://www.youtube.com/watch?v=nySib7ipZdk)
 
-### Why Did You Render?
-- Why Did You Render (WDYR) sends console notifications about potentially avoidable component re-renders.
-- It can also help to simply track when and why a certain component re-renders.
-- To enable it, set `USE_WDYR=true` in your `.env` file.
-- You can add or exclude tracked components by their `displayName` in `wdyr.js`.
-- Open the browser console to see WDYR notifications.
+### Tracking Re-renders
+
+Understanding when and why components re-render is crucial for identifying performance bottlenecks. Several tools can help visualize and track component re-renders in real-time.
+
+#### React DevTools Highlight Updates
+
+React DevTools includes a built-in feature to visually highlight components when they re-render:
+
+- Open React DevTools
+- Go to "Settings" (gear icon)
+- Under "General" tab, enable "Highlight updates when components render"
+- Components will be highlighted with colored borders when they update
+
+#### React Scan
+
+[React Scan](https://github.com/aidenybai/react-scan) automatically detects and highlights performance issues in React applications without requiring installation:
+
+**Usage:**
+```bash
+npx react-scan https://localhost:8082
+```
+
+You need to have the web server running. The app will open in a separate browser window.
+
+#### Why Did You Render?
+
+Why Did You Render (WDYR) sends console notifications about potentially avoidable component re-renders:
+
+- To enable it, set `USE_WDYR=true` in your `.env` file
+- You can add or exclude tracked components by their `displayName` in `wdyr.js`
+- Open the browser console to see WDYR notifications
+- Provides detailed information about what props or state changed
 
 **Suggested** [Why Did You Render docs](https://github.com/welldone-software/why-did-you-render)
 
