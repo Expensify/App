@@ -20,14 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let delegatedAccess: DelegatedAccess;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        delegatedAccess = val?.delegatedAccess ?? {};
-    },
-});
-
 let credentials: Credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -81,7 +73,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect(email: string, isFromOldDot = false) {
+function connect(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>, isFromOldDot = false) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
@@ -278,7 +270,7 @@ function disconnect() {
         });
 }
 
-function clearDelegatorErrors() {
+function clearDelegatorErrors(delegatedAccess: OnyxEntry<DelegatedAccess>) {
     if (!delegatedAccess?.delegators) {
         return;
     }
@@ -289,7 +281,11 @@ function requestValidationCode() {
     API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
 }
 
-function addDelegate(email: string, role: DelegateRole, validateCode: string) {
+function addDelegate(email: string, role: DelegateRole, validateCode: string, delegatedAccess: OnyxEntry<DelegatedAccess>) {
+    if (!delegatedAccess?.delegators) {
+        return;
+    }
+
     const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
 
     const optimisticDelegateData = (): Delegate[] => {
@@ -439,8 +435,8 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function removeDelegate(email: string) {
-    if (!email) {
+function removeDelegate(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>) {
+    if (!email || !delegatedAccess?.delegates) {
         return;
     }
 
@@ -455,7 +451,7 @@ function removeDelegate(email: string) {
                             [email]: null,
                         },
                     },
-                    delegates: delegatedAccess.delegates?.map((delegate) =>
+                    delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
@@ -475,7 +471,7 @@ function removeDelegate(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates?.filter((delegate) => delegate.email !== email),
+                    delegates: delegatedAccess?.delegates?.filter((delegate) => delegate.email !== email),
                 },
             },
         },
@@ -492,7 +488,7 @@ function removeDelegate(email: string) {
                             [email]: null,
                         },
                     },
-                    delegates: delegatedAccess.delegates?.map((delegate) =>
+                    delegates: delegatedAccess?.delegates?.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
@@ -511,7 +507,7 @@ function removeDelegate(email: string) {
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function clearDelegateErrorsByField(email: string, fieldName: string) {
+function clearDelegateErrorsByField(email: string, fieldName: string, delegatedAccess: OnyxEntry<DelegatedAccess>) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -527,11 +523,11 @@ function clearDelegateErrorsByField(email: string, fieldName: string) {
     });
 }
 
-function isConnectedAsDelegate() {
+function isConnectedAsDelegate(delegatedAccess: OnyxEntry<DelegatedAccess>) {
     return !!delegatedAccess?.delegate;
 }
 
-function updateDelegateRole(email: string, role: DelegateRole, validateCode: string) {
+function updateDelegateRole(email: string, role: DelegateRole, validateCode: string, delegatedAccess: OnyxEntry<DelegatedAccess>) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -547,7 +543,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                             [email]: null,
                         },
                     },
-                    delegates: delegatedAccess.delegates.map((delegate) =>
+                    delegates: delegatedAccess?.delegates?.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
@@ -615,7 +611,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
+function updateDelegateRoleOptimistically(email: string, role: DelegateRole, delegatedAccess: OnyxEntry<DelegatedAccess>) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -649,7 +645,7 @@ function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
     Onyx.update(optimisticData);
 }
 
-function clearDelegateRolePendingAction(email: string) {
+function clearDelegateRolePendingAction(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>) {
     if (!delegatedAccess?.delegates) {
         return;
     }
