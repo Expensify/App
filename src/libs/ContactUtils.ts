@@ -1,4 +1,4 @@
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {PersonalDetails, ReportNameValuePairs} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';

@@ -2,7 +2,6 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import DateUtils from '@libs/DateUtils';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -74,13 +73,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const reportNameValuePairs = {
-    private_isArchived: DateUtils.getDBTime(),
-};
-
-const reportNameValuePairsCollection = {
-    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getMockedReports().reportID}`]: reportNameValuePairs,
-};
+const reportNameValuePairsCollection = {};
 
 const options = createOptionList(personalDetails, reportNameValuePairsCollection, reports);
 

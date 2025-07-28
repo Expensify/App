@@ -8844,14 +8844,14 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
     if (isMoneyRequestReportPendingDeletion(report)) {
         return false;
     }
-
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     return (
         !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
         isEmptyObject(reportErrors) &&

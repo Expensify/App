@@ -482,7 +482,7 @@ function savePolicyDraftByNewWorkspace(
     currency = '',
     file?: File,
 ) {
-    createWorkspace(reportNameValuePairs, policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
+    createWorkspace({reportNameValuePairs, policyOwnerEmail, makeMeAdmin, policyName, policyID, engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file});
 }
 
 /**

@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
-import type {ReportNameValuePairs, Request} from '@src/types/onyx';
+import type {Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 

@@ -1,7 +1,7 @@
-import React from 'react';
+import type React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';

@@ -25,12 +25,6 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {
-    const reportNameValuePairs = {
-        [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
-            private_isArchived: DateUtils.getDBTime(),
-        },
-    };
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -323,6 +317,11 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_UNPINNED: OnyxEntry<Report> = {
                 reportID: '2',
                 isPinned: false,
+            };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
             };
 
             const optionDataPinned = SidebarUtils.getOptionData({
@@ -825,6 +824,11 @@ describe('SidebarUtils', () => {
                 ],
                 originalMessage: undefined,
             };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
+            };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
@@ -881,6 +885,11 @@ describe('SidebarUtils', () => {
                         text: 'f50',
                     },
                 ],
+            };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
             };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -1217,6 +1226,11 @@ describe('SidebarUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const reportNameValuePairs = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                        private_isArchived: DateUtils.getDBTime(),
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await Onyx.set(ONYXKEYS.SESSION, session);
@@ -1261,6 +1275,11 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const reportNameValuePairs = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                        private_isArchived: DateUtils.getDBTime(),
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 const result = SidebarUtils.getOptionData({
@@ -1320,6 +1339,11 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: undefined,
+                };
+                const reportNameValuePairs = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                        private_isArchived: DateUtils.getDBTime(),
+                    },
                 };
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);

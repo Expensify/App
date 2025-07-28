@@ -35,7 +35,16 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
         createDraftWorkspace('', false, params.name, params.policyID, params.currency, params.avatarFile as File);
         setShouldShowConfirmation(false);
         setIsUpgraded(true);
-        createWorkspace(reportNameValuePairs, '', false, params.name, params.policyID, undefined, params.currency, params.avatarFile as File);
+        createWorkspace({
+            reportNameValuePairs,
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: params.name,
+            policyID: params.policyID,
+            currency: params.currency,
+            file: params.avatarFile as File,
+            shouldAddOnboardingTasks: false,
+        });
     };
 
     const onClose = () => {

@@ -1,7 +1,7 @@
 import deburr from 'lodash/deburr';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import Log from '@libs/Log';
@@ -11,7 +11,7 @@ import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
-import {ReportNameValuePairs} from '@src/types/onyx';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 
 type Options = {
     includeUserToInvite: boolean;

@@ -520,13 +520,13 @@ function getOptionData({
     parentReportAction,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     invoiceReceiverPolicy,
-    allReportNameValuePairs,
+    reportNameValuePairsCollection,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    reportNameValuePairsCollection: OnyxCollection<ReportNameValuePairs>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     lastMessageTextFromReport?: string;
@@ -599,7 +599,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport, allReportNameValuePairs) && !!report.lastActorAccountID;
+    result.isUnread = isUnread(report, oneTransactionThreadReport, reportNameValuePairsCollection) && !!report.lastActorAccountID;
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -608,7 +608,7 @@ function getOptionData({
     result.parentReportID = report.parentReportID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = getReportNotificationPreference(report);
-    result.isAllowedToComment = canUserPerformWriteActionUtil(report, allReportNameValuePairs);
+    result.isAllowedToComment = canUserPerformWriteActionUtil(report, reportNameValuePairsCollection);
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = isSelfDM(report);
@@ -654,7 +654,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, allReportNameValuePairs, lastActorDetails, policy, !!result?.private_isArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, reportNameValuePairsCollection, lastActorDetails, policy, !!result?.private_isArchived);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.

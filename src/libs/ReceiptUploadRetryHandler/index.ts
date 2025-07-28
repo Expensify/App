@@ -1,5 +1,5 @@
-import {OnyxCollection} from 'react-native-onyx';
-import {ReportNameValuePairs} from '@src/types/onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import handleFileRetry from './handleFileRetry';
 

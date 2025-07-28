@@ -376,12 +376,12 @@ Onyx.connect({
     },
 });
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+let allReportNameValuePairs1: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allReportNameValuePairs = value;
+        allReportNameValuePairs1 = value;
     },
 });
 
@@ -427,7 +427,7 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const isWriteActionAllowed = canUserPerformWriteAction(report, allReportNameValuePairs);
+            const isWriteActionAllowed = canUserPerformWriteAction(report, allReportNameValuePairs1);
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.

@@ -1,7 +1,7 @@
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import {ReportNameValuePairs} from '@src/types/onyx';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
 export default function handleFileRetry(

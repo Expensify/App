@@ -1,4 +1,4 @@
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
