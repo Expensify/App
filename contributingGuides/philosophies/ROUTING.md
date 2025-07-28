@@ -37,7 +37,7 @@ Example of the paths taken to manage a workspace member
 1. `workspaces/:policyID/members`
 1. `workspaces/:policyID/members/:memberID`
 
-### - MUST ALWAYS have the route parameters validated
+### - MUST have the route parameters validated
 Since users can edit the route parameters at any time, to any value, the parameters must always be validated to ensure they are correct and the user has access.
 
 ### - MUST NOT start with a slash
