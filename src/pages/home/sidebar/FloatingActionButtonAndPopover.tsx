@@ -391,8 +391,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         quickActionPolicy,
         quickActionReport,
         isValidReport,
-        shouldUseNarrowLayout,
         selectOption,
+        shouldUseNarrowLayout,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
