@@ -2431,8 +2431,8 @@ const styles = (theme: ThemeColors) =>
 
         secondAvatarSubscriptXLarge: {
             position: 'absolute',
-            right: -8,
-            bottom: -8,
+            right: -10,
+            bottom: -10,
         },
 
         secondAvatarSubscriptCompact: {
