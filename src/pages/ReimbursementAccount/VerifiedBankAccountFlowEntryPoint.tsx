@@ -69,9 +69,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Set step for USD flow */
     setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
 
-    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
-
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 };
@@ -91,7 +88,6 @@ function VerifiedBankAccountFlowEntryPoint({
     setNonUSDBankAccountStep,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
-    setShouldShowConnectedVerifiedBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -304,7 +300,6 @@ function VerifiedBankAccountFlowEntryPoint({
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                     setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
-                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 />
             )}
 
