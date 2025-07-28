@@ -1,6 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import useIOUUtils from '@src/hooks/useIOUUtils';
 import ONYXKEYS from '@src/ONYXKEYS';

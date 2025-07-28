@@ -6,7 +6,6 @@ import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
-import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {getReportTransactions} from './ReportUtils';
