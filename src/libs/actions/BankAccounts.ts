@@ -655,9 +655,9 @@ function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalRei
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS,
                 value: {
-                    isFinishingCorpayBankAccountOnboarding: true,
+                    isEnablingGlobalReimbursements: true,
                     errors: null,
                 },
             },
@@ -665,9 +665,9 @@ function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalRei
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS,
                 value: {
-                    isFinishingCorpayBankAccountOnboarding: false,
+                    isEnablingGlobalReimbursements: false,
                     isSuccess: true,
                 },
             },
@@ -675,9 +675,9 @@ function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalRei
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS,
                 value: {
-                    isFinishingCorpayBankAccountOnboarding: false,
+                    isEnablingGlobalReimbursements: false,
                     isSuccess: false,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -686,6 +686,10 @@ function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalRei
     };
 
     return API.write(WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function clearEnableGlobalReimbursementsForUSDBankAccount() {
+    Onyx.merge(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS, {isSuccess: null, isEnablingGlobalReimbursements: null});
 }
 
 function clearCorpayBankAccountFields() {
@@ -1043,4 +1047,6 @@ export {
     clearCorpayBankAccountFields,
     finishCorpayBankAccountOnboarding,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
+    enableGlobalReimbursementsForUSDBankAccount,
+    clearEnableGlobalReimbursementsForUSDBankAccount,
 };

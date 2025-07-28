@@ -634,6 +634,7 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             DOCUSIGN: 'DocusignStep',
         },
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',

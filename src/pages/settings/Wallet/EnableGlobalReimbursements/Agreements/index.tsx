@@ -5,8 +5,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
 type AgreementsProps = {
-    onSubmit: () => void;
+    /** Handles back button press */
     onBackButtonPress: () => void;
+
+    /** Handles submit button press */
+    onSubmit: () => void;
+
+    /** Currency of affiliated policy */
+    policyCurrency: string;
 };
 
 const inputIDs = {
@@ -16,16 +22,16 @@ const inputIDs = {
     authorizedToBindClientToAgreement: INPUT_IDS.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onSubmit, onBackButtonPress}: AgreementsProps) {
+function Agreements({onBackButtonPress, onSubmit, policyCurrency}: AgreementsProps) {
     return (
         <AgreementsFullStep
-            stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
             formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
-            onSubmit={onSubmit}
             inputIDs={inputIDs}
             onBackButtonPress={onBackButtonPress}
-            policyCurrency="USD"
+            onSubmit={onSubmit}
+            policyCurrency={policyCurrency}
             startStepIndex={0}
+            stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
         />
     );
 }

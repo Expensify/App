@@ -27,24 +27,25 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Handles submit button press */
     onSubmit: () => void;
 
+    /** Currency of the policy */
+    policyCurrency: string;
+
     /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */
     startStepIndex: number;
-
-    /** Currency of the policy */
-    policyCurrency: string | undefined;
 };
 
 type AgreementsFullStepSubStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    policyCurrency: string | undefined;
-
     /** The ID of the form */
     formID: TFormID;
 
     /** Input IDs for field in the form */
     inputIDs: AgreementsFullStepProps<TFormID>['inputIDs'];
+
+    /** Currency of affiliated policy */
+    policyCurrency: string;
 };
 
 function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -52,9 +53,9 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     inputIDs,
     onBackButtonPress,
     onSubmit,
+    policyCurrency,
     stepNames,
     startStepIndex,
-    policyCurrency,
 }: AgreementsFullStepProps<TFormID>) {
     const {translate} = useLocalize();
 
@@ -96,8 +97,8 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 formID={formID}
                 inputIDs={inputIDs}
                 isEditing={isEditing}
-                onNext={nextScreen}
                 onMove={moveTo}
+                onNext={nextScreen}
                 policyCurrency={policyCurrency}
             />
         </InteractiveStepWrapper>

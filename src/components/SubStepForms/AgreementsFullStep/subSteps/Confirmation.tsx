@@ -42,8 +42,6 @@ function ConsentToPrivacyNoticeLabel() {
 }
 
 type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    policyCurrency: string | undefined;
-
     /** The ID of the form */
     formID: TFormID;
 
@@ -54,9 +52,12 @@ type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         consentToPrivacyNotice: FormOnyxKeys<TFormID>;
         authorizedToBindClientToAgreement: FormOnyxKeys<TFormID>;
     };
+
+    /** Currency of affiliated policy */
+    policyCurrency: string;
 };
 
-function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({onNext, policyCurrency, formID, inputIDs}: ConfirmationProps<TFormID>) {
+function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({formID, inputIDs, onNext, policyCurrency}: ConfirmationProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

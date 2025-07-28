@@ -5,16 +5,23 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {clearErrors} from '@userActions/FormActions';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import UploadPowerform from './subSteps/UploadPowerform';
 
 type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
+    /** Default value for file upload input */
+    defaultValue: FileObject[];
+
     /** The ID of the form */
     formID: TFormID;
 
     /** ID of the input in the form */
     inputID: FormOnyxKeys<TFormID>;
+
+    /** Indicates that action is being processed */
+    isLoading: boolean;
 
     /** Handles back button press */
     onBackButtonPress: () => void;
@@ -22,34 +29,42 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Handles submit button press */
     onSubmit: () => void;
 
+    /** Currency of the policy */
+    policyCurrency: string;
+
     /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */
     startStepIndex: number;
-
-    /** Currency of the policy */
-    policyCurrency: string | undefined;
 };
 
 type DocusignFullStepStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    policyCurrency: string | undefined;
+    defaultValue: FileObject[];
 
     /** The ID of the form */
     formID: TFormID;
 
     /** ID of the input in the form */
     inputID: FormOnyxKeys<TFormID>;
+
+    /** Indicates that action is being processed */
+    isLoading: boolean;
+
+    /** Currency of the policy */
+    policyCurrency: string;
 };
 
 function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
+    defaultValue,
+    formID,
+    inputID,
+    isLoading,
     onBackButtonPress,
     onSubmit,
-    stepNames,
-    formID,
-    startStepIndex,
     policyCurrency,
-    inputID,
+    startStepIndex,
+    stepNames,
 }: DocusignFullStepProps<TFormID>) {
     const {translate} = useLocalize();
 
@@ -88,11 +103,13 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             startStepIndex={startStepIndex}
         >
             <SubStep
+                defaultValue={defaultValue}
                 formID={formID}
                 inputID={inputID}
+                isLoading={isLoading}
                 isEditing={isEditing}
-                onNext={nextScreen}
                 onMove={moveTo}
+                onNext={nextScreen}
                 policyCurrency={policyCurrency}
             />
         </InteractiveStepWrapper>

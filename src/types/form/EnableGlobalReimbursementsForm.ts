@@ -20,9 +20,8 @@ type EnableGlobalReimbursementsForm = Form<
         [INPUT_IDS.CONSENT_TO_PRIVACY_NOTICE]: boolean;
         [INPUT_IDS.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
         [INPUT_IDS.ACH_AUTHORIZATION_FORM]: FileObject[];
-
     }
->;
+> & {isEnablingGlobalReimbursements?: boolean; isSuccess?: boolean};
 
 export type {EnableGlobalReimbursementsForm};
 export default INPUT_IDS;
