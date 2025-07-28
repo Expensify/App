@@ -32,9 +32,12 @@ type ConfirmationStepProps = {
 
     /** Route to go back to */
     backTo?: Route;
+
+    /** Selected feed */
+    feed: CompanyCardFeed;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -43,7 +46,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
+    const bankName = (assignCard?.data?.bankName as CompanyCardFeed | undefined) ?? feed;
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
@@ -70,8 +73,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
 
-        const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
-        const institutionId = !!getPlaidInstitutionId(feed);
+        const isFeedExpired = isSelectedFeedExpired(bankName ? cardFeeds?.settings?.oAuthAccountDetails?.[bankName] : undefined);
+        const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {
             if (institutionId) {
