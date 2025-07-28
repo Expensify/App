@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {InteractionManager} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
@@ -34,8 +34,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
 
-    const [isUpdatingReport, setIsUpdatingReport] = useState(false);
-
     const handleGoBackWithReportID = (id: string) => {
         if (isEditing) {
             Navigation.dismissModalWithReport({reportID: id});
@@ -43,12 +41,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.goBack(backTo);
         }
     };
-
-    useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            setIsUpdatingReport(false);
-        });
-    }, []);
 
     const handleGlobalCreateReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
@@ -87,26 +79,27 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        setTransactionReport(
-            transaction.transactionID,
-            {
-                reportID: item.value,
-            },
-            !isEditing,
-        );
-
-        if (isEditing) {
-            changeTransactionsReport([transaction.transactionID], item.value);
-        }
 
         handleGoBackWithReportID(item.value);
+        InteractionManager.runAfterInteractions(() => {
+            setTransactionReport(
+                transaction.transactionID,
+                {
+                    reportID: item.value,
+                },
+                !isEditing,
+            );
+
+            if (isEditing) {
+                changeTransactionsReport([transaction.transactionID], item.value);
+            }
+        });
     };
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
-        setIsUpdatingReport(true);
         const isSameReport = item.value === transaction.reportID;
 
         // Early return for same report selection
@@ -142,7 +135,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
-            isUpdating={isUpdatingReport}
         />
     );
 }
