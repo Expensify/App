@@ -257,7 +257,7 @@ type MenuItemBaseProps = {
 
     rightIconAccountID?: number | string;
 
-    iconAccountID?: number | string;
+    iconAccountID?: number;
 
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
@@ -645,6 +645,8 @@ function MenuItem(
         onSecondaryInteraction?.(event);
     };
 
+    const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -703,7 +705,7 @@ function MenuItem(
                                             <View style={[styles.flexColumn, styles.flex1]}>
                                                 {!!label && isLabelHoverable && (
                                                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                                    <View style={[iconReportID || iconAccountID ? styles.mb2 : null, labelStyle]}>
+                                                    <View style={[isIDPassed ? styles.mb2 : null, labelStyle]}>
                                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                             {label}
                                                         </Text>
@@ -711,7 +713,7 @@ function MenuItem(
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                                                    {(!!iconReportID || !!iconAccountID) && (
+                                                    {isIDPassed && (
                                                         <ReportAvatar
                                                             subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
@@ -722,7 +724,7 @@ function MenuItem(
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
                                                             reportID={iconReportID}
-                                                            accountIDs={!!iconAccountID && Number(iconAccountID) > 0 ? [Number(iconAccountID)] : undefined}
+                                                            accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (

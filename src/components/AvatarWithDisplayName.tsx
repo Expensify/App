@@ -224,7 +224,7 @@ function AvatarWithDisplayName({
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
             subscriptAvatarBorderColor={avatarBorderColor}
             size={size}
-            secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)}
             reportID={report?.reportID}
         />
     );

@@ -191,7 +191,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             horizontalStacking={{
                                 displayInRows: true,
                             }}
-                            secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
+                            secondaryAvatarContainerStyle={styles.secondAvatarInline}
                         />
                     </View>
                     <View style={[styles.mb5]}>

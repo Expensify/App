@@ -179,7 +179,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             <MenuItem
                                 label={translate('task.assignee')}
                                 title={getDisplayNameForParticipant({accountID: report.managerID})}
-                                iconAccountID={report.managerID ?? CONST.DEFAULT_NUMBER_ID}
+                                iconAccountID={report.managerID}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALLER}
                                 titleStyle={styles.assigneeTextStyle}
