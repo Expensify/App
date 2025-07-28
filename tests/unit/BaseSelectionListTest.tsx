@@ -132,7 +132,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}500`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}503`)).toBeTruthy();
 
-        // Should not show, Show more button as we rendered whole list and search text was not changed
+        // Should not show, "Show more" button as we rendered whole list and search text was not changed
         expect(screen.queryByText('common.showMore')).toBeFalsy();
     });
 
@@ -162,7 +162,7 @@ describe('BaseSelectionList', () => {
         // Should not show the items from second page
         expect(screen.queryByText(`${CONST.BASE_LIST_ITEM_TEST_ID}502`)).toBeFalsy();
 
-        // Should show, Show more button as current page is reset
+        // Should show, "Show more" button as current page is reset
         expect(screen.getByText('common.showMore')).toBeOnTheScreen();
     });
 });
