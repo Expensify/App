@@ -95,3 +95,4 @@ export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
 export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
 export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
+export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';

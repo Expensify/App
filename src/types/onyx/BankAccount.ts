@@ -28,6 +28,9 @@ type BankAccountAdditionalData = {
 
     /** Is billing card */
     isBillingCard?: boolean;
+
+    /** ID of related policy */
+    policyID?: string;
 };
 
 /** Model of bank account */
