@@ -83,6 +83,12 @@ type ReportActionsViewProps = {
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
+
+    /** The content size height fired on a onScroll event */
+    contentSizeHeight: SharedValue<number>;
+
+    /** The layout measurement height fired on a onScroll event */
+    layoutMeasurementHeight: SharedValue<number>;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -101,6 +107,8 @@ function ReportActionsView({
     composerHeight,
     keyboardHeight,
     isComposerFullSize,
+    contentSizeHeight,
+    layoutMeasurementHeight,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -341,6 +349,8 @@ function ReportActionsView({
                 composerHeight={composerHeight}
                 keyboardHeight={keyboardHeight}
                 isComposerFullSize={isComposerFullSize}
+                contentSizeHeight={contentSizeHeight}
+                layoutMeasurementHeight={layoutMeasurementHeight}
             />
             <UserTypingEventListener report={report} />
         </>

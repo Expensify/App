@@ -7,7 +7,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {AnimatedScrollViewProps, SharedValue} from 'react-native-reanimated';
-import {useAnimatedProps, useAnimatedReaction} from 'react-native-reanimated';
+import {runOnJS, useAnimatedProps, useAnimatedReaction} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -133,6 +133,8 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     }
     return parentReportActions[parentReportActionID];
 }
+
+const ON_SCROLL_TO_LIMITS_THRESHOLD = 0.75;
 
 function MoneyRequestReportActionsList({
     report,
@@ -267,29 +269,8 @@ function MoneyRequestReportActionsList({
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
-
-    // The previous scroll tracking implementation was made via ref. This is
-    // to ensure it will behave the same as before.
-    useAnimatedReaction(
-        () => {
-            return {
-                offsetY: scrollingVerticalOffset.get(),
-
-                csHeight: contentSizeHeight.get(),
-                lmHeight: layoutMeasurementHeight.get(),
-            };
-        },
-        ({offsetY, csHeight, lmHeight}) => {
-            /**
-             * Count the diff between current scroll position and the bottom of the list.
-             * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
-             */
-            scrollingVerticalBottomOffset.current = csHeight - lmHeight - offsetY;
-
-            // We additionally track the top offset to be able to scroll to the new transaction when it's added
-            scrollingVerticalTopOffset.current = offsetY;
-        },
-    );
+    const hasTriggeredStartRef = useRef(false);
+    const hasTriggeredEndRef = useRef(false);
 
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
@@ -316,6 +297,54 @@ function MoneyRequestReportActionsList({
     const onEndReached = useCallback(() => {
         loadNewerChats(false);
     }, [loadNewerChats]);
+
+    // The previous scroll tracking implementation was made via ref. This is
+    // to ensure it will behave the same as before.
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: scrollingVerticalOffset.get(),
+                csHeight: contentSizeHeight.get(),
+                lmHeight: layoutMeasurementHeight.get(),
+            };
+        },
+        ({offsetY, csHeight, lmHeight}) => {
+            /**
+             * Count the diff between current scroll position and the bottom of the list.
+             * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
+             */
+            scrollingVerticalBottomOffset.current = csHeight - lmHeight - offsetY;
+
+            // We additionally track the top offset to be able to scroll to the new transaction when it's added
+            scrollingVerticalTopOffset.current = offsetY;
+
+            // The following implementation is due to ScrollView not supporting onStartReached and onEndReached props
+            const scrollableArea = csHeight - lmHeight;
+
+            if (scrollableArea <= 0) {
+                return;
+            }
+
+            const threshold = scrollableArea * ON_SCROLL_TO_LIMITS_THRESHOLD;
+
+            const hasReachedStartThreshold = offsetY <= threshold;
+            const hasReachedEndThreshold = offsetY >= scrollableArea - threshold;
+
+            if (hasReachedStartThreshold && !hasTriggeredStartRef.current) {
+                hasTriggeredStartRef.current = true;
+                runOnJS(onStartReached)();
+            } else if (!hasReachedStartThreshold) {
+                hasTriggeredStartRef.current = false;
+            }
+
+            if (hasReachedEndThreshold && !hasTriggeredEndRef.current) {
+                hasTriggeredEndRef.current = true;
+                runOnJS(onEndReached)();
+            } else if (!hasReachedEndThreshold) {
+                hasTriggeredEndRef.current = false;
+            }
+        },
+    );
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
@@ -763,10 +792,6 @@ function MoneyRequestReportActionsList({
                         onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={0.75}
-                        onStartReached={onStartReached}
-                        onStartReachedThreshold={0.75}
                         ListHeaderComponent={
                             <>
                                 <MoneyRequestViewReportFields
