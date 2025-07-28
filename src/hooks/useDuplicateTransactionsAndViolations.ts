@@ -57,7 +57,11 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
  * @returns - A collection of transactions related to the transaction IDs and if present, the duplicate transactions.
  */
 
-function selectTransactionsWithDuplicates(transactionIDs: string[], allTransactions: OnyxCollection<Transaction>, duplicateTransactionViolations: OnyxCollection<TransactionViolations>): OnyxCollection<Transaction> {
+function selectTransactionsWithDuplicates(
+    transactionIDs: string[],
+    allTransactions: OnyxCollection<Transaction>,
+    duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
+): OnyxCollection<Transaction> {
     if (!allTransactions) {
         return {};
     }
@@ -94,12 +98,12 @@ function selectTransactionsWithDuplicates(transactionIDs: string[], allTransacti
             });
     }
     return result;
-};
+}
 
 type DuplicateTransactionsAndViolations = {
     duplicateTransactions: OnyxCollection<Transaction>;
     duplicateTransactionViolations: OnyxCollection<TransactionViolations>;
-};  
+};
 
 /**
  * A hook to fetch transactions, their violations and if present, the duplicate transactions and their violations.
@@ -133,6 +137,5 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
         [duplicateTransactions, duplicateTransactionViolations],
     );
 }
-
 
 export default useDuplicateTransactionsAndViolations;

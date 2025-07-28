@@ -279,19 +279,14 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         setIsPopoverVisible(false);
     };
 
-    const [transactionIDs, setTransactionIDs] = useState<string[]>([]);
-
-    useEffect(() => {
-        const reportAction = reportActionRef.current;
-        if (isMoneyRequestAction(reportAction)) {
-            const originalMessage = getOriginalMessage(reportAction);
-            if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
-                setTransactionIDs([originalMessage.IOUTransactionID]);
-                return;
-            }
+    let transactionIDs: string[] = [];
+    if (isMoneyRequestAction(reportActionRef.current)) {
+        const originalMessage = getOriginalMessage(reportActionRef.current);
+        if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
+            transactionIDs.push(originalMessage.IOUTransactionID);
+            return;
         }
-        setTransactionIDs([]);
-    }, [reportActionRef]);
+    }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
 
