@@ -5,7 +5,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
-
 /**
  * Selects violations related to provided transaction IDs and if present, the violations of their duplicates.
  * @param transactionIDs - An array of transaction IDs to fetch their violations for.
