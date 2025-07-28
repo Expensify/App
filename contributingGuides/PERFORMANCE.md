@@ -134,6 +134,61 @@ The profiler is already integrated into our debugging console. See the [App READ
    - Upload the symbolicated profile to [Speedscope](https://www.speedscope.app/)
    - Or use Chrome DevTools Performance tab
 
+### Flashlight
+
+[Flashlight](https://github.com/bamlab/flashlight) is a tool for measuring React Native app performance with quantifiable metrics. It provides automated performance testing and can generate consistent baseline measurements.
+
+#### Installation:
+```bash
+curl https://get.flashlight.dev | bash
+```
+
+#### Prerequisites:
+- Android device
+- USB debugging enabled on the Android device
+  - Go to Settings > Developer options > Enable USB debugging
+  - If Developer options is not visible, go to Settings > About phone and tap "Build number" 7 times
+
+#### Setup and Usage:
+
+1. **Start the Flashlight measurement server:**
+   ```bash
+   flashlight measure
+   ```
+
+2. **Open your app and detect bundle ID:**
+   - Open your React Native app on the connected Android device
+   - Press "Auto Detect" in the opened window
+
+3. **Perform your test actions:**
+   - Press "Start measuring"
+   - Interact with your app: Navigate, scroll, or perform the actions you want to measure
+   - Flashlight will collect performance metrics in real-time
+
+4. **Stop measurement and view results:**
+   - Press "Stop measuring"
+
+You can run the same flow multiple times and record a measurements for each one of them. Once you download the report, you can later see an average results for all the runs.
+
+#### Comparing Results:
+
+Flashlight excels at providing objective performance comparisons:
+
+1. **Run baseline measurements** before making any optimizations
+2. **Save measurement sessions**
+3. **Run measurements after changes** using the same test flow
+4. **Generate comparison report:**
+   ```bash
+   flashlight report baseline.json improvements.json
+   ```
+5. **Analyze deltas** - Flashlight shows performance differences between runs
+
+**Best Practices:**
+- Use consistent test flows across measurements
+- Run multiple iterations for statistical accuracy
+- Test on the same device and build configuration
+- Document what changes were made between measurements
+
 ### React DevTools Profiler
 
 The React DevTools Profiler provides React-specific performance insights and is more streamlined than general JavaScript profilers. It focuses specifically on component rendering performance and can help identify unnecessary re-renders.
