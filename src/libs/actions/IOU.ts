@@ -3100,6 +3100,7 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     currentUserAccountID: number,
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receipt?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -3122,7 +3123,7 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
+        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, reportNameValuePairs, senderWorkspaceID) ?? null;
     }
 
     if (!chatReport) {
@@ -5684,6 +5685,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 function sendInvoice(
     currentUserAccountID: number,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receiptFile?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -5710,7 +5712,18 @@ function sendInvoice(
         createdReportActionIDForThread,
         reportActionID,
         onyxData,
-    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
+    } = getSendInvoiceInformation(
+        transaction,
+        currentUserAccountID,
+        reportNameValuePairs,
+        invoiceChatReport,
+        receiptFile,
+        policy,
+        policyTagList,
+        policyCategories,
+        companyName,
+        companyWebsite,
+    );
 
     const parameters: SendInvoiceParams = {
         createdIOUReportActionID,
@@ -8939,6 +8952,7 @@ function getPayMoneyRequestParams(
     recipient: Participant,
     paymentMethodType: PaymentMethodType,
     full: boolean,
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
@@ -8985,7 +8999,7 @@ function getPayMoneyRequestParams(
     }
 
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
-        const existingB2BInvoiceRoom = getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
+        const existingB2BInvoiceRoom = getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, reportNameValuePairs, chatReport.policyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }
@@ -10359,6 +10373,7 @@ function payInvoice(
     paymentMethodType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
     invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     payAsBusiness = false,
     methodID?: number,
     paymentMethod?: PaymentMethod,
@@ -10380,7 +10395,7 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, reportNameValuePairs, payAsBusiness);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
