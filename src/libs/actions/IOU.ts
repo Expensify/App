@@ -11084,6 +11084,9 @@ function unholdRequest(transactionID: string, reportID: string) {
             value: {
                 pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
+                comment: {
+                    hold: transaction?.comment?.hold,
+                },
             },
         },
         {

@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,6 +90,8 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
     useEffect(() => {
         setSelectedItemIndex(defaultSelectedIndex);
     }, [defaultSelectedIndex]);
+
+    const {paddingBottom} = useSafeAreaPaddings(true);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -283,7 +286,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
-                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     headerText={menuHeaderText}
