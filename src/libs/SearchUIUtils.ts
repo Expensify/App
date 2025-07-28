@@ -1010,7 +1010,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1050,7 +1050,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                    const parentReportNameValuePairs = getReportNameValuePairsFromKey(data, parentReport);
+                    const parentReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`];
                     const isParentReportArchived = isArchivedReport(parentReportNameValuePairs);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                     const parentReportIcon = icons?.at(0);
@@ -1263,12 +1263,13 @@ function getSections(
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data);
+        return getTaskSections(data, reportNameValuePairs);
     }
 
     if (groupBy) {
