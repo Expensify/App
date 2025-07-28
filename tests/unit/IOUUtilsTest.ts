@@ -460,37 +460,3 @@ describe('Check valid amount for IOU/Expense request', () => {
         expect(unreportedAmount).toBeLessThan(0);
     });
 });
-
-describe('shouldStartLocationPermissionFlow', () => {
-    const now = new Date();
-    const daysAgo = (days: number) => {
-        const d = new Date(now);
-        d.setDate(d.getDate() - days);
-        return d.toISOString();
-    };
-
-    test('returns true if lastLocationPermissionPrompt is undefined', () => {
-        expect(IOUUtils.shouldStartLocationPermissionFlow(undefined)).toBe(true);
-    });
-
-    test('returns true if lastLocationPermissionPrompt is empty string', () => {
-        expect(IOUUtils.shouldStartLocationPermissionFlow('')).toBe(true);
-    });
-
-    test('returns false if lastLocationPermissionPrompt is a valid date string within threshold', () => {
-        // Use a date string less than threshold days ago
-        const recentDate = daysAgo(CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS - 1);
-        expect(IOUUtils.shouldStartLocationPermissionFlow(recentDate)).toBe(false);
-    });
-
-    test('returns true if lastLocationPermissionPrompt is a valid date string outside threshold', () => {
-        // Use a date string more than threshold days ago
-        const oldDate = daysAgo(CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS + 1);
-        expect(IOUUtils.shouldStartLocationPermissionFlow(oldDate)).toBe(true);
-    });
-
-    test('returns false if lastLocationPermissionPrompt is an invalid date string', () => {
-        // Should not start flow if the string is not a valid date
-        expect(IOUUtils.shouldStartLocationPermissionFlow('not-a-date')).toBe(false);
-    });
-});
