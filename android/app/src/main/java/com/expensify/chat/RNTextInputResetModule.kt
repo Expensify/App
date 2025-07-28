@@ -1,17 +1,16 @@
 package com.expensify.chat;
 
+import android.content.Context;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.uimanager.util.ReactFindViewUtil;
 
-import android.content.Context;
-import android.os.Build
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import androidx.annotation.RequiresApi
-
-class RNTextInputResetModule(private val reactContext: ReactApplicationContext): ReactContextBaseJavaModule(reactContext) {
+class RNTextInputResetModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(
+    reactContext
+) {
     override fun getName(): String = "RNTextInputReset"
 
     // Props to https://github.com/MattFoley for this temporary hack
@@ -19,7 +18,9 @@ class RNTextInputResetModule(private val reactContext: ReactApplicationContext):
     @ReactMethod
     fun resetKeyboardInput(nativeId: String) {
         reactContext.runOnUiQueueThread {
-            val imm = reactApplicationContext.baseContext.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            val imm = reactApplicationContext.baseContext.getSystemService(
+                Context.INPUT_METHOD_SERVICE
+            ) as? InputMethodManager
 
             val reactNativeView = currentActivity?.findViewById<View>(android.R.id.content)
             val viewToReset = reactNativeView?.let { ReactFindViewUtil.findView(it, nativeId) }
