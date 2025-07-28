@@ -18,8 +18,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-TestHelper.setupGlobalFetchMock();
-
+jest.mock('axios');
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.UPGRADE, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.UPGRADE]) => {
@@ -43,7 +42,8 @@ describe('WorkspaceUpgrade', () => {
         });
     });
 
-    afterEach(async () => {
+    beforeEach(async () => {
+        TestHelper.setupGlobalAxiosMock();
         await waitForIdle();
         await act(async () => {
             await Onyx.clear();
@@ -66,14 +66,14 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then "Upgrade to Corporate" API request should be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, 1);
 
         // When WorkspaceUpgradePage is unmounted
         unmount();
         await waitForBatchedUpdates();
 
         // Then "Set policy rules enabled" API request should be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, 1);
     });
 
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {

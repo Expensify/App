@@ -25,9 +25,10 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('axios');
 
 TestHelper.setupApp();
-const fetchMock = TestHelper.setupGlobalFetchMock();
+const axiosMock = TestHelper.setupGlobalAxiosMock();
 
 const LIST_SIZE = {
     width: 300,
@@ -129,7 +130,7 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+    axiosMock.mockAPICommand('OpenReport', ({reportID}) => {
         const comments = buildReportComments(messageCount, initialID);
         return {
             onyxData:
@@ -149,7 +150,7 @@ function mockOpenReport(messageCount: number, initialID: string) {
 }
 
 function mockGetOlderActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) => {
+    axiosMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) => {
         // The API also returns the action that was requested with the reportActionID.
         const comments = buildReportComments(messageCount + 1, reportActionID);
         return {
@@ -169,7 +170,7 @@ function mockGetOlderActions(messageCount: number) {
 }
 
 function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
+    axiosMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
         onyxData:
             reportID === REPORT_ID
                 ? [
@@ -260,7 +261,7 @@ async function signInAndGetApp(): Promise<void> {
 }
 
 describe('Pagination', () => {
-    afterEach(async () => {
+    beforeEach(async () => {
         await waitForIdle();
         await act(async () => {
             await Onyx.clear();
@@ -281,10 +282,10 @@ describe('Pagination', () => {
         await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(5);
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetNewerActions', 0);
 
         // Scrolling here should not trigger a new network request.
         scrollToOffset(LIST_CONTENT_SIZE.height);
@@ -292,9 +293,9 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetNewerActions', 0);
     });
 
     it('opens a chat and load older messages', async () => {
@@ -305,19 +306,19 @@ describe('Pagination', () => {
         await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT);
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetNewerActions', 0);
 
         // Scrolling here should trigger a new network request.
         scrollToOffset(LIST_CONTENT_SIZE.height);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetNewerActions', 0);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -349,10 +350,10 @@ describe('Pagination', () => {
         expect(getReportActions()).toHaveLength(10);
 
         // There is 1 extra call here because of the comment linking report.
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAxiosCommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);
@@ -360,9 +361,9 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetNewerActions', 1);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
@@ -375,9 +376,9 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled('GetNewerActions', 1);
 
         // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);

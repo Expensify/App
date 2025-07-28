@@ -18,14 +18,14 @@ import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
-import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
+import {getAxiosMockCalls, setupGlobalAxiosMock, signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const Stack = createPlatformStackNavigator<AuthScreensParamList>();
 
-setupGlobalFetchMock();
+jest.mock('axios');
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -152,7 +152,7 @@ describe('ReportAttachments', () => {
         });
     });
     beforeEach(async () => {
-        global.fetch = getGlobalFetchMock();
+        setupGlobalAxiosMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
 
@@ -207,8 +207,8 @@ describe('ReportAttachments', () => {
         renderPage(SCREENS.ATTACHMENTS, params);
         await waitForBatchedUpdates();
 
-        const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
-            const body = request[1]?.body;
+        const openReportRequest = getAxiosMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
+            const body = request[0]?.data;
             const requestParams = body instanceof FormData ? Object.fromEntries(body) : {};
             return requestParams?.reportID === params.reportID;
         });

@@ -17,7 +17,9 @@ import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
+
+jest.mock('axios');
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -34,17 +36,16 @@ describe('actions/Policy', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         IntlStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createWorkspace', () => {
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
         });
 
         it('creates a new workspace', async () => {
@@ -553,7 +554,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, fakeReimbursementAccount);
 
             // When deleting a workspace fails
-            mockFetch?.fail?.();
+            mockAxios?.fail?.();
             Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name);
 
             await waitForBatchedUpdates();

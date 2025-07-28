@@ -6,8 +6,10 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('axios');
 
 OnyxUpdateManager();
 describe('actions/PolicyProfile', () => {
@@ -17,21 +19,19 @@ describe('actions/PolicyProfile', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('updateWorkspaceDescription', () => {
         it('Update workspace`s description', async () => {
             const fakePolicy = createRandomPolicy(0);
-
             const oldDescription = fakePolicy.description ?? '';
             const newDescription = 'Updated description';
             const parsedDescription = ReportUtils.getParsedComment(newDescription);
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Policy.updateWorkspaceDescription(fakePolicy.id, newDescription, oldDescription);
             await waitForBatchedUpdates();
@@ -49,7 +49,7 @@ describe('actions/PolicyProfile', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({

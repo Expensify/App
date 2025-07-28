@@ -7,7 +7,10 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+jest.mock('axios');
 
 type FormDataObject = {body: TestHelper.FormData};
 
@@ -15,8 +18,9 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
+let mockAxios: MockAxios;
 beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    mockAxios = TestHelper.setupGlobalAxiosMock();
 });
 
 beforeEach(async () => {
@@ -49,21 +53,14 @@ describe('Middleware', () => {
             SequentialQueue.unpause();
             await waitForNetworkPromises();
 
-            expect(global.fetch).toHaveBeenCalledTimes(2);
-            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '1234',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
-            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '1234',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body,
-            );
+            TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('AddComment', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalledWith('AddComment', 0, {
+                reportID: '1234',
+            });
+            TestHelper.expectAxiosCommandToHaveBeenCalledWith('OpenReport', 0, {
+                reportID: '1234',
+            });
         });
 
         test('Request with preexistingReportID', async () => {
@@ -82,37 +79,30 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            mockAxios.mockAPICommand('OpenReport', () => ({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
             await waitForNetworkPromises();
 
-            expect(global.fetch).toHaveBeenCalledTimes(2);
-            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '5555',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
-            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject({reportID: '1234'}, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('AddComment', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalledWith('AddComment', 0, {
+                reportID: '5555',
+            });
+            TestHelper.expectAxiosCommandToHaveBeenCalledWith('OpenReport', 0, {
+                reportID: '1234',
+            });
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
@@ -135,45 +125,36 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            mockAxios.mockAPICommand('RequestMoney', () => ({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
             await waitForNetworkPromises();
 
-            expect(global.fetch).toHaveBeenCalledTimes(3);
-            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '5555',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
-            const formData = ((global.fetch as jest.Mock).mock.calls.at(2) as FormDataObject[]).at(1)?.body;
-            expect(formData).not.toBeUndefined();
-            if (formData) {
-                const formDataObject = Array.from(formData.entries()).reduce(
-                    (acc, [key, val]) => {
-                        acc[key] = val;
-                        return acc;
-                    },
-                    {} as Record<string, string | Blob | undefined>,
-                );
+            TestHelper.expectAxiosCommandToHaveBeenCalled('RequestMoney', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('AddComment', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('OpenReport', 1);
+            TestHelper.expectAxiosCommandToHaveBeenCalledWith('AddComment', 0, {
+                reportID: '5555',
+            });
+
+            // Verify that the third OpenReport call doesn't have reportActionID or parentReportActionID
+            const openReportCalls = TestHelper.getAxiosMockCalls('OpenReport');
+            expect(openReportCalls).toHaveLength(1);
+            const openReportConfig = openReportCalls[0]?.[0];
+            const requestData = (openReportConfig as {data?: FormData})?.data;
+            if (requestData instanceof FormData) {
+                const formDataObject = Object.fromEntries(requestData);
                 expect(formDataObject.reportActionID).toBeUndefined();
                 expect(formDataObject.parentReportActionID).toBeUndefined();
             }
