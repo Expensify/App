@@ -285,9 +285,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 updatedWorkflows.forEach((workflow) => {
                     if (workflow?.removeApprovalWorkflow) {
                         const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                        removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                        removeApprovalWorkflowAction(updatedWorkflow, policy);
                     } else {
-                        updateApprovalWorkflow(policyID, workflow, [], []);
+                        updateApprovalWorkflow(workflow, [], [], policy);
                     }
                 });
             });

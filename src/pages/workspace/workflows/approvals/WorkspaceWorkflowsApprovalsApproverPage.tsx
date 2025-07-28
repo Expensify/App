@@ -194,10 +194,12 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     displayName,
                 },
                 approverIndex,
-                route.params.policyID,
+                approvalWorkflow,
+                policy,
+                personalDetails,
             );
         } else {
-            clearApprovalWorkflowApprover(approverIndex);
+            clearApprovalWorkflowApprover(approverIndex, approvalWorkflow);
         }
 
         if (isInitialCreationFlow) {
@@ -205,7 +207,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         } else {
             goBack();
         }
-    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack]);
+    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack, approvalWorkflow]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');

@@ -46,9 +46,9 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        Workflow.createApprovalWorkflow(route.params.policyID, approvalWorkflow);
+        Workflow.createApprovalWorkflow(approvalWorkflow, policy);
         Navigation.dismissModal();
-    }, [approvalWorkflow, route.params.policyID]);
+    }, [approvalWorkflow, policy]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

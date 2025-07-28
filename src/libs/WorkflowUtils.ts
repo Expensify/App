@@ -1,4 +1,5 @@
 import lodashMapKeys from 'lodash/mapKeys';
+import {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -26,7 +27,7 @@ type GetApproversParams = {
     /**
      * Personal details of the employees where the key is the email
      */
-    personalDetailsByEmail: PersonalDetailsList;
+    personalDetailsByEmail: OnyxEntry<PersonalDetailsList>;
 
     /**
      * Email of the first approver
@@ -50,8 +51,8 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
         approvers.push({
             email: nextEmail,
             forwardsTo: employees[nextEmail].forwardsTo,
-            avatar: personalDetailsByEmail[nextEmail]?.avatar,
-            displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
+            avatar: personalDetailsByEmail?.[nextEmail]?.avatar,
+            displayName: personalDetailsByEmail?.[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
         });
 
