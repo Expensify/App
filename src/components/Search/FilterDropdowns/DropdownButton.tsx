@@ -36,7 +36,7 @@ const PADDING_MODAL = 8;
 
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: DropdownButtonProps) {
