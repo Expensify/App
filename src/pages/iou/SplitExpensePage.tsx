@@ -14,6 +14,7 @@ import SplitListItem from '@components/SelectionList/SplitListItem';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
@@ -24,6 +25,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
@@ -52,6 +54,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+
+    const policy = usePolicy(report?.policyID);
+    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -144,10 +150,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
             const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
-            const report = getReportOrDraftReport(currentTransaction?.reportID) as Report;
-            const isApproved = isReportApproved({report});
-            const isSettled = isSettledReportUtils(report?.reportID);
-            const isCancelled = report && report?.isCancelledIOU;
+            const currentReport = getReportOrDraftReport(currentTransaction?.reportID) as Report;
+            const isApproved = isReportApproved({report: currentReport});
+            const isSettled = isSettledReportUtils(currentReport?.reportID);
+            const isCancelled = currentReport && currentReport?.isCancelledIOU;
 
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
@@ -254,7 +260,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction)}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.split')}
