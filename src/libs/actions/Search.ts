@@ -371,7 +371,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     const approveActionSuggestedSearches: Partial<SearchKey[]> = [
         CONST.SEARCH.SEARCH_KEYS.APPROVE,
         CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
     ];
 
     const successData: OnyxUpdate[] = approveActionSuggestedSearches.includes(currentSearchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
