@@ -28,31 +28,26 @@ function UserInfoAndActionButtonRow({
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                {shouldShowUserInfo && (
-                    <UserInfoCellsWithArrow
-                        shouldShowToRecipient={shouldShowToRecipient}
-                        participantFrom={item?.from}
-                        participantFromDisplayName={participantFromDisplayName}
-                        participantToDisplayName={participantToDisplayName}
-                        participantTo={item?.to}
-                        avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                        infoCellsAvatarStyle={styles.pr1}
-                        fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
-                    />
-                )}
-            </View>
+            {shouldShowUserInfo && (
+                <UserInfoCellsWithArrow
+                    shouldShowToRecipient={shouldShowToRecipient}
+                    participantFrom={item?.from}
+                    participantFromDisplayName={participantFromDisplayName}
+                    participantToDisplayName={participantToDisplayName}
+                    participantTo={item?.to}
+                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                    infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                    infoCellsAvatarStyle={styles.pr1}
+                    fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                />
+            )}
             <View style={[{width: variables.w80}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={item.isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={(item as TransactionListItemType)?.amount}
                 />
             </View>
         </View>

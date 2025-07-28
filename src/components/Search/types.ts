@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -52,7 +52,7 @@ type SelectedReports = {
 type PaymentData = {
     reportID: string;
     amount: number;
-    paymentType: PaymentMethodType;
+    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
@@ -78,6 +78,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
+    currentSearchKey: SuggestedSearchKey | undefined;
     setCurrentSearchHash: (hash: number) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {

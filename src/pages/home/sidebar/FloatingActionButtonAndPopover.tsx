@@ -206,6 +206,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         [quickActionReport?.policyID],
     );
 
+    const startScan = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                setModalVisible(true);
+                return;
+            }
+
+            // Start the scan flow directly
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false);
+        });
+    }, [shouldRedirectToExpensifyClassic]);
+
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
@@ -512,7 +524,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   if (
                                       introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
                                       introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+                                      (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                                   ) {
                                       completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
                                       Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -589,6 +602,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isActive={isCreateMenuActive}
                 ref={fabRef}
                 onPress={toggleCreateMenu}
+                onLongPress={startScan}
             />
         </View>
     );
