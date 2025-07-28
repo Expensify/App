@@ -727,7 +727,7 @@ function MoneyRequestReportPreviewContent({
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
                                             />
-                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview/>}
+                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview />}
                                         </View>
                                     )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
