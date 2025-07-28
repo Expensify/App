@@ -1,11 +1,11 @@
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import getPlatform from '@libs/getPlatform';
 import type {GoogleSignInProps} from '.';
 import type GoogleError from './types';
 
@@ -17,9 +17,7 @@ function getWebClientId() {
         return CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID;
     }
 
-    return getPlatform() === CONST.PLATFORM.ANDROID
-        ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.WEB_CLIENT_ID.ANDROID
-        : CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.WEB_CLIENT_ID.IOS;
+    return getPlatform() === CONST.PLATFORM.ANDROID ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.WEB_CLIENT_ID.ANDROID : CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.WEB_CLIENT_ID.IOS;
 }
 
 /**
