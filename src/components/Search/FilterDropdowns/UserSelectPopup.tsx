@@ -89,7 +89,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 includeCurrentUser: true,
             },
         );
-    }, [options.reports, options.personalDetails, selectedOptions]);
+    }, [options.reports, options.personalDetails]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, {
@@ -125,7 +125,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         });
 
         return [...personalDetailList, ...recentReportsList];
-    }, [filteredOptions, selectedOptions, accountID]);
+    }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
