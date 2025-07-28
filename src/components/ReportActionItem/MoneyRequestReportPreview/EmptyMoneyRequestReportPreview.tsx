@@ -4,6 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,11 +12,12 @@ function EmptyMoneyRequestReportPreview() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <View style={[styles.alignItemsCenter, styles.highlightBG, styles.ml0, styles.mr0, styles.gap4, styles.reportContainerBorderRadius]}>
             <View style={[styles.emptyStateMoneyRequestPreviewReport, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={[styles.m1, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap4]}>
+                <View style={[{width: shouldUseNarrowLayout ? '100%' : 303}, styles.m1, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap4]}>
                     <ImageSVG
                         fill={theme.border}
                         height={64}

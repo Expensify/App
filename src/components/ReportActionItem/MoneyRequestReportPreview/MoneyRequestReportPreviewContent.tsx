@@ -110,7 +110,9 @@ function MoneyRequestReportPreviewContent({
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
-    const shouldShowEmptyPlaceholder = transactions.length === 0;
+    const shouldShowSkeleton = shouldShowLoading && transactions.length === 0;
+    const shouldShowEmptyPlaceholder = transactions.length === 0 && !shouldShowLoading;
+    const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -576,10 +578,7 @@ function MoneyRequestReportPreviewContent({
     }, [carouselTransactions.length]);
 
     return (
-        <View
-            onLayout={onWrapperLayout}
-            testID="MoneyRequestReportPreviewContent-wrapper"
-        >
+        <View onLayout={onWrapperLayout}>
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}
                 shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
@@ -636,10 +635,10 @@ function MoneyRequestReportPreviewContent({
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
-                                                {shouldShowEmptyPlaceholder ? (
+                                                {showStatusAndSkeleton && shouldShowSkeleton ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
+                                                    !shouldShowEmptyPlaceholder && <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
                                                         {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
                                                         <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
                                                     </View>
@@ -727,7 +726,7 @@ function MoneyRequestReportPreviewContent({
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
                                             />
-                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview />}
+                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview/>}
                                         </View>
                                     )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
