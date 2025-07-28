@@ -97,6 +97,7 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
     // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.
@@ -305,7 +306,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -394,7 +395,6 @@ function IOURequestStepDistance({
         transaction,
         backTo,
         report,
-        reportID,
         reportNameValuePairs,
         iouType,
         activePolicy,
@@ -402,6 +402,7 @@ function IOURequestStepDistance({
         shouldSkipConfirmation,
         transactionID,
         personalDetails,
+        reportAttributesDerived,
         translate,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
@@ -410,6 +411,7 @@ function IOURequestStepDistance({
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
+        reportID,
     ]);
 
     const getError = () => {

@@ -48,17 +48,20 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportNameValuePairs));
+            const report = getSelectedOptionData(
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportNameValuePairs, reportAttributesDerived),
+            );
             const alternateText = getAlternateText(report, {});
             return {...report, alternateText};
         });
-    }, [personalDetails, reports, selectedReportIDs]);
+    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -88,6 +91,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             chatOptions.personalDetails,
             personalDetails,
             false,
+            undefined,
+            reportAttributesDerived,
         );
 
         newSections.push(formattedResults.section);
@@ -116,6 +121,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         cleanSearchTerm,
         didScreenTransitionEnd,
         personalDetails,
+        reportAttributesDerived,
         selectedOptions,
         selectedReportIDs,
         translate,

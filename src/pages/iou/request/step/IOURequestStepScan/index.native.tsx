@@ -110,6 +110,7 @@ function IOURequestStepScan({
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
@@ -391,7 +392,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -496,6 +497,7 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             shouldSkipConfirmation,
             personalDetails,
+            reportAttributesDerived,
             createTransaction,
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,

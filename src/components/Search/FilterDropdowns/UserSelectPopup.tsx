@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import memoize from '@libs/memoize';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -21,6 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function getSelectedOptionData(option: Option) {
     return {...option, reportID: `${option.reportID}`, selected: true};
 }
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 type UserSelectPopupProps = {
     /** The currently selected users */
@@ -64,29 +67,30 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
-    // Get a list of all options/personal details and filter them by the current search term
-    const listData = useMemo(() => {
-        const optionsList = getValidOptions(
+    const optionsList = useMemo(() => {
+        return memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             reportNameValuePairs,
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelectedOptions: true,
                 includeCurrentUser: true,
             },
         );
+    }, [options.reports, options.personalDetails]);
 
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, reportNameValuePairs, {
+    const filteredOptions = useMemo(() => {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, reportNameValuePairs, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
+    }, [optionsList, cleanSearchTerm]);
 
-        const personalDetailList = filteredOptionsList
+    const listData = useMemo(() => {
+        const personalDetailList = filteredOptions.personalDetails
             .map((participant) => ({
                 ...participant,
                 isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
@@ -102,8 +106,16 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 return 0;
             });
 
-        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
+        const recentReportsList = filteredOptions.recentReports.map((report) => {
+            const isSelected = selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID);
+            return {
+                ...report,
+                isSelected,
+            };
+        });
+
+        return [...personalDetailList, ...recentReportsList];
+    }, [filteredOptions, selectedOptions, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [

@@ -82,6 +82,7 @@ function IOURequestStepAmount({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -178,7 +179,7 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

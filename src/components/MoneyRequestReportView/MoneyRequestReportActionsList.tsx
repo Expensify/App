@@ -12,7 +12,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -45,7 +44,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -142,20 +141,13 @@ function MoneyRequestReportActionsList({
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
-    const personalDetails = usePersonalDetails();
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const canPerformWriteAction = canUserPerformWriteAction(report, reportNameValuePairs);
 
@@ -480,12 +472,6 @@ function MoneyRequestReportActionsList({
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
-            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
-            const originalReportID = getOriginalReportID(report.reportID, reportAction);
-            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
-            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
-
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
@@ -504,12 +490,6 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    userWallet={userWallet}
-                    isUserValidated={isUserValidated}
-                    personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
-                    emojiReactions={actionEmojiReactions}
-                    draftMessage={matchingDraftMessageString}
                 />
             );
         },
@@ -525,12 +505,6 @@ function MoneyRequestReportActionsList({
             linkedReportActionID,
             allReports,
             policies,
-            userWallet,
-            isUserValidated,
-            personalDetails,
-            userBillingFundID,
-            emojiReactions,
-            draftMessage,
         ],
     );
 
@@ -538,7 +512,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID);
+            openReport(report.reportID, reportNameValuePairs);
             reportScrollManager.scrollToEnd();
             return;
         }
