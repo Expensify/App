@@ -79,7 +79,7 @@ describe('SidebarUtils', () => {
                 report,
                 reportAttributes: undefined,
                 personalDetails,
-                allReportNameValuePairs: reportNameValuePairs,
+                reportNameValuePairsCollection: reportNameValuePairs,
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,

@@ -323,7 +323,7 @@ describe('actions/Policy', () => {
         it('create a new workspace with delayed submission set to manually if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
-            Policy.createWorkspace({policyOwnerEmail: ESH_EMAIL, makeMeAdmin: true, policyName: WORKSPACE_NAME, policyID: undefined, engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            Policy.createWorkspace({policyOwnerEmail: ESH_EMAIL, makeMeAdmin: true, policyName: WORKSPACE_NAME, policyID, engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
@@ -358,7 +358,7 @@ describe('actions/Policy', () => {
         it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
-            Policy.createWorkspace({policyOwnerEmail: ESH_EMAIL, makeMeAdmin: true, policyName: WORKSPACE_NAME, policyID: undefined, engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            Policy.createWorkspace({policyOwnerEmail: ESH_EMAIL, makeMeAdmin: true, policyName: WORKSPACE_NAME, policyID, engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({

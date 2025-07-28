@@ -49,7 +49,7 @@ function OptionRowLHNData({
             oneTransactionThreadReport,
             reportNameValuePairs,
             personalDetails,
-            allReportNameValuePairs,
+            reportNameValuePairsCollection: allReportNameValuePairs,
             policy,
             parentReportAction,
             lastMessageTextFromReport,

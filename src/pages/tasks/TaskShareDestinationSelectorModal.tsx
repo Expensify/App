@@ -11,13 +11,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActions from '@libs/actions/Report';
+import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Task from '@userActions/Task';
+import {filterAndOrderOptions, getHeaderMessage, getShareDestinationOptions, SearchOption} from '@libs/OptionsListUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, OptionData} from '@libs/ReportUtils';
+import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,20 +25,20 @@ import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
-    const optionItem = option as ReportUtils.OptionData;
+    const optionItem = option as OptionData;
 
     if (!optionItem || !optionItem?.reportID) {
         return;
     }
 
-    Task.setShareDestinationValue(optionItem?.reportID);
+    setShareDestinationValue(optionItem?.reportID);
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
-    (reportOptions ?? []).reduce((filtered: Array<OptionsListUtils.SearchOption<Report>>, option) => {
+const reportFilter = (reportOptions: Array<SearchOption<Report>>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
+    (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        if (ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+        if (canUserPerformWriteAction(report, reportNameValuePairs) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
         return filtered;
@@ -50,7 +50,7 @@ function TaskShareDestinationSelectorModal() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -69,8 +69,8 @@ function TaskShareDestinationSelectorModal() {
             };
         }
         const filteredReports = reportFilter(optionList.reports, reportNameValuePairs);
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(reportNameValuePairs, filteredReports, optionList.personalDetails, [], [], {}, true);
-        const header = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
+        const {recentReports} = getShareDestinationOptions(reportNameValuePairs, filteredReports, optionList.personalDetails, [], [], {}, true);
+        const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
             recentReports,
             personalDetails: [],
@@ -84,11 +84,11 @@ function TaskShareDestinationSelectorModal() {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredReports = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), reportNameValuePairs, {
+        const filteredReports = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), reportNameValuePairs, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             canInviteUser: false,
         });
-        const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
+        const header = getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
     }, [debouncedSearchValue, defaultOptions]);
 
@@ -114,7 +114,7 @@ function TaskShareDestinationSelectorModal() {
     );
 
     useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchValue);
+        searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
 
     return (
