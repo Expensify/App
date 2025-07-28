@@ -68,15 +68,6 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
-
-    /** The number of results */
-    count?: number;
-
-    /** The total spend */
-    total?: number;
-
-    /** The currency of the total spend */
-    currency?: string;
 };
 
 /** Model of personal details search result */
@@ -524,5 +515,4 @@ export type {
     SearchReportAction,
     SearchPolicy,
     SearchCard,
-    SearchResultsInfo,
 };
