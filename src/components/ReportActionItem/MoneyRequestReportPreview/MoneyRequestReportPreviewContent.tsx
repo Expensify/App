@@ -189,7 +189,7 @@ function MoneyRequestReportPreviewContent({
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
-        const isOwnAndReportHasBeenRetracted = hasReportBeenReopened && isReportOwner(iouReport) || hasReportBeenRetracted && isReportOwner(iouReport);
+        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && (hasReportBeenRetracted || hasReportBeenReopened);
         return isOwnAndReportHasBeenReopened || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
     }, [chatReport, policy, hasReportBeenReopened, hasReportBeenRetracted, iouReport]);
 
