@@ -1056,7 +1056,7 @@ const translations = {
         canceled: 'Annullato',
         posted: 'Pubblicato',
         deleteReceipt: 'Elimina ricevuta',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa in questo rapporto, ${merchant} - ${amount}`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa in questo rapporto (${merchant} - ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
@@ -6325,8 +6325,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',

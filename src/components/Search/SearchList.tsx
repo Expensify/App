@@ -464,7 +464,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={[focusedIndex, columns]}
+                extraData={[focusedIndex, isFocused, columns]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}

@@ -7,6 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -69,7 +70,6 @@ import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
@@ -200,7 +200,7 @@ import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';
-import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
+import {addMembersToWorkspace, buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
 import {createPolicyExpenseChats} from './Policy/Policy';
 import {
     createUpdateCommentMatcher,
@@ -1357,14 +1357,20 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     if (shouldDismissModal) {
-        if (getIsNarrowLayout() && report?.reportID) {
-            Navigation.dismissModalWithReport({reportID: report.reportID});
-            return;
-        }
+        Navigation.onModalDismissedOnce(() => {
+            Navigation.onModalDismissedOnce(() => {
+                if (!report?.reportID) {
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            });
+        });
 
         Navigation.dismissModal();
+    } else if (report?.reportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
-
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID)));
@@ -3698,7 +3704,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     navigateToMostRecentReport(report);
 }
 
-function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportMetadata = getReportMetadata(reportID);
     const isGroupChat = isGroupChatReportUtils(report);
@@ -3724,7 +3730,7 @@ function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: 
         {...report?.participants},
     );
 
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
     const pendingChatMembers = getPendingChatMembers(inviteeAccountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const newParticipantAccountCleanUp = newAccountIDs.reduce<Record<number, null>>((participantCleanUp, newAccountID) => {
@@ -3797,8 +3803,8 @@ function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: 
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs);
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs, formatPhoneNumber);
 
     if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
@@ -3878,8 +3884,8 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 }
 
 /** Invites people to a group chat */
-function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    inviteToRoom(reportID, inviteeEmailsToAccountIDs);
+function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    inviteToRoom(reportID, inviteeEmailsToAccountIDs, formatPhoneNumber);
 }
 
 /** Removes people from a room
@@ -4346,10 +4352,37 @@ function clearNewRoomFormError() {
 function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
-    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
+    policy?: OnyxEntry<Policy>,
 ) {
+    if (!reportAction || !reportID) {
+        return;
+    }
+
+    if (ReportActionsUtils.isActionableMentionWhisper(reportAction) && resolution === CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE) {
+        const actionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+
+        const policyID = policy?.id;
+
+        if (actionOriginalMessage && policyID) {
+            const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
+            const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
+            const welcomeNote = Localize.translateLocal('workspace.common.welcomeNote');
+            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+            addMembersToWorkspace(
+                {
+                    [`${actionOriginalMessage.inviteeEmails?.at(0)}`]: actionOriginalMessage.inviteeAccountIDs?.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                },
+                `${welcomeNoteSubject}\n\n${welcomeNote}`,
+                policyID,
+                policyMemberAccountIDs,
+                CONST.POLICY.ROLE.USER,
+            );
+        }
+    }
+
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction || !reportID) {
+    if (!message) {
         return;
     }
 
@@ -4421,6 +4454,14 @@ function resolveActionableMentionWhisper(
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
+}
+
+function resolveActionableMentionConfirmWhisper(
+    reportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
+) {
+    resolveActionableMentionWhisper(reportID, reportAction, resolution);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -5165,7 +5206,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
  * @param reportID - The ID of the IOU report to move
  * @param policyID - The ID of the policy to move the report to
  */
-function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string) {
+function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -5207,7 +5248,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
 
     // Get personal details onyx data (similar to addMembersToWorkspace)
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID]);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     // Build announce room members data for the new member
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
@@ -5729,7 +5770,7 @@ function changeReportPolicy(report: Report, policyID: string, reportNextStep?: R
 /**
  * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
-function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined) {
+function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     if (!report.reportID || !policyID || report.policyID === policyID || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
     }
@@ -5745,6 +5786,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         policyID,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
+        formatPhoneNumber,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
@@ -5870,6 +5912,7 @@ export {
     removeFromGroupChat,
     removeFromRoom,
     resolveActionableMentionWhisper,
+    resolveActionableMentionConfirmWhisper,
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     savePrivateNotesDraft,

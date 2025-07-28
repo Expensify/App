@@ -1060,7 +1060,7 @@ const translations = {
         canceled: 'Annulé',
         posted: 'Publié',
         deleteReceipt: 'Supprimer le reçu',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense sur ce rapport, ${merchant} - ${amount}`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense sur ce rapport (${merchant} - ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
@@ -6321,7 +6321,8 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitez-les',
+        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
+        inviteToChat: 'Inviter uniquement à discuter',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
