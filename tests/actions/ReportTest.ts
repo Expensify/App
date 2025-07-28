@@ -22,6 +22,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
@@ -1536,6 +1537,16 @@ describe('actions/Report', () => {
         const accountID = 1234;
         const policyID = '5678';
         const mockFetchData = fetch as MockFetch;
+        // Given a policy with harvesting is disabled
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
         const reportID = Report.createNewReport({accountID}, policyID);
@@ -1600,9 +1611,44 @@ describe('actions/Report', () => {
                 waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
-
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
-                    // assert correctness of crucial onyx data
+                    expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
+
+                    resolve();
+                },
+            });
+        });
+    });
+
+    it('should not optimistic outstandingChildRequest when create report with harvesting is enabled', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        // Given a policy with harvesting is enabled
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            harvesting: {
+                enabled: true,
+            },
+        };
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+        if (parentReport?.reportID) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`, parentReport);
+        }
+
+        // When create new report
+        Report.createNewReport({accountID}, policyID);
+
+        // Then the parent report's hasOutstandingChildRequest property should remain unchanged
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    Onyx.disconnect(connection);
+                    const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
 
                     resolve();
