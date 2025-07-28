@@ -3390,6 +3390,12 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Il tuo biglietto ferroviario per ${origin} → ${destination} del ${startDate} è stato aggiornato.`,
             defaultUpdate: ({type}: TravelTypeParams) => `La tua prenotazione ${type} è stata aggiornata.`,
         },
+        flightTo: 'Volo per',
+        trainTo: 'Treno per',
+        dayCarRental: 'giorno di noleggio auto',
+        daysCarRental: 'giorni di noleggio auto',
+        nightIn: 'notte a',
+        nightsIn: 'notti a',
     },
     workspace: {
         common: {
