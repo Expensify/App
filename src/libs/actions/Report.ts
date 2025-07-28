@@ -201,7 +201,7 @@ import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';
-import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
+import {addMembersToWorkspace, buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
 import {createPolicyExpenseChats} from './Policy/Policy';
 import {
     createUpdateCommentMatcher,
@@ -4385,11 +4385,38 @@ function clearNewRoomFormError() {
 function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
-    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
+    policy?: OnyxEntry<Policy>,
 ) {
+    if (!reportAction || !reportID) {
+        return;
+    }
+
+    if (ReportActionsUtils.isActionableMentionWhisper(reportAction) && resolution === CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE) {
+        const actionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+
+        const policyID = policy?.id;
+
+        if (actionOriginalMessage && policyID) {
+            const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
+            const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
+            const welcomeNote = Localize.translateLocal('workspace.common.welcomeNote');
+            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+            addMembersToWorkspace(
+                {
+                    [`${actionOriginalMessage.inviteeEmails?.at(0)}`]: actionOriginalMessage.inviteeAccountIDs?.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                },
+                `${welcomeNoteSubject}\n\n${welcomeNote}`,
+                policyID,
+                policyMemberAccountIDs,
+                CONST.POLICY.ROLE.USER,
+            );
+        }
+    }
+
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message || !reportAction || !reportID) {
+    if (!message) {
         return;
     }
 
@@ -4461,6 +4488,15 @@ function resolveActionableMentionWhisper(
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
+}
+
+function resolveActionableMentionConfirmWhisper(
+    reportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
+) {
+    resolveActionableMentionWhisper(reportID, reportAction, reportNameValuePairs, resolution);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -5920,6 +5956,7 @@ export {
     removeFromGroupChat,
     removeFromRoom,
     resolveActionableMentionWhisper,
+    resolveActionableMentionConfirmWhisper,
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     savePrivateNotesDraft,

@@ -483,7 +483,15 @@ function ReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            if (isSearchTopmostFullScreenRoute()) {
+                if (Navigation.getReportRHPActiveRoute()) {
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID}));
+                } else {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID}));
+                }
+            } else {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            }
             openReport(report.reportID, reportNameValuePairs);
             reportScrollManager.scrollToBottom();
             return;

@@ -23,6 +23,7 @@ import {
     canDeleteReportAction,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
+    canEditMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
@@ -1905,6 +1906,45 @@ describe('ReportUtils', () => {
             // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
             expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
             expect(quickActionDetails.hideQABSubtitle).toEqual(true);
+        });
+    });
+
+    describe('canEditMoneyRequest', () => {
+        it('it should return false for archived invoice', async () => {
+            const invoiceReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+            const transaction = createRandomTransaction(22);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '22',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: invoiceReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 530,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.30 expense',
+                        text: 'USD 5.30 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+
+            expect(canEditRequest).toEqual(false);
         });
     });
 
