@@ -34,9 +34,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
 
-    const handleGoBackWithReportID = (id: string) => {
+    const handleGoBack = () => {
         if (isEditing) {
-            Navigation.dismissModalWithReport({reportID: id});
+            Navigation.dismissModal();
         } else {
             Navigation.goBack(backTo);
         }
@@ -80,7 +80,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
 
-        handleGoBackWithReportID(item.value);
+        handleGoBack();
         InteractionManager.runAfterInteractions(() => {
             setTransactionReport(
                 transaction.transactionID,
@@ -104,7 +104,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         // Early return for same report selection
         if (isSameReport) {
-            handleGoBackWithReportID(item.value);
+            handleGoBack();
             return;
         }
 

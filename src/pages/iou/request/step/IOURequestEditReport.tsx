@@ -35,7 +35,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         changeTransactionsReport(selectedTransactionIDs, item.value);
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
-        Navigation.dismissModalWithReport({reportID: item.value});
+        Navigation.dismissModal();
     };
 
     const removeFromReport = () => {
