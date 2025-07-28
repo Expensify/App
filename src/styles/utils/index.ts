@@ -1,5 +1,6 @@
 import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -728,6 +729,22 @@ function getPaddingBottom(paddingBottom: number): ViewStyle {
 }
 
 /**
+ * Get variable padding-bottom as style
+ */
+function getPaddingVerticalFromStyle(textInputContainerStyles: ViewStyle): number {
+    const flatStyle = StyleSheet.flatten(textInputContainerStyles);
+
+    // Safely extract padding values only if they are numbers
+    const getNumericPadding = (paddingValue: string | number | Animated.AnimatedNode | null | undefined): number => {
+        return typeof paddingValue === 'number' ? paddingValue : 0;
+    };
+
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    return paddingTop + paddingBottom;
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
@@ -1237,6 +1254,7 @@ const staticStyleUtils = {
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,
+    getPaddingVerticalFromStyle,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1381,11 +1399,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * Computes styles for the text input icon container.
      * Applies horizontal padding if requested, and sets the top margin based on the presence of a label.
      */
-    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true) => {
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, inputPaddingTop = styles.textInputContainer?.padding): ViewStyle => {
         const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
         return {
             ...paddingStyle,
-            marginTop: hasLabel ? variables.inputIconMarginTopSmall : variables.inputIconMarginTopLarge,
+            marginTop: -(inputPaddingTop / 2),
+            height: '100%',
+            justifyContent: 'center',
         };
     },
 

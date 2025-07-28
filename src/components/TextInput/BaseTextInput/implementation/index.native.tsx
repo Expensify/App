@@ -276,6 +276,7 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    const inputVerticalPadding = StyleUtils.getPaddingVerticalFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
@@ -433,7 +434,7 @@ function BaseTextInput(
                             )}
                             {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, inputVerticalPadding)}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
@@ -445,7 +446,7 @@ function BaseTextInput(
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, inputVerticalPadding),
                                         styles.ml1,
                                         styles.justifyContentStart,
                                         loadingSpinnerStyle,
@@ -455,7 +456,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, inputVerticalPadding)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
@@ -469,7 +470,13 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, inputVerticalPadding),
+                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                        iconContainerStyle,
+                                    ]}
+                                >
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
