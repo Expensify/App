@@ -56,6 +56,7 @@
         "autofilled",
         "automations",
         "autoplay",
+        "AUTOREIMBURSED",
         "autoreleasepool",
         "AUTOREPORTING",
         "autoresizesSubviews",
@@ -729,7 +730,8 @@
         "pnrs",
         "POLICYCHANGELOG_ADD_EMPLOYEE",
         "xcshareddata",
-        "xcuserdata"
+        "xcuserdata",
+        "inputmethod"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

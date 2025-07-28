@@ -1102,6 +1102,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1286,7 +1287,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -1345,6 +1350,7 @@ const CONST = {
             SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
+            AUTOREIMBURSED: 6,
         },
         STATUS_NUM: {
             OPEN: 0,
@@ -6421,6 +6427,20 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        SEARCH_LIST: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            STATEMENTS: 'statements',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CASH_ONLY: 'unapprovedCashOnly',
+            UNAPPROVED_COMPANY_CARDS_ONLY: 'unapprovedCompanyCardsOnly',
+        },
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
