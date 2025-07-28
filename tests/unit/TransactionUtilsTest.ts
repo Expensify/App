@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -11,7 +12,6 @@ import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import DateUtils from '@libs/DateUtils';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
