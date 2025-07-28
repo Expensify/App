@@ -122,7 +122,7 @@ function SplitListItem<TItem extends ListItem>({
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
                         {splitItem.cannotBeEdited ? (
-                            <View style={[styles.flexRow, styles.h13, styles.alignItemsCenter]}>
+                            <View style={styles.cannotBeEditedSplitInputContainer}>
                                 <Text
                                     style={[styles.optionRowAmountInput, styles.pAbsolute]}
                                     onLayout={(event) => {
@@ -135,7 +135,7 @@ function SplitListItem<TItem extends ListItem>({
                                     {splitItem.currencySymbol}
                                 </Text>
                                 <Text
-                                    style={[styles.optionRowAmountInput, styles.getSplitListItemAmountStyle(inputMarginLeft, contentWidth)]}
+                                    style={[styles.optionRowAmountInput, styles.pl3, styles.getSplitListItemAmountStyle(inputMarginLeft, contentWidth)]}
                                     numberOfLines={1}
                                 >
                                     {convertToDisplayStringWithoutCurrency(splitItem.amount, splitItem.currency)}

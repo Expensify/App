@@ -1263,6 +1263,14 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            borderWidth: 1,
+            borderColor: 'transparent',
+        },
+
         selectedTextInputContainer: {
             borderColor: theme.buttonHoveredBG,
         },
