@@ -41,30 +41,58 @@ Maintaining a stable setup for these baseline measurements is critical for accur
 
 ## Tools
 
-### Chrome Dev Tools > Performance > Timing (Web Only)
+### **Web**: Chrome Dev Tools > Performance
 
 - Profiling in Chrome Dev Tools performance tab in the "Timing" section
 - This will show various components and how long they took to render. It can be a little intense to dig through it all at first, but the more time you spend with it the easier it gets to separate the signal from noise.
 - The timing information might be inaccurate in development mode since this slows things down a ton. However, it's still useful for seeing which things are re-rendering. You can also use the React DevTools Profiler to get more accurate timing information.
 
+#### Steps to Profile:
+
+1. **Open Chrome DevTools (`cmd+shift+j`)**
+   
+2. **Capture Performance Data**
+   - Open "Performance" tab
+   - Press red dot in the top left corner to start profiling
+   - Perform the actions you want to profile
+   - Press the red dot again to stop profiling
+  
+3. **Analyze the profile:**
+   - Download the trace
+   - Open [SpeedScope](https://www.speedscope.app/) and upload the trace
+   - Analyze the trace
+
 **Suggested:** [React Performance Profiling](https://calibreapp.com/blog/react-performance-profiling-optimization)
 
-### Hermes Profiling
+### **iOS & Android:** React Native DevTools
 
-It's possible, but slightly trickier to profile the JS running on Android devices as it does not run in a browser but a JS VM that React Native must spin up first then run the app code. The VM we are currently using on both Android and iOS is called [Hermes](https://reactnative.dev/docs/profile-hermes) and is developed by Facebook.
+React Native uses the [Hermes](https://reactnative.dev/docs/hermes) JavaScript engine on both Android and iOS.
 
-In order to profile with Hermes, follow these steps:
+#### Steps to Profile with Hermes:
 
-- In the metro bundler window, press `d` on your keyboard to bring up the developer menu on your device.
-- Select "Settings"
-- Select "Start Sampling Profiler on Init"
-- In metro bundler, refresh by pressing r
-- The app will start up and a profile will begin
-- Once the app loads take whatever action you want to profile
-- Press `d` again and select "Disable Sampling Profiler". You can also use the "Performance" tab in the Chrome DevTools to start and stop profiling.
-- A toast should appear with a path to a profile
-- We need to then convert this into something Chrome Dev Tools can use by typing into terminal `react-native profile-hermes .`
-- This should create a json file in the directory where we typed the previous command that we can load up into Chrome Dev Tools "Performance" tab via the "Load Profile" option and inspect further.
+1. **Enable profiling:**
+   - In the Metro bundler terminal, press `j` to open React Native DevTools
+   - Select the instance of the app you want to connect to
+   - Open "Settings"
+   - Go to "Experiments" tab
+   - Enable "[React Native] Enable Performance panel
+  
+  Once it's done, you should have the "Performance" tab available in the React Native DevTools
+
+2. **Capture Performance Data:**
+   - Open "Performance" tab
+   - Press red dot in the top left corner to start profiling
+   - Perform the actions you want to profile
+   - Press the red dot again to stop profiling
+
+3. **Analyze the profile:**
+   - Download the trace
+   - Open [SpeedScope](https://www.speedscope.app/) and upload the trace
+   - Analyze the trace
+
+#### Important Notes:
+- For more accurate performance data, prefer release builds when possible
+- The generated traces require symbolication to show meaningful function names in release builds
 
 ### React DevTools Profiler
 - The React DevTools Profiler can also be used to detect similar information to Chrome Dev Tools, but is a little more streamlined. There is also an options cog where you can filter events by cutting at a specified millisecond (length it took for the thing to happen)
