@@ -9930,7 +9930,7 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
-    allowSubmitted = false,
+    allowSubmitted = true,
 ): boolean {
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
