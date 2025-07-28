@@ -2122,7 +2122,7 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
+function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
     return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
@@ -2132,6 +2132,9 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
         includeSelfDM: true,
         includeThreads: true,
         includeReadOnly: false,
+        searchString,
+        maxElements,
+        includeUserToInvite,
     });
 }
 
@@ -2169,6 +2172,9 @@ function getAttendeeOptions(
     includeP2P = true,
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
 ) {
     const personalDetailList = keyBy(
         personalDetails.map(({item}) => item),
@@ -2212,6 +2218,9 @@ function getAttendeeOptions(
             includeInvoiceRooms,
             action,
             recentAttendees: filteredRecentAttendees,
+            searchString,
+            maxElements,
+            includeUserToInvite,
         },
     );
 }
@@ -2227,6 +2236,9 @@ function getShareDestinationOptions(
     selectedOptions: Array<Partial<OptionData>> = [],
     excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
 ) {
     return getValidOptions(
         {reports, personalDetails},
@@ -2242,6 +2254,9 @@ function getShareDestinationOptions(
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeSelfDM: true,
+            searchString,
+            maxElements,
+            includeUserToInvite,
         },
     );
 }
@@ -2282,8 +2297,11 @@ function getMemberInviteOptions(
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
 ): Options {
-    const options = getValidOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -2291,15 +2309,11 @@ function getMemberInviteOptions(
             excludeLogins,
             includeSelectedOptions,
             includeRecentReports,
+            searchString,
+            maxElements,
+            includeUserToInvite,
         },
     );
-
-    const orderedOptions = orderOptions(options);
-    return {
-        ...options,
-        personalDetails: orderedOptions.personalDetails,
-        recentReports: orderedOptions.recentReports,
-    };
 }
 
 /**
@@ -2791,4 +2805,4 @@ export {
     sortAlphabetically,
 };
 
-export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase};
+export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase, GetValidOptionsConfig};
