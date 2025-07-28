@@ -145,6 +145,7 @@ curl https://get.flashlight.dev | bash
 
 #### Prerequisites:
 - Android device
+- Release build of the app (See #how-to-create-a-release-build-on-android)
 - USB debugging enabled on the Android device
   - Go to Settings > Developer options > Enable USB debugging
   - If Developer options is not visible, go to Settings > About phone and tap "Build number" 7 times
