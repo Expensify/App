@@ -32,6 +32,9 @@ type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
+    /** Report to which the transaction belongs */
+    report: Report;
+
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
 
@@ -62,6 +65,7 @@ type MoneyRequestReportTransactionItemProps = {
 
 function MoneyRequestReportTransactionItem({
     transaction,
+    report,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -124,6 +128,7 @@ function MoneyRequestReportTransactionItem({
             >
                 <TransactionItemRow
                     transactionItem={transaction}
+                    report={report}
                     isSelected={isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}

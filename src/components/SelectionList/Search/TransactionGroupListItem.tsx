@@ -195,6 +195,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         groupItem.transactions.map((transaction) => (
                             <TransactionItemRow
                                 key={transaction.transactionID}
+                                report={transaction.report}
                                 transactionItem={transaction}
                                 isSelected={!!transaction.isSelected}
                                 dateColumnSize={dateColumnSize}

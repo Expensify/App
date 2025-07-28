@@ -282,6 +282,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
+                            report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}
                             isSelected={isTransactionSelected(transaction.transactionID)}

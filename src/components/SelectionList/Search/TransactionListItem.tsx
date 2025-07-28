@@ -129,6 +129,7 @@ function TransactionListItem<TItem extends ListItem>({
                 )}
                 <TransactionItemRow
                     transactionItem={transactionItem}
+                    report={transactionItem.report}
                     shouldShowTooltip={showTooltip}
                     onButtonPress={handleActionButtonPress}
                     onCheckboxPress={handleCheckboxPress}

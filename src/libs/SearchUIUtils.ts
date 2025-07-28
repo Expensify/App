@@ -752,6 +752,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
         const transactionSection: TransactionListItemType = {
             action: getAction(data, allViolations, key, currentSearch),
+            report,
             from,
             to,
             formattedFrom,
@@ -1187,6 +1188,7 @@ function getReportSections(
             const transaction = {
                 ...transactionItem,
                 action: getAction(data, allViolations, key, currentSearch, actions),
+                report,
                 from,
                 to,
                 formattedFrom,
