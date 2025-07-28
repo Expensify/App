@@ -542,7 +542,6 @@ describe('isReviewDuplicatesAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = {
             transactionID: TRANSACTION_ID,
@@ -555,7 +554,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction], policy as Policy)).toBe(true);
+        expect(isReviewDuplicatesAction(report, [transaction])).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -568,7 +567,6 @@ describe('isReviewDuplicatesAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = {
             transactionID: TRANSACTION_ID,
@@ -576,7 +574,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction], policy as Policy)).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -589,7 +587,6 @@ describe('isReviewDuplicatesAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = {
             transactionID: TRANSACTION_ID,
@@ -602,7 +599,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction], policy as Policy)).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
     });
 });
 
