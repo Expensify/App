@@ -382,6 +382,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 {},
+                '1',
             );
 
             expect(title).toBeCalledWith(
@@ -411,6 +412,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 {},
+                '1',
             );
 
             expect(description).toBeCalledWith(
