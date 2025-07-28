@@ -55,6 +55,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
             onBackButtonPress={goBack}
             enabledWhenOffline={false}
             defaultDate={CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH}
+            forwardFSClass={CONST.FULL_STORY.MASK}
         />
     );
 }

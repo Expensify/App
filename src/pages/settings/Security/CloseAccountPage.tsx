@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -13,7 +13,6 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parseFSAttributes} from '@libs/Fullstory';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -40,14 +39,6 @@ function CloseAccountPage() {
     // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
     // here, we left this as is during refactor to limit the breaking changes.
     useEffect(() => () => clearError(), []);
-
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
@@ -120,7 +111,6 @@ function CloseAccountPage() {
                 >
                     <View
                         fsClass={CONST.FULL_STORY.UNMASK}
-                        testID={CONST.FULL_STORY.UNMASK}
                         style={[styles.flexGrow1]}
                     >
                         <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
@@ -134,7 +124,6 @@ function CloseAccountPage() {
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mt5]}
                             fsClass={CONST.FULL_STORY.UNMASK}
-                            testID={CONST.FULL_STORY.UNMASK}
                         />
                         <Text style={[styles.mt5]}>
                             {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
@@ -150,7 +139,6 @@ function CloseAccountPage() {
                             autoCorrect={false}
                             inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
                             fsClass={CONST.FULL_STORY.UNMASK}
-                            testID={CONST.FULL_STORY.UNMASK}
                         />
                         <ConfirmModal
                             danger

@@ -2,4 +2,8 @@ type NavigationProperties = {
     path: string;
 };
 
-export default NavigationProperties;
+type ForwardFSClassProps = {
+    forwardFSClass?: string;
+};
+
+export type {NavigationProperties, ForwardFSClassProps};

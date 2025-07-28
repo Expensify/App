@@ -578,6 +578,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     };
                 })}
                 anchorRef={fabRef}
+                forwardFSClass={CONST.FULL_STORY.UNMASK}
             />
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}

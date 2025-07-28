@@ -292,7 +292,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         </OfflineWithFeedback>
                                     )}
                                     <View
-                                        fsClass="fs-unmask"
+                                        fsClass={CONST.FULL_STORY.UNMASK}
                                         style={[styles.flex1, styles.flexColumn]}
                                     >
                                         <CaretWrapper>
