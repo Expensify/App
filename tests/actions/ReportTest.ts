@@ -71,7 +71,10 @@ describe('actions/Report', () => {
 
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
-        const promise = Onyx.clear().then(jest.useRealTimers);
+        const promise = Onyx.clear().then(() => {
+            jest.useRealTimers();
+            waitForBatchedUpdates();
+        });
 
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
