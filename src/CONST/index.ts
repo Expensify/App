@@ -236,7 +236,6 @@ const CONST = {
     ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
-    IMAGE_SVG_TRANSITION_DURATION: 200,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
@@ -1050,10 +1049,7 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
-            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1062,6 +1058,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1105,6 +1102,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1289,7 +1287,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -1348,6 +1350,7 @@ const CONST = {
             SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
+            AUTOREIMBURSED: 6,
         },
         STATUS_NUM: {
             OPEN: 0,
@@ -1406,6 +1409,7 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -5137,10 +5141,13 @@ const CONST = {
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
+    ICON_TEST_ID: 'Icon',
     IMAGE_TEST_ID: 'Image',
     IMAGE_SVG_TEST_ID: 'ImageSVG',
     VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
     LOTTIE_VIEW_TEST_ID: 'LottieView',
+
+    DOT_INDICATOR_TEST_ID: 'DotIndicator',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -6420,7 +6427,7 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-        SUGGESTED_SEARCH_KEYS: {
+        SEARCH_LIST: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
             CHATS: 'chats',
@@ -6429,7 +6436,20 @@ const CONST = {
             PAY: 'pay',
             EXPORT: 'export',
             STATEMENTS: 'statements',
-            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CASH_ONLY: 'unapprovedCashOnly',
+            UNAPPROVED_COMPANY_CARDS_ONLY: 'unapprovedCompanyCardsOnly',
+        },
+        SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
         },
@@ -6508,6 +6528,7 @@ const CONST = {
             mapping: 'report-fields-mapping',
         },
     },
+    DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {

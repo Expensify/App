@@ -17,7 +17,6 @@ import type {
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -148,7 +147,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
     const pressableRef = useRef<View>(null);
 
     const onPress = useCallback(() => {
@@ -164,8 +162,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
@@ -175,6 +171,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
@@ -211,7 +208,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
-                                isParentHovered={hovered}
                                 columnWrapperStyles={[styles.ph3, styles.pv1Half]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}

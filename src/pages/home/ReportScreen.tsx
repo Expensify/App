@@ -148,28 +148,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {canBeMissing: true});
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-
-    // We don't need report metadata's lastVisitTime. Removing it saves on re-renders count.
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        canBeMissing: true,
-        allowStaleData: true,
-        selector: (metadata) => ({
-            isOptimisticReport: metadata?.isOptimisticReport,
-            hasLoadingNewerReportActionsError: metadata?.hasLoadingNewerReportActionsError,
-            hasLoadingOlderReportActionsError: metadata?.hasLoadingOlderReportActionsError,
-            hasOnceLoadedReportActions: metadata?.hasOnceLoadedReportActions,
-            isLoadingInitialReportActions: metadata?.isLoadingInitialReportActions,
-            isLoadingNewerReportActions: metadata?.isLoadingNewerReportActions,
-            isLoadingOlderReportActions: metadata?.isLoadingOlderReportActions,
-        }),
-    });
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
@@ -293,9 +278,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const wasReportAccessibleRef = useRef(false);
 
-    const [isComposerFocus, setIsComposerFocus] = useState(false);
-    const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
-    const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
+    const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -773,9 +756,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const lastRoute = usePrevious(route);
 
-    const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
-    const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
-
     // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
     const showReportActionsLoadingState = useMemo(
         () => reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions,
@@ -864,8 +844,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
-                                        onComposerFocus={onComposerFocus}
-                                        onComposerBlur={onComposerBlur}
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}
