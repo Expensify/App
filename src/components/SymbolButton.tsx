@@ -10,25 +10,26 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-type CurrencySymbolButtonProps = {
-    /** Currency symbol of selected currency */
-    currencySymbol: string;
+type SymbolButtonProps = {
+    /** Symbol of the input */
+    symbol: string;
 
-    /** Function to call when currency button is pressed */
-    onCurrencyButtonPress: () => void;
+    /** Function to call when symbol button is pressed */
+    onSymbolButtonPress: () => void;
 
-    /** Whether the currency button is pressable or not */
-    isCurrencyPressable?: boolean;
+    /** Whether the symbol button is pressable or not */
+    isSymbolPressable?: boolean;
 };
 
-function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, isCurrencyPressable = true}: CurrencySymbolButtonProps) {
+function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true}: SymbolButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    return isCurrencyPressable ? (
+    return isSymbolPressable ? (
+        // TODO: Update tooltip text
         <Tooltip text={translate('common.selectCurrency')}>
             <PressableWithoutFeedback
-                onPress={onCurrencyButtonPress}
+                onPress={onSymbolButtonPress}
                 accessibilityLabel={translate('common.selectCurrency')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
@@ -38,16 +39,16 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, isCurrency
                     src={Expensicons.DownArrow}
                     fill={theme.icon}
                 />
-                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+                <Text style={styles.iouAmountText}>{symbol}</Text>
             </PressableWithoutFeedback>
         </Tooltip>
     ) : (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+            <Text style={styles.iouAmountText}>{symbol}</Text>
         </View>
     );
 }
 
-CurrencySymbolButton.displayName = 'CurrencySymbolButton';
+SymbolButton.displayName = 'SymbolButton';
 
-export default CurrencySymbolButton;
+export default SymbolButton;

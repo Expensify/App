@@ -1,59 +1,57 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import {useMouseContext} from '@hooks/useMouseContext';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
-import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
-import TextInputWithSymbol from './TextInputWithSymbol';
+import TextInputWithCurrencySymbol from './TextInputWithSymbol';
+import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type AmountFormProps = {
-    /** Amount supplied by the FormProvider */
+type BaseAmountFormProps = {
+    /** Amount to display, should already be formatted */
     value?: string;
 
-    /** Currency supplied by user */
-    currency?: string;
-
-    /** Tells how many extra decimal digits are allowed. Default is 0. */
-    extraDecimals?: number;
-
-    /** Error to display at the bottom of the component */
+    /** Error to display at the bottom of the form */
     errorText?: string;
 
     /** Callback to update the amount in the FormProvider */
     onInputChange?: (value: string) => void;
 
-    /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
-
-    /** Whether the currency symbol is pressable */
-    isCurrencyPressable?: boolean;
-
-    /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
-    amountMaxLength?: number;
-
-    /** Custom label for the TextInput */
-    label?: string;
-
-    /** Whether the form should use a standard TextInput as a base */
-    displayAsTextInput?: boolean;
+    /** Custom max amount length */
+    maxLength?: number;
 
     /** Number of decimals to display */
-    fixedDecimals?: number;
+    decimals?: number;
 
-    /** Whether to hide the currency symbol */
-    hideCurrencySymbol?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'style'>;
+    /** Whether the big number pad should be shown */
+    shouldShowBigNumberPad?: boolean;
+
+    /** Footer to display at the bottom of the form */
+    footer?: React.ReactNode;
+
+    /** Reference to the amount form */
+    amountFormRef?: ForwardedRef<BaseAmountFormRef>;
+} & Omit<BaseTextInputProps, 'onKeyPress' | 'onSelectionChange'> &
+    Pick<TextInputWithSymbolProps, 'symbol' | 'hideSymbol' | 'symbolPosition' | 'onSymbolButtonPress' | 'onSelectionChange' | 'onKeyPress' | 'isSymbolPressable'>;
+
+type BaseAmountFormRef = {
+    clearSelection: () => void;
+    updateAmount: (newAmount: string) => void;
+    getAmount: () => string;
+};
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -67,33 +65,34 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function AmountForm(
+function BaseAmountForm(
     {
         value: amount,
-        currency = CONST.CURRENCY.USD,
-        extraDecimals = 0,
-        amountMaxLength,
+        symbol = '',
+        decimals = 0,
+        maxLength,
         errorText,
         onInputChange,
-        onCurrencyButtonPress,
-        displayAsTextInput = false,
-        isCurrencyPressable = true,
-        label,
-        fixedDecimals,
-        hideCurrencySymbol = false,
+        onSymbolButtonPress,
+        isSymbolPressable = false,
+        shouldShowBigNumberPad = true,
+        footer,
+        amountFormRef,
         ...rest
-    }: AmountFormProps,
+    }: BaseAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
-
-    const decimals = fixedDecimals ?? getCurrencyDecimals(currency) + extraDecimals;
-    const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
+    const amountRef = useRef<string | undefined>(undefined);
+    const [currentAmount, setCurrentAmount] = useState(typeof amount === 'string' ? amount : '');
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
+
+    const isFocused = useIsFocused();
+    const wasFocused = usePrevious(isFocused);
 
     const [selection, setSelection] = useState({
         start: currentAmount.length,
@@ -101,6 +100,22 @@ function AmountForm(
     });
 
     const forwardDeletePressedRef = useRef(false);
+    // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewAmount
+    const willSelectionBeUpdatedManually = useRef(false);
+
+    const {setMouseDown, setMouseUp} = useMouseContext();
+    const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseDown();
+    };
+    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseUp();
+    };
+
+    const clearSelection = useCallback(() => {
+        setSelection({start: selection.end, end: selection.end});
+    }, [selection.end]);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -112,10 +127,7 @@ function AmountForm(
         }
 
         event.preventDefault();
-        setSelection({
-            start: selection.end,
-            end: selection.end,
-        });
+        clearSelection();
 
         if (!textInput.current) {
             return;
@@ -134,55 +146,51 @@ function AmountForm(
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+            const finalAmount = newAmountWithoutSpaces.includes('.') ? stripCommaFromAmount(newAmountWithoutSpaces) : replaceCommasWithPeriod(newAmountWithoutSpaces);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(newAmountWithoutSpaces, decimals, amountMaxLength)) {
+            if (!validateAmount(finalAmount, decimals, maxLength)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
 
-            const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
-            const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
-            onInputChange?.(strippedAmount);
+            willSelectionBeUpdatedManually.current = true;
+            let hasSelectionBeenSet = false;
+            const strippedAmount = stripCommaFromAmount(finalAmount);
+            amountRef.current = strippedAmount;
+            setCurrentAmount((prevAmount) => {
+                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+                if (!hasSelectionBeenSet) {
+                    hasSelectionBeenSet = true;
+                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                    willSelectionBeUpdatedManually.current = false;
+                }
+                onInputChange?.(strippedAmount);
+                return strippedAmount;
+            });
         },
-        [amountMaxLength, currentAmount, decimals, onInputChange, selection],
+        [decimals, maxLength, onInputChange],
     );
 
-    /**
-     * Set a new amount value properly formatted
-     *
-     * @param text - Changed text from user input
-     */
-    const setFormattedAmount = (text: string) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
-        const withLeadingZero = addLeadingZero(replacedCommasAmount);
-
-        if (!validateAmount(withLeadingZero, decimals, amountMaxLength)) {
-            setSelection((prevSelection) => ({...prevSelection}));
-            return;
-        }
-
-        const strippedAmount = stripCommaFromAmount(withLeadingZero);
-        const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-        setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
-        onInputChange?.(strippedAmount);
-    };
-
-    // Modifies the amount to match the decimals for changed currency.
+    // Clears text selection if user visits currency selector with selection and comes back
     useEffect(() => {
-        // If the changed currency supports decimals, we can return
-        if (validateAmount(currentAmount, decimals, amountMaxLength)) {
+        if (!isFocused || wasFocused) {
+            return;
+        }
+        clearSelection();
+    }, [isFocused, wasFocused, clearSelection]);
+
+    // Modifies the amount to match changed decimals.
+    useEffect(() => {
+        // If the amount supports decimals, we can return
+        if (validateAmount(currentAmount, decimals, maxLength)) {
             return;
         }
 
-        // If the changed currency doesn't support decimals, we can strip the decimals
+        // If the amount doesn't support decimals, we can strip the decimals
         setNewAmount(stripDecimalsFromAmount(currentAmount));
 
-        // we want to update only when decimals change (setNewAmount also changes when decimals change).
+        // we want to update only when decimals change.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [decimals]);
 
@@ -240,37 +248,17 @@ function AmountForm(
         forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
     };
 
+    useImperativeHandle(amountFormRef, () => ({
+        clearSelection,
+        updateAmount: (newAmount: string) => {
+            setCurrentAmount(newAmount);
+            setSelection({start: newAmount.length, end: newAmount.length});
+        },
+        getAmount: () => currentAmount,
+    }));
+
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = canUseTouchScreenCheck();
-
-    if (displayAsTextInput) {
-        return (
-            <TextInput
-                label={label}
-                value={formattedAmount}
-                onChangeText={setFormattedAmount}
-                ref={(ref: BaseTextInputRef) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line no-param-reassign
-                        forwardedRef.current = ref;
-                    }
-                    textInput.current = ref;
-                }}
-                prefixCharacter={currency}
-                prefixStyle={styles.colorMuted}
-                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
-                // See https://github.com/Expensify/App/issues/51868 for more information
-                autoCapitalize="words"
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                errorText={errorText}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
-            />
-        );
-    }
 
     return (
         <>
@@ -279,10 +267,10 @@ function AmountForm(
                 onMouseDown={(event) => focusTextInput(event, [AMOUNT_VIEW_ID])}
                 style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
-                <TextInputWithSymbol
+                <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
                     onChangeAmount={setNewAmount}
-                    onSymbolButtonPress={onCurrencyButtonPress}
+                    onSymbolButtonPress={onSymbolButtonPress}
                     placeholder={numberFormat(0)}
                     ref={(ref: BaseTextInputRef) => {
                         if (typeof forwardedRef === 'function') {
@@ -293,19 +281,29 @@ function AmountForm(
                         }
                         textInput.current = ref;
                     }}
-                    symbol={currency}
+                    symbol={symbol}
                     selection={selection}
-                    onSelectionChange={(start, end) => {
+                    onSelectionChange={(selectionStart, selectionEnd) => {
+                        if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
+                            willSelectionBeUpdatedManually.current = false;
+                            return;
+                        }
                         if (!shouldUpdateSelection) {
                             return;
                         }
+                        // When the amount is updated in setNewAmount on iOS, in onSelectionChange formattedAmount stores the value before the update. Using amountRef allows us to read the updated value
+                        const maxSelection = amountRef.current?.length ?? formattedAmount.length;
+                        amountRef.current = undefined;
+                        const start = Math.min(selectionStart, maxSelection);
+                        const end = Math.min(selectionEnd, maxSelection);
                         setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
-                    isSymbolPressable={isCurrencyPressable}
+                    isSymbolPressable={isSymbolPressable}
                     style={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
-                    hideSymbol={hideCurrencySymbol}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
@@ -317,24 +315,27 @@ function AmountForm(
                     />
                 )}
             </View>
-            {canUseTouchScreen ? (
+            {shouldShowBigNumberPad || !!footer ? (
                 <View
                     onMouseDown={(event) => focusTextInput(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                     style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                     id={NUM_PAD_CONTAINER_VIEW_ID}
                 >
-                    <BigNumberPad
-                        id={NUM_PAD_VIEW_ID}
-                        numberPressed={updateAmountNumberPad}
-                        longPressHandlerStateChanged={updateLongPressHandlerState}
-                    />
+                    {canUseTouchScreen ? (
+                        <BigNumberPad
+                            id={NUM_PAD_VIEW_ID}
+                            numberPressed={updateAmountNumberPad}
+                            longPressHandlerStateChanged={updateLongPressHandlerState}
+                        />
+                    ) : null}
+                    {footer}
                 </View>
             ) : null}
         </>
     );
 }
 
-AmountForm.displayName = 'AmountForm';
+BaseAmountForm.displayName = 'BaseAmountForm';
 
-export default forwardRef(AmountForm);
-export type {AmountFormProps};
+export default forwardRef(BaseAmountForm);
+export type {BaseAmountFormProps, BaseAmountFormRef};

@@ -1,10 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import type {MoneyRequestAmountFormProps} from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
-import Text from './Text';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type NumberWithUnitFormProps = Omit<MoneyRequestAmountFormProps, 'currency'> & {
@@ -24,7 +22,6 @@ function NumberWithUnitForm({
 }: NumberWithUnitFormProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const styles = useThemeStyles();
 
     useFocusEffect(
         useCallback(() => {
@@ -54,7 +51,6 @@ function NumberWithUnitForm({
             ref={(e) => {
                 textInput.current = e;
             }}
-            extraSymbol={<Text style={[styles.iouAmountText, styles.textSupporting]}>{unit}</Text>}
         />
     );
 }

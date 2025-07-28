@@ -4934,6 +4934,10 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    TEXT_INPUT_SYMBOL_POSITION: {
+        PREFIX: 'prefix',
+        SUFFIX: 'suffix',
+    },
     QR: {
         DEFAULT_LOGO_SIZE_RATIO: 0.25,
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,

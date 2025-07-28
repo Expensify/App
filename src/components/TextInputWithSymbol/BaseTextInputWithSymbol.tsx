@@ -1,34 +1,33 @@
 import React from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
-import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import SymbolButton from '@components/SymbolButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
-import type BaseTextInputWithCurrencySymbolProps from './types';
+import CONST from '@src/CONST';
+import type BaseTextInputWithSymbolProps from './types';
 
-function BaseTextInputWithCurrencySymbol(
+function BaseTextInputWithSymbol(
     {
-        selectedCurrencyCode,
-        onCurrencyButtonPress = () => {},
+        symbol,
+        symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
+        onSymbolButtonPress = () => {},
         onChangeAmount = () => {},
         formattedAmount,
         placeholder,
         selection,
         onSelectionChange = () => {},
         onKeyPress = () => {},
-        isCurrencyPressable = true,
-        hideCurrencySymbol = false,
-        extraSymbol,
+        isSymbolPressable = true,
+        hideSymbol = false,
         style,
         ...rest
-    }: BaseTextInputWithCurrencySymbolProps,
+    }: BaseTextInputWithSymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();
-    const currencySymbol = getLocalizedCurrencySymbol(selectedCurrencyCode);
     const styles = useThemeStyles();
 
     /**
@@ -43,11 +42,11 @@ function BaseTextInputWithCurrencySymbol(
 
     return (
         <>
-            {!hideCurrencySymbol && (
-                <CurrencySymbolButton
-                    currencySymbol={currencySymbol ?? ''}
-                    onCurrencyButtonPress={onCurrencyButtonPress}
-                    isCurrencyPressable={isCurrencyPressable}
+            {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX && (
+                <SymbolButton
+                    symbol={symbol}
+                    onSymbolButtonPress={onSymbolButtonPress}
+                    isSymbolPressable={isSymbolPressable}
                 />
             )}
             <AmountTextInput
@@ -64,11 +63,17 @@ function BaseTextInputWithCurrencySymbol(
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
-            {extraSymbol}
+            {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX && (
+                <SymbolButton
+                    symbol={symbol}
+                    onSymbolButtonPress={onSymbolButtonPress}
+                    isSymbolPressable={isSymbolPressable}
+                />
+            )}
         </>
     );
 }
 
-BaseTextInputWithCurrencySymbol.displayName = 'BaseTextInputWithCurrencySymbol';
+BaseTextInputWithSymbol.displayName = 'BaseTextInputWithSymbol';
 
-export default React.forwardRef(BaseTextInputWithCurrencySymbol);
+export default React.forwardRef(BaseTextInputWithSymbol);
