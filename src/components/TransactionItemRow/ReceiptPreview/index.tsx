@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
-const verticalPreviewMargin = 120; // 60px top margin and 60px bottom margin
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
@@ -56,8 +55,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
             hasMeasured.current = false;
             return;
         }
-        if (height * eReceiptScaleFactor > windowHeight - verticalPreviewMargin) {
-            setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / (windowHeight - verticalPreviewMargin));
+        if (height * eReceiptScaleFactor > windowHeight - CONST.RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN) {
+            setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / (windowHeight - CONST.RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN));
             return;
         }
         setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / height);

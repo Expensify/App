@@ -1035,6 +1035,7 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
+    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
