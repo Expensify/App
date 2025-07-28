@@ -3213,6 +3213,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.iouAmountTextSize,
             color: theme.heading,
+            lineHeight: variables.inputHeight,
         },
 
         iouAmountTextInput: addOutlineWidth(
