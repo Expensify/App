@@ -41,6 +41,47 @@ type CoverageData = {
     };
 };
 
+type TemplateData = {
+    hasBaseline: boolean;
+    hasChangedFiles: boolean;
+    avgChangedCoverage: string | number;
+    current: {
+        lines: string;
+        functions: string;
+        statements: string;
+    };
+    baseline: {
+        lines: string;
+        functions: string;
+        statements: string;
+    } | null;
+    status: {
+        emoji: string;
+        text: string;
+        hasChange: boolean;
+        isIncrease: boolean;
+        isDecrease: boolean;
+        arrow: string;
+        changeEmoji: string;
+        changeText: string;
+    };
+    changes: {
+        lines: string;
+        statements: string;
+        functions: string;
+    };
+    changedFiles: Array<{
+        displayFile: string;
+        coverage: string;
+        file: string;
+        lines: string;
+    }>;
+    links: {
+        coverageReport: string;
+        workflowRun: string;
+    };
+}
+
 const COVERAGE_SECTION_START = '<!-- START_COVERAGE_SECTION -->';
 const COVERAGE_SECTION_END = '<!-- END_COVERAGE_SECTION -->';
 const COVERAGE_SECTION_HEADER = `## 📊 Test Coverage Report`;
@@ -137,30 +178,30 @@ function generateCoverageData(coverage: CoverageSummary, changedFiles: string[],
 /**
  * Simple mustache-like template engine
  */
-function renderTemplate(template: string, data: any): string {
+function renderTemplate(template: string, data: TemplateData) {
     let result = template;
 
     // Handle array iterations FIRST (before conditional blocks to avoid conflicts)
     result = result.replace(/\{\{#([^}]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, arrayName, content) => {
-        const array = getNestedValue(data, arrayName);
+        const array = getNestedValue(data, arrayName as string);
         if (Array.isArray(array)) {
-            return array.map((item) => renderTemplate(content, {...data, ...item})).join('');
+            return array.map((item) => renderTemplate(content as string, {...data, ...item} as TemplateData)).join('');
         }
         // If not an array, treat as conditional block
-        const value = getNestedValue(data, arrayName);
-        return value ? renderTemplate(content, data) : '';
+        const value = getNestedValue(data, arrayName as string);
+        return value ? renderTemplate(content as string, data) : '';
     });
 
     // Handle inverted conditional blocks {{^condition}} ... {{/condition}}
     result = result.replace(/\{\{\^([^}]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, condition, content) => {
-        const value = getNestedValue(data, condition);
-        return !value ? renderTemplate(content, data) : '';
+        const value = getNestedValue(data, condition as string);
+        return !value ? renderTemplate(content as string, data) : '';
     });
 
     // Handle variable substitutions {{variable}}
-    result = result.replace(/\{\{([^}#^/]+)\}\}/g, (match, variable) => {
-        const value = getNestedValue(data, variable.trim());
-        return value !== undefined ? value : '';
+    result = result.replace(/\{\{([^}#^/]+)\}\}/g, (match, variable: string) => {
+        const value = getNestedValue(data, variable?.trim());
+        return String(value) ?? '';
     });
 
     return result;
@@ -169,9 +210,9 @@ function renderTemplate(template: string, data: any): string {
 /**
  * Get nested value from object using dot notation
  */
-function getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => {
-        return current && current[key] !== undefined ? current[key] : undefined;
+function getNestedValue(obj: TemplateData, nestPath: string) {
+    return nestPath.split('.').reduce((current: unknown, key: string) => {
+        return (current as Record<string, unknown>)?.[key] as string;
     }, obj);
 }
 
@@ -179,7 +220,7 @@ function getNestedValue(obj: any, path: string): any {
  * Generate coverage status emoji and text based on comparison with baseline
  */
 function getCoverageStatus(current: number, baseline?: number): {emoji: string; status: string; diff: number} {
-    const diff = current - (baseline || 0);
+    const diff = current - (baseline ?? 0);
     if (!baseline || Math.abs(diff) < 0.01) {
         return {emoji: '', status: '', diff: 0};
     }
@@ -316,7 +357,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
         },
     };
 
-    return renderTemplate(coverageTemplate, templateData);
+    return renderTemplate(coverageTemplate, templateData as TemplateData);
 }
 
 /**

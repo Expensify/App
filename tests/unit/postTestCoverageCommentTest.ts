@@ -113,7 +113,6 @@ describe('Post test coverage comment action tests', () => {
     test('Test coverage comment generation with changed files', async () => {
         when(core.getInput).calledWith('OS_BOTIFY_TOKEN', {required: true}).mockReturnValue('fake-token');
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
-        when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('COVERAGE_URL', {required: false}).mockReturnValue('');
 
@@ -137,23 +136,24 @@ describe('Post test coverage comment action tests', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             pull_number: 123,
-            body: expect.stringContaining('📊 **Overall Coverage**:') as string,
+            body: expect.stringContaining('## 📊 Test Coverage Report') as string,
         });
 
         // Check that the coverage information is properly formatted
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
-        expect(updateCall.body).toContain('📊 **Overall Coverage**:');
-        expect(updateCall.body).toContain('📈 **Changed Files**:');
+        expect(updateCall.body).toContain('## 📊 Test Coverage Report');
+        expect(updateCall.body).toContain('🔁 **Overall Coverage**:');
         expect(updateCall.body).toContain('src/libs/TransactionUtils/index.ts');
         expect(updateCall.body).toContain('<!-- END_COVERAGE_SECTION -->');
         expect(updateCall.body).toContain('<!-- START_COVERAGE_SECTION -->');
+        expect(updateCall.body).toContain('📄 [View Web Report]');
+        expect(updateCall.body).toContain('⚙️ [View Workflow Run]');
     });
 
     test('Test coverage comment with no changed files', async () => {
         when(core.getInput).calledWith('OS_BOTIFY_TOKEN', {required: true}).mockReturnValue('fake-token');
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
-        when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('COVERAGE_URL', {required: false}).mockReturnValue('');
 
@@ -168,14 +168,13 @@ describe('Post test coverage comment action tests', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             pull_number: 123,
-            body: expect.stringContaining('*No changed files with coverage data found.*') as string,
+            body: expect.stringContaining('*No coverage changed files found.*') as string,
         });
     });
 
     test('Test coverage comment with baseline comparison', async () => {
         when(core.getInput).calledWith('OS_BOTIFY_TOKEN', {required: true}).mockReturnValue('fake-token');
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
-        when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('./baseline-coverage');
         when(core.getInput).calledWith('COVERAGE_URL', {required: false}).mockReturnValue('');
 
@@ -203,13 +202,15 @@ describe('Post test coverage comment action tests', () => {
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
-            // Check for diff-style format
+            // Check for diff-style format with new template
             expect(updateCall.body).toContain('```diff');
-            expect(updateCall.body).toContain('↓ (baseline:');
-            // Check for emoji-style format
-            expect(updateCall.body).toContain('🔴 **Coverage dropped!**');
+            expect(updateCall.body).toContain('📉 Overall Coverage: ↓');
+            expect(updateCall.body).toContain('(main:');
+            // Check for status indicators
+            expect(updateCall.body).toContain('🔴 **Coverage dropped**');
+            expect(updateCall.body).toContain('[!CAUTION]');
             expect(updateCall.body).toContain('⚠️');
-            expect(updateCall.body).toContain('drop from baseline');
+            expect(updateCall.body).toContain('decrease from main');
         } finally {
             // Clean up baseline directory
             if (fs.existsSync(baselineFile)) {
@@ -224,7 +225,6 @@ describe('Post test coverage comment action tests', () => {
     test('Test coverage comment updates existing coverage section in PR body', async () => {
         when(core.getInput).calledWith('OS_BOTIFY_TOKEN', {required: true}).mockReturnValue('fake-token');
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
-        when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('COVERAGE_URL', {required: false}).mockReturnValue('');
 
@@ -241,13 +241,14 @@ describe('Post test coverage comment action tests', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             pull_number: 123,
-            body: expect.stringContaining('📊 **Overall Coverage**:') as string,
+            body: expect.stringContaining('## 📊 Test Coverage Report') as string,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
         expect(updateCall.body).not.toContain('Old coverage information here');
-        expect(updateCall.body).toContain('📊 **Overall Coverage**:');
+        expect(updateCall.body).toContain('## 📊 Test Coverage Report');
+        expect(updateCall.body).toContain('🔁 **Overall Coverage**:');
         expect(updateCall.body).toContain('<!-- END_COVERAGE_SECTION -->');
         expect(updateCall.body).toContain('<!-- START_COVERAGE_SECTION -->');
         expect(updateCall.body).toContain('More PR description'); // Original content should be preserved
@@ -256,7 +257,6 @@ describe('Post test coverage comment action tests', () => {
     test('Test coverage comment handles missing coverage data', async () => {
         when(core.getInput).calledWith('OS_BOTIFY_TOKEN', {required: true}).mockReturnValue('fake-token');
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
-        when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('COVERAGE_URL', {required: false}).mockReturnValue('');
 
@@ -283,7 +283,6 @@ describe('Post test coverage comment action tests', () => {
     test('Test coverage comment handles file filtering', async () => {
         when(core.getInput).calledWith('OS_BOTIFY_TOKEN', {required: true}).mockReturnValue('fake-token');
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('123');
-        when(core.getInput).calledWith('COVERAGE_ARTIFACT_NAME', {required: false}).mockReturnValue('coverage-report');
         when(core.getInput).calledWith('BASE_COVERAGE_PATH', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('COVERAGE_URL', {required: false}).mockReturnValue('');
 

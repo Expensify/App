@@ -11684,24 +11684,24 @@ function renderTemplate(template, data) {
     });
     // Handle variable substitutions {{variable}}
     result = result.replace(/\{\{([^}#^/]+)\}\}/g, (match, variable) => {
-        const value = getNestedValue(data, variable.trim());
-        return value !== undefined ? value : '';
+        const value = getNestedValue(data, variable?.trim());
+        return String(value) ?? '';
     });
     return result;
 }
 /**
  * Get nested value from object using dot notation
  */
-function getNestedValue(obj, path) {
-    return path.split('.').reduce((current, key) => {
-        return current && current[key] !== undefined ? current[key] : undefined;
+function getNestedValue(obj, nestPath) {
+    return nestPath.split('.').reduce((current, key) => {
+        return current?.[key];
     }, obj);
 }
 /**
  * Generate coverage status emoji and text based on comparison with baseline
  */
 function getCoverageStatus(current, baseline) {
-    const diff = current - (baseline || 0);
+    const diff = current - (baseline ?? 0);
     if (!baseline || Math.abs(diff) < 0.01) {
         return { emoji: '', status: '', diff: 0 };
     }
@@ -12243,7 +12243,10 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                // Warn deployers about potential bugs with the new process
+                issueBody +=
+                    '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
