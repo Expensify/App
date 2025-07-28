@@ -74,7 +74,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
-    // Create a Set for O(1) lookup performance instead of O(n) array.some()
     const selectedAccountIDs = useMemo(() => {
         return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
     }, [selectedOptions]);
