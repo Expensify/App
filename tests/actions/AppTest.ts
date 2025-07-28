@@ -9,6 +9,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('axios');
 
 OnyxUpdateManager();
 
@@ -20,7 +21,7 @@ describe('actions/App', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 

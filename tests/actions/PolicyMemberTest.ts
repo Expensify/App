@@ -15,8 +15,10 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('axios');
 
 OnyxUpdateManager();
 describe('actions/PolicyMember', () => {
@@ -26,10 +28,9 @@ describe('actions/PolicyMember', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -45,7 +46,7 @@ describe('actions/PolicyMember', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, {
@@ -70,7 +71,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -104,7 +105,7 @@ describe('actions/PolicyMember', () => {
             };
             const adminRoom: Report = {...createRandomReport(1), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID: fakePolicy.id};
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`, adminRoom);
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
@@ -137,7 +138,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -187,7 +188,7 @@ describe('actions/PolicyMember', () => {
             const fakeEmail = 'fake@gmail.com';
             const fakeAccountID = 1;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
             Member.requestWorkspaceOwnerChange(fakePolicy.id);
@@ -206,7 +207,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -238,7 +239,7 @@ describe('actions/PolicyMember', () => {
             };
             const fakeAccountID = 1;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
             Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
@@ -257,7 +258,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -286,7 +287,7 @@ describe('actions/PolicyMember', () => {
                 approver: defaultApprover,
             });
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
 
             await waitForBatchedUpdates();
@@ -307,7 +308,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
         });
 
         it('Add new members with admin/auditor role to the #admins room', async () => {
@@ -458,7 +459,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When removing am admin, auditor, and user members
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID);
 
             await waitForBatchedUpdates();
@@ -480,7 +481,7 @@ describe('actions/PolicyMember', () => {
             expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))?.pendingAction).toBe(
                 CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             const successAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
                 const connection = Onyx.connect({
@@ -517,7 +518,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When removing a member from the workspace
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Member.removeMembers([userAccountID], policyID);
 
             await waitForBatchedUpdates();
@@ -542,7 +543,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(true);
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
         });
     });
 

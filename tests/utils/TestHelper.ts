@@ -308,7 +308,7 @@ function getGlobalAxiosMock(): typeof axios {
                 config: config as never,
             } as AxiosResponse<string>;
         }
-
+        console.log('>>command: ', command);
         const responseHandler = command ? responses.get(command) : null;
         let responseData: Record<string, unknown> = {jsonCode: 200};
 

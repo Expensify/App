@@ -23,6 +23,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -33,6 +34,8 @@ function toLocaleDigitMock(dot: string): string {
     return dot;
 }
 const GENERATED_ACCOUNT_ID = '555555';
+
+jest.mock('axios');
 
 jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
@@ -512,7 +515,7 @@ describe('PolicyUtils', () => {
         });
 
         beforeEach(() => {
-            global.fetch = TestHelper.getGlobalFetchMock();
+            TestHelper.setupGlobalAxiosMock();
             return Onyx.clear().then(waitForBatchedUpdates);
         });
         it('should return false', () => {

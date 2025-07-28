@@ -4,8 +4,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('axios');
+
 beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    TestHelper.setupGlobalAxiosMock();
 });
 
 beforeEach(() => {
