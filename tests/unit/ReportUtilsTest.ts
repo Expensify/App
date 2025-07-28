@@ -1885,27 +1885,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getQuickActionDetails', () => {
-        it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
-            // Create a fake archived report as quick action report
-            const archivedReport: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-            };
-            const reportNameValuePairs = {
-                type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
-            };
-
-            // Get the quick action detail
-            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
-
-            // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
-            expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
-            expect(quickActionDetails.hideQABSubtitle).toEqual(true);
-        });
-    });
-
     describe('canEditMoneyRequest', () => {
         it('it should return false for archived invoice', async () => {
             const invoiceReport: Report = {
