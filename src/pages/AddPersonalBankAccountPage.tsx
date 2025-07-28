@@ -26,7 +26,6 @@ function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
@@ -83,7 +82,7 @@ function AddPersonalBankAccountPage() {
             shouldShowOfflineIndicator={false}
             testID={AddPersonalBankAccountPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!isUserValidated}>
+            <FullPageNotFoundView>
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
