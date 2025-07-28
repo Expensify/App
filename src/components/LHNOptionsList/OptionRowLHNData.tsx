@@ -49,11 +49,11 @@ function OptionRowLHNData({
             oneTransactionThreadReport,
             reportNameValuePairs,
             personalDetails,
+            allReportNameValuePairs,
             policy,
             parentReportAction,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
-            allReportNameValuePairs,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {

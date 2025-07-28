@@ -25,6 +25,12 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {
+    const reportNameValuePairs = {
+        [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+            private_isArchived: DateUtils.getDBTime(),
+        },
+    };
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -324,6 +330,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                allReportNameValuePairs: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -333,6 +340,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                allReportNameValuePairs: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -826,6 +834,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                allReportNameValuePairs: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -883,6 +892,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                allReportNameValuePairs: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -922,6 +932,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -955,6 +966,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: LHNTestUtils.fakePersonalDetails,
+                    allReportNameValuePairs: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
+                    },
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -985,6 +999,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -1104,6 +1119,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
@@ -1144,6 +1160,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -1209,6 +1226,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
@@ -1250,6 +1268,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
@@ -1314,6 +1333,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
+                    allReportNameValuePairs: reportNameValuePairs,
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,

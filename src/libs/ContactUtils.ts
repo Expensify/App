@@ -1,5 +1,6 @@
+import {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, ReportNameValuePairs} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
 import localeCompare from './LocaleCompare';
 import {getUserToInviteContactOption} from './OptionsListUtils';
@@ -28,7 +29,7 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
     });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<PersonalDetails>> => {
+const getContacts = (deviceContacts: DeviceContact[] | [], reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [])?.at(0) ?? '';
@@ -39,6 +40,7 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<P
             const lastName = contact?.lastName ?? '';
 
             return getUserToInviteContactOption({
+                reportNameValuePairs,
                 selectedOptions: [],
                 optionsToExclude: [],
                 searchValue: email || phoneNumber || firstName || '',
