@@ -1889,14 +1889,9 @@ describe('actions/Report', () => {
             });
 
             // When moving to another workspace
-            Report.changeReportPolicyAndInviteSubmitter(
-                expenseReport,
-                '2',
-                {
-                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
-                },
-                TestHelper.formatPhoneNumber,
-            );
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, '2', {
+                [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+            });
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore

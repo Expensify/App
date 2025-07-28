@@ -53,7 +53,7 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
@@ -203,11 +203,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+            inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
         clearUserSearchPhrase();
         Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate, formatPhoneNumber]);
+    }, [selectedOptions, backRoute, reportID, validate]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
