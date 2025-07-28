@@ -1679,7 +1679,7 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     // eslint-disable-next-line rulesdir/prefer-at
     const option = reportOption;
     const report = reportOption.item;
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.chatReportID}`];
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.item.chatReportID}`];
     const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
@@ -1951,10 +1951,7 @@ function getValidOptions(
 
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const searchTerms = deburr(searchString ?? '')
-            .toLowerCase()
-            .split(' ')
-            .filter((term) => term.length > 0);
+        const searchTerms = processSearchString(searchString);
 
         const filteringFunction = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
@@ -1964,10 +1961,10 @@ function getValidOptions(
             } else if (report.isChatRoom) {
                 searchText += report.subtitle ?? '';
             } else if (report.isPolicyExpenseChat) {
-                searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
+                searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            const searchTermsFound = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+            const searchTermsFound = doSearchTermsMatch(searchTerms, searchText);
 
             if (!searchTermsFound) {
                 return false;
@@ -2027,10 +2024,7 @@ function getValidOptions(
             };
         }
 
-        const searchTerms = deburr(searchString ?? '')
-            .toLowerCase()
-            .split(' ')
-            .filter((term) => term.length > 0);
+        const searchTerms = processSearchString(searchString);
         const filteringFunction = (personalDetail: OptionData) => {
             if (
                 !personalDetail?.login ||
@@ -2047,7 +2041,7 @@ function getValidOptions(
             }
             const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
-            return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+            return doSearchTermsMatch(searchTerms, searchText);
         };
 
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
@@ -2708,6 +2702,28 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         }
     }
     return true;
+}
+
+/**
+ * Process a search string into normalized search terms
+ * @param searchString - The raw search string to process
+ * @returns Array of normalized search terms
+ */
+function processSearchString(searchString: string | undefined): string[] {
+    return deburr(searchString ?? '')
+        .toLowerCase()
+        .split(' ')
+        .filter((term) => term.length > 0);
+}
+
+/**
+ * Check if all search terms are found in the given search text
+ * @param searchTerms - Array of normalized search terms
+ * @param searchText - The text to search within
+ * @returns True if all search terms are found in the search text
+ */
+function doSearchTermsMatch(searchTerms: string[], searchText: string): boolean {
+    return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
 }
 
 export {
