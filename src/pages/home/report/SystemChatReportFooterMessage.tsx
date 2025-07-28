@@ -20,6 +20,7 @@ function SystemChatReportFooterMessage() {
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
@@ -51,7 +52,7 @@ function SystemChatReportFooterMessage() {
                 return (
                     <>
                         {translate('systemChatFooterMessage.default.phrase1')}
-                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
+                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat(reportNameValuePairs)}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
                         {translate('systemChatFooterMessage.default.phrase2')}
                     </>
                 );

@@ -50,6 +50,7 @@ function SubmitDetailsPage({
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -72,7 +73,9 @@ function SubmitDetailsPage({
     }, [reportOrAccountID, policy]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
-    const participants = selectedParticipants.map((participant) => (participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant)));
+    const participants = selectedParticipants.map((participant) =>
+        participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportNameValuePairs),
+    );
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -85,54 +88,60 @@ function SubmitDetailsPage({
         }
 
         if (isSelfDM(report)) {
-            trackExpense({
-                report: report ?? {reportID: reportOrAccountID},
-                isDraftPolicy: false,
-                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories},
-                action: CONST.IOU.TYPE.CREATE,
-                transactionParams: {
-                    amount: transactionAmount,
-                    currency: transaction.currency,
-                    comment: trimmedComment,
-                    receipt,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    billable: transaction.billable,
-                    merchant: transaction.merchant ?? '',
-                    created: transaction.created,
-                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+            trackExpense(
+                {
+                    report: report ?? {reportID: reportOrAccountID},
+                    isDraftPolicy: false,
+                    participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                    policyParams: {policy, policyTagList: policyTags, policyCategories},
+                    action: CONST.IOU.TYPE.CREATE,
+                    transactionParams: {
+                        amount: transactionAmount,
+                        currency: transaction.currency,
+                        comment: trimmedComment,
+                        receipt,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        billable: transaction.billable,
+                        merchant: transaction.merchant ?? '',
+                        created: transaction.created,
+                        actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    },
                 },
-            });
+                reportNameValuePairs,
+            );
         } else {
-            requestMoney({
-                report,
-                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories},
-                gpsPoints,
-                action: CONST.IOU.TYPE.CREATE,
-                transactionParams: {
-                    attendees: transaction.comment?.attendees,
-                    amount: transactionAmount,
-                    currency: transaction.currency,
-                    comment: trimmedComment,
-                    receipt,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    billable: transaction.billable,
-                    merchant: transaction.merchant ?? '',
-                    created: transaction.created,
-                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+            requestMoney(
+                {
+                    report,
+                    participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                    policyParams: {policy, policyTagList: policyTags, policyCategories},
+                    gpsPoints,
+                    action: CONST.IOU.TYPE.CREATE,
+                    transactionParams: {
+                        attendees: transaction.comment?.attendees,
+                        amount: transactionAmount,
+                        currency: transaction.currency,
+                        comment: trimmedComment,
+                        receipt,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        billable: transaction.billable,
+                        merchant: transaction.merchant ?? '',
+                        created: transaction.created,
+                        actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    },
                 },
-            });
+                reportNameValuePairs,
+            );
         }
     };
 

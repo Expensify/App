@@ -1,8 +1,9 @@
+import {OnyxCollection} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import getIconForAction from './getIconForAction';
@@ -92,10 +93,15 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     }
 };
 
-const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined) => {
+const isQuickActionAllowed = (
+    quickAction: QuickAction,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    quickActionReport: Report | undefined,
+    quickActionPolicy: Policy | undefined,
+) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, reportNameValuePairs);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;

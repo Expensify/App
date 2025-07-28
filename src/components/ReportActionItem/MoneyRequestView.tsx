@@ -138,6 +138,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         canEvict: false,
         canBeMissing: true,
     });
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isTrackExpense = isTrackExpenseReport(report);
@@ -202,7 +203,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
-    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
+    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, reportNameValuePairs) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
@@ -536,11 +537,11 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                navigateToConciergeChatAndDeleteReport(reportNameValuePairs, chatReport.reportID, true, true);
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, reportNameValuePairs, true);
                 return;
             }
         }

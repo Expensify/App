@@ -1319,7 +1319,13 @@ function validateTransactionViolationJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
+function getReasonForShowingRowInLHN(
+    report: OnyxEntry<Report>,
+    chatReport: OnyxEntry<Report>,
+    hasRBR = false,
+    isReportArchived = false,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+): TranslationPaths | null {
     if (!report) {
         return null;
     }
@@ -1337,6 +1343,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: Onyx
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
+        reportNameValuePairs,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

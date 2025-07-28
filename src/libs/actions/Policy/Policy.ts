@@ -99,6 +99,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNameValuePairs,
     Request,
     TaxRatesWithDefault,
     Transaction,
@@ -1875,7 +1876,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [file] Optional, avatar file for workspace
  * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
-function buildPolicyData(options: BuildPolicyDataOptions = {}) {
+function buildPolicyData(options: BuildPolicyDataOptions = {}, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
     const {
         policyOwnerEmail = '',
         makeMeAdmin = false,
@@ -2220,7 +2221,14 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks
     ) {
         const {onboardingMessages} = getOnboardingMessages();
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(
+            introSelected,
+            engagementChoice,
+            onboardingMessages[engagementChoice],
+            reportNameValuePairs,
+            adminsChatReportID,
+            policyID,
+        );
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
@@ -2252,6 +2260,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
 }
 
 function createWorkspace(
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyName = '',
@@ -2263,18 +2272,21 @@ function createWorkspace(
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
 ): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData({
-        policyOwnerEmail,
-        makeMeAdmin,
-        policyName,
-        policyID,
-        engagementChoice,
-        currency,
-        file,
-        shouldAddOnboardingTasks,
-        companySize,
-        userReportedIntegration,
-    });
+    const {optimisticData, failureData, successData, params} = buildPolicyData(
+        {
+            policyOwnerEmail,
+            makeMeAdmin,
+            policyName,
+            policyID,
+            engagementChoice,
+            currency,
+            file,
+            shouldAddOnboardingTasks,
+            companySize,
+            userReportedIntegration,
+        },
+        reportNameValuePairs,
+    );
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 

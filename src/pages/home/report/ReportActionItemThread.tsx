@@ -1,6 +1,7 @@
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import {OnyxCollection} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
@@ -10,7 +11,7 @@ import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type ReportActionItemThreadProps = {
@@ -35,11 +36,23 @@ type ReportActionItemThreadProps = {
     /** Whether the thread item / message is active */
     isActive?: boolean;
 
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
-function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, reportID, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
+function ReportActionItemThread({
+    numberOfReplies,
+    icons,
+    mostRecentReply,
+    reportID,
+    reportAction,
+    isHovered,
+    onSecondaryInteraction,
+    isActive,
+    reportNameValuePairs,
+}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -55,7 +68,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, report
                 onPress={() => {
                     Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
                     Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
-                    navigateToAndOpenChildReport(reportAction.childReportID, reportAction, reportID);
+                    navigateToAndOpenChildReport(reportAction.childReportID, reportNameValuePairs, reportAction, reportID);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

@@ -1,5 +1,5 @@
 import {Parser as HtmlParser} from 'htmlparser2';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
@@ -7,7 +7,7 @@ import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, ge
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 /**
@@ -21,12 +21,20 @@ function extractAttachments(
         parentReportAction,
         reportActions,
         report,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
+        reportNameValuePairs,
+    }: {
+        privateNotes?: Record<number, Note>;
+        accountID?: number;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        reportActions?: OnyxEntry<ReportActions>;
+        report: OnyxEntry<Report>;
+        reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const canUserPerformAction = canUserPerformWriteAction(report);
+    const canUserPerformAction = canUserPerformWriteAction(report, reportNameValuePairs);
     let currentLink = '';
 
     const htmlParser = new HtmlParser({

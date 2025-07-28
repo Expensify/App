@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +15,7 @@ import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -28,6 +30,7 @@ function IOURequestStepUpgrade({
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
@@ -69,7 +72,7 @@ function IOURequestStepUpgrade({
                     <UpgradeIntro
                         feature={feature}
                         onUpgrade={() => {
-                            const policyData = Policy.createWorkspace('', false, '', undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+                            const policyData = Policy.createWorkspace(reportNameValuePairs, '', false, '', undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                             setIsUpgraded(true);
                             policyDataRef.current = policyData;
                         }}

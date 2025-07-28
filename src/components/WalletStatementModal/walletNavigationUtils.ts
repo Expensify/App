@@ -1,20 +1,22 @@
+import {OnyxCollection} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {ReportNameValuePairs} from '@src/types/onyx';
 
 /**
  * Handles navigation for wallet statement actions
  */
-function handleWalletStatementNavigation(type?: string, url?: string): void {
+function handleWalletStatementNavigation(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>, type?: string, url?: string): void {
     if (!type || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
         return;
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat();
+        navigateToConciergeChat(reportNameValuePairs);
         return;
     }
 

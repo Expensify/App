@@ -437,6 +437,7 @@ function endSignOnTransition() {
  * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     policyOwnerEmail = '',
     policyName = '',
     transitionFromOldDot = false,
@@ -456,7 +457,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            savePolicyDraftByNewWorkspace(reportNameValuePairs, policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -472,8 +473,16 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [currency] Optional, selected currency for the workspace
  * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
+function savePolicyDraftByNewWorkspace(
+    reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
+    policyID?: string,
+    policyName?: string,
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    currency = '',
+    file?: File,
+) {
+    createWorkspace(reportNameValuePairs, policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
 }
 
 /**
@@ -495,7 +504,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         endSignOnTransition();
@@ -517,7 +526,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail, policyName, true, makeMeAdmin);
+        createWorkspaceWithPolicyDraftAndNavigateToIt(reportNameValuePairs, policyOwnerEmail, policyName, true, makeMeAdmin);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {

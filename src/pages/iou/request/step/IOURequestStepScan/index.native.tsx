@@ -109,6 +109,7 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
@@ -298,47 +299,53 @@ function IOURequestStepScan({
                 receipt.source = receiptFile.source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                    trackExpense({
-                        report,
-                        isDraftPolicy: false,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant,
+                    trackExpense(
+                        {
+                            report,
+                            isDraftPolicy: false,
+                            participantParams: {
+                                payeeEmail: currentUserPersonalDetails.login,
+                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                participant,
+                            },
+                            transactionParams: {
+                                amount: 0,
+                                currency: transaction?.currency ?? 'USD',
+                                created: transaction?.created,
+                                receipt,
+                                billable,
+                                ...(gpsPoints ?? {}),
+                            },
+                            ...(policyParams ?? {}),
+                            shouldHandleNavigation: index === files.length - 1,
                         },
-                        transactionParams: {
-                            amount: 0,
-                            currency: transaction?.currency ?? 'USD',
-                            created: transaction?.created,
-                            receipt,
-                            billable,
-                            ...(gpsPoints ?? {}),
-                        },
-                        ...(policyParams ?? {}),
-                        shouldHandleNavigation: index === files.length - 1,
-                    });
+                        allReportNameValuePairs,
+                    );
                 } else {
-                    requestMoney({
-                        report,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant,
+                    requestMoney(
+                        {
+                            report,
+                            participantParams: {
+                                payeeEmail: currentUserPersonalDetails.login,
+                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                participant,
+                            },
+                            ...(policyParams ?? {}),
+                            ...(gpsPoints ?? {}),
+                            transactionParams: {
+                                amount: 0,
+                                attendees: transaction?.comment?.attendees,
+                                currency: transaction?.currency ?? 'USD',
+                                created: transaction?.created ?? '',
+                                merchant: '',
+                                receipt,
+                                billable,
+                            },
+                            shouldHandleNavigation: index === files.length - 1,
+                            backToReport,
                         },
-                        ...(policyParams ?? {}),
-                        ...(gpsPoints ?? {}),
-                        transactionParams: {
-                            amount: 0,
-                            attendees: transaction?.comment?.attendees,
-                            currency: transaction?.currency ?? 'USD',
-                            created: transaction?.created ?? '',
-                            merchant: '',
-                            receipt,
-                            billable,
-                        },
-                        shouldHandleNavigation: index === files.length - 1,
-                        backToReport,
-                    });
+                        allReportNameValuePairs,
+                    );
                 }
             });
         },
@@ -384,7 +391,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs);
                 });
 
                 if (shouldSkipConfirmation) {

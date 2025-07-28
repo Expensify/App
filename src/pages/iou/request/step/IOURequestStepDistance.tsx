@@ -87,6 +87,7 @@ function IOURequestStepDistance({
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -250,7 +251,7 @@ function IOURequestStepDistance({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID);
+            openReport(transaction?.reportID, allReportNameValuePairs);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -304,7 +305,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -312,29 +313,32 @@ function IOURequestStepDistance({
                 setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
-                    trackExpense({
-                        report,
-                        isDraftPolicy: false,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant,
+                    trackExpense(
+                        {
+                            report,
+                            isDraftPolicy: false,
+                            participantParams: {
+                                payeeEmail: currentUserPersonalDetails.login,
+                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                participant,
+                            },
+                            policyParams: {
+                                policy,
+                            },
+                            transactionParams: {
+                                amount: 0,
+                                currency: transaction?.currency ?? 'USD',
+                                created: transaction?.created ?? '',
+                                merchant: translate('iou.fieldPending'),
+                                receipt: {},
+                                billable: false,
+                                validWaypoints: getValidWaypoints(waypoints, true),
+                                customUnitRateID,
+                                attendees: transaction?.comment?.attendees,
+                            },
                         },
-                        policyParams: {
-                            policy,
-                        },
-                        transactionParams: {
-                            amount: 0,
-                            currency: transaction?.currency ?? 'USD',
-                            created: transaction?.created ?? '',
-                            merchant: translate('iou.fieldPending'),
-                            receipt: {},
-                            billable: false,
-                            validWaypoints: getValidWaypoints(waypoints, true),
-                            customUnitRateID,
-                            attendees: transaction?.comment?.attendees,
-                        },
-                    });
+                        allReportNameValuePairs,
+                    );
                     return;
                 }
 

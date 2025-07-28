@@ -17,6 +17,7 @@ const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
 
@@ -28,7 +29,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                 return;
             }
 
-            handleWalletStatementNavigation(type, url);
+            handleWalletStatementNavigation(reportNameValuePairs, type, url);
         } catch (error) {
             console.error('Error parsing message from WebView:', error);
         }

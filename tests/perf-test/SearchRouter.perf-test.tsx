@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import DateUtils from '@libs/DateUtils';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -84,10 +85,16 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
+const reportNameValuePairs = {
+    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getMockedReports().reportID}`]: {
+        private_isArchived: DateUtils.getDBTime(),
+    },
+};
+
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
-const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, reportNameValuePairs, mockedReports);
 
 beforeAll(() =>
     Onyx.init({

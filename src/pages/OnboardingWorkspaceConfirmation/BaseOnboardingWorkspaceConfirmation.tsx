@@ -47,6 +47,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
 
     const defaultWorkspaceName = draftValues?.name ?? generateDefaultWorkspaceName(session?.email);
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -63,7 +64,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
             // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                ? createWorkspace(undefined, true, name, generatePolicyID(), CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE, currency, undefined, false)
+                ? createWorkspace(reportNameValuePairs, undefined, true, name, generatePolicyID(), CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE, currency, undefined, false)
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
             if (shouldCreateWorkspace) {

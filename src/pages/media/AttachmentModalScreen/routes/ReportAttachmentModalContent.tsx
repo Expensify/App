@@ -47,6 +47,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         canBeMissing: false,
     });
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -75,7 +76,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
 
     const fetchReport = useCallback(() => {
-        openReport(reportID, reportActionID);
+        openReport(reportID, reportNameValuePairs, reportActionID);
     }, [reportID, reportActionID]);
 
     useEffect(() => {
