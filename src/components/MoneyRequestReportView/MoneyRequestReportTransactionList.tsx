@@ -19,9 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {generateReportID, getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -178,8 +177,8 @@ function MoneyRequestReportTransactionList({
 
             if (!iouAction?.childReportID) {
                 routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
-                routeParams.transactionID = activeTransaction.transactionID;
-                routeParams.iouReportID = activeTransaction.reportID;
+                routeParams.transactionID = activeTransactionID;
+                routeParams.iouReportID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUReportID : undefined;
             }
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
