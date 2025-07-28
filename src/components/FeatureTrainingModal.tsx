@@ -133,9 +133,6 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to call onHelp when modal is hidden completely */
     shouldCallOnHelpWhenModalHidden?: boolean;
-
-    /** Whether to disable the scroll view bounce */
-    shouldDisableScrollViewBounce?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -202,7 +199,6 @@ function FeatureTrainingModal({
     canConfirmWhileOffline = true,
     shouldGoBack = true,
     shouldCallOnHelpWhenModalHidden = false,
-    shouldDisableScrollViewBounce = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -413,18 +409,13 @@ function FeatureTrainingModal({
         >
             <Wrapper
                 scrollsToTop={false}
-                style={[
-                    styles.mh100,
-                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
-                    wrapperStyles.style,
-                    shouldUseScrollView && shouldDisableScrollViewBounce && styles.overscrollBehaviorNone,
-                ]}
+                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style, shouldUseScrollView && styles.overscrollBehaviorNone]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
                 onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
                 onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
-                bounces={shouldUseScrollView ? !shouldDisableScrollViewBounce : undefined}
+                bounces={shouldUseScrollView ? false : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >

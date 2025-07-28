@@ -57,7 +57,6 @@ function BaseTestDriveModal({
             shouldUseScrollView
             canConfirmWhileOffline={canConfirmWhileOffline}
             shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
-            shouldDisableScrollViewBounce
         >
             {children}
         </FeatureTrainingModal>
