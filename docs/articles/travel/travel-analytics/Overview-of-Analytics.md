@@ -1,25 +1,27 @@
 ---
-title: overview-of-analytics.md
+title: Overview of Analytics
 description: Learn how to use Expensify Travel analytics to monitor spend, track bookings, and access company-wide travel insights.
 keywords: [travel analytics, reporting, travel spend, usage insights, expensify travel reports]
 ---
 
-# Overview of analytics
-
 Expensify Travel analytics give travelers, approvers, and admins real-time visibility into travel activity and spend. These insights help identify travel trends, ensure policy compliance, and support strategic decision-making across your organization.
+
+---
 
 ## How to access Expensify Travel
 
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Note:** Travelers, approvers, and admins can all access analytics. Only travel admins can view company-wide reports.
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
 ## Traveler and approver analytics
 
-Once in Expensify Travel, click **Analytics** in the left-hand menu.
+1. Head to Expensify Travel.
+2. Click **Analytics** > **My Reports**.
+3. Filter for your own travel data, the data of your direct reports, or if you're an admin, your organization.
 
 ### Viewing data
 At the top left of the page, use the dropdown to toggle between:
@@ -42,7 +44,8 @@ All reports can be downloaded in the following formats:
 
 ## Company-wide analytics (admins only)
 
-Admins can access **Company reports** from the **Analytics** section to view comprehensive metrics and travel spend.
+1. Head to Expensify Travel.
+2. Click **Analytics** > **Company Reports**.
 
 ### Report selection
 A left-hand menu provides a list of built-in reports. Some examples include:
@@ -67,9 +70,6 @@ Most reports include a visual graph highlighting key metrics over time. Tile sum
 ---
 
 # FAQ
-
-**What should I do if the Analytics page appears blank?**  
-Click the icon at the far left of the URL in your browser’s address bar. Expand **Cookies and Site data**, then enable **third-party cookies**. Refresh the page and your reports should load correctly.
 
 **Can I see my team's travel activity if I’m not an admin?**  
 Yes, approvers can view data for their direct reports or organizational group using the dropdown at the top of the Analytics page.

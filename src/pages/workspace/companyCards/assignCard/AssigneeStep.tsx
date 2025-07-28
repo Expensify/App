@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -39,7 +38,7 @@ type AssigneeStepProps = {
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
@@ -141,7 +140,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text');
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {

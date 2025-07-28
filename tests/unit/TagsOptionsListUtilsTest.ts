@@ -1,8 +1,11 @@
 import type {Section} from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import {getTagListSections, sortTags} from '@libs/TagsOptionsListUtils';
+import {getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {PolicyTagLists} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TagsOptionsListUtils', () => {
@@ -610,5 +613,167 @@ describe('TagsOptionsListUtils', () => {
         expect(sorted.at(0)?.name).toBe('Car');
         expect(sorted.at(1)?.name).toBe('DisabledTag');
         expect(sorted.at(2)?.name).toBe('OfficeSupplies');
+    });
+
+    describe('getTagVisibility', () => {
+        const mockPolicy = createRandomPolicy(1, 'corporate', 'Test Policy');
+        const mockTransaction = createRandomTransaction(1);
+        const mockPolicyTags: PolicyTagLists = {
+            tagList1: {
+                name: 'Category',
+                required: true,
+                tags: {
+                    tag1: {name: 'Tag1', enabled: true},
+                    tag2: {name: 'Tag2', enabled: false},
+                },
+                orderWeight: 0,
+            },
+            tagList2: {
+                name: 'Subcategory',
+                required: false,
+                tags: {
+                    tag3: {name: 'Tag3', enabled: true},
+                    tag4: {name: 'Tag4', enabled: true},
+                },
+                orderWeight: 1,
+            },
+        };
+
+        it('should hide all tags when shouldShowTags is false', () => {
+            const result = getTagVisibility({
+                shouldShowTags: false,
+                policy: mockPolicy,
+                policyTags: mockPolicyTags,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: false},
+                {isTagRequired: false, shouldShow: false},
+            ]);
+        });
+
+        it('should show all tags when shouldShowTags is true and no dependent/multilevel tags', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: mockPolicyTags,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
+        it('should show tags when multilevel tags are enabled and have enabled options', () => {
+            const policyTagsWithEnabledOptions: PolicyTagLists = {
+                tagList1: {
+                    name: 'Category',
+                    required: true,
+                    tags: {
+                        tag1: {name: 'Tag1', enabled: true},
+                        tag2: {name: 'Tag2', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+                tagList2: {
+                    name: 'Subcategory',
+                    required: false,
+                    tags: {
+                        tag3: {name: 'Tag3', enabled: true},
+                        tag4: {name: 'Tag4', enabled: true},
+                    },
+                    orderWeight: 1,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: policyTagsWithEnabledOptions,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
+        it('should hide tags when multilevel tags are enabled but have no enabled options', () => {
+            const policyTagsWithDisabledOptions: PolicyTagLists = {
+                tagList1: {
+                    name: 'Category',
+                    required: true,
+                    tags: {
+                        tag1: {name: 'Tag1', enabled: false},
+                        tag2: {name: 'Tag2', enabled: false},
+                    },
+                    orderWeight: 0,
+                },
+                tagList2: {
+                    name: 'Subcategory',
+                    required: false,
+                    tags: {
+                        tag3: {name: 'Tag3', enabled: false},
+                        tag4: {name: 'Tag4', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: policyTagsWithDisabledOptions,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: false},
+                {isTagRequired: false, shouldShow: false},
+            ]);
+        });
+
+        it('should handle empty policyTags', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: undefined,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([]);
+        });
+
+        it('should handle undefined policy', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: undefined,
+                policyTags: mockPolicyTags,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
+        it('should handle undefined transaction', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: mockPolicyTags,
+                transaction: undefined,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
     });
 });

@@ -1,5 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
+import {isMobileSafari} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -43,6 +44,10 @@ type GetModalStylesStyleUtil = {
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
         shouldUseModalPaddingStyle?: boolean,
+        safeAreaOptions?: {
+            shouldDisableBottomSafeAreaPadding?: boolean;
+            modalOverlapsWithTopSafeArea?: boolean;
+        },
         shouldUseReanimatedModal?: boolean,
     ) => GetModalStyles;
 };
@@ -55,6 +60,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         innerContainerStyle = {},
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
+        safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
         shouldUseReanimatedModal = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
@@ -228,6 +234,10 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
+                    // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
+                    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
+                    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
+                    ...(isMobileSafari() ? {maxHeight: `${windowDimensions.windowHeight}px`} : {}),
                 };
 
                 if (shouldUseModalPaddingStyle) {
@@ -235,7 +245,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
                 }
 
-                shouldAddBottomSafeAreaPadding = true;
+                shouldAddBottomSafeAreaPadding = !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
+                shouldAddTopSafeAreaMargin = !!safeAreaOptions?.modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';
@@ -302,7 +313,6 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     };
                 }
 
-                hideBackdrop = true;
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;
                 shouldAddTopSafeAreaPadding = true;

@@ -34,8 +34,6 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseReanimatedModal
         >
             <ScreenWrapper

@@ -753,7 +753,7 @@ describe('SidebarUtils', () => {
                     })
 
                     // Then the welcome message should indicate the report is archived
-                    .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived) , there's nothing to see here."))
+                    .then((result) => expect(result.messageText).toBe("You missed the party in Report (archived), there's nothing to see here."))
             );
         });
 

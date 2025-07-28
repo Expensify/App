@@ -6,6 +6,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -16,6 +17,7 @@ import {fetchCorpayFields} from '@userActions/BankAccounts';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: CustomSubStepProps) {
@@ -24,10 +26,15 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [currentCountry, setCurrentCountry] = useState(formValues.bankCountry);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
 
     const onCountrySelected = useCallback(() => {
         if (currentCountry === CONST.COUNTRY.US) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            if (isUserValidated) {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            } else {
+                Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT));
+            }
             return;
         }
         if (isEditing && formValues.bankCountry === currentCountry) {
@@ -36,7 +43,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
         }
         fetchCorpayFields(currentCountry);
         resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
-    }, [currentCountry, formValues.bankCountry, isEditing, onNext, resetScreenIndex]);
+    }, [currentCountry, formValues.bankCountry, isEditing, onNext, resetScreenIndex, isUserValidated]);
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);

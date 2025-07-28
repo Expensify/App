@@ -406,8 +406,10 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
     }
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+    const isNativePlatform = isAndroidNative || isIOSNative;
 
-    if (!isAndroidNative || 'size' in file) {
+    if (!isNativePlatform || 'size' in file) {
         return Promise.resolve(file);
     }
 
@@ -464,6 +466,7 @@ const getFileValidationErrorText = (
             reason: '',
         };
     }
+    const maxSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
@@ -488,7 +491,7 @@ const getFileValidationErrorText = (
             return {
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
-                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:

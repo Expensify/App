@@ -32,7 +32,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -66,7 +65,7 @@ function WorkspaceTaxesPage({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -189,13 +188,16 @@ function WorkspaceTaxesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
         return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
     }, []);
-    const sortTaxes = useCallback((taxes: ListItem[]) => {
-        return taxes.sort((a, b) => {
-            const aText = a.text ?? a.keyForList ?? '';
-            const bText = b.text ?? b.keyForList ?? '';
-            return localeCompare(aText, bText);
-        });
-    }, []);
+    const sortTaxes = useCallback(
+        (taxes: ListItem[]) => {
+            return taxes.sort((a, b) => {
+                const aText = a.text ?? a.keyForList ?? '';
+                const bText = b.text ?? b.keyForList ?? '';
+                return localeCompare(aText, bText);
+            });
+        },
+        [localeCompare],
+    );
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
@@ -335,7 +337,7 @@ function WorkspaceTaxesPage({
             <ButtonWithDropdownMenu
                 success={false}
                 onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
+                shouldUseOptionIcon
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}

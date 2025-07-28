@@ -1,4 +1,5 @@
-import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
@@ -19,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
@@ -97,6 +99,7 @@ function BaseModal(
         hasBackdrop,
         backdropOpacity,
         shouldUseReanimatedModal = false,
+        shouldDisableBottomSafeAreaPadding = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -107,13 +110,18 @@ function BaseModal(
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
+    const canUseTouchScreen = canUseTouchScreenCheck();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const sidePanelReanimatedStyle =
         shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
+
+    const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
+    const [modalHeight, setModalHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
 
@@ -208,6 +216,32 @@ function BaseModal(
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
+    // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
+    useEffect(() => {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth) {
+            return;
+        }
+        const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
+        const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
+        setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && Math.floor(availableHeight) <= 0);
+    }, [
+        StyleUtils,
+        insets,
+        keyboardStateContextValue.isKeyboardActive,
+        keyboardStateContextValue.isKeyboardAnimatingRef,
+        keyboardStateContextValue.keyboardActiveHeight,
+        modalHeight,
+        type,
+        windowHeight,
+        modalOverlapsWithTopSafeArea,
+        canUseTouchScreen,
+        isSmallScreenWidth,
+    ]);
+
+    const onViewLayout = (e: LayoutChangeEvent) => {
+        setModalHeight(e.nativeEvent.layout.height);
+    };
+
     const {
         modalStyle,
         modalContainerStyle,
@@ -232,6 +266,10 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                {
+                    modalOverlapsWithTopSafeArea,
+                    shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
+                },
                 shouldUseReanimatedModal,
             ),
         [
@@ -245,6 +283,8 @@ function BaseModal(
             innerContainerStyle,
             outerStyle,
             shouldUseModalPaddingStyle,
+            modalOverlapsWithTopSafeArea,
+            shouldDisableBottomSafeAreaPadding,
             shouldUseReanimatedModal,
         ],
     );
@@ -305,6 +345,11 @@ function BaseModal(
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
 
+    const backdropOpacityAdjusted =
+        hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal)) // right_docked modals shouldn't add backdrops when opened in same-width RHP
+            ? 0
+            : backdropOpacity;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -337,7 +382,7 @@ function BaseModal(
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
-                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : backdropOpacity}
+                        backdropOpacity={backdropOpacityAdjusted}
                         backdropTransitionOutTiming={0}
                         hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
@@ -369,6 +414,7 @@ function BaseModal(
                                 shouldPreventScroll={shouldPreventScrollOnFocus}
                             >
                                 <Animated.View
+                                    onLayout={onViewLayout}
                                     style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
                                     ref={ref}
                                 >

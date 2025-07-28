@@ -4,6 +4,7 @@ import {Animated, View} from 'react-native';
 // @ts-expect-error This is a workaround to display HelpPane on top of everything,
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
 import HelpOverlay from '@components/SidePanel/HelpComponents/HelpOverlay';
@@ -63,23 +64,28 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     return (
         <ModalPortal>
-            <FocusTrapForModal active={!isExtraLargeScreenWidth}>
-                <View style={styles.sidePanelContainer}>
-                    <View>
-                        {!shouldHideSidePanelBackdrop && (
-                            <HelpOverlay
-                                onBackdropPress={closeSidePanel}
-                                isRHPVisible={isRHPVisible}
-                            />
-                        )}
+            <ColorSchemeWrapper>
+                <FocusTrapForModal active={!isExtraLargeScreenWidth}>
+                    <View style={styles.sidePanelContainer}>
+                        <View>
+                            {!shouldHideSidePanelBackdrop && (
+                                <HelpOverlay
+                                    onBackdropPress={closeSidePanel}
+                                    isRHPVisible={isRHPVisible}
+                                />
+                            )}
+                        </View>
+                        <Animated.View
+                            style={[
+                                styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth),
+                                {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom},
+                            ]}
+                        >
+                            <HelpContent closeSidePanel={closeSidePanel} />
+                        </Animated.View>
                     </View>
-                    <Animated.View
-                        style={[styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom}]}
-                    >
-                        <HelpContent closeSidePanel={closeSidePanel} />
-                    </Animated.View>
-                </View>
-            </FocusTrapForModal>
+                </FocusTrapForModal>
+            </ColorSchemeWrapper>
         </ModalPortal>
     );
 }

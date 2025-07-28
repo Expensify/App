@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -14,7 +13,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -28,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
@@ -63,7 +61,6 @@ type ImagePickerResponse = {
 type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
-    displayFileInModal: (data: FileObject) => void;
     show: () => void;
 };
 
@@ -202,7 +199,6 @@ function AttachmentModal({
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
-    const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
@@ -218,8 +214,6 @@ function AttachmentModal({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
-
-    // TODO: Remove the logic for validating files, ideally in a follow-up to avoid breaking changes/regressions
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -249,17 +243,6 @@ function AttachmentModal({
             setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange],
-    );
-
-    /**
-     * If our attachment is a PDF, return the unswipeable Modal type.
-     */
-    const getModalType = useCallback(
-        (sourceURL: string, fileObject: FileObject) =>
-            sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translate('attachmentView.unknownFilename'))))
-                ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                : CONST.MODAL.MODAL_TYPE.CENTERED,
-        [translate],
     );
 
     const setDownloadButtonVisibility = useCallback(
@@ -325,91 +308,6 @@ function AttachmentModal({
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.goBack();
     }, [transaction]);
-
-    const isValidFile = useCallback(
-        (fileObject: FileObject) =>
-            validateImageForCorruption(fileObject)
-                .then(() => {
-                    if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-                        setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
-                        return false;
-                    }
-
-                    if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-                        setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
-                        return false;
-                    }
-
-                    return true;
-                })
-                .catch(() => {
-                    setIsAttachmentInvalid(true);
-                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                    return false;
-                }),
-        [],
-    );
-
-    const isDirectoryCheck = useCallback((data: FileObject) => {
-        if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-            setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
-            return false;
-        }
-        return true;
-    }, []);
-
-    const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject) => {
-            if (!data || !isDirectoryCheck(data)) {
-                return;
-            }
-            let fileObject = data;
-            if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile() as FileObject;
-            }
-            if (!fileObject) {
-                return;
-            }
-
-            isValidFile(fileObject).then((isValid) => {
-                if (!isValid) {
-                    return;
-                }
-                if (fileObject instanceof File) {
-                    /**
-                     * Cleaning file name, done here so that it covers all cases:
-                     * upload, drag and drop, copy-paste
-                     */
-                    let updatedFile = fileObject;
-                    const cleanName = cleanFileName(updatedFile.name);
-                    if (updatedFile.name !== cleanName) {
-                        updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
-                    }
-                    const inputSource = URL.createObjectURL(updatedFile);
-                    updatedFile.uri = inputSource;
-                    const inputModalType = getModalType(inputSource, updatedFile);
-                    setIsModalOpen(true);
-                    setSourceState(inputSource);
-                    setFile(updatedFile);
-                    setModalType(inputModalType);
-                } else if (fileObject.uri) {
-                    const inputModalType = getModalType(fileObject.uri, fileObject);
-                    setIsModalOpen(true);
-                    setSourceState(fileObject.uri);
-                    setFile(fileObject);
-                    setModalType(inputModalType);
-                }
-            });
-        },
-        [isValidFile, getModalType, isDirectoryCheck],
-    );
 
     /**
      * Closes the modal.
@@ -520,7 +418,7 @@ function AttachmentModal({
     return (
         <>
             <Modal
-                type={modalType}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 onModalShow={() => {
@@ -701,10 +599,7 @@ function AttachmentModal({
                 />
             )}
 
-            {children?.({
-                displayFileInModal: validateAndDisplayFileToUpload,
-                show: openModal,
-            })}
+            {children?.({show: openModal})}
         </>
     );
 }

@@ -63,16 +63,36 @@ type DeleteConfirmationParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
 
-type BeginningOfChatHistoryDomainRoomPartOneParams = {
+type BeginningOfChatHistoryDomainRoomParams = {
     domainRoom: string;
 };
 
-type BeginningOfChatHistoryAdminRoomPartOneParams = {
+type BeginningOfChatHistoryAdminRoomParams = {
     workspaceName: string;
 };
 
-type BeginningOfChatHistoryAnnounceRoomPartOneParams = {
+type BeginningOfChatHistoryAnnounceRoomParams = {
     workspaceName: string;
+};
+
+type BeginningOfChatHistoryPolicyExpenseChatParams = {
+    workspaceName: string;
+    submitterDisplayName: string;
+};
+
+type BeginningOfChatHistoryInvoiceRoomParams = {
+    invoicePayer: string;
+    invoiceReceiver: string;
+};
+
+type BeginningOfArchivedRoomParams = {
+    reportName: string;
+    reportDetailsLink: string;
+};
+
+type BeginningOfChatHistoryUserRoomParams = {
+    reportName: string;
+    reportDetailsLink: string;
 };
 
 type BeginningOfChatHistoryAnnounceRoomPartTwo = {
@@ -793,6 +813,11 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type SettlementAccountInfoParams = {
+    reconciliationAccountSettingsLink: string;
+    accountNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -871,10 +896,14 @@ export type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfChatHistoryDomainRoomParams,
     CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
@@ -1070,4 +1099,5 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    SettlementAccountInfoParams,
 };

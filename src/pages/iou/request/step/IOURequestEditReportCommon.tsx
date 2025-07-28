@@ -35,6 +35,7 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         stateNum: report.stateNum,
         statusNum: report.statusNum,
         type: report.type,
+        pendingFields: report.pendingFields,
     };
 
 type Props = {

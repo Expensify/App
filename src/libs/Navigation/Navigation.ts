@@ -543,6 +543,10 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        // Let React Navigation finish modal transition
+        InteractionManager.runAfterInteractions(() => {
+            fireModalDismissed();
+        });
     });
 };
 
@@ -634,6 +638,20 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+const modalDismissedListeners: Array<() => void> = [];
+
+function onModalDismissedOnce(callback: () => void) {
+    modalDismissedListeners.push(callback);
+}
+
+// Wrap modal dismissal so listeners get called
+function fireModalDismissed() {
+    while (modalDismissedListeners.length) {
+        const cb = modalDismissedListeners.pop();
+        cb?.();
+    }
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -666,6 +684,8 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    onModalDismissedOnce,
+    fireModalDismissed,
 };
 
 export {navigationRef};

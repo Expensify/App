@@ -1,21 +1,18 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getPolicy} from '@libs/PolicyUtils';
 import {
-    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportName,
-    isAdminRoom as isAdminRoomReportUtils,
-    isArchivedNonExpenseReport,
     isChatRoom as isChatRoomReportUtils,
     isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -46,22 +43,20 @@ type ReportWelcomeTextProps = {
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
-    const isAdminRoom = isAdminRoomReportUtils(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const policyName = getPolicyName({report});
 
@@ -88,13 +83,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const navigateToReport = () => {
+    const reportDetailsLink = useMemo(() => {
         if (!report?.reportID) {
-            return;
+            return '';
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
-    };
+        return `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}`;
+    }, [environmentURL, report?.reportID]);
 
     const welcomeHeroText = useMemo(() => {
         if (isInvoiceRoom) {
@@ -120,87 +115,28 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         return translate('reportActionsView.sayHello');
     }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived, reportDetailsLink);
+
     return (
         <>
             <View>
                 <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
-                {isPolicyExpenseChat &&
-                    (welcomeMessage?.messageHtml ? (
-                        <View style={[styles.renderHTML, styles.cursorText]}>
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </View>
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.ownerAccountID})}</Text>
-                            <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{getPolicyName({report})}</Text>
-                            <Text>{welcomeMessage.phrase3}</Text>
-                        </Text>
-                    ))}
-                {isInvoiceRoom &&
-                    !isArchivedRoom &&
-                    (welcomeMessage?.messageHtml ? (
-                        <View style={[styles.renderHTML, styles.cursorText]}>
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </View>
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            <Text>
-                                {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
-                                ) : (
-                                    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                                    // eslint-disable-next-line deprecation/deprecation
-                                    <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
-                                )}
-                            </Text>
-                            <Text>{` ${translate('common.and')} `}</Text>
-                            <Text style={[styles.textStrong]}>{getPolicyName({report})}</Text>
-                            <Text>{welcomeMessage.phrase2}</Text>
-                        </Text>
-                    ))}
-                {isChatRoom &&
-                    ((!isInvoiceRoom && !isAdminRoom) || isArchivedRoom) &&
-                    (welcomeMessage?.messageHtml ? (
-                        <View style={styles.renderHTML}>
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </View>
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            {welcomeMessage.showReportName && (
-                                <Text
-                                    style={[styles.textStrong]}
-                                    onPress={navigateToReport}
-                                    suppressHighlighting
-                                >
-                                    {getReportName(report)}
-                                </Text>
-                            )}
-                            {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
-                        </Text>
-                    ))}
-                {isChatRoom && isAdminRoom && !isArchivedRoom && (
-                    <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
-                        {welcomeMessage.phrase2 !== undefined && <Text style={styles.textStrong}>{welcomeMessage.phrase2}</Text>}
-                        {welcomeMessage.phrase3 !== undefined && <Text>{welcomeMessage.phrase3}</Text>}
-                        {welcomeMessage.phrase4 !== undefined && <Text>{welcomeMessage.phrase4}</Text>}
-                    </Text>
+                {(isChatRoom || isPolicyExpenseChat) && !!welcomeMessage.messageHtml && (
+                    <View style={[styles.renderHTML, styles.cursorText]}>
+                        <RenderHTML html={welcomeMessage.messageHtml} />
+                    </View>
                 )}
                 {isSelfDM && (
                     <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
+                        <Text>{welcomeMessage.messageText}</Text>
                         {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
                     </Text>
                 )}
                 {isSystemChat && (
                     <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
+                        <Text>{welcomeMessage.messageText}</Text>
                     </Text>
                 )}
                 {isDefault && displayNamesWithTooltips.length > 0 && (

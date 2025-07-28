@@ -274,19 +274,19 @@ function PopoverMenu({
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
-        const hasBackButtonText = !!previouslySelectedItem.backButtonText;
+        const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
 
         return (
             <MenuItem
-                key={previouslySelectedItem.text}
+                key={previouslySelectedItem?.text}
                 icon={Expensicons.BackArrow}
                 iconFill={theme.icon}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                title={hasBackButtonText ? previouslySelectedItem.backButtonText : previouslySelectedItem.text}
+                title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
-                description={previouslySelectedItem.description}
+                description={previouslySelectedItem?.description}
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);

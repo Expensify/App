@@ -24,6 +24,10 @@ function useOnboardingFlowRouter() {
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         canBeMissing: true,
     });
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingInitialPath, onboardingInitialPathResult] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const isOnboardingInitialPathLoading = isLoadingOnyxValue(onboardingInitialPathResult);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
@@ -46,7 +50,7 @@ function useOnboardingFlowRouter() {
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
             }
-            if (isLoadingApp !== false) {
+            if (isLoadingApp !== false || isOnboardingInitialPathLoading) {
                 return;
             }
 
@@ -90,6 +94,9 @@ function useOnboardingFlowRouter() {
                         onboardingValuesParam: onboardingValues,
                         isUserFromPublicDomain: !!account?.isFromPublicDomain,
                         hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                        currentOnboardingCompanySize,
+                        currentOnboardingPurposeSelected,
+                        onboardingInitialPath,
                     });
                 }
             }
@@ -101,6 +108,9 @@ function useOnboardingFlowRouter() {
                     onboardingValuesParam: onboardingValues,
                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                    currentOnboardingCompanySize,
+                    currentOnboardingPurposeSelected,
+                    onboardingInitialPath,
                 });
             }
         });
@@ -120,6 +130,10 @@ function useOnboardingFlowRouter() {
         account?.hasAccessibleDomainPolicies,
         currentUrl,
         isLoggingInAsNewSessionUser,
+        currentOnboardingCompanySize,
+        currentOnboardingPurposeSelected,
+        onboardingInitialPath,
+        isOnboardingInitialPathLoading,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

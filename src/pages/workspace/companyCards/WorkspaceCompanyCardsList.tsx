@@ -52,7 +52,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
-    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards, true);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {

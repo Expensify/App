@@ -19,7 +19,6 @@ import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
@@ -66,7 +65,7 @@ type WorkspaceNewRoomPageRef = {
 function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -92,7 +91,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
                     value: policy.id,
                 }))
                 .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
-        [policies, session?.email],
+        [policies, session?.email, localeCompare],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
         if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {

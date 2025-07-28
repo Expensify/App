@@ -1,26 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as WorkspaceSettingsUtils from '@libs/WorkspacesSettingsUtils';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {getOwnershipChecksDisplayText} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
-import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceOwnerChangeCheckOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-};
-
-type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
+type WorkspaceOwnerChangeCheckProps = {
     /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -31,7 +25,7 @@ type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
 };
 
-function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
+function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [displayTexts, setDisplayTexts] = useState({
@@ -39,8 +33,9 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         text: '',
         buttonText: '',
     });
+    const personalDetails = usePersonalDetails();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const updateDisplayTexts = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -48,7 +43,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
             return;
         }
 
-        const texts = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        const texts = getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
         setDisplayTexts(texts);
     }, [accountID, error, personalDetails, policy, translate]);
 
@@ -57,15 +52,18 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
     }, [updateDisplayTexts]);
 
     const confirm = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
-            MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
+            clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
             return;
         }
 
-        MemberActions.requestWorkspaceOwnerChange(policyID);
+        requestWorkspaceOwnerChange(policyID);
     }, [accountID, error, policyID]);
 
     return (
@@ -86,8 +84,4 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
 WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
 
-export default withOnyx<WorkspaceOwnerChangeCheckProps, WorkspaceOwnerChangeCheckOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(WorkspaceOwnerChangeCheck);
+export default WorkspaceOwnerChangeCheck;

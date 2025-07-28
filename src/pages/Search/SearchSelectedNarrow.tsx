@@ -2,8 +2,7 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import MenuItem from '@components/MenuItem';
-import Modal from '@components/Modal';
+import PopoverMenu from '@components/PopoverMenu';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,24 +57,33 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 shouldShowRightIcon={options.length !== 0}
                 success
             />
-            <Modal
+            <PopoverMenu
                 isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={handleOnCloseMenu}
                 onModalHide={handleOnModalHide}
-            >
-                {options.map((option, index) => (
-                    <MenuItem
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...option}
-                        title={option.text}
-                        titleStyle={option.titleStyle}
-                        icon={option.icon}
-                        onPress={() => handleOnMenuItemPress(option, index)}
-                        key={option.value}
-                    />
-                ))}
-            </Modal>
+                onItemSelected={(selectedItem, index) => {
+                    handleOnMenuItemPress(selectedItem as DropdownOption<SearchHeaderOptionValue>, index);
+                }}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorRef={buttonRef}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                fromSidebarMediumScreen={false}
+                shouldUseModalPaddingStyle
+                menuItems={options.map((item, index) => ({
+                    ...item,
+                    onSelected: item?.onSelected
+                        ? () => {
+                              item.onSelected?.();
+                          }
+                        : () => {
+                              handleOnMenuItemPress(item, index);
+                          },
+                    shouldCallAfterModalHide: true,
+                }))}
+            />
         </View>
     );
 }

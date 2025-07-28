@@ -305,8 +305,8 @@ function ComposerWithSuggestions(
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
+        RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
+    }, []);
 
     const debouncedSaveReportComment = useMemo(
         () =>

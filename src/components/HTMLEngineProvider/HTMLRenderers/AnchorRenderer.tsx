@@ -71,6 +71,14 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ];
         }
 
+        if (tnode.classes.includes('no-style-link')) {
+            // If the link has a class of a no-style-link, we don't apply any styles
+            linkStyle = {...(style as TextStyle)};
+            delete linkStyle.color;
+            delete linkStyle.textDecorationLine;
+            delete linkStyle.textDecorationColor;
+        }
+
         return (
             <Text
                 style={linkStyle}
