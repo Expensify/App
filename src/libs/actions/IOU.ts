@@ -5387,7 +5387,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams, reportN
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation, reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation, reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>) {
     const {
         report,
         participantParams,
