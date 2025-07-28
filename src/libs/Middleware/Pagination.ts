@@ -96,7 +96,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         // Create a new page based on the response
         const pageItems = (response.onyxData.find((data) => data.key === resourceKey)?.value ?? {}) as OnyxValues[typeof resourceCollectionKey];
-        const sortedPageItems = sortItems(pageItems, resourceID, reportNameValuePairs);
+        const sortedPageItems = sortItems(pageItems, resourceID);
         if (sortedPageItems.length === 0) {
             // Must have at least 1 action to create a page.
             Log.hmmm(`[Pagination] Did not receive any items in the response to ${request.command}`);

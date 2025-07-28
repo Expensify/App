@@ -1,6 +1,7 @@
 import deburr from 'lodash/deburr';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import {OnyxCollection} from 'react-native-onyx';
 import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import Log from '@libs/Log';
@@ -10,6 +11,7 @@ import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import {ReportNameValuePairs} from '@src/types/onyx';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -52,11 +54,13 @@ const getRecentReportUniqueId = (option: OptionData) => {
 // You can either use this to search within report and personal details options
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     config?: {includeUserToInvite: false},
 ): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
 function useFastSearchFromOptions(
     options: OptionsListType,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     config?: {includeUserToInvite: true},
 ): {
     search: (searchInput: string) => OptionsListType;
@@ -74,6 +78,7 @@ function useFastSearchFromOptions(
  */
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
@@ -226,6 +231,7 @@ function useFastSearchFromOptions(
                         recentReports,
                     },
                     searchInput,
+                    reportNameValuePairs,
                 );
                 return {
                     personalDetails,

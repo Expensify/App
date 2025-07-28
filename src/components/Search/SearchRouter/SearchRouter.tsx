@@ -492,6 +492,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         reports={reports}
                         allFeeds={allFeeds}
                         allCards={allCards}
+                        reportNameValuePairs={reportNameValuePairs}
                     />
                 </>
             )}

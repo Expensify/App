@@ -39,7 +39,7 @@ import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -96,6 +96,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList;
+
+    /** All report name value pairs */
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 };
 
 const defaultListOptions = {
@@ -162,6 +165,7 @@ function SearchAutocompleteList(
         reports,
         allFeeds,
         allCards,
+        reportNameValuePairs,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -178,7 +182,7 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? []);
+        return getSearchOptions(options, reportNameValuePairs, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -520,7 +524,7 @@ function SearchAutocompleteList(
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
-    const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, reportNameValuePairs, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
         const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
