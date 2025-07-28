@@ -9,15 +9,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getPolicy, getTagLists} from '@libs/PolicyUtils';
+import {getTagLists} from '@libs/PolicyUtils';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -39,13 +42,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(report?.policyID);
+
+    const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
@@ -59,6 +61,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+
+    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
 
@@ -78,7 +82,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction)}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitExpenseEditTitle', {

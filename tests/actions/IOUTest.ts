@@ -42,6 +42,7 @@ import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -126,9 +127,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         hash: 12345,
         query: 'test',
         type: 'invoice',
-        status: 'all',
+        status: '',
         flatFilters: [],
     })),
+    getTodoSearchQuery: jest.fn(),
+    buildSearchQueryJSON: jest.fn(),
 }));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -4639,6 +4642,68 @@ describe('actions/IOU', () => {
                                         expect(lastVisibleActionCreated).toBe(lastAction?.created);
                                     },
                                 });
+                            },
+                        });
+                    });
+                });
+        });
+
+        test('should rollback unhold request on API failure', () => {
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+            });
+            const transactionThread = buildTransactionThread(iouAction, iouReport);
+
+            const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const comment = 'hold reason';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    mockFetch.fail();
+                    mockFetch?.resume?.();
+                    unholdRequest(transaction.transactionID, transactionThread.reportID);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                            callback: (updatedTransaction) => {
+                                Onyx.disconnect(connection);
+                                expect(updatedTransaction?.pendingAction).toBeFalsy();
+                                expect(updatedTransaction?.comment?.hold).toBeTruthy();
+                                expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
+                                    Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
+                                );
+
+                                resolve();
                             },
                         });
                     });

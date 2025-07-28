@@ -35,9 +35,13 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -183,6 +187,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
@@ -545,6 +550,7 @@ const translations = {
         tax: 'Taxe',
         shared: 'Partagé',
         drafts: 'Brouillons',
+        draft: 'Brouillon',
         finished: 'Terminé',
         upgrade: 'Mise à niveau',
         downgradeWorkspace: "Rétrograder l'espace de travail",
@@ -552,6 +558,7 @@ const translations = {
         userID: 'ID utilisateur',
         disable: 'Désactiver',
         export: 'Exportation',
+        basicExport: 'Exportation basique',
         initialValue: 'Valeur initiale',
         currentDate: 'Current date',
         value: 'Valeur',
@@ -827,25 +834,21 @@ const translations = {
         reactedWith: 'a réagi avec',
     },
     reportActionsView: {
-        beginningOfArchivedRoomPartOne: 'Vous avez manqué la fête à',
-        beginningOfArchivedRoomPartTwo: ", il n'y a rien à voir ici.",
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
-            `Cette discussion est avec tous les membres d'Expensify sur le domaine ${domainRoom}.`,
-        beginningOfChatHistoryDomainRoomPartTwo: 'Utilisez-le pour discuter avec des collègues, partager des conseils et poser des questions.',
-        beginningOfChatHistoryAdminRoomPartOneFirst: 'Ce chat est avec',
-        beginningOfChatHistoryAdminRoomPartOneLast: 'admin.',
-        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
-        beginningOfChatHistoryAdminRoomPartTwo: "Utilisez-le pour discuter de l'installation de l'espace de travail et plus encore.",
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Cette discussion est avec tout le monde dans ${workspaceName}.`,
-        beginningOfChatHistoryAnnounceRoomPartTwo: `Utilisez-le pour les annonces les plus importantes.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Ce salon de discussion est pour tout.',
-        beginningOfChatHistoryUserRoomPartTwo: 'related.',
-        beginningOfChatHistoryInvoiceRoomPartOne: `Ce chat est pour les factures entre`,
-        beginningOfChatHistoryInvoiceRoomPartTwo: `. Utilisez le bouton + pour envoyer une facture.`,
+        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+            `Vous avez raté la fête à <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>, il n'y a rien à voir ici.`,
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
+            `Ce chat est destiné à tous les membres d'Expensify sur le domaine <strong>${domainRoom}</strong>. Utilisez-le pour discuter avec vos collègues, partager des astuces et poser des questions.`,
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
+            `Ce chat est avec l'administrateur <strong>${workspaceName}</strong>. Utilisez-le pour discuter de la configuration de l'espace de travail et d'autres sujets.`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `Cette discussion est ouverte à tous les membres de <strong>${workspaceName}</strong>. Utilisez-le pour les annonces les plus importantes.`,
+        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+            `Ce salon de discussion est destiné à tout ce qui concerne <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
+        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton + pour envoyer une facture.`,
         beginningOfChatHistory: 'Ce chat est avec',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: "C'est ici que",
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: 'va soumettre des dépenses à',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ". Il suffit d'utiliser le bouton +.",
+        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton +.`,
         beginningOfChatHistorySelfDM: "C'est votre espace personnel. Utilisez-le pour des notes, des tâches, des brouillons et des rappels.",
         beginningOfChatHistorySystemDM: 'Bienvenue ! Commençons votre configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
@@ -1057,7 +1060,7 @@ const translations = {
         canceled: 'Annulé',
         posted: 'Publié',
         deleteReceipt: 'Supprimer le reçu',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense sur ce rapport, ${merchant} - ${amount}`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense sur ce rapport (${merchant} - ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
@@ -1529,6 +1532,8 @@ const translations = {
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
             invalidateWithDelay: 'Invalider avec délai',
             recordTroubleshootData: 'Enregistrement des données de dépannage',
+            softKillTheApp: "Supprimer l'application",
+            kill: 'Tuer',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -2206,6 +2211,11 @@ const translations = {
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
             none: 'Aucun',
+        },
+        interestedFeatures: {
+            title: 'Quelles fonctionnalités vous intéressent ?',
+            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
+            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
         },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',
@@ -3244,10 +3254,8 @@ const translations = {
         termsAndConditions: {
             header: 'Avant de continuer...',
             title: 'Termes et conditions',
-            subtitle: 'Veuillez accepter les conditions de Expensify Travel.',
-            termsAndConditions: 'termes et conditions',
-            travelTermsAndConditions: 'termes et conditions',
-            agree: "J'accepte les",
+            label: "J'accepte les termes et conditions",
+            subtitle: `Veuillez accepter les <a href="${CONST.TRAVEL_TERMS_URL}">conditions générales</a> d'Expensify Travel.`,
             error: 'Vous devez accepter les conditions générales de Expensify Travel pour continuer.',
             defaultWorkspaceError:
                 "Vous devez définir un espace de travail par défaut pour activer Expensify Travel. Allez dans Paramètres > Espaces de travail > cliquez sur les trois points verticaux à côté d'un espace de travail > Définir comme espace de travail par défaut, puis réessayez !",
@@ -3442,7 +3450,7 @@ const translations = {
             welcomeNote: 'Veuillez utiliser Expensify pour soumettre vos reçus pour remboursement, merci !',
             subscription: 'Abonnement',
             markAsEntered: 'Marquer comme saisi manuellement',
-            markAsExported: 'Marquer comme exporté manuellement',
+            markAsExported: 'Marquer comme exporté',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporter vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vérifions que tout est correct.',
             lineItemLevel: 'Niveau des postes de dépense',
@@ -4392,9 +4400,8 @@ const translations = {
             addNewBankAccount: 'Ajouter un nouveau compte bancaire',
             settlementAccount: 'Compte de règlement',
             settlementAccountDescription: 'Choisissez un compte pour payer le solde de votre carte Expensify.',
-            settlementAccountInfoPt1: 'Assurez-vous que ce compte correspond au vôtre',
-            settlementAccountInfoPt2: 'afin que la Réconciliation Continue fonctionne correctement.',
-            reconciliationAccount: 'Compte de réconciliation',
+            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+                `Assurez-vous que ce compte correspond à votre <a href="${reconciliationAccountSettingsLink}">compte de réconciliation</a> (${accountNumber}) afin que le réconciliation continu fonctionne correctement.`,
             settlementFrequency: 'Fréquence de règlement',
             settlementFrequencyDescription: 'Choisissez la fréquence à laquelle vous paierez le solde de votre Expensify Card.',
             settlementFrequencyInfo:
@@ -6159,8 +6166,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modifié ${fieldName} de ${oldValue} à ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changé ${fieldName} en ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `a changé l'espace de travail en ${toPolicyName}${fromPolicyName ? `(anciennement ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return `Espace de travail modifié${fromPolicyName ? ` (auparavant ${fromPolicyName})` : ''}`;
+                    }
+                    return `Espace de travail modifié en ${toPolicyName}${fromPolicyName ? ` (auparavant ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changé le type de ${oldType} à ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `a envoyé ce rapport à ${delegateUser} puisque ${originalManager} est en vacances`,
                 exportedToCSV: `exporté en CSV`,
@@ -6310,7 +6321,8 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitez-les',
+        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
+        inviteToChat: 'Inviter uniquement à discuter',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
