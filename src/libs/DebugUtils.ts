@@ -471,6 +471,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
+        case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
             return validateBoolean(value);
         case 'exportFailedTime':
