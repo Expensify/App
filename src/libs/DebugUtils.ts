@@ -624,6 +624,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
