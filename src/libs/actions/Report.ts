@@ -4355,6 +4355,7 @@ function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policy?: OnyxEntry<Policy>,
 ) {
     if (!reportAction || !reportID) {
@@ -4379,6 +4380,7 @@ function resolveActionableMentionWhisper(
                 policyID,
                 policyMemberAccountIDs,
                 CONST.POLICY.ROLE.USER,
+                formatPhoneNumber,
             );
         }
     }
@@ -4462,8 +4464,9 @@ function resolveActionableMentionConfirmWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber);
 }
 
 function resolveActionableReportMentionWhisper(
