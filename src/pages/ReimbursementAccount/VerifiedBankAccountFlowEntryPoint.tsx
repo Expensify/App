@@ -87,7 +87,7 @@ function VerifiedBankAccountFlowEntryPoint({
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -306,7 +306,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
-                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                 validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                 clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                 onClose={() => toggleValidateCodeActionModal?.(false)}

@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -13,10 +14,10 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
@@ -26,15 +27,15 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-    PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber);
     Navigation.goBack();
 };
 
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const {translate, formatPhoneNumber} = useLocalize();
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
@@ -42,25 +43,25 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
 
         // First we validate the first name field
-        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+        if (!isValidDisplayName(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         } else if (values.firstName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
         }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+        if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
-        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+        if (!isValidDisplayName(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
-        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
+        if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
         }
         return errors;
     };
@@ -81,7 +82,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={updateDisplayName}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur
