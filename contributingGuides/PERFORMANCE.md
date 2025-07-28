@@ -11,7 +11,7 @@ Performance issues often manifest as slow rendering or unresponsiveness. The goa
 *   **Resource Consumption:** CPU, RAM, network, storage, and battery usage.
 *   **Responsiveness:** Frames per second (FPS) and Time to Interactive (TTI).
 *   **Thread Usage:** JavaScript and native thread activity.
-*   **React Pipeline:** The number and volume of component renders.
+*   **React Pipeline:** Frequency and cost of component renders.
 
 These metrics are often interconnected. For example, excessive React re-renders can lead to high JavaScript thread consumption, which in turn increases CPU usage. By understanding these cause-and-effect chains, we can conduct more precise investigations.
 
@@ -53,9 +53,9 @@ Maintaining a stable setup for these baseline measurements is critical for accur
    
 2. **Capture Performance Data**
    - Open "Performance" tab
-   - Press red dot in the top left corner to start profiling
+   - Press red record button in the top-left corner to start profiling
    - Perform the actions you want to profile
-   - Press the red dot again to stop profiling
+   - Press the red record button again to stop profiling
   
 3. **Analyze the profile:**
    - Download the trace
@@ -81,9 +81,9 @@ React Native uses the [Hermes](https://reactnative.dev/docs/hermes) JavaScript e
 
 2. **Capture Performance Data:**
    - Open "Performance" tab
-   - Press red dot in the top left corner to start profiling
+   - Press red record button in the top-left corner to start profiling
    - Perform the actions you want to profile
-   - Press the red dot again to stop profiling
+   - Press the red record button again to stop profiling
 
 3. **Analyze the profile:**
    - Download the trace
@@ -157,7 +157,7 @@ curl https://get.flashlight.dev | bash
    ```
 
 2. **Open your app and detect bundle ID:**
-   - Open your React Native app on the connected Android device
+   - Open the app on the connected Android device
    - Press "Auto Detect" in the opened window
 
 3. **Perform your test actions:**
@@ -168,7 +168,7 @@ curl https://get.flashlight.dev | bash
 4. **Stop measurement and view results:**
    - Press "Stop measuring"
 
-You can run the same flow multiple times and record a measurements for each one of them. Once you download the report, you can later see an average results for all the runs.
+You can run the same flow multiple times and record a measurements for each run. Once you download the report, you can later see an average results for all the runs.
 
 #### Comparing Results:
 
@@ -206,7 +206,7 @@ The React DevTools Profiler provides React-specific performance insights and is 
    - Optionally set "Hide commits below X ms" to focus on slow renders
 
 2. **Capture React Performance:**
-   - Click the record button (circle icon) to start profiling
+   - Click the red record button to start profiling
    - Perform the actions you want to analyze
    - Click stop to end the recording
 
@@ -298,13 +298,13 @@ Re-rendering can be expensive at times and when dealing with nested props or sta
 
 In this example, the most preferable solution would be to **only pass the properties that the object needs to know about** to the component in the first place.
 
-Another option would be to use `React.memo()` to add more specific rules comparing `props` to **explicitly  tell React not to perform a re-render**.
+Another option is to use `React.memo()` with a custom comparison function to prevent unnecessary re-renders.
 
 React might still take some time to re-render a component when its parent component renders. If it takes a long time to re-render the child even though we have no props changing, then we can use `React.memo()` which will "shallow compare" the `props` to see if a component should re-render.
 
 If you aren't sure what exactly is changing about some deeply nested object prop, you can use `Performance.diffObject()` in `React.memo()` method which should show you exactly what is changing from one update to the next.
 
-**Suggested:** [React Docs - Preserving and Resetting state](https://react.dev/learn/preserving-and-resetting-state)
+**Suggested resource:** [React Docs - Preserving and Resetting state](https://react.dev/learn/preserving-and-resetting-state)
 
 ### Further Optimization and Validation
 
