@@ -245,7 +245,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     onPress={onContinuePress}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || !isEmptyObject(errors)}
+                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                                 <MenuItem
                                     title={translate('workspace.bankAccount.startOver')}
@@ -253,7 +253,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     onPress={requestResetBankAccount}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || !isEmptyObject(errors)}
+                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                             </OfflineWithFeedback>
                         ) : (
