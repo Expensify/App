@@ -5,9 +5,9 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getChatUsedForOnboarding} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
@@ -18,10 +18,10 @@ function PreTrialBillingBanner() {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const navigateToChat = () => {
-        const reportUsedForOnboarding = ReportUtils.getChatUsedForOnboarding();
+        const reportUsedForOnboarding = getChatUsedForOnboarding();
 
         if (!reportUsedForOnboarding) {
-            Report.navigateToConciergeChat(reportNameValuePairs);
+            navigateToConciergeChat(reportNameValuePairs);
             return;
         }
 
