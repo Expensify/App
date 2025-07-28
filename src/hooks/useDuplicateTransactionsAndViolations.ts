@@ -13,7 +13,7 @@ import useOnyx from './useOnyx';
  * @private
  */
 function selectViolationsWithDuplicates(transactionIDs: string[], allTransactionsViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> {
-    if (!allTransactionsViolations) {
+    if (!allTransactionsViolations || !transactionIDs?.length) {
         return {};
     }
 

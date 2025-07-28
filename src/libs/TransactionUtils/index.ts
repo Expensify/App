@@ -1425,15 +1425,15 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
 
         foundDuplicateViolation = true;
 
-        const duplicatesID = violation?.data?.duplicates;
-        if (!duplicatesID || duplicatesID.length === 0) {
+        const duplicatesIDs = violation?.data?.duplicates;
+        if (!duplicatesIDs || duplicatesIDs.length === 0) {
             Log.warn(`Violation ${violation.name} lacks duplicates. Transaction ID: ${transactionID}`);
             break;
         }
 
         const validTransactions: Transaction[] = [];
 
-        for (const duplicateID of duplicatesID) {
+        for (const duplicateID of duplicatesIDs) {
             // Skip self-reference
             if (duplicateID === transactionID) {
                 continue;
