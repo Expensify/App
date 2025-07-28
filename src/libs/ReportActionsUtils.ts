@@ -841,7 +841,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (!shouldActionBeVisible(reportAction)) {
+    if (!isNotHiddenPreviewOrDeletedMoneyRequest(reportAction)) {
         return false;
     }
 
@@ -993,7 +993,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * - ReportPreview with shouldShow set to false and without a pending action
  * - Money request with parent action deleted
  */
-function shouldActionBeVisible(action: ReportAction): boolean {
+function isNotHiddenPreviewOrDeletedMoneyRequest(action: ReportAction): boolean {
     const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
     const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
 
@@ -1002,10 +1002,10 @@ function shouldActionBeVisible(action: ReportAction): boolean {
 
 /**
  * Helper for filtering out report actions that should not be displayed in the report view.
- * Delegates visibility logic to shouldActionBeVisible.
+ * Delegates visibility logic to isNotHiddenPreviewOrDeletedMoneyRequest.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter(shouldActionBeVisible);
+    return actions.filter(isNotHiddenPreviewOrDeletedMoneyRequest);
 }
 
 /**
