@@ -5,8 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import {acceptACHContractForBankAccount} from '@libs/actions/BankAccounts';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -23,15 +23,15 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const policyID = reimbursementAccount?.achData?.policyID;
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
 
     const submit = useCallback(() => {
-        acceptACHContractForBankAccount(
-            reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        BankAccounts.acceptACHContractForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
             {
                 isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
                 certifyTrueInformation: values.certifyTrueInformation,
