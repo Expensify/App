@@ -340,8 +340,8 @@ function ReportAvatar({
     });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
-    const iouReport = isChatReport(report) && report?.chatType !== 'tripRoom' ? undefined : report;
-    const chatReport = isChatReport(report) && report?.chatType !== 'tripRoom' ? report : potentialChatReport;
+    const iouReport = isChatReport(report) && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM ? undefined : report;
+    const chatReport = isChatReport(report) && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM ? report : potentialChatReport;
     const subscriptAvatarSize = size === CONST.AVATAR_SIZE.X_LARGE ? CONST.AVATAR_SIZE.HEADER : CONST.AVATAR_SIZE.SUBSCRIPT;
 
     const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID;
@@ -419,20 +419,22 @@ function ReportAvatar({
         [styles],
     );
 
-    const avatarsForAccountIDs: IconType[] = (passedAccountIDs ?? []).map((id) => ({
-        id,
-        type: CONST.ICON_TYPE_AVATAR,
-        source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.login ?? '',
-    }));
+    const sortedAvatars = useMemo(() => {
+        const avatarsForAccountIDs: IconType[] = (passedAccountIDs ?? []).map((id) => ({
+            id,
+            type: CONST.ICON_TYPE_AVATAR,
+            source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+            name: personalDetails?.[id]?.login ?? '',
+        }));
 
-    const multipleAvatars = avatarsForAccountIDs.length > 0 ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar];
-    const sortedAvatars = (() => {
+        const multipleAvatars = avatarsForAccountIDs.length > 0 ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar];
+
         if (sortAvatars?.includes('byName')) {
             return sortIconsByName(multipleAvatars, personalDetails);
         }
         return sortAvatars?.includes('byID') ? lodashSortBy(multipleAvatars, (icon) => icon.id) : multipleAvatars;
-    })();
+    }, [passedAccountIDs, personalDetails, primaryAvatar, secondaryAvatar, sortAvatars]);
+
     const icons = sortAvatars?.includes('reverse') ? sortedAvatars.reverse() : sortedAvatars;
 
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
