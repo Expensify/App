@@ -930,9 +930,9 @@ const translations = {
     spreadsheet: {
         upload: 'Carregar uma planilha',
         import: 'Importar planilha',
-        dragAndDrop: 'Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. Formatos suportados: .csv, .txt, .xls e .xlsx.',
+        dragAndDrop: '<muted-link>Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. Formatos suportados: .csv, .txt, .xls e .xlsx.</muted-link>',
         dragAndDropMultiLevelTag: `<muted-link>Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo suportados.</muted-link>`,
-        chooseSpreadsheet: 'Selecione um arquivo de planilha para importar. Formatos suportados: .csv, .txt, .xls e .xlsx.',
+        chooseSpreadsheet: '<muted-link>Selecione um arquivo de planilha para importar. Formatos suportados: .csv, .txt, .xls e .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Selecione um arquivo de planilha para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo suportados.</muted-link>`,
         fileContainsHeader: 'O arquivo contém cabeçalhos de coluna',
         column: ({name}: SpreadSheetColumnParams) => `Coluna ${name}`,

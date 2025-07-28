@@ -932,9 +932,9 @@ const translations = {
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
         import: 'スプレッドシートをインポート',
-        dragAndDrop: 'スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。対応フォーマット: .csv, .txt, .xls, および .xlsx。',
+        dragAndDrop: '<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。対応フォーマット: .csv, .txt, .xls, および .xlsx。</muted-link>',
         dragAndDropMultiLevelTag: `<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、以下のファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
-        chooseSpreadsheet: 'インポートするスプレッドシートファイルを選択してください。サポートされている形式: .csv, .txt, .xls, および .xlsx。',
+        chooseSpreadsheet: '<muted-link>インポートするスプレッドシートファイルを選択してください。サポートされている形式: .csv, .txt, .xls, および .xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">詳細</a> をご覧ください。`,
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています。',
         column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
