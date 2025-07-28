@@ -255,7 +255,7 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
         return false;
     }
 
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApprover = report.managerID === getCurrentUserAccountID();
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
@@ -387,4 +387,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, getAllExpensesToHoldIfApplicable};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, getAllExpensesToHoldIfApplicable, isReviewDuplicatesAction};
