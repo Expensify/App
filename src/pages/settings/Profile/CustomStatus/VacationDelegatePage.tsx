@@ -148,8 +148,8 @@ function VacationDelegatePage() {
             ...section,
             data: section.data.map((option) => ({
                 ...option,
-                text: option?.text ?? option?.displayName ?? '',
-                alternateText: option?.alternateText ?? option?.login ?? undefined,
+                text: option.text ?? option.displayName ?? '',
+                alternateText: option.alternateText ?? option.login ?? undefined,
                 keyForList: option.keyForList ?? '',
                 isDisabled: option.isDisabled ?? undefined,
                 isSelected: option.isSelected ?? undefined,
