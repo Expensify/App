@@ -641,10 +641,12 @@ function MoneyRequestReportPreviewContent({
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    !shouldShowEmptyPlaceholder && <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                        {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
-                                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
-                                                    </View>
+                                                    !shouldShowEmptyPlaceholder && (
+                                                        <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
+                                                            {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
+                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
+                                                        </View>
+                                                    )
                                                 )}
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
@@ -729,7 +731,7 @@ function MoneyRequestReportPreviewContent({
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
                                             />
-                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview/>}
+                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview />}
                                         </View>
                                     )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
