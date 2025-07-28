@@ -3404,7 +3404,7 @@ function openReportFromDeepLink(
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
-            const connection = Onyx.connect({
+            const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
                     if (!val && !isAnonymousUser()) {
@@ -3446,21 +3446,28 @@ function openReportFromDeepLink(
                                 return;
                             }
 
-                            // Check if the report exists in the collection
-                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                            // If the report does not exist, navigate to the last accessed report or Concierge chat
-                            if (reportID && !report) {
-                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
-                                if (lastAccessedReportID) {
-                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                    Navigation.navigate(lastAccessedReportRoute);
-                                    return;
-                                }
-                                navigateToConciergeChat(false, () => true);
-                                return;
-                            }
+                            const connectionID = Onyx.connectWithoutView({
+                                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                                waitForCollectionCallback: true,
+                                callback: (allReportNameValuePairs) => {
+                                    Onyx.disconnect(connectionID);
+                                    // Check if the report exists in the collection
+                                    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                    // If the report does not exist, navigate to the last accessed report or Concierge chat
+                                    if (reportID && !report) {
+                                        const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID, allReportNameValuePairs)?.reportID;
+                                        if (lastAccessedReportID) {
+                                            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                            Navigation.navigate(lastAccessedReportRoute);
+                                            return;
+                                        }
+                                        navigateToConciergeChat(false, () => true);
+                                        return;
+                                    }
 
-                            Navigation.navigate(route as Route);
+                                    Navigation.navigate(route as Route);
+                                },
+                            });
                         };
 
                         if (isAnonymousUser()) {
