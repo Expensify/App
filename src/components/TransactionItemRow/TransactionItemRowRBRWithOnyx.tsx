@@ -21,7 +21,7 @@ type TransactionItemRowRBRProps = {
     transaction: Transaction;
 
     /** Report item */
-    report: Report;
+    report?: Report;
 
     /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];

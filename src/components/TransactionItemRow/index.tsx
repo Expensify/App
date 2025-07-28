@@ -77,7 +77,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
-    report: Report;
+    report?: Report;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;

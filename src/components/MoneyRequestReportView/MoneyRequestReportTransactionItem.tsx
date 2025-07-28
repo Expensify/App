@@ -15,6 +15,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 const allReportColumns = [
