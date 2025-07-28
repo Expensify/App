@@ -4663,8 +4663,14 @@ describe('actions/IOU', () => {
             const companyName = 'b1-53019';
             const companyWebsite = 'https://www.53019.com';
 
+            const mockReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${convertedInvoiceChat.reportID}`]: {
+                    type: CONST.REPORT.TYPE.CHAT,
+                } as ReportNameValuePairs,
+            };
+
             // When the user sends a new invoice to an individual
-            sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+            sendInvoice(currentUserAccountID, transaction, mockReportNameValuePairs, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
             expect(writeSpy).toHaveBeenCalledWith(
@@ -4680,7 +4686,13 @@ describe('actions/IOU', () => {
         it('should not clear transaction pending action when send invoice fails', async () => {
             // Given a send invoice request
             mockFetch?.pause?.();
-            sendInvoice(1, createRandomTransaction(1));
+
+            const mockReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1`]: {
+                    type: CONST.REPORT.TYPE.CHAT,
+                } as ReportNameValuePairs,
+            };
+            sendInvoice(1, createRandomTransaction(1), mockReportNameValuePairs);
 
             // When the request fails
             mockFetch?.fail?.();
