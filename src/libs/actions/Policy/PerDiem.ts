@@ -228,7 +228,6 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
     const customUnitOnyxUpdate: DeletePerDiemCustomUnitOnyxType = lodashDeepClone(customUnit);
     for (const rateID in mappedDeletedSubRatesToRate) {
         if (!(rateID in newCustomUnit.rates)) {
-            // eslint-disable-next-line no-continue
             continue;
         }
         const subRates = mappedDeletedSubRatesToRate[rateID];
