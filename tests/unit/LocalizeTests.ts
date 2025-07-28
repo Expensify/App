@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
+ import Onyx from 'react-native-onyx';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+
 
 describe('localize', () => {
     beforeAll(() => {
@@ -60,6 +63,112 @@ describe('localize', () => {
             expect(Localize.formatList(input)).toBe(expectedOutput);
             await IntlStore.load(CONST.LOCALES.ES);
             expect(Localize.formatList(input)).toBe(expectedOutputES);
+        });
+    });
+
+    describe('translate method - missing translation behavior', () => {        
+        beforeEach(async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+        });
+
+        it('should return MISSING_TRANSLATION for missing key with expensify email in production', () => {
+            // Mock production environment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const CONFIG = require('@src/CONFIG');
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            const originalConfig = {...CONFIG.default};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_PRODUCTION = true;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_STAGING = false;
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'user@expensify.com', 'missing.translation.key' as TranslationPaths);
+            
+            expect(result).toBe(CONST.MISSING_TRANSLATION);
+            
+            // Restore original config
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            Object.assign(CONFIG.default, originalConfig);
+        });
+
+        it('should return MISSING_TRANSLATION for missing key with expensify email in staging', () => {
+            // Mock staging environment  
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const CONFIG = require('@src/CONFIG');
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            const originalConfig = {...CONFIG.default};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_PRODUCTION = false;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_STAGING = true;
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'test@expensify.com', 'missing.translation.key' as TranslationPaths);
+            
+            expect(result).toBe(CONST.MISSING_TRANSLATION);
+            
+            // Restore original config
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            Object.assign(CONFIG.default, originalConfig);
+        });
+
+        it('should return key string for missing key with external email in production', () => {
+            // Mock production environment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const CONFIG = require('@src/CONFIG');
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            const originalConfig = {...CONFIG.default};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_PRODUCTION = true;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_STAGING = false;
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'user@external.com', 'missing.translation.key' as TranslationPaths);
+            
+            expect(result).toBe('missing.translation.key');
+            
+            // Restore original config
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            Object.assign(CONFIG.default, originalConfig);
+        });
+
+        it('should return key string for missing key with external email in staging', () => {
+            // Mock staging environment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const CONFIG = require('@src/CONFIG');
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            const originalConfig = {...CONFIG.default};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_PRODUCTION = false;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_STAGING = true;
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'user@external.com', 'missing.translation.key' as TranslationPaths);
+            
+            expect(result).toBe('missing.translation.key');
+            
+            // Restore original config
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            Object.assign(CONFIG.default, originalConfig);
+        });
+
+        it('should return key string for missing key without email in production', () => {
+            // Mock production environment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const CONFIG = require('@src/CONFIG');
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            const originalConfig = {...CONFIG.default};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_PRODUCTION = true;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            CONFIG.default.IS_IN_STAGING = false;
+
+            const result = Localize.translate(CONST.LOCALES.EN, undefined, 'missing.translation.key' as TranslationPaths);
+            
+            expect(result).toBe('missing.translation.key');
+            
+            // Restore original config
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            Object.assign(CONFIG.default, originalConfig);
         });
     });
 });
