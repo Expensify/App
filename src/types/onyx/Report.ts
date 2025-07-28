@@ -194,6 +194,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
+        /** Whether the report has been retracted */
+        hasReportBeenRetracted?: boolean;
+
         /** The ID of the IOU report */
         iouReportID?: string;
 
