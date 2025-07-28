@@ -1,11 +1,9 @@
 import React from 'react';
-// import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-// import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
