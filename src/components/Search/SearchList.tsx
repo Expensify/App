@@ -5,11 +5,12 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
+import Animated, {FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -37,7 +38,6 @@ import {createItemHeightCalculator} from './itemHeightCalculator';
 import ITEM_HEIGHTS from './itemHeights';
 import type {SearchQueryJSON} from './types';
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
@@ -324,7 +324,7 @@ function SearchList(
                     exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.LAYOUT_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
