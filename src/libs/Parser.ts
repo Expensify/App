@@ -44,7 +44,6 @@ type Extras = {
     videoAttributeCache?: Record<string, string>;
 };
 
-
 class ExpensiMarkWithContext extends ExpensiMark {
     htmlToMarkdown(htmlString: string, extras?: Extras, maxBodyLength?: number): string {
         return super.htmlToMarkdown(
