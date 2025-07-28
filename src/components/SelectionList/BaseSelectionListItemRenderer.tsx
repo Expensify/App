@@ -1,11 +1,9 @@
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
-import type {PersonalDetailsList, UserWallet} from '@src/types/onyx';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListProps} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -17,10 +15,6 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        userWallet?: OnyxEntry<UserWallet>;
-        isUserValidated?: boolean | undefined;
-        personalDetails?: OnyxEntry<PersonalDetailsList>;
-        userBillingFundID?: number | undefined;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -51,10 +45,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
     canShowProductTrainingTooltip = true,
-    userWallet,
-    isUserValidated,
-    personalDetails,
-    userBillingFundID,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -106,10 +96,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 canShowProductTrainingTooltip={canShowProductTrainingTooltip}
-                userWallet={userWallet}
-                isUserValidated={isUserValidated}
-                personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
             />
             {item.footerContent && item.footerContent}
         </>
