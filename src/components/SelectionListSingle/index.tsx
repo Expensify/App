@@ -2,9 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {ReactElement, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, NativeSyntheticEvent, TextInput as RNTextInput, StyleProp, TextInputKeyPressEventData, TextStyle, ViewStyle} from 'react-native';
+import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputKeyPressEventData} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -19,9 +18,10 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import areSetsEqual from '@src/utils/setsEqual';
 import SelectionListHeader from './ListHeader';
 import SelectionListTextInput from './SelectionListInput';
-import type {ListItem, ValidListItem} from './types';
+import type {DataDetailsType, ListItem, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
@@ -30,79 +30,6 @@ const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_START_DURATION +
     CONST.ANIMATED_HIGHLIGHT_END_DELAY +
     CONST.ANIMATED_HIGHLIGHT_END_DURATION;
-
-type SelectionListSingleHandle = {
-    scrollAndHighlightItem: (items: string[]) => void;
-    scrollToIndex: (index: number, animated?: boolean) => void;
-    focusTextInput: () => void;
-};
-
-type DataDetailsType<TItem extends ListItem> = {
-    allOptions: TItem[];
-    selectedOptions: TItem[];
-    allSelected: boolean;
-    someSelected: boolean;
-    disabledIndexes: number[];
-    disabledArrowKeyIndexes: number[];
-};
-
-type SelectionListSingleProps<TItem extends ListItem> = {
-    ref?: React.Ref<SelectionListSingleHandle>;
-    data: TItem[];
-    ListItem: ValidListItem;
-    onSelectRow: (item: TItem) => void;
-    onSelectAll?: () => void;
-    onCheckboxPress?: (item: TItem) => void;
-    showLoadingPlaceholder?: boolean;
-    showListEmptyContent?: boolean;
-    shouldUseUserSkeletonView?: boolean;
-    listEmptyContent?: React.JSX.Element | null | undefined;
-    addBottomSafeAreaPadding?: boolean;
-    footerContent?: React.ReactNode;
-    onConfirm?: ((e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem | undefined) => void) | undefined;
-    confirmButtonStyle?: StyleProp<ViewStyle>;
-    confirmButtonText?: string;
-    isConfirmButtonDisabled?: boolean;
-    listFooterContent?: React.JSX.Element | null | undefined;
-    showScrollIndicator?: boolean;
-    onEndReached?: () => void;
-    onEndReachedThreshold?: number;
-    listStyle?: StyleProp<ViewStyle>;
-    isLoadingNewOptions?: boolean;
-    shouldShowTextInput?: boolean;
-    textInputOptions?: {
-        onChangeText?: (text: string) => void;
-        textInputLabel?: string;
-        textInputValue?: string;
-        textInputHint?: string;
-        textInputPlaceholder?: string;
-        textInputMaxLength?: number;
-        inputMode?: InputModeOptions;
-        textInputErrorText?: string;
-        textInputRef?: RefObject<RNTextInput | null> | ((ref: RNTextInput | null) => void);
-    };
-    canSelectMultiple?: boolean;
-    shouldShowTooltips?: boolean;
-    selectedItems?: string[];
-    isSelected?: (item: TItem) => boolean;
-    shouldSingleExecuteRowSelect?: boolean;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
-    shouldIgnoreFocus?: boolean;
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
-    isRowMultilineSupported?: boolean;
-    alternateTextNumberOfSupportedLines?: number;
-    listItemTitleStyles?: StyleProp<TextStyle>;
-    headerMessage?: string;
-    initiallyFocusedItemKey?: string;
-    shouldScrollToFocusedIndex?: boolean;
-    shouldDebounceScrolling?: boolean;
-    isSmallScreenWidth?: boolean;
-    shouldClearInputOnSelect?: boolean;
-    shouldUpdateFocusedIndex?: boolean;
-    listHeaderContent?: React.ReactNode;
-    customListHeader?: React.ReactNode;
-};
 
 function SelectionListSingle<TItem extends ListItem>({
     data,
@@ -150,7 +77,7 @@ function SelectionListSingle<TItem extends ListItem>({
     shouldClearInputOnSelect,
     shouldUpdateFocusedIndex = false,
     customListHeader,
-}: SelectionListSingleProps<TItem>) {
+}: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -243,7 +170,6 @@ function SelectionListSingle<TItem extends ListItem>({
             if (!isFocused) {
                 return;
             }
-            // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
                 if (shouldShowTextInput && shouldClearInputOnSelect) {
                     textInputOptions?.onChangeText?.('');
@@ -382,18 +308,12 @@ function SelectionListSingle<TItem extends ListItem>({
         return null;
     };
 
-    /**
-     * Highlights the items and scrolls to the first item present in the items list.
-     *
-     * @param items - The list of items to highlight.
-     * @param timeout - The timeout in milliseconds before removing the highlight.
-     */
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
-            const newItemsToHighlight = new Set<string>();
-            items.forEach((item) => {
-                newItemsToHighlight.add(item);
-            });
+            const newItemsToHighlight = new Set<string>(items);
+            if (areSetsEqual(itemsToHighlight, newItemsToHighlight)) {
+                return;
+            }
             const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
             scrollToIndex(index);
             setItemsToHighlight(newItemsToHighlight);
@@ -405,7 +325,7 @@ function SelectionListSingle<TItem extends ListItem>({
                 setItemsToHighlight(null);
             }, ANIMATED_HIGHLIGHT_DURATION);
         },
-        [data, scrollToIndex],
+        [data, itemsToHighlight, scrollToIndex],
     );
 
     const focusTextInput = useCallback(() => {
@@ -513,4 +433,4 @@ function SelectionListSingle<TItem extends ListItem>({
 
 SelectionListSingle.displayName = 'SelectionListSingle';
 
-export default forwardRef(SelectionListSingle);
+export default SelectionListSingle;

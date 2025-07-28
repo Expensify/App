@@ -1,17 +1,5 @@
-import type {MutableRefObject, ReactElement, ReactNode} from 'react';
-import type {
-    GestureResponderEvent,
-    InputModeOptions,
-    LayoutChangeEvent,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    SectionListData,
-    StyleProp,
-    TargetedEvent,
-    TextInput,
-    TextStyle,
-    ViewStyle,
-} from 'react-native';
+import type {ReactElement, ReactNode, RefObject} from 'react';
+import type {GestureResponderEvent, InputModeOptions, NativeSyntheticEvent, StyleProp, TargetedEvent, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
@@ -37,8 +25,6 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
@@ -484,345 +470,78 @@ export type ValidListItem =
     | typeof UnreportedExpenseListItem
     | typeof SpendCategorySelectorListItem;
 
-type Section<TItem extends ListItem> = {
-    /** Title of the section */
-    title?: string;
-
-    /** Array of options */
-    data?: TItem[];
-
-    /** Whether this section items disabled for selection */
-    isDisabled?: boolean;
-
-    /** Whether this section should be shown or not */
-    shouldShow?: boolean;
-};
-
-type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
-    /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset?: number;
-};
-
-type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
-    /** Sections for the section list */
-    sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
-
-    /** List of selected items */
-    selectedItems?: string[];
-
-    /** Whether the item is selected */
-    isSelected?: (item: TItem) => boolean;
-
-    /** Default renderer for every item in the list */
+type SelectionListProps<TItem extends ListItem> = {
+    ref?: React.Ref<SelectionListHandle>;
+    data: TItem[];
     ListItem: ValidListItem;
-
-    shouldUseUserSkeletonView?: boolean;
-
-    /** Whether this is a multi-select list */
-    canSelectMultiple?: boolean;
-
-    /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
-
-    /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
-    shouldSingleExecuteRowSelect?: boolean;
-
-    /** Whether to update the focused index on a row select */
-    shouldUpdateFocusedIndex?: boolean;
-
-    /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
-    onCheckboxPress?: (item: TItem) => void;
-
-    /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
-
-    /**
-     * Callback that should return height of the specific item
-     * Only use this if we're handling some non-standard items, most of the time the default value is correct
-     */
-    getItemHeight?: (item: TItem) => number;
-
-    /** Callback to fire when an error is dismissed */
-    onDismissError?: (item: TItem) => void;
-
-    /** Whether to show the text input */
-    shouldShowTextInput?: boolean;
-
-    /** Label for the text input */
-    textInputLabel?: string;
-
-    /** Style for the text input */
-    textInputStyle?: StyleProp<ViewStyle>;
-
-    /** Placeholder for the text input */
-    textInputPlaceholder?: string;
-
-    /** Hint for the text input */
-    textInputHint?: string;
-
-    /** Value for the text input */
-    textInputValue?: string;
-
-    /** Max length for the text input */
-    textInputMaxLength?: number;
-
-    /** Icon to display on the left side of TextInput */
-    textInputIconLeft?: IconAsset;
-
-    /** Whether text input should be focused */
-    textInputAutoFocus?: boolean;
-
-    /** Callback to fire when the text input changes */
-    onChangeText?: (text: string) => void;
-
-    /** Input mode for the text input */
-    inputMode?: InputModeOptions;
-
-    /** Whether the text input should intercept swipes or not */
-    shouldTextInputInterceptSwipe?: boolean;
-
-    /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | null;
-
-    /** Whether the text input should be shown after list header */
-    shouldShowTextInputAfterHeader?: boolean;
-
-    /** Whether the header message should be shown after list header */
-    shouldShowHeaderMessageAfterHeader?: boolean;
-
-    /** Whether to include padding bottom */
-    includeSafeAreaPaddingBottom?: boolean;
-
-    /** Callback to fire when the list is scrolled */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Callback to fire when the list is scrolled and the user begins dragging */
-    onScrollBeginDrag?: () => void;
-
-    /** Message to display at the top of the list */
-    headerMessage?: string;
-
-    /** Styles to apply to the header message */
-    headerMessageStyle?: StyleProp<ViewStyle>;
-
-    /** Styles to apply to submit button */
-    confirmButtonStyles?: StyleProp<ViewStyle>;
-
-    /** Text to display on the confirm button */
-    confirmButtonText?: string;
-
-    /** Callback to fire when the confirm button is pressed */
-    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
-
-    /** Whether to show the vertical scroll indicator */
-    showScrollIndicator?: boolean;
-
-    /** Whether to show the loading placeholder */
+    onCheckboxPress?: (item: TItem) => void;
     showLoadingPlaceholder?: boolean;
-
-    /** Whether to show the default confirm button */
-    showConfirmButton?: boolean;
-
-    /** Whether to show the default confirm button disabled */
-    isConfirmButtonDisabled?: boolean;
-
-    /** Whether to use the default theme for the confirm button */
-    shouldUseDefaultTheme?: boolean;
-
-    /** Whether tooltips should be shown */
-    shouldShowTooltips?: boolean;
-
-    /** Whether to stop automatic propagation on pressing enter key or not */
-    shouldStopPropagation?: boolean;
-
-    /** Whether to call preventDefault() on pressing enter key or not */
-    shouldPreventDefault?: boolean;
-
-    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-
-    /** Whether to subscribe to KeyboardShortcut arrow keys events */
-    shouldSubscribeToArrowKeyEvents?: boolean;
-
-    /** Custom content to display in the header */
-    headerContent?: ReactNode;
-
-    /** Custom content to display in the header of list component. */
-    listHeaderContent?: React.JSX.Element | null;
-
-    /** Custom content to display in the footer */
-    footerContent?: ReactNode;
-
-    /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
-    listFooterContent?: React.JSX.Element | null;
-
-    /** Custom content to display above the pagination */
-    footerContentAbovePagination?: React.JSX.Element | null;
-
-    /** Custom content to display when the list is empty after finish loading */
-    listEmptyContent?: React.JSX.Element | null;
-
-    /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
-    shouldUseDynamicMaxToRenderPerBatch?: boolean;
-
-    /** Whether keyboard shortcuts should be disabled */
-    disableKeyboardShortcuts?: boolean;
-
-    /** Styles to apply to SelectionList container */
-    containerStyle?: StyleProp<ViewStyle>;
-
-    /** Styles to apply to SectionList component */
-    sectionListStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to ignore the focus event */
-    shouldIgnoreFocus?: boolean;
-
-    /** Whether focus event should be delayed */
-    shouldDelayFocus?: boolean;
-
-    /** Whether we should clear the search input when an item is selected */
-    shouldClearInputOnSelect?: boolean;
-
-    /** Callback to fire when the text input changes */
-    onArrowFocus?: (focusedItem: TItem) => void;
-
-    /** Whether to show the loading indicator for new options */
-    isLoadingNewOptions?: boolean;
-
-    /** Fired when the list is displayed with the items */
-    onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** Custom header to show right above list */
-    customListHeader?: ReactNode;
-
-    /** When customListHeader is provided, this should be its height needed for correct list scrolling */
-    customListHeaderHeight?: number;
-
-    /** Styles for the list header wrapper */
-    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to wrap long text up to 2 lines */
-    isRowMultilineSupported?: boolean;
-
-    /** Whether to wrap the alternate text up to 2 lines */
-    isAlternateTextMultilineSupported?: boolean;
-
-    /** Number of lines to show for alternate text */
-    alternateTextNumberOfLines?: number;
-
-    /** Ref for textInput */
-    // eslint-disable-next-line deprecation/deprecation
-    textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
-
-    /** Styles for the section title */
-    sectionTitleStyles?: StyleProp<ViewStyle>;
-
-    /** Styles applied for the title of the list item */
-    listItemTitleStyles?: StyleProp<TextStyle>;
-
-    /** Styles applied for the title container of the list item */
-    listItemTitleContainerStyles?: StyleProp<ViewStyle>;
-
-    /** This may improve scroll performance for large lists */
-    removeClippedSubviews?: boolean;
-
-    /**
-     * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
-     * When false, the list will render immediately and scroll to the bottom which works great for small lists.
-     */
-    shouldHideListOnInitialRender?: boolean;
-
-    /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content. */
-    onEndReached?: () => void;
-
-    /**
-     * How far from the end (in units of visible length of the list) the bottom edge of the
-     * list must be from the end of the content to trigger the `onEndReached` callback.
-     * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is
-     * within half the visible length of the list.
-     */
-    onEndReachedThreshold?: number;
-
-    /**
-     * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
-     * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
-     */
-    updateCellsBatchingPeriod?: number;
-
-    /**
-     * The number passed here is a measurement unit where 1 is equivalent to your viewport height. The default value is 21 (10 viewports above, 10 below, and one in between).
-     * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
-     */
-    windowSize?: number;
-
-    /** Callback to fire when the item is long pressed */
-    onLongPressRow?: (item: TItem) => void;
-
-    /** Whether to show the empty list content */
-    shouldShowListEmptyContent?: boolean;
-
-    /** The style is applied for the wrap component of list item */
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
-    scrollEventThrottle?: number;
-
-    /** Additional styles to apply to scrollable content */
-    contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
-    shouldKeepFocusedItemAtTopOfViewableArea?: boolean;
-
-    /** Whether to debounce scrolling on focused index change */
-    shouldDebounceScrolling?: boolean;
-
-    /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
-    shouldPreventActiveCellVirtualization?: boolean;
-
-    /** Whether to scroll to the focused index */
-    shouldScrollToFocusedIndex?: boolean;
-
-    /** Whether the layout is narrow */
-    isSmallScreenWidth?: boolean;
-
-    /** Called when scrollable content view of the ScrollView changes */
-    onContentSizeChange?: (w: number, h: number) => void;
-
-    /** Initial number of items to render */
-    initialNumToRender?: number;
-
-    /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
-    isScreenFocused?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
+    showListEmptyContent?: boolean;
+    shouldUseUserSkeletonView?: boolean;
+    listEmptyContent?: React.JSX.Element | null | undefined;
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
-    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-    /** Number of items to render in the loader */
-    fixedNumItemsForLoader?: number;
-
-    /** Skeleton loader speed */
-    loaderSpeed?: number;
-
-    /** Error text to display */
-    errorText?: string;
-
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-} & TRightHandSideComponent<TItem>;
+    footerContent?: React.ReactNode;
+    onConfirm?: ((e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem | undefined) => void) | undefined;
+    confirmButtonStyle?: StyleProp<ViewStyle>;
+    confirmButtonText?: string;
+    isConfirmButtonDisabled?: boolean;
+    listFooterContent?: React.JSX.Element | null | undefined;
+    showScrollIndicator?: boolean;
+    onEndReached?: () => void;
+    onEndReachedThreshold?: number;
+    listStyle?: StyleProp<ViewStyle>;
+    isLoadingNewOptions?: boolean;
+    shouldShowTextInput?: boolean;
+    textInputOptions?: {
+        onChangeText?: (text: string) => void;
+        textInputLabel?: string;
+        textInputValue?: string;
+        textInputHint?: string;
+        textInputPlaceholder?: string;
+        textInputMaxLength?: number;
+        inputMode?: InputModeOptions;
+        textInputErrorText?: string;
+        textInputRef?: RefObject<TextInput | null> | ((ref: TextInput | null) => void);
+    };
+    canSelectMultiple?: boolean;
+    shouldShowTooltips?: boolean;
+    selectedItems?: string[];
+    isSelected?: (item: TItem) => boolean;
+    shouldSingleExecuteRowSelect?: boolean;
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
+    shouldIgnoreFocus?: boolean;
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+    isRowMultilineSupported?: boolean;
+    alternateTextNumberOfSupportedLines?: number;
+    listItemTitleStyles?: StyleProp<TextStyle>;
+    headerMessage?: string;
+    initiallyFocusedItemKey?: string;
+    shouldScrollToFocusedIndex?: boolean;
+    shouldDebounceScrolling?: boolean;
+    isSmallScreenWidth?: boolean;
+    shouldClearInputOnSelect?: boolean;
+    shouldUpdateFocusedIndex?: boolean;
+    listHeaderContent?: React.ReactNode;
+    customListHeader?: React.ReactNode;
+};
 
 type SelectionListHandle = {
-    scrollAndHighlightItem?: (items: string[]) => void;
-    clearInputAfterSelect?: () => void;
+    scrollAndHighlightItem: (items: string[]) => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
-    updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
-    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
-    getFocusedOption: () => ListItem | undefined;
     focusTextInput: () => void;
 };
 
+type DataDetailsType<TItem extends ListItem> = {
+    allOptions: TItem[];
+    selectedOptions: TItem[];
+    allSelected: boolean;
+    someSelected: boolean;
+    disabledIndexes: number[];
+    disabledArrowKeyIndexes: number[];
+};
 type ItemLayout = {
     length: number;
     offset: number;
@@ -846,19 +565,16 @@ type UnreportedExpenseListItemType = Transaction & {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
-    CustomSectionHeader?: ({section}: {section: TSection}) => ReactElement;
-};
-
-type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
-
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 
 export type {
-    BaseListItemProps,
+    DataDetailsType,
+    SelectionListHandle,
     SelectionListProps,
+    //
+    BaseListItemProps,
     ButtonOrCheckBoxRoles,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
@@ -874,10 +590,6 @@ export type {
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
     TransactionCardGroupListItemType,
-    Section,
-    SectionListDataType,
-    SectionWithIndexOffset,
-    SelectionListHandle,
     TableListItemProps,
     TaskListItemType,
     TaskListItemProps,
