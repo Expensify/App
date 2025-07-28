@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
@@ -44,12 +44,14 @@ import {
 } from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -252,7 +254,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        if (!isFocused || isOffline) {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
             return;
         }
 
