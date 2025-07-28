@@ -1,5 +1,36 @@
 # React Performance Tips
 
+### General Performance Considerations
+
+When investigating performance issues, it's crucial to understand the underlying principles and common pitfalls.
+
+#### Understanding Performance Issues
+
+Performance issues often manifest as slow rendering or unresponsiveness. The goal of performance investigation is to identify the root cause of these regressions and measure their impact on the system. Key metrics to consider typically include:
+
+*   **Resource Consumption:** CPU, RAM, network, storage, and battery usage.
+*   **Responsiveness:** Frames per second (FPS) and Time to Interactive (TTI).
+*   **Thread Usage:** JavaScript and native thread activity.
+*   **React Pipeline:** The number and volume of component renders.
+
+These metrics are often interconnected. For example, excessive React re-renders can lead to high JavaScript thread consumption, which in turn increases CPU usage. By understanding these cause-and-effect chains, we can conduct more precise investigations.
+
+#### Precision vs. Effort in Investigation
+
+Different investigation techniques offer varying levels of precision and require different amounts of effort. Some methods provide broad insights with minimal setup, while others offer deep, granular data but demand more time and expertise. It's often beneficial to start with broader, easier-to-obtain insights and then progressively move to more precise methods as needed.
+
+#### Establishing a Test Flow and Baseline
+
+Before diving into detailed profiling, it's essential to establish a consistent "test flow" or reproduction steps for the performance issue. This ensures that measurements are consistent and comparable. Additionally, capturing "baseline measurements" is crucial. This involves noting key meta-information about the testing environment and application state, such as:
+
+*   The specific user account and its state.
+*   The exact commit SHA of the codebase being tested.
+*   Network conditions (online/offline, throttling).
+*   The platform(s) and device types used (simulator/emulator vs. physical device).
+*   The type of build (development vs. optimized production build).
+
+Maintaining a stable setup for these baseline measurements is critical for accurate comparisons and effective performance optimization.
+
 - Always test performance with the production build as development mode is not optimized.
 - Use [`React.memo`](https://react.dev/reference/react/memo), [`useMemo`](https://react.dev/reference/react/useMemo), and [`useCallback`](https://react.dev/reference/react/useCallback) to prevent expensive re-renders.
 - Using a combination of [React DevTools Profiler](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) and [Chrome Dev Tools Performance Timing](https://calibreapp.com/blog/react-performance-profiling-optimization) can help identify unnecessary re-renders. Both tools can be used to time an interaction like the app starting up or navigating to a new screen.
@@ -93,3 +124,18 @@ React might still take some time to re-render a component when its parent compon
 If you aren't sure what exactly is changing about some deeply nested object prop, you can use `Performance.diffObject()` in `React.memo()` method which should show you exactly what is changing from one update to the next.
 
 **Suggested:** [React Docs - Preserving and Resetting state](https://react.dev/learn/preserving-and-resetting-state)
+
+### Further Optimization and Validation
+
+Once potential performance bottlenecks are identified, the next step is to optimize the code. Common areas to investigate for improvements include:
+
+*   Components performing heavy calculations or processing large datasets.
+*   Components subscribing directly to frequently changing data instead of receiving it as props from a parent.
+*   Incorrect or inefficient use of memoization techniques (`React.memo`, `useMemo`, `useCallback`).
+*   Rendering of unnecessary or duplicated child components.
+
+After implementing optimizations, it's crucial to validate the changes. Manual comparison of performance metrics can be tedious and prone to bias. It's highly recommended to use tools that allow for objective comparison of traces or metrics before and after changes. This helps in confirming actual performance gains and avoiding regressions in other areas.
+
+The optimization process is often iterative. Small, incremental improvements can accumulate to significant overall gains. When proposing changes, aim for self-contained and predictable modifications to facilitate review and discussion.
+
+Finally, before concluding an investigation, always validate improvements against real-world scenarios. This includes testing on different platforms and with various build configurations (e.g., production builds) to ensure the optimizations hold up in diverse environments. Remember that performance maintenance is a continuous effort, encompassing not just profiling but also adherence to code conventions and real user monitoring.
