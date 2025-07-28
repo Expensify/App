@@ -439,6 +439,7 @@ type RequestMoneyInformation = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
+    shouldGenerateOptimisticTransactionThread?: boolean;
     backToReport?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -5393,6 +5394,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
+        shouldGenerateOptimisticTransactionThread = false,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -5448,23 +5450,34 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         },
     };
 
-    const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
-        getMoneyRequestInformation({
-            parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-            participantParams,
-            policyParams,
-            transactionParams,
-            moneyRequestReportID,
-            existingTransactionID,
-            existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
-            retryParams,
-            shouldGenerateOptimisticTransactionThread: false,
-            testDriveCommentReportActionID,
-            optimisticChatReportID,
-            optimisticCreatedReportActionID,
-            optimisticIOUReportID,
-            optimisticReportPreviewActionID,
-        });
+    const {
+        payerAccountID,
+        payerEmail,
+        iouReport,
+        chatReport,
+        transaction,
+        iouAction,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewAction,
+        onyxData,
+        transactionThreadReportID,
+    } = getMoneyRequestInformation({
+        parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        participantParams,
+        policyParams,
+        transactionParams,
+        moneyRequestReportID,
+        existingTransactionID,
+        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        retryParams,
+        shouldGenerateOptimisticTransactionThread,
+        testDriveCommentReportActionID,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID,
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID,
+    });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     if (shouldPlaySound) {
@@ -5504,6 +5517,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                     created,
                     attendees,
                     transactionID: transaction.transactionID,
+                    transactionThreadReportID,
                     actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID,
