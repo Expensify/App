@@ -2,9 +2,7 @@ import React from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
-import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,12 +33,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const handleGoBackWithReportID = (id: string) => {
         if (isEditing) {
-            const isFromReportPage = isReportOpenInRHP(navigationRef.getRootState());
-            if (isFromReportPage || isSearchTopmostFullScreenRoute()) {
-                Navigation.dismissModal();
-                return;
-            }
-            Navigation.dismissModalWithReport({reportID: id});
+            Navigation.dismissModal();
         } else {
             Navigation.goBack(backTo);
         }
