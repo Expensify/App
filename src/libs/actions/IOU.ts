@@ -11072,6 +11072,9 @@ function unholdRequest(transactionID: string, reportID: string) {
             value: {
                 pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
+                comment: {
+                    hold: transaction?.comment?.hold,
+                },
             },
         },
         {
@@ -11544,11 +11547,11 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         return false;
     }
 
-    const submitQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.SUBMIT, userAccountID);
+    const submitQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, userAccountID);
 
     const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
 
-    const approveQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_LIST.APPROVE, userAccountID);
+    const approveQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, userAccountID);
     const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
 
     const validSearchTypes =
