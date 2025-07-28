@@ -20,7 +20,7 @@ jest.mock('@libs/actions/Link', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({
-    shouldUseNarrowLayout: false,
+    isSmallScreenWidth: false,
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
