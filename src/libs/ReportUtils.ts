@@ -8097,7 +8097,7 @@ type ShouldReportBeInOptionListParams = {
     login?: string;
     includeDomainEmail?: boolean;
     isReportArchived?: boolean;
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
 };
 
 function reasonForReportToBeInOptionList({
@@ -8112,7 +8112,7 @@ function reasonForReportToBeInOptionList({
     login,
     includeDomainEmail = false,
     isReportArchived = false,
-    reportNameValuePairs,
+    reportNameValuePairs = {},
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.

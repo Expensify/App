@@ -140,7 +140,7 @@ function MoneyRequestParticipantsSelector(
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
+            const usersFromContact = getContacts(contactList, reportNameValuePairs);
             setContacts(usersFromContact);
         });
     }, []);

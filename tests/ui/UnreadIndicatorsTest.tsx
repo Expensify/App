@@ -532,7 +532,7 @@ describe('Unread Indicators', () => {
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
                     if (lastReportAction) {
-                        deleteReportComment(REPORT_ID, lastReportAction);
+                        deleteReportComment(REPORT_ID, lastReportAction, {});
                     }
                     return waitForBatchedUpdates();
                 })
@@ -569,7 +569,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(REPORT_ID, firstNewReportAction);
+            deleteReportComment(REPORT_ID, firstNewReportAction, {});
 
             await waitForBatchedUpdates();
         }
@@ -651,21 +651,24 @@ describe('Unread Indicators', () => {
 
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
-        trackExpense({
-            report: selfDMReport,
-            isDraftPolicy: true,
-            action: CONST.IOU.ACTION.CREATE,
-            participantParams: {
-                payeeEmail: participant.login,
-                payeeAccountID: participant.accountID,
-                participant,
+        trackExpense(
+            {
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: participant.login,
+                    payeeAccountID: participant.accountID,
+                    participant,
+                },
+                transactionParams: {
+                    amount: fakeTransaction.amount,
+                    currency: fakeTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                },
             },
-            transactionParams: {
-                amount: fakeTransaction.amount,
-                currency: fakeTransaction.currency,
-                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-            },
-        });
+            {},
+        );
         await waitForBatchedUpdates();
 
         // Then the new line indicator shouldn't be displayed

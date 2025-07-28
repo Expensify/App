@@ -381,7 +381,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                 },
-                '1',
+                {},
             );
 
             expect(title).toBeCalledWith(
@@ -410,7 +410,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                 },
-                '1',
+                {},
             );
 
             expect(description).toBeCalledWith(
@@ -2106,6 +2106,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    reportNameValuePairs: {},
                 }),
             ).toBeTruthy();
         });
@@ -2157,6 +2158,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
+                    reportNameValuePairs: {},
                 }),
             ).toBeTruthy();
         });
@@ -2178,6 +2180,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    reportNameValuePairs: {},
                 }),
             ).toBeTruthy();
         });
@@ -4080,7 +4083,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const result = canUserPerformWriteAction(policyAnnounceRoom, {});
 
             // Then it should return false
             expect(result).toBe(false);

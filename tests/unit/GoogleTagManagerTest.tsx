@@ -83,29 +83,32 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', () => {
-        trackExpense({
-            report: {reportID: '123'},
-            isDraftPolicy: true,
-            action: CONST.IOU.ACTION.CATEGORIZE,
-            participantParams: {
-                payeeEmail: undefined,
-                payeeAccountID: 0,
-                participant: {accountID},
+        trackExpense(
+            {
+                report: {reportID: '123'},
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CATEGORIZE,
+                participantParams: {
+                    payeeEmail: undefined,
+                    payeeAccountID: 0,
+                    participant: {accountID},
+                },
+                transactionParams: {
+                    amount: 1000,
+                    currency: 'USD',
+                    created: '2024-10-30',
+                    merchant: 'merchant',
+                    comment: 'comment',
+                    category: 'category',
+                    tag: 'tag',
+                    taxCode: 'taxCode',
+                    actionableWhisperReportActionID: 'actionableWhisperReportActionID',
+                    linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
+                    linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
+                },
             },
-            transactionParams: {
-                amount: 1000,
-                currency: 'USD',
-                created: '2024-10-30',
-                merchant: 'merchant',
-                comment: 'comment',
-                category: 'category',
-                tag: 'tag',
-                taxCode: 'taxCode',
-                actionableWhisperReportActionID: 'actionableWhisperReportActionID',
-                linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
-                linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
-            },
-        });
+            {},
+        );
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);

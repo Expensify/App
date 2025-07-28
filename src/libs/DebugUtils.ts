@@ -1324,7 +1324,7 @@ function getReasonForShowingRowInLHN(
     chatReport: OnyxEntry<Report>,
     hasRBR = false,
     isReportArchived = false,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ): TranslationPaths | null {
     if (!report) {
         return null;

@@ -1618,7 +1618,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
     }
 }
 
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+function markAllMessagesAsRead(reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
     if (isAnonymousUser()) {
         return;
     }
@@ -5779,7 +5779,7 @@ function changeReportPolicy(report: Report, policyID: string, reportNameValuePai
 /**
  * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
-function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
     if (!report.reportID || !policyID || report.policyID === policyID || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
     }

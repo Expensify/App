@@ -2260,7 +2260,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}, reportNameValuePa
 }
 
 function createWorkspace(
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyName = '',

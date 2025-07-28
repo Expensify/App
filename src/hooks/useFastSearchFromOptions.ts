@@ -54,13 +54,13 @@ const getRecentReportUniqueId = (option: OptionData) => {
 // You can either use this to search within report and personal details options
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     config?: {includeUserToInvite: false},
 ): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
 function useFastSearchFromOptions(
     options: OptionsListType,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     config?: {includeUserToInvite: true},
 ): {
     search: (searchInput: string) => OptionsListType;
@@ -78,7 +78,7 @@ function useFastSearchFromOptions(
  */
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
