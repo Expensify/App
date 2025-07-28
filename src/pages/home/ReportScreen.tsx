@@ -943,6 +943,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             composerHeight={composerHeight}
                                             keyboardHeight={keyboardHeight}
                                             isComposerFullSize={isComposerFullSize}
+                                            contentSizeHeight={contentSizeHeight}
+                                            layoutMeasurementHeight={layoutMeasurementHeight}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
