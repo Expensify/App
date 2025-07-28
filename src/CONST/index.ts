@@ -475,6 +475,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the VBA flow
+            COUNTRY: 'CountryStep',
             BANK_ACCOUNT: 'BankAccountStep',
             REQUESTOR: 'RequestorStep',
             COMPANY: 'CompanyStep',
@@ -483,12 +484,12 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
-        STEP_NAMES: ['1', '2', '3', '4', '5'],
-        STEPS_HEADER_HEIGHT: 40,
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',
         },
+        STEPS_HEADER_HEIGHT: 40,
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
             THROTTLED: 'verifications.throttled',
@@ -507,6 +508,7 @@ const CONST = {
         SETUP_TYPE: {
             MANUAL: 'manual',
             PLAID: 'plaid',
+            NONE: '',
         },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
@@ -1102,6 +1104,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1286,7 +1289,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',

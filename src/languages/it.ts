@@ -1056,7 +1056,7 @@ const translations = {
         canceled: 'Annullato',
         posted: 'Pubblicato',
         deleteReceipt: 'Elimina ricevuta',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa in questo rapporto, ${merchant} - ${amount}`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa in questo rapporto (${merchant} - ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
@@ -1831,7 +1831,6 @@ const translations = {
         sendAndReceiveMoney: 'Invia e ricevi denaro con gli amici. Solo conti bancari statunitensi.',
         enableWallet: 'Abilita portafoglio',
         addBankAccountToSendAndReceive: "Ricevi il rimborso per le spese che invii a un'area di lavoro.",
-        addBankAccount: 'Aggiungi conto bancario',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Queste sono carte assegnate da un amministratore del workspace per gestire le spese aziendali.',
         expensifyCard: 'Expensify Card',
@@ -1898,7 +1897,6 @@ const translations = {
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
         approver: 'Approvante',
-        connectBankAccount: 'Collega conto bancario',
         addApprovalsDescription: "Richiedi un'approvazione aggiuntiva prima di autorizzare un pagamento.",
         makeOrTrackPaymentsTitle: 'Effettua o traccia pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o traccia i pagamenti effettuati altrove.',
@@ -3139,7 +3137,6 @@ const translations = {
         termsAndConditions: 'termini e condizioni',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Collega conto bancario',
         finishButtonText: 'Completa la configurazione',
         validateYourBankAccount: 'Convalida il tuo conto bancario',
         validateButtonText: 'Convalida',
@@ -3231,7 +3228,6 @@ const translations = {
         pleaseUploadTheDirect: 'Carica l’accordo di addebito diretto e la pagina di firma Docusign.',
     },
     finishStep: {
-        connect: 'Collega conto bancario',
         letsFinish: 'Finisciamo in chat!',
         thanksFor:
             'Grazie per questi dettagli. Un agente di supporto dedicato esaminerà ora le tue informazioni. Ti ricontatteremo se avremo bisogno di ulteriori informazioni da parte tua, ma nel frattempo, non esitare a contattarci per qualsiasi domanda.',
@@ -3425,7 +3421,6 @@ const translations = {
             plan: 'Piano',
             profile: 'Panoramica',
             bankAccount: 'Conto bancario',
-            connectBankAccount: 'Collega conto bancario',
             testTransactions: 'Transazioni di prova',
             issueAndManageCards: 'Emetti e gestisci carte',
             reconcileCards: 'Riconcilia carte',
@@ -5189,7 +5184,6 @@ const translations = {
                 personal: 'Personale',
                 business: 'Business',
                 chooseInvoiceMethod: 'Scegli un metodo di pagamento qui sotto:',
-                addBankAccount: 'Aggiungi conto bancario',
                 payingAsIndividual: 'Pagare come individuo',
                 payingAsBusiness: "Pagare come un'azienda",
             },
@@ -6325,8 +6319,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
