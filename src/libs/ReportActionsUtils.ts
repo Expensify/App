@@ -993,6 +993,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * - ReportPreview with shouldShow set to false and without a pending action
  * - Money request with parent action deleted
  */
+// eslint-disable-next-line rulesdir/no-negated-variables
 function isNotHiddenPreviewOrDeletedMoneyRequest(action: ReportAction): boolean {
     const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
     const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
