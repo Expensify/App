@@ -99,6 +99,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNameValuePairs,
     Request,
     TaxRatesWithDefault,
     Transaction,
@@ -152,6 +153,20 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+};
+
+type CreateWorkspaceOptions = {
+    policyOwnerEmail?: string;
+    makeMeAdmin?: boolean;
+    policyName?: string;
+    policyID?: string;
+    engagementChoice?: OnboardingPurpose;
+    currency?: string;
+    file?: File;
+    shouldAddOnboardingTasks?: boolean;
+    companySize?: OnboardingCompanySize;
+    userReportedIntegration?: OnboardingAccounting;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -1875,7 +1890,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [file] Optional, avatar file for workspace
  * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
-function buildPolicyData(options: BuildPolicyDataOptions = {}) {
+function buildPolicyData(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>, options: BuildPolicyDataOptions = {}) {
     const {
         policyOwnerEmail = '',
         makeMeAdmin = false,
@@ -2220,7 +2235,14 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks
     ) {
         const {onboardingMessages} = getOnboardingMessages();
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(
+            introSelected,
+            engagementChoice,
+            onboardingMessages[engagementChoice],
+            reportNameValuePairs,
+            adminsChatReportID,
+            policyID,
+        );
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
@@ -2251,19 +2273,20 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(
+function createWorkspace({
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyName = '',
     policyID = generatePolicyID(),
-    engagementChoice: OnboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+    engagementChoice = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
     currency = '',
-    file?: File,
+    file,
     shouldAddOnboardingTasks = true,
-    companySize?: OnboardingCompanySize,
-    userReportedIntegration?: OnboardingAccounting,
-): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData({
+    companySize,
+    userReportedIntegration,
+    reportNameValuePairs,
+}: CreateWorkspaceOptions): CreateWorkspaceParams {
+    const {optimisticData, failureData, successData, params} = buildPolicyData(reportNameValuePairs, {
         policyOwnerEmail,
         makeMeAdmin,
         policyName,

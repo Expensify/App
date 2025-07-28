@@ -78,11 +78,12 @@ describe('SidebarUtils', () => {
             SidebarUtils.getOptionData({
                 report,
                 reportAttributes: undefined,
-                reportNameValuePairs,
                 personalDetails,
+                reportNameValuePairsCollection: reportNameValuePairs,
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
+                reportNameValuePairs,
             }),
         );
     });

@@ -47,6 +47,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const policy = usePolicy(report?.policyID);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
         if (!transactions) {
@@ -186,7 +187,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     Navigation.dismissModal();
                     InteractionManager.runAfterInteractions(() => {
                         if (report && isIOUReport(report)) {
-                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, reportNameValuePairs);
                         } else {
                             changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);
                         }

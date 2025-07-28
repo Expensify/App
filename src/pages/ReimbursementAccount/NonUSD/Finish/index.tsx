@@ -24,12 +24,13 @@ function Finish() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(reportNameValuePairs, true);
 
     return (
         <ScreenWrapper

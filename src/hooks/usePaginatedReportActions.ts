@@ -12,7 +12,8 @@ import useOnyx from './useOnyx';
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string) {
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`, {canBeMissing: true});
-    const hasWriteAccess = canUserPerformWriteAction(report);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const hasWriteAccess = canUserPerformWriteAction(report, reportNameValuePairs);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
         canEvict: false,

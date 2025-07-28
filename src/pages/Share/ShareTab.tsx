@@ -39,6 +39,7 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -55,10 +56,10 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false, false);
+        return getSearchOptions(options, reportNameValuePairs, betas ?? [], false, false);
     }, [areOptionsInitialized, betas, options]);
 
-    const {search: filterOptions} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions} = useFastSearchFromOptions(searchOptions, reportNameValuePairs, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

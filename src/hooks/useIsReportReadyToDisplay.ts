@@ -1,9 +1,9 @@
 import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
-function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute: string | undefined) {
+function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>, reportIDFromRoute: string | undefined) {
     /**
      * When false the report is not ready to be fully displayed
      */
@@ -13,7 +13,7 @@ function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute:
         return reportIDFromRoute !== '' && !!report?.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isEditingDisabled = useMemo(() => !isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report), [isCurrentReportLoadedFromOnyx, report]);
+    const isEditingDisabled = useMemo(() => !isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report, reportNameValuePairs), [isCurrentReportLoadedFromOnyx, report]);
 
     return {
         isCurrentReportLoadedFromOnyx,

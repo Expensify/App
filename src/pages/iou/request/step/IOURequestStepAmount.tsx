@@ -81,6 +81,7 @@ function IOURequestStepAmount({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -178,7 +179,7 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, allReportNameValuePairs, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -192,40 +193,46 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    requestMoney({
-                        report,
-                        participantParams: {
-                            participant: participants.at(0) ?? {},
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
+                    requestMoney(
+                        {
+                            report,
+                            participantParams: {
+                                participant: participants.at(0) ?? {},
+                                payeeEmail: currentUserPersonalDetails.login,
+                                payeeAccountID: currentUserPersonalDetails.accountID,
+                            },
+                            transactionParams: {
+                                amount: backendAmount,
+                                currency,
+                                created: transaction?.created ?? '',
+                                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                                attendees: transaction?.comment?.attendees,
+                            },
+                            backToReport,
                         },
-                        transactionParams: {
-                            amount: backendAmount,
-                            currency,
-                            created: transaction?.created ?? '',
-                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                            attendees: transaction?.comment?.attendees,
-                        },
-                        backToReport,
-                    });
+                        allReportNameValuePairs,
+                    );
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
-                    trackExpense({
-                        report,
-                        isDraftPolicy: false,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant: participants.at(0) ?? {},
+                    trackExpense(
+                        {
+                            report,
+                            isDraftPolicy: false,
+                            participantParams: {
+                                payeeEmail: currentUserPersonalDetails.login,
+                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                participant: participants.at(0) ?? {},
+                            },
+                            transactionParams: {
+                                amount: backendAmount,
+                                currency: currency ?? 'USD',
+                                created: transaction?.created,
+                                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            },
                         },
-                        transactionParams: {
-                            amount: backendAmount,
-                            currency: currency ?? 'USD',
-                            created: transaction?.created,
-                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        },
-                    });
+                        allReportNameValuePairs,
+                    );
                     return;
                 }
             }

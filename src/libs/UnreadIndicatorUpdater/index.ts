@@ -19,8 +19,8 @@ Onyx.connect({
     },
 });
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
-Onyx.connect({
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -37,7 +37,7 @@ Onyx.connect({
     },
 });
 
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined) {
+function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -46,7 +46,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
         return (
-            ReportUtils.isUnread(report, oneTransactionThreadReport) &&
+            ReportUtils.isUnread(report, oneTransactionThreadReport, reportNameValuePairs) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
                 chatReport,
@@ -56,6 +56,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 isInFocusMode: false,
                 excludeEmptyChats: false,
                 isReportArchived,
+                reportNameValuePairs,
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."
@@ -77,7 +78,7 @@ const triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
-    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);
+    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID, allReportNameValuePairs);
 
     updateUnread(unreadReports.length);
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);

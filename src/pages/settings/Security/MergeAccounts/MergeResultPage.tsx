@@ -31,6 +31,7 @@ function MergeResultPage() {
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login, backTo} = params;
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -119,7 +120,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.afterDomain')}
                         <TextLink
                             onPress={() => {
-                                navigateToConciergeChat();
+                                navigateToConciergeChat(reportNameValuePairs);
                             }}
                         >
                             {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.linkText')}
@@ -139,7 +140,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.beforeLink')}
                         <TextLink
                             onPress={() => {
-                                navigateToConciergeChat();
+                                navigateToConciergeChat(reportNameValuePairs);
                             }}
                         >
                             {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.linkText')}
@@ -184,7 +185,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureAccountLocked.afterEmail')}
                         <TextLink
                             onPress={() => {
-                                navigateToConciergeChat();
+                                navigateToConciergeChat(reportNameValuePairs);
                             }}
                         >
                             {translate('mergeAccountsPage.mergeFailureAccountLocked.linkText')}

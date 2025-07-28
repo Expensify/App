@@ -3,7 +3,7 @@ import type {RefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
@@ -127,7 +127,18 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {
+    Account,
+    Beta,
+    Card,
+    Download as DownloadOnyx,
+    OnyxInputOrEntry,
+    ReportAction,
+    ReportActionReactions,
+    ReportNameValuePairs,
+    Report as ReportType,
+    Transaction,
+} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -195,7 +206,14 @@ type ContextMenuActionPayload = {
     card?: Card;
 };
 
-type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
+type OnPress = (
+    closePopover: boolean,
+    payload: ContextMenuActionPayload,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    selection?: string,
+    reportID?: string,
+    draftMessage?: string,
+) => void;
 
 type RenderContent = (closePopover: boolean, payload: ContextMenuActionPayload) => React.ReactElement;
 
@@ -287,17 +305,17 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction, reportID}, reportNameValuePairs) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+                        navigateToAndOpenChildReport(reportAction?.childReportID, reportNameValuePairs, reportAction, originalReportID);
                     });
                 });
                 return;
             }
-            navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+            navigateToAndOpenChildReport(reportAction?.childReportID, reportNameValuePairs, reportAction, originalReportID);
         },
         getDescription: () => {},
     },
@@ -335,11 +353,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Pencil,
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
+        onPress: (closePopover, {reportID, reportAction, draftMessage}, reportNameValuePairs) => {
             if (isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID;
-                openReport(childReportID);
+                openReport(childReportID, reportNameValuePairs);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
@@ -417,19 +435,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction, reportID}, reportNameValuePairs) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, reportNameValuePairs, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+            toggleSubscribeToChildReport(reportAction?.childReportID, reportNameValuePairs, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },

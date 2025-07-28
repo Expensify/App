@@ -63,6 +63,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`, {canBeMissing: true});
+        const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
@@ -73,7 +74,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport(route.params.reportID);
+            openReport(route.params.reportID, reportNameValuePairs);
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
 
@@ -81,7 +82,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             return <FullScreenLoadingIndicator />;
         }
 
-        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''})) {
+        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, reportNameValuePairs)) {
             return <FullPageNotFoundView shouldShow />;
         }
 

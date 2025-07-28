@@ -73,7 +73,9 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, reports);
+const reportNameValuePairsCollection = {};
+
+const options = createOptionList(personalDetails, reportNameValuePairsCollection, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -106,41 +108,41 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions(options, mockedBetas));
+        await measureFunction(() => getSearchOptions(options, reportNameValuePairsCollection, mockedBetas));
     });
 
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareLogOptions(options, mockedBetas));
+        await measureFunction(() => getShareLogOptions(options, reportNameValuePairsCollection, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, reportNameValuePairsCollection, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, reportNameValuePairsCollection);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, reportNameValuePairsCollection, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '');
+            filterAndOrderOptions(formattedOptions, '', reportNameValuePairsCollection);
         });
     });
 
     /* Testing getShareDestinationOptions */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() => getShareDestinationOptions(reportNameValuePairsCollection, options.reports, options.personalDetails, mockedBetas));
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, reportNameValuePairsCollection, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
@@ -182,6 +184,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             formatSectionsFromSearchTerm(
                 SEARCH_VALUE,
+                reportNameValuePairsCollection,
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
@@ -197,6 +200,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', reportNameValuePairsCollection, Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
     });
 });

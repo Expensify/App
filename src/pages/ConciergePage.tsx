@@ -22,6 +22,7 @@ function ConciergePage() {
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     useFocusEffect(
         useCallback(() => {
@@ -32,7 +33,7 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(reportNameValuePairs, true, () => !isUnmounted.current);
                 });
             } else {
                 Navigation.navigate(ROUTES.HOME);

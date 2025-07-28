@@ -70,6 +70,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
 
@@ -165,7 +166,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
         // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
         if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
+            result.push(PromotedActions.message({reportNameValuePairs, reportID: report?.reportID, accountID, login: loginParams}));
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);

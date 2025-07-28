@@ -129,6 +129,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     /*
@@ -212,7 +213,7 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportNameValuePairs, reportAttributesDerived);
             }) ?? [],
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
@@ -454,49 +455,52 @@ function IOURequestStepConfirmation({
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                 }
 
-                requestMoneyIOUActions({
-                    report,
-                    optimisticChatReportID,
-                    optimisticCreatedReportActionID,
-                    optimisticIOUReportID,
-                    optimisticReportPreviewActionID,
-                    participantParams: {
-                        payeeEmail: currentUserPersonalDetails.login,
-                        payeeAccountID: currentUserPersonalDetails.accountID,
-                        participant,
+                requestMoneyIOUActions(
+                    {
+                        report,
+                        optimisticChatReportID,
+                        optimisticCreatedReportActionID,
+                        optimisticIOUReportID,
+                        optimisticReportPreviewActionID,
+                        participantParams: {
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            participant,
+                        },
+                        policyParams: {
+                            policy,
+                            policyTagList: policyTags,
+                            policyCategories,
+                        },
+                        gpsPoints,
+                        action,
+                        transactionParams: {
+                            amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
+                            attendees: item.comment?.attendees,
+                            currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
+                            created: item.created,
+                            merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
+                            comment: item?.comment?.comment?.trim() ?? '',
+                            receipt,
+                            category: item.category,
+                            tag: item.tag,
+                            taxCode: transactionTaxCode,
+                            taxAmount: transactionTaxAmount,
+                            billable: item.billable,
+                            actionableWhisperReportActionID: item.actionableWhisperReportActionID,
+                            linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
+                            linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
+                            waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
+                            customUnitRateID,
+                            isTestDrive: item.receipt?.isTestDriveReceipt,
+                            originalTransactionID: item.comment?.originalTransactionID,
+                            source: item.comment?.source,
+                        },
+                        shouldHandleNavigation: index === transactions.length - 1,
+                        backToReport,
                     },
-                    policyParams: {
-                        policy,
-                        policyTagList: policyTags,
-                        policyCategories,
-                    },
-                    gpsPoints,
-                    action,
-                    transactionParams: {
-                        amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
-                        attendees: item.comment?.attendees,
-                        currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
-                        created: item.created,
-                        merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
-                        comment: item?.comment?.comment?.trim() ?? '',
-                        receipt,
-                        category: item.category,
-                        tag: item.tag,
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
-                        billable: item.billable,
-                        actionableWhisperReportActionID: item.actionableWhisperReportActionID,
-                        linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
-                        linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
-                        waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
-                        customUnitRateID,
-                        isTestDrive: item.receipt?.isTestDriveReceipt,
-                        originalTransactionID: item.comment?.originalTransactionID,
-                        source: item.comment?.source,
-                    },
-                    shouldHandleNavigation: index === transactions.length - 1,
-                    backToReport,
-                });
+                    reportNameValuePairs,
+                );
             });
         },
         [
@@ -565,45 +569,48 @@ function IOURequestStepConfirmation({
                 return;
             }
             transactions.forEach((item, index) => {
-                trackExpenseIOUActions({
-                    report,
-                    isDraftPolicy,
-                    action,
-                    participantParams: {
-                        payeeEmail: currentUserPersonalDetails.login,
-                        payeeAccountID: currentUserPersonalDetails.accountID,
-                        participant,
+                trackExpenseIOUActions(
+                    {
+                        report,
+                        isDraftPolicy,
+                        action,
+                        participantParams: {
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            participant,
+                        },
+                        policyParams: {
+                            policy,
+                            policyCategories,
+                            policyTagList: policyTags,
+                        },
+                        transactionParams: {
+                            amount: item.amount,
+                            currency: item.currency,
+                            created: item.created,
+                            merchant: item.merchant,
+                            comment: item?.comment?.comment?.trim() ?? '',
+                            receipt: receiptFiles[item.transactionID],
+                            category: item.category,
+                            tag: item.tag,
+                            taxCode: transactionTaxCode,
+                            taxAmount: transactionTaxAmount,
+                            billable: item.billable,
+                            gpsPoints,
+                            validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
+                            actionableWhisperReportActionID: item.actionableWhisperReportActionID,
+                            linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
+                            linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
+                            customUnitRateID,
+                            attendees: item.comment?.attendees,
+                        },
+                        accountantParams: {
+                            accountant: item.accountant,
+                        },
+                        shouldHandleNavigation: index === transactions.length - 1,
                     },
-                    policyParams: {
-                        policy,
-                        policyCategories,
-                        policyTagList: policyTags,
-                    },
-                    transactionParams: {
-                        amount: item.amount,
-                        currency: item.currency,
-                        created: item.created,
-                        merchant: item.merchant,
-                        comment: item?.comment?.comment?.trim() ?? '',
-                        receipt: receiptFiles[item.transactionID],
-                        category: item.category,
-                        tag: item.tag,
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
-                        billable: item.billable,
-                        gpsPoints,
-                        validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
-                        actionableWhisperReportActionID: item.actionableWhisperReportActionID,
-                        linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
-                        linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
-                        customUnitRateID,
-                        attendees: item.comment?.attendees,
-                    },
-                    accountantParams: {
-                        accountant: item.accountant,
-                    },
-                    shouldHandleNavigation: index === transactions.length - 1,
-                });
+                    reportNameValuePairs,
+                );
             });
         },
         [

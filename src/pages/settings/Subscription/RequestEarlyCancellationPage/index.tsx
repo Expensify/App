@@ -14,6 +14,7 @@ import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
@@ -28,6 +29,7 @@ function RequestEarlyCancellationPage() {
     const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -47,7 +49,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
+                        <TextLink onPress={() => navigateToConciergeChat(reportNameValuePairs)}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
                     </Text>
                 </View>

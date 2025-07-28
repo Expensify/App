@@ -26,6 +26,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const betas = useBetas();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -37,7 +38,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = getShareLogOptions(options, betas ?? []);
+        const shareLogOptions = getShareLogOptions(options, reportNameValuePairs, betas ?? []);
 
         const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
@@ -52,7 +53,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, reportNameValuePairs, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });

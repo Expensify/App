@@ -2,6 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -41,6 +42,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -53,7 +55,7 @@ type SelectedOption = ListItem &
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'NewChatPage.getValidOptions'});
 
-function useOptions() {
+function useOptions(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -70,6 +72,7 @@ function useOptions() {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],
             },
+            reportNameValuePairs,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
@@ -81,7 +84,7 @@ function useOptions() {
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, reportNameValuePairs, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -118,6 +121,7 @@ function useOptions() {
             let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
             if (!participantOption) {
                 participantOption = getUserToInviteOption({
+                    reportNameValuePairs,
                     searchValue: participant?.login,
                 });
             }
@@ -157,6 +161,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
@@ -165,7 +170,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     }));
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions();
+        useOptions(reportNameValuePairs);
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
@@ -173,6 +178,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
 
         const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
+            reportNameValuePairs,
             selectedOptions as OptionData[],
             recentReports,
             personalDetails,
@@ -279,7 +285,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
+            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login], reportNameValuePairs));
         },
         [selectedOptions, toggleOption],
     );

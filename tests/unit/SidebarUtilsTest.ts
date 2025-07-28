@@ -318,12 +318,18 @@ describe('SidebarUtils', () => {
                 reportID: '2',
                 isPinned: false,
             };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
+            };
 
             const optionDataPinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_PINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                reportNameValuePairsCollection: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -333,6 +339,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                reportNameValuePairsCollection: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -817,6 +824,11 @@ describe('SidebarUtils', () => {
                 ],
                 originalMessage: undefined,
             };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
+            };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
@@ -826,6 +838,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                reportNameValuePairsCollection: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -873,6 +886,11 @@ describe('SidebarUtils', () => {
                     },
                 ],
             };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
+            };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
@@ -883,6 +901,7 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
+                reportNameValuePairsCollection: reportNameValuePairs,
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
@@ -922,6 +941,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -955,6 +975,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: LHNTestUtils.fakePersonalDetails,
+                    reportNameValuePairsCollection: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
+                    },
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -985,6 +1008,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -1104,6 +1128,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
@@ -1144,6 +1169,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy,
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
@@ -1200,6 +1226,11 @@ describe('SidebarUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const reportNameValuePairs = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                        private_isArchived: DateUtils.getDBTime(),
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await Onyx.set(ONYXKEYS.SESSION, session);
@@ -1209,6 +1240,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
@@ -1243,6 +1275,11 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const reportNameValuePairs = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                        private_isArchived: DateUtils.getDBTime(),
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 const result = SidebarUtils.getOptionData({
@@ -1250,6 +1287,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
@@ -1302,6 +1340,11 @@ describe('SidebarUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: undefined,
                 };
+                const reportNameValuePairs = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: {
+                        private_isArchived: DateUtils.getDBTime(),
+                    },
+                };
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
@@ -1314,6 +1357,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
+                    reportNameValuePairsCollection: reportNameValuePairs,
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,

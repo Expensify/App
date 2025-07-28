@@ -30,7 +30,7 @@ describe('QuickActionUtils', () => {
 
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(true);
 
-                const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
+                const result = isQuickActionAllowed(createReportAction, {}, undefined, policy as Policy);
 
                 expect(result).toBe(true);
                 expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
@@ -44,7 +44,7 @@ describe('QuickActionUtils', () => {
 
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
-                const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
+                const result = isQuickActionAllowed(createReportAction, {}, undefined, policy as Policy);
 
                 expect(result).toBe(false);
                 expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
@@ -58,7 +58,7 @@ describe('QuickActionUtils', () => {
 
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(true);
 
-                const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
+                const result = isQuickActionAllowed(createReportAction, {}, undefined, policy as Policy);
 
                 expect(result).toBe(false);
                 expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
@@ -72,7 +72,7 @@ describe('QuickActionUtils', () => {
 
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(true);
 
-                const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
+                const result = isQuickActionAllowed(createReportAction, {}, undefined, policy as Policy);
 
                 expect(result).toBe(false);
                 expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
@@ -81,7 +81,7 @@ describe('QuickActionUtils', () => {
             it('should return false when policy is undefined', () => {
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
-                const result = isQuickActionAllowed(createReportAction, undefined, undefined);
+                const result = isQuickActionAllowed(createReportAction, {}, undefined, undefined);
 
                 expect(result).toBe(false);
                 expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(undefined, false, undefined);
@@ -95,7 +95,7 @@ describe('QuickActionUtils', () => {
 
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
-                const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
+                const result = isQuickActionAllowed(createReportAction, {}, undefined, policy as Policy);
 
                 expect(result).toBe(false);
                 expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);

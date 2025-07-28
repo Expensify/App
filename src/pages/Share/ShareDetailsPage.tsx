@@ -52,9 +52,13 @@ function ShareDetailsPage({
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, reportNameValuePairs, reportAttributesDerived),
+        [report, unknownUserDetails, reportAttributesDerived],
+    );
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -110,6 +114,7 @@ function ShareDetailsPage({
                 if (isDraft) {
                     openReport(
                         report.reportID,
+                        reportNameValuePairs,
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
                         report,

@@ -147,8 +147,9 @@ function MoneyRequestReportActionsList({
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
-    const canPerformWriteAction = canUserPerformWriteAction(report);
+    const canPerformWriteAction = canUserPerformWriteAction(report, reportNameValuePairs);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -257,7 +258,7 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
+        if (isUnread(report, transactionThreadReport, reportNameValuePairs) || (lastAction && isCurrentActionUnread(report, lastAction))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -511,7 +512,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID);
+            openReport(report.reportID, reportNameValuePairs);
             reportScrollManager.scrollToEnd();
             return;
         }

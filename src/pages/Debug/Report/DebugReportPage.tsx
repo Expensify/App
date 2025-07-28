@@ -60,6 +60,7 @@ function DebugReportPage({
         selector: (attributes) => attributes?.reports?.[reportID],
         canBeMissing: true,
     });
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -76,7 +77,7 @@ function DebugReportPage({
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReport, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, chatReport, hasRBR, isReportArchived);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, chatReport, hasRBR, isReportArchived, reportNameValuePairs);
 
         return [
             {
@@ -132,7 +133,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportNameValuePairs, reportID, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >

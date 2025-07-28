@@ -34,6 +34,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`, {
         canBeMissing: true,
     });
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     if (!isChatReport(report)) {
         return null;
@@ -51,7 +52,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report)}
+            onClose={() => clearCreateChatError(report, reportNameValuePairs)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
