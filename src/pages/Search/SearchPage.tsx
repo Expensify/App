@@ -74,7 +74,9 @@ function SearchPage({route}: SearchPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-
+    const newReportID = generateReportID();
+    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
+    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
@@ -444,11 +446,12 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-        const newReportID = generateReportID();
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
             reportID: newReportID,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            report: newReport,
+            parentReport: newParentReport,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];

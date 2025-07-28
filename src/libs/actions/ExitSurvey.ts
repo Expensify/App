@@ -7,17 +7,6 @@ import REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 
-let exitReason: ExitReason | undefined;
-let exitSurveyResponse: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
-    callback: (value) => (exitReason = value?.[REASON_INPUT_IDS.REASON]),
-});
-Onyx.connect({
-    key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
-    callback: (value) => (exitSurveyResponse = value?.[RESPONSE_INPUT_IDS.RESPONSE]),
-});
-
 function saveExitReason(reason: ExitReason) {
     Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[REASON_INPUT_IDS.REASON]: reason});
 }
@@ -29,7 +18,7 @@ function saveResponse(response: string) {
 /**
  * Save the user's response to the mandatory exit survey in the back-end.
  */
-function switchToOldDot() {
+function switchToOldDot(exitReason: ExitReason | undefined, exitSurveyResponse: string | undefined) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
