@@ -126,6 +126,7 @@ import {
     getNextApproverAccountID,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
+    getOutstandingChildRequest,
     getParsedComment,
     getPendingChatMembers,
     getPolicyExpenseChat,
@@ -2716,6 +2717,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     };
 
     const optimisticNextStep = buildNextStep(optimisticReportData, CONST.REPORT.STATUS_NUM.OPEN);
+    const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2743,7 +2745,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {lastVisibleActionCreated: optimisticReportPreview.created},
+            value: {lastVisibleActionCreated: optimisticReportPreview.created, ...outstandingChildRequest},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2781,7 +2783,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {lastVisibleActionCreated: parentReport?.lastVisibleActionCreated},
+            value: {lastVisibleActionCreated: parentReport?.lastVisibleActionCreated, hasOutstandingChildRequest: parentReport?.hasOutstandingChildRequest},
         },
     ];
 
