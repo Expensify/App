@@ -95,8 +95,40 @@ React Native uses the [Hermes](https://reactnative.dev/docs/hermes) JavaScript e
 - The generated traces require symbolication to show meaningful function names in release builds
 
 ### React DevTools Profiler
-- The React DevTools Profiler can also be used to detect similar information to Chrome Dev Tools, but is a little more streamlined. There is also an options cog where you can filter events by cutting at a specified millisecond (length it took for the thing to happen)
-- Try checking the option to "Record why each component rendered while profiling". This may provide insights into why the component rendered unnecessarily.
+
+The React DevTools Profiler provides React-specific performance insights and is more streamlined than general JavaScript profilers. It focuses specifically on component rendering performance and can help identify unnecessary re-renders.
+
+#### Setup:
+- **Web:** Built into React DevTools browser extension
+- **Mobile:** Built-in - press `j` in Metro terminal to open React DevTools
+
+#### Steps to Profile:
+
+1. **Configure Settings:**
+   - Open React DevTools and go to the Profiler tab
+   - Click the settings icon
+   - Enable "Record why each component rendered while profiling" for detailed insights
+   - Optionally set "Hide commits below X ms" to focus on slow renders
+
+2. **Capture React Performance:**
+   - Click the record button (circle icon) to start profiling
+   - Perform the actions you want to analyze
+   - Click stop to end the recording
+
+3. **Analyze Results:**
+   - Review the flame graph showing component render times
+   - Use the timeline to identify slow commits
+   - Click on components to see why they rendered
+   - Look for components with high render times or frequent re-renders
+
+#### Key Metrics to Focus On:
+- **Commit duration:** Total time for a render cycle
+- **Component render time:** Individual component performance
+- **Render reasons:** Why components re-rendered (props change, state change, parent render)
+
+#### Compare the results
+
+When working with React Profiler, you can compare the results using [this tool](https://kacper-mikolajczak.github.io/rcc/). It will tell you the time and commit difference between two or more profiles.
 
 **Suggested:** [Deep Dive with the React DevTools creator](https://www.youtube.com/watch?v=nySib7ipZdk)
 
