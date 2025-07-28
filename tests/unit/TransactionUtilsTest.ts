@@ -11,6 +11,7 @@ import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import DateUtils from '@libs/DateUtils';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -654,7 +655,7 @@ describe('TransactionUtils', () => {
                 comment: {
                     dismissedViolations: {
                         [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
-                            [CURRENT_USER_EMAIL]: `${CURRENT_USER_ID}`,
+                            [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
                         },
                     },
                 },
