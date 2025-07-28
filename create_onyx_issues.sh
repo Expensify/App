@@ -308,7 +308,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             assignee=$(get_parent_assignee $parent_issues_created)
             current_parent_assignee="$assignee"
             echo "Creating parent issue: $parent_title (assigned to $assignee)"
-            if current_parent_id=$(create_issue "$parent_title" "$parent_body" "Engineering,Improvement" "$assignee"); then
+            if current_parent_id=$(create_issue "$parent_title" "$parent_body" "Engineering,Improvement,Monthly" "$assignee"); then
                 parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
                 parent_id=$(echo "$current_parent_id" | cut -d'|' -f2)
 
@@ -405,7 +405,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # Use the same assignee as the parent issue
             assignee="$current_parent_assignee"
             echo "Creating sub-issue: $sub_title (assigned to $assignee)"
-            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug" "$assignee"); then
+            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug,Weekly" "$assignee"); then
                 sub_number=$(echo "$sub_id" | cut -d'|' -f1)
                 sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
 
