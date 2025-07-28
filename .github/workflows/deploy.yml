@@ -407,6 +407,7 @@ jobs:
         with:
           export-env: false
         env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
 
       - name: Set current App version in Env
