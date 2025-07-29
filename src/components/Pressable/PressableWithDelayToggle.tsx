@@ -17,7 +17,7 @@ import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
     /** The text to display */
-    text: string;
+    text?: string;
 
     /** The text to display once the pressable is pressed */
     textChecked?: string;
@@ -50,6 +50,15 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
+
+    /** For overriding hovered value from the PressableWithoutFeedback container and getting the BG based on that */
+    shouldShowHoveredState?: boolean;
+
+    /** Icon width */
+    iconWidth?: number;
+
+    /** Icon height */
+    iconHeight?: number;
 };
 
 function PressableWithDelayToggle(
@@ -66,6 +75,9 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
         accessibilityRole,
+        shouldShowHoveredState,
+        iconWidth = variables.iconSizeSmall,
+        iconHeight = variables.iconSizeSmall,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
@@ -86,15 +98,16 @@ function PressableWithDelayToggle(
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    const labelText = (
-        <Text
-            suppressHighlighting
-            style={textStyles}
-        >
-            {!isActive && textChecked ? textChecked : text}
-            &nbsp;
-        </Text>
-    );
+    const labelText =
+        !text && !textChecked ? null : (
+            <Text
+                suppressHighlighting
+                style={textStyles}
+            >
+                {!isActive && textChecked ? textChecked : text}
+                &nbsp;
+            </Text>
+        );
 
     return (
         <PressableView
@@ -116,7 +129,13 @@ function PressableWithDelayToggle(
                         tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
-                        style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
+                        style={({hovered, pressed}) => [
+                            styles.flexRow,
+                            pressableStyle,
+                            !isActive && styles.cursorDefault,
+                            styles.reportActionContextMenuMiniButton,
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(!!shouldShowHoveredState || hovered, shouldShowHoveredState ? hovered : pressed, !isActive), true),
+                        ]}
                     >
                         {({hovered, pressed}) => (
                             <>
@@ -126,8 +145,8 @@ function PressableWithDelayToggle(
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
+                                        width={iconWidth}
+                                        height={iconHeight}
                                         inline={inline}
                                     />
                                 )}
@@ -143,3 +162,5 @@ function PressableWithDelayToggle(
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
 export default forwardRef(PressableWithDelayToggle);
+
+export type {PressableWithDelayToggleProps};
