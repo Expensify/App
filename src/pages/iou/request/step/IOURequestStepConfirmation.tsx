@@ -377,7 +377,7 @@ function IOURequestStepConfirmation({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        let newReceiptFiles = {};
+        let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
 
         Promise.all(
@@ -388,7 +388,9 @@ function IOURequestStepConfirmation({
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    if (item.receipt) {
+                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    }
                     return;
                 }
 
