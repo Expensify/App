@@ -381,6 +381,7 @@ function NewBaseVideoPlayer({
                                             player={videoPlayer}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             nativeControls={isFullScreenRef.current}
+                                            playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}
                                             onFullscreenEnter={() => {
