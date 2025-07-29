@@ -66,7 +66,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets.bottom, insets.left, insets.right, insets.top, isFocused, shouldHideOnNavigate]);
+    }, [insets, isFocused, shouldHideOnNavigate]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
