@@ -1,10 +1,11 @@
-import {useContext, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useColorScheme} from 'react-native';
-import {PreferredThemeContext} from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 function useThemePreference() {
-    const preferredThemeFromStorage = useContext(PreferredThemeContext);
+    const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
     const systemTheme = useColorScheme();
 
     const themePreference = useMemo(() => {

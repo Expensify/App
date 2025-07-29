@@ -98,6 +98,11 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    const isOpenReport = isOpenReportUtils(report);
+
+    if (isOpenReport) {
+        return isSubmitter || isAdmin;
+    }
 
     return isSubmitter || isAdmin || isManager;
 }
@@ -642,4 +647,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions, isSplitAction};

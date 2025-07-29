@@ -18,7 +18,7 @@ import requireParameters from './requireParameters';
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_STORE_LOGS,
     callback: (val) => {
         if (!val) {

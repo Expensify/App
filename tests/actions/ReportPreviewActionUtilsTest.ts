@@ -35,7 +35,7 @@ const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
-    hasViolations: jest.fn().mockReturnValue(false),
+    hasAnyViolations: jest.fn().mockReturnValue(false),
     getReportTransactions: jest.fn().mockReturnValue(['mockValue']),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
@@ -418,7 +418,7 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
-        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
             ...createRandomReport(REPORT_ID),
             statusNum: 0,
@@ -452,7 +452,7 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
-        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
             ...createRandomReport(REPORT_ID),
             statusNum: 0,
