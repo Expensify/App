@@ -6316,8 +6316,7 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
-        inviteToChat: 'Inviter uniquement à discuter',
+        invite: 'Invitez-les',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6402,14 +6401,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: 'Démarrer une discussion,',
-            buttonText2: 'parrainez un ami.',
+            buttonText: 'Commencez un chat, <success><strong>recommandez un ami</strong></success>.',
             header: 'Démarrer une discussion, recommander un ami',
             body: 'Vous voulez que vos amis utilisent aussi Expensify ? Commencez simplement une discussion avec eux et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Soumettre une dépense,',
-            buttonText2: 'parrainez votre patron.',
+            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre patron</strong></success>.',
             header: 'Soumettre une dépense, référer votre patron',
             body: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },

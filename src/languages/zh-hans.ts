@@ -6197,9 +6197,8 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '邀请提交费用',
-        inviteToChat: '仅邀请聊天',
-        nothing: '什么都不做',
+        invite: '邀请他们',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',
@@ -6281,14 +6280,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: '开始聊天，',
-            buttonText2: '推荐朋友。',
+            buttonText: '开始聊天，<success><strong>推荐朋友</strong></success>。',
             header: '开始聊天，推荐朋友',
             body: '想让你的朋友也使用Expensify吗？只需与他们开始聊天，我们会处理剩下的事情。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: '提交报销，',
-            buttonText2: '推荐你的老板。',
+            buttonText: '提交费用，<success><strong>推荐你的老板</strong></success>。',
             header: '提交报销，推荐给您的老板',
             body: '想让你的老板也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
         },

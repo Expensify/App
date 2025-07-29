@@ -6319,9 +6319,8 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invita a inviare le spese',
-        inviteToChat: 'Invita solo a chattare',
-        nothing: 'Non fare nulla',
+        invite: 'Invitali',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
@@ -6405,14 +6404,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: 'Avvia una chat,',
-            buttonText2: 'consiglia un amico.',
+            buttonText: 'Avviare una chat, <success><strong>segnalare un amico</strong></success>.',
             header: 'Inizia una chat, invita un amico',
             body: 'Vuoi che i tuoi amici usino Expensify, anche loro? Inizia una chat con loro e ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Invia una spesa,',
-            buttonText2: 'riferisci il tuo capo.',
+            buttonText: 'Presentate una spesa, <success><strong>riferite al vostro capo</strong></success>.',
             header: 'Invia una spesa, riferisci al tuo capo',
             body: 'Vuoi che anche il tuo capo usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
         },

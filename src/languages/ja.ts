@@ -6277,8 +6277,7 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '経費の提出に招待する',
-        inviteToChat: 'チャットのみ招待',
+        invite: '招待する',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6362,14 +6361,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: 'チャットを開始する',
-            buttonText2: '友達を紹介する。',
+            buttonText: 'チャットを始める、<success><strong>友達を紹介する</strong></success>。',
             header: 'チャットを開始し、友達を紹介する',
             body: '友達にもExpensifyを使ってほしいですか？ 彼らとチャットを始めるだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: '経費を提出する',
-            buttonText2: 'あなたの上司を紹介してください。',
+            buttonText: '経費を提出し、<success><strong>上司に紹介する</strong></success>。',
             header: '経費を提出し、上司に紹介する',
             body: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
