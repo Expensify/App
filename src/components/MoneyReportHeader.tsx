@@ -856,6 +856,18 @@ function MoneyReportHeader({
                 changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD]: {
+            text: translate('iou.unhold'),
+            icon: Expensicons.Stopwatch,
+            value: CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD,
+            onSelected: () => {
+                if (!requestParentReportAction) {
+                    throw new Error('Parent action does not exist');
+                }
+
+                changeMoneyRequestHoldStatus(requestParentReportAction);
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
             text: translate('iou.split'),
             icon: Expensicons.ArrowSplit,
