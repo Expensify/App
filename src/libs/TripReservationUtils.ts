@@ -442,23 +442,26 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
         return [];
     }
 
-    const pnrMap: Record<string, ReservationPNRData> = {};
+    const pnrMap = new Map<string, ReservationPNRData>();
 
     reservations.forEach((reservation) => {
         // eslint-disable-next-line rulesdir/no-default-id-values
         const pnrID = reservation.reservation.reservationID ?? '';
-        if (!pnrMap[pnrID]) {
-            pnrMap[pnrID] = {
+        if (!pnrMap.has(pnrID)) {
+            pnrMap.set(pnrID, {
                 pnrID,
                 totalFareAmount: 0,
                 currency: '',
                 reservations: [],
-            };
+            });
         }
-        pnrMap[pnrID].reservations.push(reservation);
+        const reservationData = pnrMap.get(pnrID);
+        if (reservationData) {
+            reservationData.reservations.push(reservation);
+        }
     });
 
-    return Object.values(pnrMap).map((pnrData) => {
+    return Array.from(pnrMap.values()).map((pnrData) => {
         const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
         return {
             ...pnrData,
