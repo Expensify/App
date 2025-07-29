@@ -4810,8 +4810,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente',
         },
         emptyWorkspace: {
-            title: 'Crea un espacio de trabajo',
-            subtitle: 'Crea un espacio de trabajo para organizar recibos, reembolsar gastos, gestionar viajes, enviar facturas y mucho más, todo a la velocidad del chat.',
+            title: 'No tienes espacios de trabajo',
+            subtitle: 'Organizar recibos, reembolsar gastos, gestionar viajes, envía facturas y mucho más.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',

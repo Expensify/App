@@ -4797,8 +4797,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again',
         },
         emptyWorkspace: {
-            title: 'Create a workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, send invoices, and more — all at the speed of chat.',
+            title: 'You have no workspaces',
+            subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',

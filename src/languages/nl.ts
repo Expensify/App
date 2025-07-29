@@ -4835,8 +4835,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de belastingcode, probeer het opnieuw.',
         },
         emptyWorkspace: {
-            title: 'Maak een werkruimte aan',
-            subtitle: 'Maak een werkruimte om bonnetjes bij te houden, uitgaven te vergoeden, reizen te beheren, facturen te versturen en meer — allemaal op de snelheid van chat.',
+            title: `Je hebt geen werkruimtes`,
+            subtitle: `Beheer bonnetjes, vergoed uitgaven, regel reizen, verstuur facturen en meer.`,
             createAWorkspaceCTA: 'Aan de slag',
             features: {
                 trackAndCollect: 'Volg en verzamel bonnetjes',
