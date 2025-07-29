@@ -100,7 +100,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * Get a cached currency formatter for better performance
  */
 function getCachedCurrencyFormatter(locale: string, currency: string, decimals: number): Intl.NumberFormat | undefined {
-    const key = `${locale}-${currency}`;
+    const key = `${locale}-${currency}-${decimals}`;
 
     if (!currencyFormatterCache.has(key)) {
         // Limit cache size to prevent memory issues
@@ -190,7 +190,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Get a cached number formatter (without currency) for better performance
  */
 function getCachedNumberFormatter(locale: string, decimals: number): Intl.NumberFormat | undefined {
-    const key = `${locale}-number-${decimals}`;
+    const key = `${locale}-decimal-${decimals}`;
 
     if (!currencyFormatterCache.has(key)) {
         // Limit cache size to prevent memory issues
