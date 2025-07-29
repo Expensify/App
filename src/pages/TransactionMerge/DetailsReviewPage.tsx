@@ -4,6 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -24,16 +25,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
 
-type DetailsReviewProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
+type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
 
-function DetailsReview({route}: DetailsReviewProps) {
+function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const sourceTransaction = getSourceTransaction(mergeTransaction);
 
@@ -92,9 +94,13 @@ function DetailsReview({route}: DetailsReviewProps) {
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = diffFields.length > 1 && !isEmptyObject(hasErrors);
 
+    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
-            testID={DetailsReview.displayName}
+            testID={DetailsReviewPage.displayName}
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -102,11 +108,7 @@ function DetailsReview({route}: DetailsReviewProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.detailsPage.header')}
                     onBackButtonPress={() => {
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-                        Navigation.goBack();
+                        Navigation.goBack(backTo);
                     }}
                 />
                 <ScrollView style={[styles.flex1, styles.ph5]}>
@@ -186,6 +188,6 @@ function DetailsReview({route}: DetailsReviewProps) {
     );
 }
 
-DetailsReview.displayName = 'DetailsReview';
+DetailsReviewPage.displayName = 'DetailsReviewPage';
 
-export default DetailsReview;
+export default DetailsReviewPage;

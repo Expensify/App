@@ -1,5 +1,6 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -9,34 +10,33 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeTransactionsListContent from './MergeTransactionsListContent';
 
-type MergeTransactionsListProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.LIST_PAGE>;
+type MergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.LIST_PAGE>;
 
-function MergeTransactionsList({route}: MergeTransactionsListProps) {
+function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
 
-    const goBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack();
-    }, [backTo]);
+    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper
-            testID={MergeTransactionsList.displayName}
+            testID={MergeTransactionsListPage.displayName}
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction}>
                 <HeaderWithBackButton
                     title={translate('transactionMerge.listPage.header')}
-                    onBackButtonPress={goBack}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(backTo);
+                    }}
                 />
                 <MergeTransactionsListContent
                     transactionID={transactionID}
@@ -47,6 +47,6 @@ function MergeTransactionsList({route}: MergeTransactionsListProps) {
     );
 }
 
-MergeTransactionsList.displayName = 'MergeTransactionsList';
+MergeTransactionsListPage.displayName = 'MergeTransactionsListPage';
 
-export default MergeTransactionsList;
+export default MergeTransactionsListPage;

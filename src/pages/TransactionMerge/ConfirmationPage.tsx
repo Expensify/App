@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,10 +22,11 @@ import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ConfirmationProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
+type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
 
-function Confirmation({route}: ConfirmationProps) {
+function ConfirmationPage({route}: ConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
@@ -32,7 +34,7 @@ function Confirmation({route}: ConfirmationProps) {
     const {transactionID, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
 
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`];
@@ -69,9 +71,13 @@ function Confirmation({route}: ConfirmationProps) {
         Navigation.dismissModal();
     }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID]);
 
+    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
-            testID={Confirmation.displayName}
+            testID={ConfirmationPage.displayName}
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -79,11 +85,7 @@ function Confirmation({route}: ConfirmationProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-                        Navigation.goBack();
+                        Navigation.goBack(backTo);
                     }}
                 />
                 <ScrollView>
@@ -115,6 +117,6 @@ function Confirmation({route}: ConfirmationProps) {
     );
 }
 
-Confirmation.displayName = 'Confirmation';
+ConfirmationPage.displayName = 'ConfirmationPage';
 
-export default Confirmation;
+export default ConfirmationPage;

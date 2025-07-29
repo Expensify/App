@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -20,29 +21,27 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
-type ReceiptReviewProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;
+type ReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;
 
-function ReceiptReview({route}: ReceiptReviewProps) {
+function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
 
     const sourceTransaction = getSourceTransaction(mergeTransaction);
 
-    // Build receipts array from the two transactions
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
-    // Handle radio button toggle (select receipt)
     const handleSelect = (receipt: Receipt | undefined) => {
         setMergeTransactionKey(transactionID, {receipt});
     };
 
-    // Continue button handler
     const handleContinue = () => {
         if (!mergeTransaction?.receipt) {
             return;
@@ -51,9 +50,13 @@ function ReceiptReview({route}: ReceiptReviewProps) {
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
     };
 
+    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
-            testID={ReceiptReview.displayName}
+            testID={ReceiptReviewPage.displayName}
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -61,11 +64,7 @@ function ReceiptReview({route}: ReceiptReviewProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.receiptPage.header')}
                     onBackButtonPress={() => {
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-                        Navigation.goBack();
+                        Navigation.goBack(backTo);
                     }}
                 />
                 <ScrollView style={[styles.pv3, styles.ph5]}>
@@ -93,6 +92,6 @@ function ReceiptReview({route}: ReceiptReviewProps) {
     );
 }
 
-ReceiptReview.displayName = 'ReceiptReview';
+ReceiptReviewPage.displayName = 'ReceiptReviewPage';
 
-export default ReceiptReview;
+export default ReceiptReviewPage;
