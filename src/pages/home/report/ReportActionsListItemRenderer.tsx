@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction, UserWallet} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -69,8 +69,8 @@ type ReportActionsListItemRendererProps = {
     /** Emoji reactions for the report action */
     emojiReactions?: OnyxEntry<ReportActionReactions>;
 
-    /** User wallet */
-    userWallet: OnyxEntry<UserWallet>;
+    /** User wallet tierName */
+    userWallet: string | undefined;
 
     /** Linked transaction route error */
     linkedTransactionRouteError?: OnyxEntry<Errors>;
@@ -83,6 +83,15 @@ type ReportActionsListItemRendererProps = {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** All draft messages collection */
+    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
+
+    /** All emoji reactions collection */
+    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
+
+    /** Current user account ID */
+    currentUserAccountID: number | undefined;
 };
 
 function ReportActionsListItemRenderer({
@@ -112,6 +121,9 @@ function ReportActionsListItemRenderer({
     isUserValidated,
     userBillingFundID,
     personalDetails,
+    allDraftMessages,
+    allEmojiReactions,
+    currentUserAccountID,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -204,10 +216,11 @@ function ReportActionsListItemRenderer({
                 userWallet={userWallet}
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                draftMessage={draftMessage}
-                emojiReactions={emojiReactions}
+                allDraftMessages={allDraftMessages}
+                allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
+                currentUserAccountID={currentUserAccountID}
             />
         );
     }
@@ -249,6 +262,7 @@ function ReportActionsListItemRenderer({
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
+            currentUserAccountID={currentUserAccountID}
         />
     );
 }

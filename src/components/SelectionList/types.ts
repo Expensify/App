@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, TransactionViolation, UserWallet} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -489,8 +489,8 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The report data */
     report?: Report;
 
-    /** The user wallet */
-    userWallet: OnyxEntry<UserWallet>;
+    /** The user wallet tierName */
+    userWallet: string | undefined;
 
     /** Whether the user is validated */
     isUserValidated: boolean | undefined;
@@ -500,6 +500,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** Current user account ID */
+    currentUserAccountID: number | undefined;
 };
 
 type ValidListItem =

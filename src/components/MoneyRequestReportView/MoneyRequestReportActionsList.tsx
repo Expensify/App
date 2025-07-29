@@ -142,7 +142,7 @@ function MoneyRequestReportActionsList({
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -509,6 +509,7 @@ function MoneyRequestReportActionsList({
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
                     draftMessage={matchingDraftMessageString}
+                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -530,6 +531,7 @@ function MoneyRequestReportActionsList({
             userBillingFundID,
             emojiReactions,
             draftMessage,
+            currentUserAccountID,
         ],
     );
 

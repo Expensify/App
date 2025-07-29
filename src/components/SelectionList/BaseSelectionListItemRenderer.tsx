@@ -5,7 +5,7 @@ import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
-import type {PersonalDetailsList, UserWallet} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListProps} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -17,10 +17,11 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        userWallet?: OnyxEntry<UserWallet>;
+        userWallet?: string | undefined;
         isUserValidated?: boolean | undefined;
         personalDetails?: OnyxEntry<PersonalDetailsList>;
         userBillingFundID?: number | undefined;
+        currentUserAccountID?: number | undefined;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -55,6 +56,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
+    currentUserAccountID,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -110,6 +112,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
+                currentUserAccountID={currentUserAccountID}
             />
             {item.footerContent && item.footerContent}
         </>
