@@ -87,7 +87,6 @@ import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import {getOnyxData, setPersonalDetails, setupGlobalAxiosMock, signInWithTestUser} from '../utils/TestHelper';
 import type {MockAxios} from '../utils/TestHelper';
-import type {mockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -1374,9 +1373,13 @@ describe('actions/IOU', () => {
                                 });
                             }),
                     )
-                    .then((): Promise<unknown> => {
-                        mockAxios?.fail?.();
-                        return mockAxios?.resume?.() as Promise<unknown>;
+                    .then((): Promise<void> => {
+                        // Mock RequestMoney API to fail with server error
+                        mockAxios.mockAPICommand('RequestMoney', () => ({
+                            jsonCode: 500,
+                            message: 'Internal Server Error',
+                        }));
+                        return mockAxios?.resume?.() as Promise<void>;
                     })
                     .then(
                         () =>
@@ -2840,7 +2843,11 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
+                    // Mock PayMoneyRequest API to fail with server error
+                    mockAxios.mockAPICommand('PayMoneyRequest', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
                     if (chatReport && expenseReport) {
                         payMoneyRequest('ACH', chatReport, expenseReport);
                     }
@@ -4416,7 +4423,11 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
+                    // Mock SubmitExpenseReport API to fail with server error
+                    mockAxios.mockAPICommand('SubmitReport', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
                     if (expenseReport) {
                         submitReport(expenseReport);
                     }
@@ -4686,7 +4697,10 @@ describe('actions/IOU', () => {
             sendInvoice(1, createRandomTransaction(1));
 
             // When the request fails
-            mockAxios?.fail?.();
+            mockAxios.mockAPICommand('SendInvoice', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
@@ -5798,7 +5812,11 @@ describe('actions/IOU', () => {
             });
 
             await waitForBatchedUpdates();
-            mockAxios?.fail?.();
+            // Mock UpdateMoneyRequestAmountAndCurrency API to fail with server error
+            mockAxios.mockAPICommand('UpdateMoneyRequestAmountAndCurrency', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             await mockAxios?.resume?.();
 
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
@@ -5882,7 +5900,11 @@ describe('actions/IOU', () => {
             }
             await waitForBatchedUpdates();
 
-            mockAxios?.fail?.();
+            // Mock CancelPayment API to fail with server error
+            mockAxios.mockAPICommand('CancelPayment', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
 
             await mockAxios?.resume?.();
 
@@ -5962,7 +5984,11 @@ describe('actions/IOU', () => {
             }
             await waitForBatchedUpdates();
 
-            mockAxios?.fail?.();
+            // Mock PayMoneyRequest API to fail with server error
+            mockAxios.mockAPICommand('PayMoneyRequest', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
 
             await mockAxios?.resume?.();
 
