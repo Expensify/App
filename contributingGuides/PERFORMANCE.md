@@ -31,7 +31,7 @@ Before diving into detailed profiling, it's essential to establish a consistent 
 
 Maintaining a stable setup for these baseline measurements is critical for accurate comparisons and effective performance optimization.
 
-- Always test performance with the production build as development mode is not optimized.
+- You can test performance in development mode, but keep in mind it’s not optimized — things like loggers, debug tools, and extra checks can slow things down or cause jank that won’t happen in production. This can skew results, meaning you might misinterpret what’s slow in your app. For accurate metrics, always verify with a production build.
 - Use [`React.memo`](https://react.dev/reference/react/memo), [`useMemo`](https://react.dev/reference/react/useMemo), and [`useCallback`](https://react.dev/reference/react/useCallback) to prevent expensive re-renders.
 - Using a combination of [React DevTools Profiler](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) and [Chrome Dev Tools Performance Timing](https://calibreapp.com/blog/react-performance-profiling-optimization) can help identify unnecessary re-renders. Both tools can be used to time an interaction like the app starting up or navigating to a new screen.
 - Watch out for [very large lists](https://reactnative.dev/docs/optimizing-flatlist-configuration) and things like `Image` components re-fetching images on render when a remote uri did not change.
