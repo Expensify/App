@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars, {getPrimaryAndSecondaryAvatar} from '@components/ReportActionAvatars';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -19,16 +19,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
-import {
-    getDisplayNameForParticipant,
-    getPolicyName,
-    getReportActionActorAccountID,
-    isInvoiceReport as isInvoiceReportUtils,
-    isOptimisticPersonalDetail,
-    isPolicyExpenseChat,
-    isTripRoom as isTripRoomReportUtils,
-    shouldReportShowSubscript,
-} from '@libs/ReportUtils';
+import {getReportActionAvatars, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -114,38 +105,30 @@ function ReportActionItemSingle({
 
     const isReportArchived = useReportIsArchived(iouReportID);
 
-    const [primaryAvatar, secondaryAvatar] = getPrimaryAndSecondaryAvatar({
+    const {
+        avatarType,
+        icons: [primaryAvatar, secondaryAvatar],
+        delegateAccountID,
+        accountID,
+        actorHint,
+        shouldDisplayAllActors,
+        isWorkspaceActor,
+    } = getReportActionAvatars({
         chatReport,
         iouReport,
         action,
         personalDetails,
         reportPreviewSenderID,
         policies,
+        isReportArchived,
     });
 
-    const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
-
-    const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const isTripRoom = isTripRoomReportUtils(chatReport);
-    const shouldDisplayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(chatReport) && !reportPreviewSenderID;
-    const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
-    const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(chatReport) && (!actorAccountID || shouldDisplayAllActors));
-    const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? iouReport?.policyID : chatReport?.policyID;
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(chatReport, isReportArchived);
-
-    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const {login, pendingFields, status} = personalDetails?.[accountID] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const actorHint = isWorkspaceActor ? getPolicyName({report: chatReport, policy}) : (login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
 
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 
-    const showMultipleUserAvatarPattern = shouldDisplayAllActors && !shouldShowSubscriptAvatar;
-    const headingText = showMultipleUserAvatarPattern ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
+    const headingText = avatarType === 'multiple' ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -237,13 +220,13 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? accountID : (primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID))}
+                                    accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
                                     actorIcon={primaryAvatar}
                                     moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                    shouldShowTooltip={!showMultipleUserAvatarPattern}
+                                    shouldShowTooltip={avatarType !== 'multiple'}
                                 />
                             ))}
                         </PressableWithoutFeedback>
