@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
@@ -80,6 +81,7 @@ function BaseTextInput(
         placeholderTextColor,
         onClearInput,
         iconContainerStyle,
+        shouldDelayFocus = false,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -94,6 +96,7 @@ function BaseTextInput(
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -286,6 +289,23 @@ function BaseTextInput(
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
 
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldDelayFocus || !inputProps.autoFocus) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(() => {
+                if (!input.current) {
+                    return;
+                }
+                input.current.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldDelayFocus, inputProps.autoFocus]),
+    );
+
     return (
         <>
             <View
@@ -430,6 +450,7 @@ function BaseTextInput(
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                autoFocus={shouldDelayFocus ? false : inputProps.autoFocus}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>

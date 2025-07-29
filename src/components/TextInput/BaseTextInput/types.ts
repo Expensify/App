@@ -186,6 +186,9 @@ type CustomBaseTextInputProps = {
 
     /** Whether the input should be enforced to take full height of container. Default is `false` */
     shouldUseFullInputHeight?: boolean;
+
+    /** Whether focus event should be delayed */
+    shouldDelayFocus?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
