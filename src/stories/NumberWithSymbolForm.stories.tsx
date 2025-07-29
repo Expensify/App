@@ -33,6 +33,7 @@ Default.args = {
     symbol: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
     symbolPosition: CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX,
     isSymbolPressable: false,
+    symbolTextStyle: defaultStyles.textSupporting,
     style: defaultStyles.iouAmountTextInput,
     containerStyle: defaultStyles.iouAmountTextInputContainer,
     footer: (

@@ -74,6 +74,9 @@ type BaseTextInputWithSymbolProps = {
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the symbol */
+    symbolTextStyle?: StyleProp<TextStyle>;
+
     /** Max length for the amount input */
     maxLength?: number;
 

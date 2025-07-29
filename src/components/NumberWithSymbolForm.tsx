@@ -88,6 +88,7 @@ function NumberWithSymbolForm(
         footer,
         amountFormRef,
         label,
+        symbolTextStyle,
         ...props
     }: NumberWithSymbolFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -362,8 +363,9 @@ function NumberWithSymbolForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isSymbolPressable={isSymbolPressable}
-                    style={[styles.iouAmountTextInput]}
-                    containerStyle={[styles.iouAmountTextInputContainer]}
+                    symbolTextStyle={symbolTextStyle}
+                    style={styles.iouAmountTextInput}
+                    containerStyle={styles.iouAmountTextInputContainer}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
                     // eslint-disable-next-line react/jsx-props-no-spreading

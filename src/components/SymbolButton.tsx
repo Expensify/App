@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,9 +20,12 @@ type SymbolButtonProps = {
 
     /** Whether the symbol button is pressable or not */
     isSymbolPressable?: boolean;
+
+    /** Style for the symbol button */
+    textStyle?: StyleProp<TextStyle>;
 };
 
-function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true}: SymbolButtonProps) {
+function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, textStyle}: SymbolButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -39,12 +43,12 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true}: S
                     src={Expensicons.DownArrow}
                     fill={theme.icon}
                 />
-                <Text style={styles.iouAmountText}>{symbol}</Text>
+                <Text style={[styles.iouAmountText, textStyle]}>{symbol}</Text>
             </PressableWithoutFeedback>
         </Tooltip>
     ) : (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={styles.iouAmountText}>{symbol}</Text>
+            <Text style={[styles.iouAmountText, textStyle]}>{symbol}</Text>
         </View>
     );
 }

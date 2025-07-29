@@ -23,6 +23,7 @@ function BaseTextInputWithSymbol(
         isSymbolPressable = true,
         hideSymbol = false,
         style,
+        symbolTextStyle,
         ...rest
     }: BaseTextInputWithSymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
@@ -47,6 +48,7 @@ function BaseTextInputWithSymbol(
                     symbol={symbol}
                     onSymbolButtonPress={onSymbolButtonPress}
                     isSymbolPressable={isSymbolPressable}
+                    textStyle={symbolTextStyle}
                 />
             )}
             <AmountTextInput
@@ -68,6 +70,7 @@ function BaseTextInputWithSymbol(
                     symbol={symbol}
                     onSymbolButtonPress={onSymbolButtonPress}
                     isSymbolPressable={isSymbolPressable}
+                    textStyle={symbolTextStyle}
                 />
             )}
         </>
