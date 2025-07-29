@@ -349,8 +349,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        isBetaEnabled,
         isAccountLocked,
+        isBetaEnabled,
+        hasValidExistingAccounts,
         showLockedAccountModal,
     ]);
 

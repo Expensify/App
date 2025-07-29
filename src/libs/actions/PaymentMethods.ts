@@ -1,5 +1,5 @@
 import {createRef} from 'react';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -37,7 +37,7 @@ type KYCWallRef = {
 /**
  * Sets up a ref to an instance of the KYC Wall component.
  */
-const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
+const kycWallRef: RefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
