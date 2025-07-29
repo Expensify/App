@@ -1,11 +1,14 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {PointerEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useDragAndDrop from '@hooks/useDragAndDrop';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
 
 type TransparentOverlayProps = {
     onPress: () => void;
@@ -16,6 +19,13 @@ type OnPressHandler = PressableProps['onPress'];
 function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const dropZone = useRef<HTMLDivElement | View>(null);
+
+    const {isDraggingOver} = useDragAndDrop({
+        // eslint-disable-next-line react-compiler/react-compiler
+        dropZone: htmlDivElementRef(dropZone),
+        onDrop: () => {},
+    });
 
     const onPress = useCallback<NonNullable<OnPressHandler>>(
         (event) => {
@@ -41,7 +51,9 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
     return (
         <View
             onPointerDown={handlePointerDown}
-            style={styles.fullScreen}
+            style={[styles.fullScreen, isDraggingOver && styles.dNone]}
+            // eslint-disable-next-line react-compiler/react-compiler
+            ref={viewRef(dropZone)}
         >
             <PressableWithoutFeedback
                 onPress={onPress}

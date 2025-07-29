@@ -20,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -28,7 +28,7 @@ import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyEx
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isScanning} from '@libs/TransactionUtils';
+import {isCardTransaction as isCardTransactionUtils, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -136,6 +136,7 @@ function TransactionPreviewContent({
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
+    const isCardTransaction = isCardTransactionUtils(transaction);
     if (isReportAPolicyExpenseChat && isBillSplit) {
         sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
     }
@@ -161,14 +162,42 @@ function TransactionPreviewContent({
     const shouldShowIOUHeader = !!from && !!to;
 
     // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
-    const splitShare = useMemo(
-        () =>
-            shouldShowSplitShare
-                ? (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, amount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID))
-                : 0,
-        [shouldShowSplitShare, isReportAPolicyExpenseChat, action?.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, amount, requestCurrency, sessionAccountID],
-    );
+    const actorAccountID = action?.actorAccountID;
+    const splitShare = useMemo(() => {
+        if (!shouldShowSplitShare) {
+            return 0;
+        }
+
+        const splitAmount = transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount;
+        if (splitAmount !== undefined) {
+            return splitAmount;
+        }
+
+        let originalParticipantCount = participantAccountIDs.length;
+
+        if (isBillSplit) {
+            // Try to get the participant count from transaction splits data
+            const transactionSplitsCount = transaction?.comment?.splits?.length;
+            if (transactionSplitsCount && transactionSplitsCount > 0) {
+                originalParticipantCount = transactionSplitsCount;
+            } else if (isMoneyRequestAction(action)) {
+                originalParticipantCount = getOriginalMessage(action)?.participantAccountIDs?.length ?? participantAccountIDs.length;
+            }
+        }
+
+        return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+    }, [
+        shouldShowSplitShare,
+        isReportAPolicyExpenseChat,
+        participantAccountIDs.length,
+        transaction?.comment?.splits,
+        amount,
+        requestCurrency,
+        sessionAccountID,
+        isBillSplit,
+        action,
+        actorAccountID,
+    ]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
@@ -316,7 +345,7 @@ function TransactionPreviewContent({
                                                         numberOfLines={1}
                                                         style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {getCleanedTagName(tag)}
+                                                        {getCommaSeparatedTagNameWithSanitizedColons(tag)}
                                                     </Text>
                                                 </View>
                                             )}
@@ -342,7 +371,7 @@ function TransactionPreviewContent({
                             </View>
                         </View>
                     )}
-                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && areThereDuplicates && (
+                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
                             text={translate('violations.keepThisOne')}
                             success
