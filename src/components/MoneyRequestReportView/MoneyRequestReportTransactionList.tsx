@@ -160,8 +160,8 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
-        (activeTransactionID: string) => {
-            const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
+        (activeTransaction: TransactionWithOptionalHighlight) => {
+            const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
             const reportIDToNavigate = iouAction?.childReportID;
             if (!reportIDToNavigate) {
                 return;
@@ -210,13 +210,13 @@ function MoneyRequestReportTransactionList({
     );
 
     const handleOnPress = useCallback(
-        (transactionID: string) => {
+        (transaction: TransactionWithOptionalHighlight) => {
             if (isMobileSelectionModeEnabled) {
-                toggleTransaction(transactionID);
+                toggleTransaction(transaction.transactionID);
                 return;
             }
 
-            navigateToTransaction(transactionID);
+            navigateToTransaction(transaction);
         },
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
