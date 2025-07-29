@@ -116,7 +116,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 targetTransactionID: newTargetTransactionID,
                 sourceTransactionID: newSourceTransactionID,
             });
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         } else {
             const mergedReceipt = targetTransaction?.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
@@ -124,7 +124,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 sourceTransactionID: newSourceTransactionID,
                 receipt: mergedReceipt,
             });
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
     }, [mergeTransaction, transactionID, targetTransaction]);
 
