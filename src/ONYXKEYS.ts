@@ -559,6 +559,9 @@ const ONYXKEYS = {
     /** Draft report comments */
     NVP_DRAFT_REPORT_COMMENTS: 'nvp_draftReportComments',
 
+    /** Whether the delete workspace annual subscription error modal is open */
+    IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN: 'isDeleteWorkspaceAnnualSubscriptionErrorModalOpen',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1214,6 +1217,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: OnyxTypes.DraftReportComments;
+    [ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN]: boolean;
 };
 
 type OnyxDerivedValuesMapping = {
