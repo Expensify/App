@@ -358,11 +358,12 @@ describe('getPrimaryAction', () => {
         ).toBe('');
     });
 
-    it('should return REMOVE HOLD for approver when held the expense', async () => {
+    it('should return REMOVE HOLD for an approver who held the expense', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as unknown as Report;
+        
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
@@ -406,7 +407,7 @@ describe('getPrimaryAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy, isChatReportArchived: false})).toBe(
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy, isChatReportArchived: false})).toBe(
             CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD,
         );
     });
