@@ -19,6 +19,8 @@ function PopoverWithMeasuredContent({...props}: PopoverWithMeasuredContentProps)
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                animationIn="slideInUp"
+                animationOut="slideOutDown"
             />
         );
     }
