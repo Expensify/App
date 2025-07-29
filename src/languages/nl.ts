@@ -626,6 +626,7 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        actionRequired: 'Actie vereist',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',

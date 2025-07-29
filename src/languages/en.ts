@@ -617,6 +617,7 @@ const translations = {
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
+        actionRequired: 'Action required',
     },
     supportalNoAccess: {
         title: 'Not so fast',

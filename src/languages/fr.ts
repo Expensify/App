@@ -626,7 +626,8 @@ const translations = {
         workspacesTabTitle: 'Espaces de travail',
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
-        headsUp: 'Attention !',
+        headsUp: 'Attention!',
+        actionRequired: 'Action requise',
     },
     supportalNoAccess: {
         title: 'Pas si vite',

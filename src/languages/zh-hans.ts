@@ -625,7 +625,8 @@ const translations = {
         workspacesTabTitle: '工作区',
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
-        headsUp: '\u6CE8\u610F\uFF01',
+        headsUp: '注意',
+        actionRequired: '需要操作'
     },
     supportalNoAccess: {
         title: '慢一点',
