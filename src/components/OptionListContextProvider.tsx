@@ -263,14 +263,15 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
     const prevOptions = useRef<OptionList>(null);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
             setInternalOptions(optionsList);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
         /**
@@ -283,24 +284,30 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
             return;
         }
         setInternalOptions(optionsList);
-    }, [optionsList]);
+        setAreInternalOptionsInitialized(areOptionsInitialized);
+    }, [optionsList, areOptionsInitialized]);
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
+        if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
+
+    const resetInternalOptions = useCallback(() => {
+        setAreInternalOptionsInitialized(false);
+        resetOptions();
+    }, [resetOptions]);
 
     return useMemo(
         () => ({
             initializeOptions,
             options: internalOptions,
-            areOptionsInitialized,
-            resetOptions,
+            areOptionsInitialized: areInternalOptionsInitialized,
+            resetOptions: resetInternalOptions,
         }),
-        [initializeOptions, internalOptions, areOptionsInitialized, resetOptions],
+        [initializeOptions, internalOptions, resetInternalOptions, areInternalOptionsInitialized],
     );
 };
 

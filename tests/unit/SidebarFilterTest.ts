@@ -27,6 +27,7 @@ const ONYXKEYS = {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
     },
     NETWORK: 'network',
+    NVP_DRAFT_REPORT_COMMENTS: 'nvp_draftReportComments',
 } as const;
 
 // We need to fix this test as a follow up. There seems to be some problems with memory after filtering got more complicated.
@@ -120,7 +121,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft message',
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report.reportID]: 'This is a draft message'},
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -495,7 +496,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`]: 'draft report message',
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[draftReport.reportID]: 'draft report message'},
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -719,7 +720,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
-                                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: hasDraft ? 'report2 draft' : null,
+                                [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report2.reportID]: hasDraft ? 'report2 draft' : null},
                                 ...reportCollectionDataSet,
                             }),
                         )

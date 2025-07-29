@@ -145,6 +145,7 @@
         "deeplinking",
         "deeplinks",
         "delegators",
+        "deployers",
         "delish",
         "describedby",
         "Deutsch",
@@ -730,7 +731,8 @@
         "pnrs",
         "POLICYCHANGELOG_ADD_EMPLOYEE",
         "xcshareddata",
-        "xcuserdata"
+        "xcuserdata",
+        "inputmethod"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
