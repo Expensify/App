@@ -742,6 +742,9 @@ const transactionReportGroupListItems = [
             {
                 accountID: 18439984,
                 action: 'submit',
+                report: {
+                    reportID: '123456789',
+                },
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -843,6 +846,9 @@ const transactionReportGroupListItems = [
             {
                 accountID: 18439984,
                 action: 'review',
+                report: {
+                    reportID: '11111',
+                },
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
