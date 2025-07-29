@@ -1,5 +1,6 @@
 import React from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
+import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
@@ -23,8 +24,17 @@ const inputIDs = {
 };
 
 function Agreements({onBackButtonPress, onSubmit, policyCurrency}: AgreementsProps) {
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const defaultValues: Record<keyof typeof inputIDs, boolean> = Object.fromEntries(
+        Object.keys(inputIDs).map((key) => {
+            const typedKey = key as keyof typeof inputIDs;
+            return [typedKey, enableGlobalReimbursementsDraft?.[typedKey] ?? false];
+        }),
+    ) as Record<keyof typeof inputIDs, boolean>;
+
     return (
         <AgreementsFullStep
+            defaultValues={defaultValues}
             formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
             inputIDs={inputIDs}
             onBackButtonPress={onBackButtonPress}

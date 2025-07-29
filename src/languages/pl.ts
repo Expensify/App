@@ -626,6 +626,7 @@ const translations = {
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
+        enableGlobalReimbursements: 'Włącz globalne zwroty',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',

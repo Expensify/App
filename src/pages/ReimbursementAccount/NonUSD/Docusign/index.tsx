@@ -1,17 +1,12 @@
-import type {ComponentType} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
+import DocusignFullStep from '@components/SubStepForms/DocusignFullStep';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import UploadPowerform from './subSteps/UploadPowerform';
 
 type DocusignProps = {
     /** Handles back button press */
@@ -20,19 +15,12 @@ type DocusignProps = {
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** ID of current policy */
-    policyID: string | undefined;
-
     /** Array of step names */
     stepNames?: readonly string[];
+
+    /** Currency of the policy */
+    policyCurrency: string;
 };
-
-type DocusignStepProps = {
-    /** ID of current policy */
-    policyID: string | undefined;
-} & SubStepProps;
-
-const bodyContent: Array<ComponentType<DocusignStepProps>> = [UploadPowerform];
 
 const INPUT_KEYS = {
     PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
@@ -42,9 +30,7 @@ const INPUT_KEYS = {
     ACH_AUTHORIZATION_FORM: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM,
 };
 
-function Docusign({onBackButtonPress, onSubmit, policyID, stepNames}: DocusignProps) {
-    const {translate} = useLocalize();
-
+function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: DocusignProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const finalStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -79,45 +65,23 @@ function Docusign({onBackButtonPress, onSubmit, policyID, stepNames}: DocusignPr
         };
     }, [reimbursementAccount, onSubmit]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        screenIndex,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep<DocusignStepProps>({bodyContent, startFrom: 0, onFinished: submit});
-
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        if (isEditing) {
-            goToTheLastStep();
-            return;
-        }
-
-        if (screenIndex === 0) {
-            onBackButtonPress();
-        } else {
-            prevScreen();
-        }
+        onBackButtonPress();
     };
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={Docusign.displayName}
-            handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('docusignStep.subheader')}
-            stepNames={stepNames}
+        <DocusignFullStep
+            defaultValue={finalStepValues.achAuthorizationForm}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            inputID={INPUT_KEYS.ACH_AUTHORIZATION_FORM}
+            isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
+            onBackButtonPress={handleBackButtonPress}
+            onSubmit={submit}
+            policyCurrency={policyCurrency}
             startStepIndex={6}
-        >
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-                policyID={policyID}
-            />
-        </InteractiveStepWrapper>
+            stepNames={stepNames}
+        />
     );
 }
 

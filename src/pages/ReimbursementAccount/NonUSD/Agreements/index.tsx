@@ -1,10 +1,6 @@
-import type {ComponentType} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
+import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
@@ -12,7 +8,6 @@ import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import Confirmation from './subSteps/Confirmation';
 
 type AgreementsProps = {
     /** Handles back button press */
@@ -25,24 +20,17 @@ type AgreementsProps = {
     stepNames?: readonly string[];
 
     /** Currency of the policy */
-    policyCurrency: string | undefined;
+    policyCurrency: string;
 };
-
-type AgreementsSubStepProps = SubStepProps & {
-    policyCurrency: string | undefined;
-};
-
-const bodyContent: Array<ComponentType<AgreementsSubStepProps>> = [Confirmation];
 
 const INPUT_KEYS = {
-    PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
-    AGREE_TO_TERMS_AND_CONDITIONS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS,
-    CONSENT_TO_PRIVACY_NOTICE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE,
-    AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
+    provideTruthfulInformation: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
+    agreeToTermsAndConditions: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS,
+    consentToPrivacyNotice: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE,
+    authorizedToBindClientToAgreement: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
 function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: AgreementsProps) {
-    const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -86,45 +74,22 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
         };
     }, [reimbursementAccount, onSubmit, policyCurrency, isDocusignStepRequired]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        screenIndex,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep<AgreementsSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
-
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        if (isEditing) {
-            goToTheLastStep();
-            return;
-        }
-
-        if (screenIndex === 0) {
-            onBackButtonPress();
-        } else {
-            prevScreen();
-        }
+        onBackButtonPress();
     };
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={Agreements.displayName}
-            handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('agreementsStep.agreements')}
-            stepNames={stepNames}
+        <AgreementsFullStep
+            defaultValues={agreementsStepValues}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            inputIDs={INPUT_KEYS}
+            onBackButtonPress={handleBackButtonPress}
+            onSubmit={submit}
+            policyCurrency={policyCurrency ?? ''}
             startStepIndex={5}
-        >
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-                policyCurrency={policyCurrency}
-            />
-        </InteractiveStepWrapper>
+            stepNames={stepNames}
+        />
     );
 }
 

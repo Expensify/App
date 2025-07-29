@@ -626,6 +626,7 @@ const translations = {
         getTheApp: 'アプリを入手',
         scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
         headsUp: 'ご注意ください！',
+        enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

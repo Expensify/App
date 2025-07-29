@@ -10,6 +10,9 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import Confirmation from './subSteps/Confirmation';
 
 type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
+    /** Default values for inputs */
+    defaultValues: Partial<Record<FormOnyxKeys<TFormID>, boolean>>;
+
     /** The ID of the form */
     formID: TFormID;
 
@@ -38,6 +41,9 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
 };
 
 type AgreementsFullStepSubStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
+    /** Default values for inputs */
+    defaultValues: AgreementsFullStepProps<TFormID>['defaultValues'];
+
     /** The ID of the form */
     formID: TFormID;
 
@@ -49,6 +55,7 @@ type AgreementsFullStepSubStepProps<TFormID extends keyof OnyxFormValuesMapping>
 };
 
 function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
+    defaultValues,
     formID,
     inputIDs,
     onBackButtonPress,
@@ -94,6 +101,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             startStepIndex={startStepIndex}
         >
             <SubStep
+                defaultValues={defaultValues}
                 formID={formID}
                 inputIDs={inputIDs}
                 isEditing={isEditing}

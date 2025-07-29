@@ -42,6 +42,9 @@ function ConsentToPrivacyNoticeLabel() {
 }
 
 type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
+    /** Default values for inputs */
+    defaultValues: Partial<Record<FormOnyxKeys<TFormID>, boolean>>;
+
     /** The ID of the form */
     formID: TFormID;
 
@@ -57,7 +60,7 @@ type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
     policyCurrency: string;
 };
 
-function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({formID, inputIDs, onNext, policyCurrency}: ConfirmationProps<TFormID>) {
+function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValues, formID, inputIDs, onNext, policyCurrency}: ConfirmationProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -109,6 +112,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({formID, inpu
                 inputID={inputIDs.authorizedToBindClientToAgreement as string}
                 style={styles.mt6}
                 LabelComponent={IsAuthorizedToUseBankAccountLabel}
+                defaultValue={defaultValues[inputIDs.authorizedToBindClientToAgreement]}
                 shouldSaveDraft
             />
             <InputWrapper
@@ -117,6 +121,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({formID, inpu
                 inputID={inputIDs.provideTruthfulInformation as string}
                 style={styles.mt6}
                 LabelComponent={CertifyTrueAndAccurateLabel}
+                defaultValue={defaultValues[inputIDs.provideTruthfulInformation]}
                 shouldSaveDraft
             />
             <InputWrapper
@@ -125,6 +130,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({formID, inpu
                 inputID={inputIDs.agreeToTermsAndConditions as string}
                 style={styles.mt6}
                 LabelComponent={TermsAndConditionsLabel}
+                defaultValue={defaultValues[inputIDs.agreeToTermsAndConditions]}
                 shouldSaveDraft
             />
             <InputWrapper
@@ -133,6 +139,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({formID, inpu
                 inputID={inputIDs.consentToPrivacyNotice as string}
                 style={styles.mt6}
                 LabelComponent={ConsentToPrivacyNoticeLabel}
+                defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
                 shouldSaveDraft
             />
         </FormProvider>

@@ -7,7 +7,7 @@ import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import Country from './Country/Country';
-import Docusign from './Docusign/Docusign';
+import Docusign from './Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
 import requiresDocusignStep from './utils/requiresDocusignStep';
@@ -18,7 +18,7 @@ type NonUSDVerifiedBankAccountFlowProps = {
     setShouldShowContinueSetupButton: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
     policyID: string | undefined;
     shouldShowContinueSetupButtonValue: boolean;
-    policyCurrency: string | undefined;
+    policyCurrency: string;
 };
 
 function NonUSDVerifiedBankAccountFlow({
@@ -142,8 +142,8 @@ function NonUSDVerifiedBankAccountFlow({
                 <Agreements
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
-                    stepNames={stepNames}
                     policyCurrency={policyCurrency}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
@@ -151,7 +151,7 @@ function NonUSDVerifiedBankAccountFlow({
                 <Docusign
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
-                    policyID={policyID}
+                    policyCurrency={policyCurrency}
                     stepNames={stepNames}
                 />
             );
