@@ -1,4 +1,4 @@
-import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
@@ -184,7 +184,7 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     submit: () => void;
 };
 
-type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
+type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
