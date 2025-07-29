@@ -23,6 +23,12 @@ type BaseTextInputWithSymbolProps = {
     /** Position of the symbol */
     symbolPosition?: ValueOf<typeof CONST.TEXT_INPUT_SYMBOL_POSITION>;
 
+    /** Whether the symbol is pressable */
+    isSymbolPressable?: boolean;
+
+    /** Whether to hide the symbol */
+    hideSymbol?: boolean;
+
     /** Selection Object */
     selection?: TextSelection;
 
@@ -46,12 +52,6 @@ type BaseTextInputWithSymbolProps = {
      * Callback that is called when the text input is pressed up
      */
     onMouseUp?: ((e: React.MouseEvent) => void) | undefined;
-
-    /** Whether the symbol is pressable */
-    isSymbolPressable: boolean;
-
-    /** Whether to hide the symbol */
-    hideSymbol?: boolean;
 
     /** Whether to disable native keyboard on mobile */
     disableKeyboard?: boolean;
@@ -85,7 +85,7 @@ type BaseTextInputWithSymbolProps = {
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress' | 'submitBehavior'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'contentWidth' | 'onPress' | 'submitBehavior'>;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {
     onSelectionChange?: (start: number, end: number) => void;

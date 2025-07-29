@@ -71,7 +71,6 @@ function MoneyRequestAmountForm(
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
         chatReportID,
-        decimals,
         hideCurrencySymbol = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -209,7 +208,6 @@ function MoneyRequestAmountForm(
                 autoGrowExtraSpace={variables.w80}
                 hideCurrencySymbol={hideCurrencySymbol}
                 currency={currency}
-                decimals={decimals}
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onAmountChange={() => {

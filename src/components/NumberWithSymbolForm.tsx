@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
@@ -24,14 +24,8 @@ type NumberWithSymbolFormProps = {
     /** Amount to display, should already be formatted */
     value?: string;
 
-    /** Error to display at the bottom of the form */
-    errorText?: string;
-
     /** Callback to update the amount in the FormProvider */
     onInputChange?: (value: string) => void;
-
-    /** Custom max amount length */
-    maxLength?: number;
 
     /** Number of decimals to display in the amount */
     decimals?: number;
@@ -44,8 +38,10 @@ type NumberWithSymbolFormProps = {
 
     /** Reference to the amount form */
     amountFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
-} & Omit<BaseTextInputProps, 'onKeyPress' | 'onSelectionChange'> &
-    Pick<TextInputWithSymbolProps, 'symbol' | 'hideSymbol' | 'symbolPosition' | 'onSymbolButtonPress' | 'onSelectionChange' | 'onKeyPress' | 'isSymbolPressable'>;
+
+    /** Error to display at the bottom of the form */
+    errorText?: string;
+} & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
     clearSelection: () => void;
@@ -74,8 +70,8 @@ function NumberWithSymbolForm(
         errorText,
         onInputChange,
         onSymbolButtonPress,
-        isSymbolPressable = false,
-        shouldShowBigNumberPad = true,
+        isSymbolPressable = true,
+        shouldShowBigNumberPad = false,
         footer,
         amountFormRef,
         ...rest

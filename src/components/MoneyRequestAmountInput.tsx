@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -25,9 +25,6 @@ type MoneyRequestAmountInputProps = {
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
-
-    /** The decimals of the currency. If not provided, it will be inferred from the currency */
-    decimals?: number;
 
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
@@ -121,12 +118,15 @@ function MoneyRequestAmountInput(
         shouldKeepUserInput = false,
         maxLength,
         moneyRequestAmountInputRef,
+        shouldShowBigNumberPad = false,
+        inputStyle,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const textInput = useRef<BaseTextInputRef | null>(null);
     const amountFormRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const decimals = getCurrencyDecimals(currency);
 
     useEffect(() => {
         if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
@@ -157,6 +157,7 @@ function MoneyRequestAmountInput(
     return (
         <NumberWithSymbolForm
             value={onFormatAmount(amount, currency)}
+            decimals={decimals}
             onSymbolButtonPress={onCurrencyButtonPress}
             onInputChange={onAmountChange}
             onBlur={formatAmount}
@@ -180,8 +181,11 @@ function MoneyRequestAmountInput(
                 amountFormRef.current = ref;
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
+            shouldShowBigNumberPad={shouldShowBigNumberPad}
+            style={inputStyle}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
