@@ -693,8 +693,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     return (
         <SearchScopeProvider isOnSearch>
             <Animated.View
-                entering={FadeIn.duration(200)}
-                exiting={FadeOut.duration(200)}
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={[styles.flex1, animatedStyle]}
             >
                 <SearchList
