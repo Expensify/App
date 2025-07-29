@@ -48,6 +48,9 @@ jobs:
 
       - name: Enforce that a redirect link has been created
         run: ./.github/scripts/enforceRedirect.sh
+      
+      - name: Enforce iframe and Cloudflare CDN usage
+        run: ./.github/scripts/enforceVideoFormats.sh
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
