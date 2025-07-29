@@ -5234,7 +5234,7 @@ const translations = {
             }),
             errors: {
                 rateNameRequired: 'Ratenname ist erforderlich',
-                existingRateName: 'Ein Entfernungsrate mit diesem Namen existiert bereits',
+                existingRateName: 'Ein Entfernungsrate mit diesem Namen existiert bereits.',
             },
         },
         editor: {

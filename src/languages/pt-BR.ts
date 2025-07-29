@@ -5243,7 +5243,7 @@ const translations = {
             }),
             errors: {
                 rateNameRequired: 'O nome da taxa é obrigatório',
-                existingRateName: 'Já existe uma tarifa de distância com este nome',
+                existingRateName: 'Já existe uma tarifa de distância com este nome.',
             },
         },
         editor: {

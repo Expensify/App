@@ -5247,7 +5247,7 @@ const translations = {
             }),
             errors: {
                 rateNameRequired: 'Le nom du tarif est requis',
-                existingRateName: 'Un tarif de distance portant ce nom existe déjà.',
+                existingRateName: 'Un tarif de distance avec ce nom existe déjà.',
             },
         },
         editor: {
