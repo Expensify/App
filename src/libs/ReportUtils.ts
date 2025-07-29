@@ -2507,17 +2507,14 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
     const isManager = isReportManager(report);
     const isSubmitter = isReportOwner(report);
 
-    // Admins: return expenses on Open or Processing reports
     if (isAdmin) {
         return isOpenReport(report) || isProcessingReport(report);
     }
 
-    // Submitters: return IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
     if (isSubmitter) {
-        return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report));
+        return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
     }
 
-    // Managers: return expenses that haven’t been approved, on Processing reports assigned to them for approval
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
