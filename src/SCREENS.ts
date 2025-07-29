@@ -275,6 +275,9 @@ const SCREENS = {
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DISTANCE_CREATE: 'Money_Request_Distance_Create',
+        STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
+        STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -435,6 +438,8 @@ const SCREENS = {
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_AUTO_SYNC: 'Policy_Accounting_Xero_Auto_Sync',
+            XERO_ACCOUNTING_METHOD: 'Policy_Accounting_Xero_Accounting_Method',
             XERO_BILL_STATUS_SELECTOR: 'Policy_Accounting_Xero_Export_Bill_Status_Selector',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
@@ -663,6 +668,7 @@ const SCREENS = {
         PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        INTERESTED_FEATURES: 'Onboarding_Interested_Features',
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',

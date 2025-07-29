@@ -29,6 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -96,6 +97,14 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
+function isTransactionGroupListItemArray(data: SearchListItem[]): data is TransactionGroupListItemType[] {
+    if (data.length <= 0) {
+        return false;
+    }
+    const firstElement = data.at(0);
+    return typeof firstElement === 'object' && 'transactions' in firstElement;
+}
+
 function SearchList(
     {
         data,
@@ -125,19 +134,23 @@ function SearchList(
 
     const {initialHeight, initialWidth} = useInitialWindowDimensions();
     const {hash, groupBy, type} = queryJSON;
-    const flattenedTransactions = groupBy ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-
-    const flattenedTransactionWithoutPendingDelete = useMemo(
-        () => flattenedTransactions.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [flattenedTransactions],
-    );
+    const flattenedItems = useMemo(() => {
+        if (groupBy) {
+            if (!isTransactionGroupListItemArray(data)) {
+                return data;
+            }
+            return data.flatMap((item) => item.transactions);
+        }
+        return data;
+    }, [data, groupBy]);
+    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(
         () =>
-            flattenedTransactions.reduce((acc, item) => {
+            flattenedItems.reduce((acc, item) => {
                 return item?.isSelected ? acc + 1 : acc;
             }, 0),
-        [flattenedTransactions],
+        [flattenedItems],
     );
 
     const {translate} = useLocalize();
@@ -222,7 +235,7 @@ function SearchList(
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: flattenedTransactions.length - 1,
+        maxIndex: flattenedItems.length - 1,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index);
@@ -245,7 +258,7 @@ function SearchList(
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused,
+        isActive: isFocused && focusedIndex >= 0,
         shouldStopPropagation: true,
     });
 
@@ -275,16 +288,9 @@ function SearchList(
                 clearTimeout(itemFocusTimeoutRef.current);
             }
 
-            const duration =
-                CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
-                CONST.ANIMATED_HIGHLIGHT_START_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_START_DURATION +
-                CONST.ANIMATED_HIGHLIGHT_END_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_END_DURATION;
             itemFocusTimeoutRef.current = setTimeout(() => {
                 setItemsToHighlight(null);
-            }, duration);
+            }, durationHighlightItem);
         },
         [data, scrollToIndex],
     );
@@ -352,7 +358,7 @@ function SearchList(
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
     const getItemHeight = useMemo(
         () =>
@@ -407,11 +413,11 @@ function SearchList(
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
-                            disabled={flattenedTransactions.length === 0}
+                            disabled={flattenedItems.length === 0}
                         />
                     )}
 
@@ -439,7 +445,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={focusedIndex}
+                extraData={[focusedIndex, isFocused]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}

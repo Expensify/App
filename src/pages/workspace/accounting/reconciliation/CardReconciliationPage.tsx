@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
+import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
@@ -91,7 +92,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
                 break;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
@@ -106,6 +107,20 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 break;
         }
     }, [connection, policyID]);
+
+    const fetchPolicyAccountingData = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+        openPolicyAccountingPage(policyID);
+    }, [policyID]);
+
+    useEffect(() => {
+        if (isContinuousReconciliationOn !== undefined) {
+            return;
+        }
+        fetchPolicyAccountingData();
+    }, [isContinuousReconciliationOn, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper

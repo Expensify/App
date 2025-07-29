@@ -80,6 +80,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                         onCloseButtonPress={() => setIsModalVisible(false)}
                         shouldShowBackButton={false}
                         style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
+                        shouldDisplayHelpButton={false}
                     />
                     <ScrollView>{renderPlans()}</ScrollView>
                 </Modal>

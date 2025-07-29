@@ -3,8 +3,9 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import React from 'react';
 import {SectionList} from 'react-native';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {translateLocal} from '@libs/Localize';
@@ -20,13 +21,15 @@ jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
-    <OnyxProvider>
-        <LocaleContextProvider>
-            <OptionsListContextProvider>
-                <ScreenWrapper testID="test">{children}</ScreenWrapper>
-            </OptionsListContextProvider>
-        </LocaleContextProvider>
-    </OnyxProvider>
+    <OnyxListItemProvider>
+        <HTMLEngineProvider>
+            <LocaleContextProvider>
+                <OptionsListContextProvider>
+                    <ScreenWrapper testID="test">{children}</ScreenWrapper>
+                </OptionsListContextProvider>
+            </LocaleContextProvider>
+        </HTMLEngineProvider>
+    </OnyxListItemProvider>
 );
 
 describe('NewChatPage', () => {
