@@ -255,7 +255,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                     >
                         {reservations.map(({reservation, transactionID, sequenceIndex}) => {
                             return (
-                                <OfflineWithFeedback>
+                                <OfflineWithFeedback key={`${pnrID}-${sequenceIndex}`}>
                                     <ReservationView
                                         reservation={reservation}
                                         transactionID={transactionID}
