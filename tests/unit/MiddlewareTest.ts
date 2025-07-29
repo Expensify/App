@@ -12,7 +12,6 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('axios');
 
-type FormDataObject = {body: TestHelper.FormData};
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -151,7 +150,7 @@ describe('Middleware', () => {
             // Verify that the third OpenReport call doesn't have reportActionID or parentReportActionID
             const openReportCalls = TestHelper.getAxiosMockCalls('OpenReport');
             expect(openReportCalls).toHaveLength(1);
-            const openReportConfig = openReportCalls[0]?.[0];
+            const openReportConfig = openReportCalls.at(0)?.[0];
             const requestData = (openReportConfig as {data?: FormData})?.data;
             if (requestData instanceof FormData) {
                 const formDataObject = Object.fromEntries(requestData);

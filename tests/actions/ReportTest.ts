@@ -28,11 +28,10 @@ import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockAxios} from '../utils/TestHelper';
-
-jest.mock('axios');
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+jest.mock('axios');
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
 }));
@@ -62,6 +61,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 const originalXHR = HttpUtils.xhr;
+let mockAxios: MockAxios;
 OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -265,9 +265,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // THEN only ONE call to AddComment will happen
-                const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments.at(URL_ARGUMENT_INDEX)?.includes('AddComment'));
-                expect(addCommentCalls.length).toBe(1);
+                TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
             });
     });
 
@@ -843,7 +841,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         await waitForBatchedUpdates();
 
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
     it('should replace duplicate OpenReport commands with the same reportID', async () => {
@@ -869,7 +867,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         await waitForBatchedUpdates();
 
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
     });
 
     it('should remove AddComment and UpdateComment without sending any request when DeleteComment is set', async () => {
@@ -939,9 +937,9 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should send DeleteComment request and remove UpdateComment accordingly', async () => {
@@ -987,13 +985,14 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
     it('should send DeleteComment request after AddComment is rollback', async () => {
-        global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+        mockAxios = TestHelper.setupGlobalAxiosMock();
+        mockAxios.mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
         mockedXhr.mockImplementation(originalXHR);
@@ -1108,8 +1107,8 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_ATTACHMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_ATTACHMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
@@ -1177,8 +1176,8 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
@@ -1274,10 +1273,10 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should send DeleteComment request and remove any Reactions accordingly', async () => {
@@ -1347,10 +1346,10 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
     it('should create and delete thread processing all the requests', async () => {
@@ -1407,9 +1406,9 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
     it('should update AddComment text with the UpdateComment text, sending just an AddComment request', async () => {
@@ -1451,8 +1450,8 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
     });
 
     it('it should only send the last sequential UpdateComment request to BE', async () => {
@@ -1480,7 +1479,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
     it('should clears lastMentionedTime when all mentions to the current user are deleted', async () => {
@@ -1675,7 +1674,7 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            expect(global.fetch).toHaveBeenCalledTimes(0);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('UpdateRoomDescription', 0);
         });
 
         it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
@@ -1683,22 +1682,33 @@ describe('actions/Report', () => {
                 ...createRandomReport(1),
                 description: '<h1>test</h1>',
             };
-            const mockFetch = fetch as MockFetch;
+            mockAxios = TestHelper.setupGlobalAxiosMock();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
-            mockFetch?.fail?.();
+            // Mock a server error response (500) to trigger failure data application
+            mockAxios.mockAPICommand('UpdateRoomDescription', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
+
             Report.updateDescription('1', '<h1>test</h1>', '# test1');
 
             await waitForBatchedUpdates();
-            let updateReport: OnyxEntry<OnyxTypes.Report>;
 
-            await TestHelper.getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                callback: (val) => (updateReport = val),
+            const updateReport: OnyxEntry<OnyxTypes.Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                    callback: (val) => {
+                        if (!val) {
+                            return;
+                        }
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
             });
             expect(updateReport?.description).toBe('<h1>test</h1>');
-            // mockAxios.mockReset(); // Not needed with setupGlobalAxiosMock
         });
     });
 

@@ -208,7 +208,8 @@ describe('ReportAttachments', () => {
         await waitForBatchedUpdates();
 
         const openReportRequest = getAxiosMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
-            const body = request[0]?.data;
+            const config = request[0];
+            const body = (config as {data?: FormData})?.data;
             const requestParams = body instanceof FormData ? Object.fromEntries(body) : {};
             return requestParams?.reportID === params.reportID;
         });

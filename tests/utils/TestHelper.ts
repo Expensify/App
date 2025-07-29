@@ -308,7 +308,6 @@ function getGlobalAxiosMock(): typeof axios {
                 config: config as never,
             } as AxiosResponse<string>;
         }
-        console.log('>>command: ', command);
         const responseHandler = command ? responses.get(command) : null;
         let responseData: Record<string, unknown> = {jsonCode: 200};
 
@@ -329,6 +328,10 @@ function getGlobalAxiosMock(): typeof axios {
 
     const mockAxios = jest.fn().mockImplementation((config: Parameters<typeof axios>[0]) => {
         if (!isPaused) {
+            if (shouldFail) {
+                // Reject with a network-like error to simulate actual axios network failure
+                return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+            }
             return Promise.resolve(getResponse(config));
         }
         return new Promise<AxiosResponse<string>>((resolve, reject) => {
@@ -349,7 +352,13 @@ function getGlobalAxiosMock(): typeof axios {
     mockAxios.pause = () => (isPaused = true);
     mockAxios.resume = () => {
         isPaused = false;
-        queue.forEach(({resolve, config}) => resolve(getResponse(config)));
+        queue.forEach(({resolve, reject, config}) => {
+            if (shouldFail) {
+                reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+            } else {
+                resolve(getResponse(config));
+            }
+        });
         queue = [];
         return waitForBatchedUpdates();
     };
