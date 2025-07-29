@@ -9782,6 +9782,10 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
         return true;
     }
 
+    if (isMoneyRequestReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID && !isPolicyAdminPolicyUtils(policy)) {
+        return true;
+    }
+
     if (isPublicRoom(report) && isAnonymousUserSession()) {
         return false;
     }
