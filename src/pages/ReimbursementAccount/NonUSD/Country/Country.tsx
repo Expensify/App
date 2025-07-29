@@ -8,29 +8,33 @@ import {clearErrors} from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Confirmation from './subSteps/Confirmation';
 
-type CountryFullStepProps = {
+type CountryProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
-
-    /** Array of step names */
-    stepNames: readonly string[];
 
     /** Handles submit button press */
     onSubmit: () => void;
 
     /** ID of current policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
-type CountrySubStepProps = {
+type CountryStepProps = {
     /** ID of current policy */
     policyID: string | undefined;
 } & SubStepProps;
 
-const bodyContent: Array<ComponentType<CountrySubStepProps>> = [Confirmation];
+const bodyContent: Array<ComponentType<CountryStepProps>> = [Confirmation];
 
-function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID}: CountryFullStepProps) {
+function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProps) {
     const {translate} = useLocalize();
+
+    const submit = () => {
+        onSubmit();
+    };
 
     const {
         componentToRender: SubStep,
@@ -40,7 +44,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID}: Cou
         prevScreen,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CountrySubStepProps>({bodyContent, startFrom: 0, onFinished: onSubmit});
+    } = useSubStep<CountryStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -58,7 +62,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID}: Cou
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CountryFullStep.displayName}
+            wrapperID={Country.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('countryStep.confirmCurrency')}
             stepNames={stepNames}
@@ -74,6 +78,6 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID}: Cou
     );
 }
 
-CountryFullStep.displayName = 'Country';
+Country.displayName = 'Country';
 
-export default CountryFullStep;
+export default Country;

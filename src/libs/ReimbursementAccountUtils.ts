@@ -29,7 +29,6 @@ function getRouteForCurrentStep(currentStep: ReimbursementAccountStep): Reimburs
         case CONST.BANK_ACCOUNT.STEP.ENABLE:
             return REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.ENABLE;
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-        case CONST.BANK_ACCOUNT.STEP.COUNTRY:
         default:
             return REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW;
     }

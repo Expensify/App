@@ -1,7 +1,6 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Bank, Connect, Lightbulb, Lock, RotateLeft} from '@components/Icon/Expensicons';
@@ -24,9 +23,9 @@ import {getEarliestErrorField, getLatestError, getLatestErrorField, getMicroSeco
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
+import {openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep} from '@userActions/ReimbursementAccount';
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -97,7 +96,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [reimbursementAccountOptionPressed] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, {canBeMissing: true});
+    const optionPressed = useRef('');
     const isAccountValidated = account?.validated ?? false;
 
     const contactMethod = account?.primaryLogin ?? '';
@@ -121,18 +120,6 @@ function VerifiedBankAccountFlowEntryPoint({
     };
 
     /**
-     * Prepares and redirects user to next step in the USD flow
-     */
-    const prepareNextStep = useCallback(
-        (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
-            setBankAccountSubStep(setupType);
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-        },
-        [setUSDBankAccountStep],
-    );
-
-    /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed
      * In this hook we check if account was validated and then proceed with the option user selected
      * note: non USD accounts only have manual option available
@@ -142,25 +129,40 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
-        if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+        if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
             if (isNonUSDWorkspace) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
-                setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
 
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
-        } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+        } else if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, setNonUSDBankAccountStep]);
+    }, [isAccountValidated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
+
+    const handleConnectPlaid = () => {
+        if (isPlaidDisabled) {
+            return;
+        }
+        if (!isAccountValidated) {
+            optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+            toggleValidateCodeActionModal?.(true);
+            return;
+        }
+
+        removeExistingBankAccountDetails();
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+        openPlaidView();
+    };
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
-            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
             toggleValidateCodeActionModal?.(true);
             return;
         }
@@ -171,22 +173,8 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         removeExistingBankAccountDetails();
-        prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-    };
-
-    const handleConnectPlaid = () => {
-        if (isPlaidDisabled) {
-            return;
-        }
-
-        if (!isAccountValidated) {
-            setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            toggleValidateCodeActionModal?.(true);
-            return;
-        }
-
-        removeExistingBankAccountDetails();
-        prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     };
 
     return (

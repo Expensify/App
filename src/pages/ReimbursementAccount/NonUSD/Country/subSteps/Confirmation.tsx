@@ -10,9 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -32,7 +32,8 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
@@ -96,9 +97,8 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                     style={[styles.label]}
                     onPress={handleSettingsPress}
                 >
-                    {translate('common.settings').toLowerCase()}
+                    {translate('common.settings').toLowerCase()}.
                 </TextLink>
-                .
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}

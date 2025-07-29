@@ -760,7 +760,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
  * Accept the ACH terms and conditions and verify the accuracy of the information provided
  * @param params - Verification step form params
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string | undefined) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string) {
     API.write(
         WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT,
         {
