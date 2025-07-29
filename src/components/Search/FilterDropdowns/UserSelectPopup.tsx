@@ -23,6 +23,12 @@ function getSelectedOptionData(option: Option) {
     return {...option, reportID: `${option.reportID}`, selected: true};
 }
 
+const optionsMatch = (opt1: Option, opt2: Option) => {
+    // Below is just a boolean expression.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
+};
+
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 type UserSelectPopupProps = {
@@ -48,7 +54,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
+    const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
             if (!participant) {
@@ -62,9 +68,15 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
             return acc;
         }, []);
-    });
+    }, [value, personalDetails]);
+
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedOptions);
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
+
+    const selectedAccountIDs = useMemo(() => {
+        return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
+    }, [selectedOptions]);
 
     const optionsList = useMemo(() => {
         return memoizedGetValidOptions(
@@ -90,7 +102,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         const personalDetailList = filteredOptions.personalDetails
             .map((participant) => ({
                 ...participant,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+                isSelected: selectedAccountIDs.has(participant.accountID),
             }))
             .sort((a, b) => {
                 // Put the current user at the top of the list
@@ -122,7 +134,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             : [];
 
         return [...userOptions, ...personalDetailList, ...recentReportsList];
-    }, [filteredOptions, selectedOptions, accountID]);
+    }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -144,21 +156,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const selectUser = useCallback(
         (option: Option) => {
-            const optionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                const matchesAccountID = selectedOption.accountID && selectedOption.accountID === option?.accountID;
-                const matchesReportID = selectedOption.reportID && selectedOption.reportID === option?.reportID;
+            const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
-                // Below is just a boolean expression.
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                return matchesAccountID || matchesReportID;
-            });
-
-            if (optionIndex === -1) {
-                setSelectedOptions([...selectedOptions, getSelectedOptionData(option)]);
-            } else {
-                const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
-                setSelectedOptions(newSelectedOptions);
-            }
+            setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
         },
         [selectedOptions],
     );
