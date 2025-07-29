@@ -5609,7 +5609,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     if (activeReportID && !isMoneyRequestReport) {
-        notifyNewAction(activeReportID, payeeAccountID);
+        Navigation.setNavigationActionToMicrotaskQueue(() =>
+            setTimeout(() => {
+                notifyNewAction(activeReportID, payeeAccountID, reportPreviewAction);
+            }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
+        );
     }
 }
 

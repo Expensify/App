@@ -362,6 +362,9 @@ type PureReportActionItemProps = {
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
+    /** Whether to highlight the action for a few seconds */
+    shouldHighlight?: boolean;
+
     /** Current user's account id */
     currentUserAccountID?: number;
 };
@@ -428,6 +431,7 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     shouldShowBorder,
+    shouldHighlight = false,
     currentUserAccountID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -457,8 +461,9 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
     );
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
@@ -1646,6 +1651,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
+        prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.userBillingFundID === nextProps.userBillingFundID
     );
 });
