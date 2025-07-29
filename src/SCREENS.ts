@@ -276,6 +276,9 @@ const SCREENS = {
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DISTANCE_CREATE: 'Money_Request_Distance_Create',
+        STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
+        STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
     },
 
     TRANSACTION_DUPLICATE: {
