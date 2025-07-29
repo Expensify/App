@@ -204,6 +204,9 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                     return `${translate('travel.flightTo')} ${formatAirportInfo(lastReservation.end, true)}`;
                 }
                 case CONST.RESERVATION_TYPE.TRAIN:
+                    if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
+                        return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.start.longName ?? '')}`;
+                    }
                     return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
                 case CONST.RESERVATION_TYPE.HOTEL: {
                     const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
