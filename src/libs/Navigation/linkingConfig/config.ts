@@ -1350,6 +1350,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
+                            path: ROUTES.DISTANCE_REQUEST_CREATE.route,
+                            exact: true,
+                            screens: {
+                                map: {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
+                                },
+                                manual: {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
+                                },
+                            },
+                        },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: ROUTES.SETTINGS_TAGS_ROOT.route,
                         [SCREENS.MONEY_REQUEST.EDIT_REPORT]: ROUTES.MONEY_REQUEST_EDIT_REPORT.route,
