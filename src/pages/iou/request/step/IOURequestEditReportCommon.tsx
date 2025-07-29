@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -8,12 +7,15 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, getPolicyName, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOutstandingReportsForUser, getPolicyName, isOpenReport, isReportOwner, reportsByPolicyIDSelector, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -21,22 +23,6 @@ type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
-
-/**
- * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component.
- * This helps minimize re-rendering and makes the entire component more performant.
- */
-const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
-    report && {
-        ownerAccountID: report.ownerAccountID,
-        reportID: report.reportID,
-        policyID: report.policyID,
-        reportName: report.reportName,
-        stateNum: report.stateNum,
-        statusNum: report.statusNum,
-        type: report.type,
-        pendingFields: report.pendingFields,
-    };
 
 type Props = {
     backTo: Route | undefined;
@@ -48,32 +34,39 @@ type Props = {
 function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const reportOwnerAccountID = useMemo(
+        () => transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+        [transactionsReports, currentUserPersonalDetails.accountID],
+    );
+    const [reportsByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => reportsByPolicyIDSelector(reports, reportOwnerAccountID),
+        canBeMissing: true,
+    });
+    const reportPolicy = usePolicy(transactionsReports.at(0)?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const expenseReports = useMemo(
-        () =>
-            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
-                    return [];
-                }
-                const reports = getOutstandingReportsForUser(
-                    policyID,
-                    transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                    allReports ?? {},
-                    reportNameValuePairs,
-                );
-                return reports;
-            }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps],
-    );
+    const expenseReports = useMemo(() => {
+        // Early return if no reports are available to prevent useless loop
+        if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
+            return [];
+        }
+
+        return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+            if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
+                return [];
+            }
+            const reports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, reportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs);
+
+            return reports;
+        });
+    }, [reportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
-        if (!allReports) {
+        if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
             return [];
         }
 
@@ -95,13 +88,31 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [allReports, debouncedSearchValue, expenseReports, options.reports, transactionsReports]);
+    }, [reportsByPolicyID, debouncedSearchValue, expenseReports, options.reports, transactionsReports]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(() => {
+        if (expenseReports.length === 0) {
+            return true;
+        }
+
+        const transactionReport = transactionsReports.at(0);
+        if (!transactionReport) {
+            return false;
+        }
+
+        const isAdmin = isPolicyAdmin(reportPolicy);
+        const isOpen = isOpenReport(transactionReport);
+        const isSubmitter = isReportOwner(transactionReport);
+        // If the report is Open, then only submitters, admins can move expenses
+        return isOpen && !isAdmin && !isSubmitter;
+    }, [transactionsReports, reportPolicy, expenseReports.length]);
 
     return (
         <StepScreenWrapper
@@ -110,7 +121,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             shouldShowWrapper
             testID="IOURequestEditReportCommon"
             includeSafeAreaPaddingBottom
-            shouldShowNotFoundPage={expenseReports.length === 0}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}
