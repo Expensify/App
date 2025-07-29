@@ -7,9 +7,6 @@ function init() {
     }
     const keys = Object.values(CONST.CACHE_API_KEYS);
     keys.forEach((key) => {
-        if (!key) {
-            throw new Error('Failed to initialize cache, invalid key');
-        }
         caches.has(key).then((isExist) => {
             if (isExist) {
                 return;
