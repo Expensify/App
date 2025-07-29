@@ -10832,7 +10832,13 @@ function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActi
     }
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+    // If report object is provided and has the property, use it directly
+    if (report?.isExportedToIntegration !== undefined) {
+        return report.isExportedToIntegration;
+    }
+
+    // Fallback to checking actions for backward compatibility
     if (!reportActions) {
         return false;
     }
@@ -10860,7 +10866,13 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     return exportIntegrationActionsCount > integrationMessageActionsCount;
 }
 
-function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
+    // If report object is provided and has the property, use it directly
+    if (report?.hasExportError !== undefined) {
+        return report.hasExportError;
+    }
+
+    // Fallback to checking actions for backward compatibility
     if (!reportActions) {
         return false;
     }
@@ -11137,7 +11149,13 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
 
-function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+    // If report object is provided and has the property, use it directly
+    if (report?.hasReportBeenReopened !== undefined) {
+        return report.hasReportBeenReopened;
+    }
+
+    // Fallback to checking actions for backward compatibility
     if (!reportActions) {
         return false;
     }
