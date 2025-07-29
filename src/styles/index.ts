@@ -3209,6 +3209,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.iouAmountTextSize,
             color: theme.heading,
+            lineHeight: variables.inputHeight,
         },
 
         iouAmountTextInput: addOutlineWidth(
@@ -4083,6 +4084,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
             color: theme.success,
             marginBottom: 16,
+        },
+
+        textSuccess: {
+            color: theme.success,
         },
 
         footerRow: {
