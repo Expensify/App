@@ -22,17 +22,18 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
-import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     getFirstVisibleReportActionID,
+    getOriginalMessage,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
+    isMoneyRequestAction,
     isReportPreviewAction,
     isReversedTransaction,
     isTransactionThread,
@@ -42,6 +43,7 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
+    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -172,9 +174,14 @@ function ReportActionsList({
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -367,7 +374,8 @@ function ReportActionsList({
         if (report.reportID !== prevReportID) {
             return;
         }
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
+
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -410,7 +418,7 @@ function ReportActionsList({
     }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
+        (isFromCurrentUser: boolean) => {
             InteractionManager.runAfterInteractions(() => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
@@ -426,42 +434,14 @@ function ReportActionsList({
                     });
                     return;
                 }
-                const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
-                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (index > 0) {
-                        setTimeout(() => {
-                            reportScrollManager.scrollToIndex(index);
-                        }, 100);
-                    } else {
-                        setIsFloatingMessageCounterVisible(false);
-                        reportScrollManager.scrollToBottom();
-                    }
-                    if (action?.reportActionID) {
-                        setActionIdToHighlight(action.reportActionID);
-                    }
-                } else {
-                    setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
-                }
 
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(true);
             });
         },
         [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions],
     );
-
-    // Clear the highlighted report action after scrolling and highlighting
-    useEffect(() => {
-        if (actionIdToHighlight === '') {
-            return;
-        }
-        // Time highlight is the same as SearchPage
-        const timer = setTimeout(() => {
-            setActionIdToHighlight('');
-        }, durationHighlightItem);
-        return () => clearTimeout(timer);
-    }, [actionIdToHighlight]);
-
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -614,6 +594,16 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
+            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
+            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+
+            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
+            const transactionID = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID;
+            const transaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : undefined;
+            const actionLinkedTransactionRouteError = transaction?.errorFields?.route ?? undefined;
+
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
@@ -637,27 +627,42 @@ function ReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     transactions={Object.values(transactions ?? {})}
-                    shouldHighlight={actionIdToHighlight === reportAction.reportActionID}
+                    userWallet={userWallet}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetailsList}
+                    draftMessage={matchingDraftMessageString}
+                    emojiReactions={actionEmojiReactions}
+                    allDraftMessages={draftMessage}
+                    allEmojiReactions={emojiReactions}
+                    linkedTransactionRouteError={actionLinkedTransactionRouteError}
+                    userBillingFundID={userBillingFundID}
+                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
         [
-            report,
+            draftMessage,
+            emojiReactions,
             allReports,
             policies,
-            transactions,
+            sortedReportActions,
+            parentReportAction,
+            parentReportActionForTransactionThread,
+            report,
+            transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            parentReportAction,
-            sortedReportActions,
-            transactionThreadReport,
-            parentReportActionForTransactionThread,
-            shouldUseThreadDividerLine,
-            firstVisibleReportActionID,
             unreadMarkerReportActionID,
-            actionIdToHighlight,
+            firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
+            transactions,
+            userWallet,
+            isUserValidated,
+            personalDetailsList,
+            userBillingFundID,
+            currentUserAccountID,
         ],
     );
 

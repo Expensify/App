@@ -3,7 +3,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction, UserWallet} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -62,8 +63,26 @@ type ReportActionsListItemRendererProps = {
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
-    /** Animate highlight action in few seconds */
-    shouldHighlight?: boolean;
+    /** Draft messages for the report */
+    draftMessage?: string;
+
+    /** Emoji reactions for the report action */
+    emojiReactions?: OnyxEntry<ReportActionReactions>;
+
+    /** User wallet */
+    userWallet: OnyxEntry<UserWallet>;
+
+    /** Linked transaction route error */
+    linkedTransactionRouteError?: OnyxEntry<Errors>;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
 };
 
 function ReportActionsListItemRenderer({
@@ -86,6 +105,13 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
+    draftMessage,
+    emojiReactions,
+    userWallet,
+    linkedTransactionRouteError,
+    isUserValidated,
+    userBillingFundID,
+    personalDetails,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -175,6 +201,13 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                userWallet={userWallet}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                draftMessage={draftMessage}
+                emojiReactions={emojiReactions}
+                linkedTransactionRouteError={linkedTransactionRouteError}
+                userBillingFundID={userBillingFundID}
             />
         );
     }
@@ -209,6 +242,13 @@ function ReportActionsListItemRenderer({
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
+            userWallet={userWallet}
+            isUserValidated={isUserValidated}
+            personalDetails={personalDetails}
+            draftMessage={draftMessage}
+            emojiReactions={emojiReactions}
+            linkedTransactionRouteError={linkedTransactionRouteError}
+            userBillingFundID={userBillingFundID}
         />
     );
 }
