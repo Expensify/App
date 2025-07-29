@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -1339,7 +1340,10 @@ const translations = {
             header: 'Select details',
             pageTitle: 'Select the details you want to keep:',
             noDifferences: 'No differences found between the transactions',
-            pleaseSelectError: ({field}: {field: string}) => `Please select a ${field}`,
+            pleaseSelectError: ({field}: {field: string}) => {
+                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                return `Please select ${article} ${field}`;
+            },
             selectAllDetailsError: 'Select all details before continuing.',
         },
         confirmationPage: {
