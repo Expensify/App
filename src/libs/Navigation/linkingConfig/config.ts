@@ -135,6 +135,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_ACCOUNTING.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
+                    path: ROUTES.ONBOARDING_INTERESTED_FEATURES.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.WORKSPACES]: {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
@@ -1340,6 +1344,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
+                                },
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
+                            path: ROUTES.DISTANCE_REQUEST_CREATE.route,
+                            exact: true,
+                            screens: {
+                                map: {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
+                                },
+                                manual: {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
                             },
                         },

@@ -27,6 +27,7 @@ import type {ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerive
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type DraftReportComments from './DraftReportComments';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -45,7 +46,6 @@ import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
-import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -244,7 +244,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
-    MobileSelectionMode,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
@@ -266,4 +265,5 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     HybridApp,
+    DraftReportComments,
 };

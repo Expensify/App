@@ -1515,6 +1515,35 @@ type MoneyRequestNavigatorParamList = {
         pageIndex: string;
         transactionID: string;
     };
+    [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
+        iouType: IOUType;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
+        backTo: never;
+        action: never;
+        currency: never;
+        pageIndex?: string;
+        backToReport?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
@@ -1927,6 +1956,9 @@ type OnboardingModalNavigatorParamList = {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.ACCOUNTING]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.WORK_EMAIL]: {
