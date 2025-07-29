@@ -113,6 +113,7 @@ function WorkspaceCreateTaxPage({
                                     rightLabel={translate('common.required')}
                                     decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                                     maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                                    isSymbolPressable={false}
                                     symbol="%"
                                     symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                                     autoGrowExtraSpace={variables.w80}

@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import type {AmountSelectorModalProps} from './types';
 
@@ -71,6 +72,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             value={currentValue}
                             onInputChange={setValue}
                             ref={(ref) => inputCallbackRef(ref)}
+                            shouldShowBigNumberPad={canUseTouchScreen()}
                         />
                         <Button
                             success
