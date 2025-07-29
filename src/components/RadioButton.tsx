@@ -22,16 +22,16 @@ type RadioButtonProps = {
     /** Should the input be disabled  */
     disabled?: boolean;
 
-    /** Where we want to use new radio button style */
-    // https://expensify.slack.com/archives/C07HPDRELLD/p1752500012040139?thread_ts=1751637205.950179&cid=C07HPDRELLD
-    newRadioButtonStyle?: boolean;
+    /** Whether to use new radio button style */
+    // See https://expensify.slack.com/archives/C07HPDRELLD/p1752500012040139?thread_ts=1751637205.950179&cid=C07HPDRELLD
+    shouldUseNewStyle?: boolean;
 };
 
-function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, newRadioButtonStyle = false}: RadioButtonProps) {
+function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, shouldUseNewStyle = false}: RadioButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    if (newRadioButtonStyle) {
+    if (shouldUseNewStyle) {
         return (
             <PressableWithFeedback
                 disabled={disabled}

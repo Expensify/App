@@ -51,7 +51,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                     isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}
                                     accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
-                                    newRadioButtonStyle
+                                    shouldUseNewStyle
                                 />
                             </View>
                             <View style={[styles.mergeTransactionReceiptImage, styles.pRelative]}>

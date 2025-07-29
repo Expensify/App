@@ -41,7 +41,7 @@ function MergeFieldReview({field, values, selectedValue, onValueSelected, errorT
                             isChecked={isSelected}
                             onPress={() => onValueSelected(mergeValue)}
                             accessibilityLabel={displayValue}
-                            newRadioButtonStyle
+                            shouldUseNewStyle
                         />
                     </PressableWithoutFeedback>
                 );

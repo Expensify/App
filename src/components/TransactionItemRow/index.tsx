@@ -423,7 +423,7 @@ function TransactionItemRow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                newRadioButtonStyle
+                                shouldUseNewStyle
                             />
                         </View>
                     )}
@@ -487,7 +487,7 @@ function TransactionItemRow({
                             disabled={isDisabled}
                             onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                             accessibilityLabel={CONST.ROLE.RADIO}
-                            newRadioButtonStyle
+                            shouldUseNewStyle
                         />
                     </View>
                 )}
