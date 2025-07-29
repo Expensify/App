@@ -64,17 +64,17 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     return (
         <ModalPortal>
-            <ColorSchemeWrapper>
-                <FocusTrapForModal active={!isExtraLargeScreenWidth}>
-                    <View style={styles.sidePanelContainer}>
-                        <View>
-                            {!shouldHideSidePanelBackdrop && (
-                                <HelpOverlay
-                                    onBackdropPress={closeSidePanel}
-                                    isRHPVisible={isRHPVisible}
-                                />
-                            )}
-                        </View>
+            <FocusTrapForModal active={!isExtraLargeScreenWidth}>
+                <View style={styles.sidePanelContainer}>
+                    <View>
+                        {!shouldHideSidePanelBackdrop && (
+                            <HelpOverlay
+                                onBackdropPress={closeSidePanel}
+                                isRHPVisible={isRHPVisible}
+                            />
+                        )}
+                    </View>
+                    <ColorSchemeWrapper>
                         <Animated.View
                             style={[
                                 styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth),
@@ -83,9 +83,9 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
                         >
                             <HelpContent closeSidePanel={closeSidePanel} />
                         </Animated.View>
-                    </View>
-                </FocusTrapForModal>
-            </ColorSchemeWrapper>
+                    </ColorSchemeWrapper>
+                </View>
+            </FocusTrapForModal>
         </ModalPortal>
     );
 }
