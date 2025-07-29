@@ -441,7 +441,13 @@ function WorkspacesListPage() {
                             title={translate('workspace.emptyWorkspace.title')}
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             titleStyles={styles.pt2}
-                            headerStyles={[styles.emptyWorkspaceIllustrationStyle, StyleUtils.getBackgroundColorStyle(colors.pink800)]}
+                            headerStyles={[
+                                styles.emptyWorkspaceIllustrationStyle,
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(colors.pink800),
+                            ]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}
                             buttons={[
