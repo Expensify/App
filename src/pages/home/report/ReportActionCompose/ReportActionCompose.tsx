@@ -150,7 +150,7 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-
+    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
@@ -496,6 +496,8 @@ function ReportActionCompose({
             const initialTransaction = initMoneyRequest({
                 reportID,
                 newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                report,
+                parentReport: newParentReport,
             });
 
             files.forEach((file, index) => {
@@ -534,7 +536,7 @@ function ReportActionCompose({
             const file = e?.dataTransfer?.files?.[0];
             if (file) {
                 file.uri = URL.createObjectURL(file);
-                validateFiles([file]);
+                validateFiles([file], Array.from(e.dataTransfer?.items ?? []));
                 return;
             }
         }
@@ -548,7 +550,7 @@ function ReportActionCompose({
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -596,14 +598,14 @@ function ReportActionCompose({
                                             file.uri = URL.createObjectURL(file);
                                             return file;
                                         });
-                                        displayFilesInModal(files);
+                                        displayFilesInModal(files, Array.from(event.dataTransfer?.items ?? []));
                                         return;
                                     }
 
                                     const data = event.dataTransfer?.files[0];
                                     if (data) {
                                         data.uri = URL.createObjectURL(data);
-                                        displayFilesInModal([data]);
+                                        displayFilesInModal([data], Array.from(event.dataTransfer?.items ?? []));
                                     }
                                 };
 
