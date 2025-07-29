@@ -5535,7 +5535,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, policy?: Policy): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
@@ -5547,7 +5547,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, policy?: Policy)
         if (isExpenseReport(report)) {
             return {
                 reportName: translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
-                workspaceName: policy?.name,
+                workspaceName: getPolicyName({report}),
             };
         }
         if (isIOUReport(report)) {
