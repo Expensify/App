@@ -157,7 +157,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                         <Button
                             style={[styles.mt2, styles.alignSelfStart]}
                             success
-                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
+                            text={translate('bankAccount.addBankAccount')}
                             onPress={openWorkspaceInvoicesPage}
                         />
                     )}
