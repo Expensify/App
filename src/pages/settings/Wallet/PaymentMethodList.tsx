@@ -399,7 +399,7 @@ function PaymentMethodList({
                 <Button
                     ref={buttonRef}
                     key="addBankAccountButton"
-                    text={translate('walletPage.addBankAccount')}
+                    text={translate('bankAccount.addBankAccount')}
                     large
                     success
                     onPress={onPress}
@@ -407,7 +407,7 @@ function PaymentMethodList({
             ) : (
                 <MenuItem
                     onPress={onPressItem}
-                    title={translate('walletPage.addBankAccount')}
+                    title={translate('bankAccount.addBankAccount')}
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     ref={buttonRef}
