@@ -105,6 +105,9 @@ type Selection = {
 
 const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
 
+/**
+ * Specialized money amount input with currency and money amount formatting.
+ */
 function MoneyRequestAmountInput(
     {
         amount = 0,

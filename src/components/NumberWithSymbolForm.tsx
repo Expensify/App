@@ -8,7 +8,6 @@ import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
-import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
@@ -68,6 +67,12 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
+/**
+ * Generic number input form with symbol (currency or unit).
+ *
+ * Can render either a standard TextInput or an amount input with BigNumberPad and symbol interaction.
+ * Already handles number decimals and input validation.
+ */
 function NumberWithSymbolForm(
     {
         value: amount,
@@ -285,7 +290,6 @@ function NumberWithSymbolForm(
     }));
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
-    const canUseTouchScreen = canUseTouchScreenCheck();
 
     if (displayAsTextInput) {
         return (
@@ -367,7 +371,7 @@ function NumberWithSymbolForm(
                 />
                 {!!errorText && (
                     <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                        style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
                         message={errorText}
                     />
@@ -379,7 +383,7 @@ function NumberWithSymbolForm(
                     style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                     id={NUM_PAD_CONTAINER_VIEW_ID}
                 >
-                    {canUseTouchScreen ? (
+                    {shouldShowBigNumberPad ? (
                         <BigNumberPad
                             id={NUM_PAD_VIEW_ID}
                             numberPressed={updateAmountNumberPad}

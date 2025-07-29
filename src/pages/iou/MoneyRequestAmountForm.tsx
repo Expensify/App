@@ -56,6 +56,9 @@ const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount)
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
+/**
+ * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
+ */
 function MoneyRequestAmountForm(
     {
         amount = 0,
@@ -154,7 +157,7 @@ function MoneyRequestAmountForm(
                         addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         kycWallAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -176,7 +179,7 @@ function MoneyRequestAmountForm(
                         pressOnEnter
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => submitAndNavigateToNextPage()}
                         text={buttonText}
                         testID="next-button"
@@ -187,7 +190,7 @@ function MoneyRequestAmountForm(
         [
             styles.w100,
             styles.mt5,
-            styles.mt3,
+            styles.mt0,
             iouType,
             skipConfirmation,
             submitAndNavigateToNextPage,
@@ -231,7 +234,7 @@ function MoneyRequestAmountForm(
                 containerStyle={[styles.iouAmountTextInputContainer]}
                 testID="moneyRequestAmountInput"
                 errorText={formError}
-                shouldShowBigNumberPad
+                shouldShowBigNumberPad={canUseTouchScreen}
                 footer={footer}
             />
         </ScrollView>

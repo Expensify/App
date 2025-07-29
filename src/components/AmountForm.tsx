@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useMemo} from 'react';
-import {getCurrencyDecimals} from '@libs/CurrencyUtils';
+import React, {forwardRef} from 'react';
+import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -9,7 +10,10 @@ type AmountFormProps = {
     /** Amount supplied by the FormProvider */
     value?: string;
 
-    /** Currency supplied by user */
+    /**
+     * Currency of the amount, should be the currency name, not the currency code
+     * e.g. "USD", "EUR", "GBP", not "$", "€", "£"
+     */
     currency?: string;
 
     /** Error to display at the bottom of the component */
@@ -40,9 +44,12 @@ type AmountFormProps = {
     hideCurrencySymbol?: boolean;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
+/**
+ * Wrapper around NumberWithSymbolForm with currency handling.
+ */
 function AmountForm(
     {
-        value: amount,
+        value,
         currency = CONST.CURRENCY.USD,
         amountMaxLength,
         errorText,
@@ -60,12 +67,11 @@ function AmountForm(
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
-    const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     return (
         <NumberWithSymbolForm
             label={label}
-            value={currentAmount}
+            value={value}
             decimals={decimals}
             displayAsTextInput={displayAsTextInput}
             onInputChange={onInputChange}
@@ -78,11 +84,12 @@ function AmountForm(
                     forwardedRef.current = ref;
                 }
             }}
-            symbol={currency}
+            symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
             maxLength={amountMaxLength}
-            shouldShowBigNumberPad
+            shouldShowBigNumberPad={canUseTouchScreen()}
             errorText={errorText}
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
