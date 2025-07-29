@@ -4211,6 +4211,10 @@ function canEditFieldOfMoneyRequest(
     const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
+        return (isAdmin || isManager) && !policy?.disabledFields?.reimbursable;
+    }
+
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
         return isAdmin || isManager;
     }
