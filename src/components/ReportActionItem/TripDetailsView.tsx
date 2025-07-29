@@ -33,12 +33,15 @@ type ReservationViewProps = {
     transactionID: string;
     tripRoomReportID: string;
     sequenceIndex: number;
+    shouldShouldArrowIcon?: boolean;
+    shouldCenterIcon?: boolean;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShouldArrowIcon = true, shouldCenterIcon = false}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const reservationIcon = getTripReservationIcon(reservation.type);
@@ -82,14 +85,22 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             return (
                 <View style={styles.gap1}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
-                        <Icon
-                            src={Expensicons.ArrowRightLong}
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
-                            fill={theme.icon}
-                        />
-                        <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                        {shouldShouldArrowIcon ? (
+                            <>
+                                <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
+                                <Icon
+                                    src={Expensicons.ArrowRightLong}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
+                                    fill={theme.icon}
+                                />
+                                <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                            </>
+                        ) : (
+                            <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
+                                {formatAirportInfo(reservation.start)} {translate('common.to').toLowerCase()} {formatAirportInfo(reservation.end)}
+                            </Text>
+                        )}
                     </View>
                     {!!bottomDescription && <Text style={[styles.textSmall, styles.colorMuted, styles.lh14]}>{bottomDescription}</Text>}
                 </View>
@@ -133,7 +144,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
-            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
             secondaryIconFill={theme.icon}
             onPress={() =>
                 Navigation.navigate(
@@ -226,8 +237,9 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                         title={getTripTitle(reservations)}
                         subtitle={getTripDescription(totalFareAmount, currency, reservations)}
                         containerStyles={[styles.ph0, styles.mh0, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
-                        titleStyles={[styles.textStrong, styles.ph5]}
-                        subtitleStyles={[styles.textLabelSupporting, styles.ph5, styles.pb2]}
+                        titleStyles={[styles.textStrong, styles.textNormal, styles.ph5]}
+                        subtitleStyles={[styles.ph5, styles.pb1, styles.mt1]}
+                        subtitleTextStyles={[styles.textLabelSupporting]}
                         subtitleMuted
                     >
                         {reservations.map(({reservation, transactionID, sequenceIndex}) => {
@@ -238,6 +250,8 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                                         transactionID={transactionID}
                                         tripRoomReportID={tripRoomReport.reportID}
                                         sequenceIndex={sequenceIndex}
+                                        shouldShouldArrowIcon={false}
+                                        shouldCenterIcon
                                     />
                                 </OfflineWithFeedback>
                             );
