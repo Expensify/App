@@ -45,8 +45,8 @@ import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeIn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import KeyboardUtils from '@src/utils/keyboard';
 import findNodeHandle from '@src/utils/findNodeHandle';
+import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';

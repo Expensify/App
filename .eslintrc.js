@@ -14,7 +14,7 @@ const restrictedImportPaths = [
             'Text',
             'ScrollView',
             'Animated',
-            'findNodeHandle'
+            'findNodeHandle',
         ],
         message: [
             '',
