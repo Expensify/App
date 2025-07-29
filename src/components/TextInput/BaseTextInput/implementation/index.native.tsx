@@ -276,7 +276,7 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
-    const verticalPaddingDiff = StyleUtils.getVeritcalPaddingDiffFromStyle(newTextInputContainerStyles);
+    const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 

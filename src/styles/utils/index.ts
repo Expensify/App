@@ -731,7 +731,7 @@ function getPaddingBottom(paddingBottom: number): ViewStyle {
 /**
  * Get vertical padding diff from provided styles (paddingTop - paddingBottom)
  */
-function getVeritcalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): number {
+function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): number {
     const flatStyle = StyleSheet.flatten(textInputContainerStyles);
 
     // Safely extract padding values only if they are numbers
@@ -1254,7 +1254,7 @@ const staticStyleUtils = {
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,
-    getVeritcalPaddingDiffFromStyle,
+    getVerticalPaddingDiffFromStyle,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
