@@ -22,6 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
+import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -173,7 +174,7 @@ function ReportActionsList({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [actionIdHighlightedTemporary, setActionIdHighlightedTemporary] = useState('');
+    const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -437,7 +438,7 @@ function ReportActionsList({
                         reportScrollManager.scrollToBottom();
                     }
                     if (action?.reportActionID) {
-                        setActionIdHighlightedTemporary(action.reportActionID);
+                        setActionIdToHighlight(action.reportActionID);
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
@@ -450,24 +451,17 @@ function ReportActionsList({
         [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions, reportScrollManager],
     );
 
-    // Clear highlight report action after scroll and highlight
+    // Clear the highlighted report action after scrolling and highlighting
     useEffect(() => {
-        if (actionIdHighlightedTemporary === '') {
+        if (actionIdToHighlight === '') {
             return;
         }
         // Time highlight is the same as SearchPage
-        const duration =
-            CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
-            CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
-            CONST.ANIMATED_HIGHLIGHT_START_DELAY +
-            CONST.ANIMATED_HIGHLIGHT_START_DURATION +
-            CONST.ANIMATED_HIGHLIGHT_END_DELAY +
-            CONST.ANIMATED_HIGHLIGHT_END_DURATION;
         const timer = setTimeout(() => {
-            setActionIdHighlightedTemporary('');
-        }, duration);
+            setActionIdToHighlight('');
+        }, durationHighlightItem);
         return () => clearTimeout(timer);
-    }, [actionIdHighlightedTemporary]);
+    }, [actionIdToHighlight]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -518,7 +512,15 @@ function ReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            if (isSearchTopmostFullScreenRoute()) {
+                if (Navigation.getReportRHPActiveRoute()) {
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID}));
+                } else {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID}));
+                }
+            } else {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            }
             openReport(report.reportID);
             reportScrollManager.scrollToBottom();
             return;
@@ -636,7 +638,7 @@ function ReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     transactions={Object.values(transactions ?? {})}
-                    shouldBeHighlightedTemporary={actionIdHighlightedTemporary === reportAction.reportActionID}
+                    shouldHighlight={actionIdToHighlight === reportAction.reportActionID}
                 />
             );
         },
@@ -656,7 +658,7 @@ function ReportActionsList({
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
             unreadMarkerReportActionID,
-            actionIdHighlightedTemporary,
+            actionIdToHighlight,
         ],
     );
 
