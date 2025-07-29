@@ -20,7 +20,7 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.EDIT_REPORT>;
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
-    const {backTo, reportID, shouldTurnOffSelectionMode} = route.params;
+    const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
@@ -56,7 +56,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
-            isEditing
+            isEditing={action === CONST.IOU.ACTION.EDIT}
         />
     );
 }

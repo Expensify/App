@@ -76,10 +76,11 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
                     allReports ?? {},
                     reportNameValuePairs,
+                    isEditing,
                 );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, isEditing, allPoliciesID, reportNameValuePairs, policyIDFromProps],
     );
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
