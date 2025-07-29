@@ -155,6 +155,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+                android:name="com.plaid.internal.link.LinkActivity"
+                android:launchMode="singleTask"
+                tools:replace="android:launchMode"/>
+
         <meta-data
             android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />

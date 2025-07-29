@@ -25,8 +25,7 @@ class MainActivity : ReactActivity() {
      */
     override fun getMainComponentName() = "NewExpensify"
 
-    @JvmField
-    val wasAppRelaunchedFromIcon: bool = false;
+    var wasAppRelaunchedFromIcon: Boolean = false;
 
     /**
      * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
