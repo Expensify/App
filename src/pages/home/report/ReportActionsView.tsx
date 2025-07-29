@@ -140,7 +140,7 @@ function ReportActionsView({
             if (isReportTransactionThread && shouldBuildOptimisticCreatedReportAction) {
                 const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
                 optimisticCreatedReportAction.pendingAction = null;
-                return [optimisticCreatedReportAction, ...(allReportActions ?? [])];
+                return [...(allReportActions ?? []), optimisticCreatedReportAction];
             }
 
             return allReportActions;
