@@ -102,6 +102,12 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         return {width: CONST.POPOVER_DROPDOWN_WIDTH};
     }, [isSmallScreenWidth, styles]);
 
+    const popoverContent = useMemo(() => {
+        return PopoverComponent({closeOverlay: toggleOverlay});
+        // PopoverComponent is stable so we don't need it here as a dep.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOverlayVisible, toggleOverlay]);
+
     return (
         <>
             {/* Dropdown Trigger */}
@@ -143,7 +149,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 }}
                 shouldSkipRemeasurement
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />
+                {popoverContent}
             </PopoverWithMeasuredContent>
         </>
     );
