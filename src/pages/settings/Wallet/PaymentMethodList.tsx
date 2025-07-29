@@ -433,7 +433,7 @@ function PaymentMethodList({
             ];
         }
         return filteredPaymentMethods;
-    }, [filteredPaymentMethods, shouldShowAssignedCards, translate]);
+    }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
     /**
      * Create a menuItem for each passed paymentMethod
