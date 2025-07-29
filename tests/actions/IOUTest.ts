@@ -5727,6 +5727,14 @@ describe('actions/IOU', () => {
             type: CONST.POLICY.TYPE.TEAM,
             outputCurrency: 'USD',
         };
+
+        const fakeParentReport: Report = {
+            ...createRandomReport(1),
+            reportID: fakeReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: '1',
+            managerID: CARLOS_ACCOUNT_ID,
+        };
         const fakePersonalPolicy: Policy = {
             ...createRandomPolicy(2),
             type: CONST.POLICY.TYPE.PERSONAL,
@@ -5774,6 +5782,8 @@ describe('actions/IOU', () => {
                         policy: fakePolicy,
                         isFromGlobalCreate: true,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
                     });
                 })
                 .then(async () => {
@@ -5790,6 +5800,8 @@ describe('actions/IOU', () => {
                         isFromGlobalCreate: true,
                         currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
                     });
                 })
                 .then(async () => {
@@ -5806,6 +5818,8 @@ describe('actions/IOU', () => {
                         reportID: fakeReport.reportID,
                         isFromGlobalCreate: true,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
                     });
                 })
                 .then(async () => {
