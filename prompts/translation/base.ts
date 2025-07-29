@@ -1,11 +1,11 @@
 import dedent from '@libs/StringUtils/dedent';
 import {LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
-import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 
 /**
  * This file contains the base translation prompt used to translate static strings in en.ts to other languages.
  */
-export default function (targetLang: TranslationTargetLanguage): string {
+export default function (targetLang: TranslationTargetLocale): string {
     return dedent(`
         You are a professional translator, translating strings for the Expensify app. Translate the following text to ${LOCALE_TO_LANGUAGE_STRING[targetLang]}. Adhere to the following rules while performing translations:
 

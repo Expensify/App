@@ -151,6 +151,7 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
 
       - name: Get Android native version
         id: getAndroidVersion
@@ -180,20 +181,15 @@ jobs:
           GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
 
+      # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' && !contains(fromJSON('["1", "-1"]'), steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE) }}
+        run: bundle exec fastlane android complete_hybrid_rollout
+        continue-on-error: true
+
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ github.ref == 'refs/heads/production' }}
-        run: |
-          # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
-          echo "Current rollout percentage: ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }}"
-          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-            echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
-          fi
-
-          # Submit the new version for review and slow rollout when it's approved
-          bundle exec fastlane android upload_google_play_production_hybrid_rollout
+        run: bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
@@ -233,6 +229,13 @@ jobs:
 
           # Unzip just the universal apk
           unzip -p Expensify.apks universal.apk > Expensify.apk
+
+      - name: Upload Android build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
+        run: |
+          curl -F "file=@Expensify.apk" \
+            "https://api.applause.com/v2/builds?name=Expensify_${{ needs.prep.outputs.TAG }}&productId=36008" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
 
       - name: Upload Android APK build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
@@ -400,6 +403,16 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
+      - name: Load iOS credentials from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
+
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
@@ -433,14 +446,14 @@ jobs:
         if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios upload_dsyms_hybrid
 
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' }}
+        run: bundle exec fastlane ios complete_hybrid_rollout
+        continue-on-error: true
+
       - name: Submit production build for App Store review and a slow rollout
         if: ${{ github.ref == 'refs/heads/production' }}
-        run: |
-          # Complete the previous version rollout
-          bundle exec fastlane ios complete_hybrid_rollout
-
-          # Submit the new version for review and phased rollout when it's approved
-          bundle exec fastlane ios submit_hybrid_for_rollout
+        run: bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
           APPLE_ID: ${{ vars.APPLE_ID }}
@@ -450,6 +463,13 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload iOS build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
+        run: |
+          curl -F "file=@${{ env.ipaPath }}" \
+            "https://api.applause.com/v2/builds?name=Expensify_${{ needs.prep.outputs.TAG }}&productId=36005" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
 
       - name: Upload iOS build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}

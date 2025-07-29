@@ -1,9 +1,5 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
-type BaseLocale = ValueOf<typeof CONST.LOCALES>;
+type LocaleEventCallback = (locale?: Locale) => void;
 
-type LocaleEventCallback = (locale?: BaseLocale) => void;
-
-export type {LocaleEventCallback};
-export default BaseLocale;
+export default LocaleEventCallback;

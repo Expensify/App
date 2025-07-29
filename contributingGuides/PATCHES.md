@@ -6,6 +6,34 @@ To ensure patches remain maintainable and traceable over time, follow the guidel
 
 ---
 
+## 🛠️ Creating a Patch
+
+To create a patch for a third-party library that you've modified:
+
+1. Make your changes to the library code in the `node_modules/<edited-library>` directory
+2. Run the following command to generate the patch file:
+
+```
+npx patch-package <edited-library> --append "<short-patch-description>" --patch-dir ./patches/<edited-library>
+```
+
+For example:
+```
+npx patch-package react-native-pdf --append "fix-pdf-rendering-on-ios" --patch-dir ./patches/react-native-pdf
+```
+
+This will create a patch file in the `patches/` directory. After creating the patch:
+
+- Create or update the `details.md` file in the library's patch directory
+- Document the patch according to the [`details.md` format](#-detailsmd-format)
+
+> 📝 **Note**
+>
+> The `--patch-dir` option should only be specified when the target library has a dedicated subdirectory within the `./patches` directory.
+> If no such subdirectory exists, omit this option from the command.
+
+---
+
 ## 🗂️ Folder Structure
 
 Each library with patch (or patches) should have its own directory inside `patches/`. Each directory should contain:
@@ -54,10 +82,15 @@ Each patch must be listed and explained in the `details.md` file within the same
 
 ### [<patch-name>.patch](<patch-name>.patch)
 
-- Reason: <Why this patch is needed>
-- Upstream PR/issue: <link or 🛑 if not raised. If no upstream issue or PR exists, explain why>
-- E/App issue: <link or 🛑 if none>
-- PR Introducing Patch: <link to internal PR that added the patch>
+- Reason:
+  
+    ```
+    Please explain why the patch is necessary
+    ```
+  
+- Upstream PR/issue: <Please create an upstream PR fixing the patch. Link it here and if no upstream issue or PR exists, explain why>
+- E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
+- PR introducing patch: <Link to E/App (or Mobile-Expensify) PR that added the patch>
 ```
 
 ### Example
@@ -65,12 +98,18 @@ Each patch must be listed and explained in the `details.md` file within the same
 ```md
 # `react-native-pdf` patches
 
-### [react-native-pdf+6.7.3+002+fix-incorrect-decoding.patch](react-native-pdf+6.7.3+002+fix-incorrect-decoding.patch)
+### [react-native-pdf+6.7.3+001+update-podspec-to-support-new-arch.patch](react-native-pdf+6.7.3+001+update-podspec-to-support-new-arch.patch)
 
-- Reason: If the file name contains accented characters, the PDF load fails.
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: [#50043](https://github.com/Expensify/App/pull/50043)
+- Reason:
+
+    ```
+    This patch updates the react-native-pdf.podspec to ensure compatibility with React Native's New Architecture on iOS by replacing manual dependency declarations
+    with Meta's recommended `install_modules_dependencies` function
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/803
+- E/App issue: 🛑 TODO
+- PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 ```
 
 ## ✅ Patch Submission Checklist

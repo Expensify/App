@@ -1,4 +1,4 @@
-import type {LocaleEventCallback} from './types';
+import type LocaleEventCallback from './types';
 
 const localeEventCallback: LocaleEventCallback = () => {};
 

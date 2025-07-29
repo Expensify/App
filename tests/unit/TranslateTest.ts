@@ -9,7 +9,7 @@ import {translate} from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
 
-jest.mock('@src/languages/TranslationStore');
+jest.mock('@src/languages/IntlStore');
 
 const originalTranslations = {
     [CONST.LOCALES.EN]: flattenObject(en),
@@ -17,19 +17,14 @@ const originalTranslations = {
 };
 
 describe('translate', () => {
-    it('Test when key is not found in full locale, but present in language', () => {
-        expect(translate(CONST.LOCALES.ES_ES, 'testKey2' as TranslationPaths)).toBe('Spanish Word 2');
-        expect(translate(CONST.LOCALES.ES, 'testKey2' as TranslationPaths)).toBe('Spanish Word 2');
-    });
-
     test('Test when key is not found in default', () => {
-        expect(() => translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toThrow(Error);
+        expect(() => translate(CONST.LOCALES.EN, 'testKey4' as TranslationPaths)).toThrow(Error);
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
         const ORIGINAL_IS_IN_PRODUCTION = CONFIG.IS_IN_PRODUCTION;
         asMutable(CONFIG).IS_IN_PRODUCTION = true;
-        expect(translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
+        expect(translate(CONST.LOCALES.EN, 'testKey4' as TranslationPaths)).toBe('testKey4');
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 

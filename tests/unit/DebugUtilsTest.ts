@@ -14,7 +14,7 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
@@ -739,7 +739,7 @@ describe('DebugUtils', () => {
             expect(reason).toBeNull();
         });
         it('returns correct reason when report has a valid draft comment', async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`, 'Hello world!');
+            await Onyx.set(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[baseReport.reportID]: 'Hello world!'});
             const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, chatReportR14932);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -1077,6 +1077,12 @@ describe('DebugUtils', () => {
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     created: '2024-08-08 18:70:44.171',
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: 'Hello world!',
+                        },
+                    ],
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
@@ -1084,6 +1090,12 @@ describe('DebugUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                     created: '2024-08-08 19:70:44.171',
                     childReportID: '2',
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: 'Hello world!',
+                        },
+                    ],
                 },
             };
             await Onyx.multiSet({

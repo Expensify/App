@@ -8,12 +8,12 @@ import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import Text from '@components/Text';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type EmojiTrie from './EmojiTrie';
-import type {SupportedLanguage} from './EmojiTrie';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -80,27 +80,18 @@ Onyx.connect({
     },
 });
 
-const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
-    if (!emoji) {
-        return '';
-    }
-    if (lang === CONST.LOCALES.DEFAULT) {
-        return emoji.name;
-    }
-
-    return Emojis.localeEmojis?.[lang]?.[emoji.code]?.name ?? '';
-};
-
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string => {
-    if (lang === CONST.LOCALES.DEFAULT) {
+const getLocalizedEmojiName = (name: string, locale: OnyxEntry<Locale>): string => {
+    const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
+
+    if (normalizedLocale === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
     const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-    return (lang && Emojis.localeEmojis[lang]?.[emojiCode]?.name) ?? '';
+    return Emojis.localeEmojis[normalizedLocale]?.[emojiCode]?.name ?? '';
 };
 
 /**
@@ -330,11 +321,12 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang as SupportedLanguage];
+    const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
+    const trie = emojisTrie[normalizedLocale];
     if (!trie) {
         return {text, emojis: []};
     }
@@ -353,11 +345,10 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
         let checkEmoji = trie.search(name);
         // If the user has selected a language other than English, and the emoji doesn't exist in that language,
         // we will check if the emoji exists in English.
-        if (lang !== CONST.LOCALES.DEFAULT && !checkEmoji?.metaData?.code) {
+        if (normalizedLocale !== CONST.LOCALES.DEFAULT && !checkEmoji?.metaData?.code) {
             const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
             if (englishTrie) {
-                const englishEmoji = englishTrie.search(name);
-                checkEmoji = englishEmoji;
+                checkEmoji = englishTrie.search(name);
             }
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
@@ -394,8 +385,10 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
+function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+    const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
+
+    const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, normalizedLocale);
 
     return {
         text: convertedText,
@@ -408,15 +401,12 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang?: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
-    if (!lang) {
-        return [];
-    }
-
-    const trie = emojisTrie[lang as SupportedLanguage];
+    const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
+    const trie = emojisTrie[normalizedLocale];
     if (!trie) {
         return [];
     }
@@ -671,12 +661,29 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
+function containsCustomEmoji(text?: string): boolean {
+    if (!text) {
+        return false;
+    }
+
+    const privateUseAreaRegex = CONST.REGEX.PRIVATE_USER_AREA;
+    return privateUseAreaRegex.test(text);
+}
+
+function containsOnlyCustomEmoji(text?: string): boolean {
+    if (!text) {
+        return false;
+    }
+
+    const privateUseAreaRegex = CONST.REGEX.ONLY_PRIVATE_USER_AREA;
+    return privateUseAreaRegex.test(text);
+}
+
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
     findEmojiByName,
     findEmojiByCode,
-    getEmojiName,
     getLocalizedEmojiName,
     getProcessedText,
     getHeaderEmojis,
@@ -697,4 +704,6 @@ export {
     getRemovedSkinToneEmoji,
     getSpacersIndexes,
     splitTextWithEmojis,
+    containsCustomEmoji,
+    containsOnlyCustomEmoji,
 };

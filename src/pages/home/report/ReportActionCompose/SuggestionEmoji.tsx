@@ -1,12 +1,12 @@
-import type {ForwardedRef, RefAttributes} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import useOnyx from '@hooks/useOnyx';
+import {getPreferredSkinToneIndex, suggestEmojis} from '@libs/EmojiUtils';
+import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -19,17 +19,10 @@ type SuggestionsValue = {
     shouldShowSuggestionMenu: boolean;
 };
 
-type SuggestionEmojiOnyxProps = {
-    /** Preferred skin tone */
-    preferredSkinTone: number;
+type SuggestionEmojiProps = SuggestionProps & {
+    /** Function to clear the input */
+    resetKeyboardInput?: () => void;
 };
-
-type SuggestionEmojiProps = SuggestionProps &
-    SuggestionEmojiOnyxProps & {
-        /** Function to clear the input */
-        resetKeyboardInput?: () => void;
-    };
-
 /**
  * Check if this piece of string looks like an emoji
  */
@@ -46,19 +39,10 @@ const defaultSuggestionsValues: SuggestionsValue = {
 };
 
 function SuggestionEmoji(
-    {
-        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        isAutoSuggestionPickerLarge,
-        resetKeyboardInput,
-        measureParentContainerAndReportCursor,
-        isComposerFocused,
-    }: SuggestionEmojiProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused}: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, selector: getPreferredSkinToneIndex});
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -88,7 +72,7 @@ function SuggestionEmoji(
             const emojiCode = emojiObject?.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject?.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
@@ -167,7 +151,7 @@ function SuggestionEmoji(
                 colonIndex,
                 shouldShowSuggestionMenu: false,
             };
-            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale);
+            const newSuggestedEmojis = suggestEmojis(leftString, preferredLocale);
 
             if (newSuggestedEmojis?.length && isCurrentlyShowingEmojiSuggestion) {
                 nextState.suggestedEmojis = newSuggestedEmojis;
@@ -238,9 +222,4 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default withOnyx<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, SuggestionEmojiOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-    },
-})(forwardRef(SuggestionEmoji));
+export default forwardRef(SuggestionEmoji);

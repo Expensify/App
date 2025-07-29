@@ -6,7 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -36,7 +36,8 @@ describe('Sidebar', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         initOnyxDerivedValues();
-        TranslationStore.load(CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {
@@ -186,7 +187,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report1.reportID]: 'report1 draft'},
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -500,7 +501,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + report2.reportID]: 'This is a draft',
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report2.reportID]: 'This is a draft'},
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -547,7 +548,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft',
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report.reportID]: 'This is a draft'},
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -558,7 +559,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the draft is removed
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null))
+                    .then(() => Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[report.reportID]: null}))
 
                     // Then the pencil icon goes away
                     .then(() => {
@@ -673,7 +674,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'Report2 draft comment',
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report2.reportID]: 'Report2 draft comment'},
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -784,9 +785,11 @@ describe('Sidebar', () => {
             };
 
             const reportDraftCommentCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'report2 draft',
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report3.reportID}`]: 'report3 draft',
+                [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {
+                    [report1.reportID]: 'report1 draft',
+                    [report2.reportID]: 'report2 draft',
+                    [report3.reportID]: 'report3 draft',
+                },
             };
 
             return (
@@ -818,9 +821,9 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             ...reportDraftCommentCollectionDataSet,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
-                            ...reportCollectionDataSet,
+                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report4.reportID]: 'report4 draft'},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                            ...reportCollectionDataSet,
                         }),
                     )
 

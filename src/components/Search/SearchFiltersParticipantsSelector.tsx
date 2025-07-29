@@ -1,23 +1,22 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
+import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import memoize from '@libs/memoize';
+import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
     userToInvite: null,
@@ -27,7 +26,10 @@ const defaultListOptions = {
     headerMessage: '',
 };
 
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
+
 function getSelectedOptionData(option: Option): OptionData {
+    // eslint-disable-next-line rulesdir/no-default-id-values
     return {...option, selected: true, reportID: option.reportID ?? '-1'};
 }
 
@@ -44,9 +46,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const defaultOptions = useMemo(() => {
@@ -54,45 +57,51 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getValidOptions(
+        return memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
+    }, [areOptionsInitialized, options.personalDetails, options.reports]);
+
+    const unselectedOptions = useMemo(() => {
+        return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
+    }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(unselectedOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
+        const newSections: Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
+        const formattedResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
         if (chatOptions.currentUserOption) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant({
+            const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
@@ -126,7 +135,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate]);
+
+    const resetChanges = useCallback(() => {
+        setSelectedOptions([]);
+    }, []);
+
+    const applyChanges = useCallback(() => {
+        const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
+        onFiltersUpdate(selectedAccountIDs);
+
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [onFiltersUpdate, selectedOptions]);
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
@@ -150,10 +170,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         setSelectedOptions(preSelectedOptions);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails]);
-
-    useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
 
     const handleParticipantSelection = useCallback(
         (option: Option) => {
@@ -179,19 +195,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         [selectedOptions],
     );
 
-    const footerContent = (
-        <Button
-            success
-            text={translate('common.save')}
-            pressOnEnter
-            onPress={() => {
-                const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-                onFiltersUpdate(selectedAccountIDs);
-
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-            }}
-            large
-        />
+    const footerContent = useMemo(
+        () => (
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
+        ),
+        [applyChanges, resetChanges],
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
@@ -201,13 +212,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         <SelectionList
             canSelectMultiple
             sections={sections}
-            ListItem={InviteMemberListItem}
+            ListItem={UserSelectionListItem}
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             headerMessage={headerMessage}
             textInputValue={searchTerm}
             footerContent={footerContent}
             showScrollIndicator
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onChangeText={(value) => {
                 setSearchTerm(value);
             }}

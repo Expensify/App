@@ -5613,6 +5613,9 @@ const enEmojis: EmojisList = {
     '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
         keywords: ['flag'],
     },
+    '\uE100': {
+        keywords: ['fab', 'floating', 'action', 'button', 'green', 'plus'],
+    },
 };
 
 export default enEmojis;

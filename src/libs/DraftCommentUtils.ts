@@ -1,14 +1,14 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DraftReportComments} from '@src/types/onyx';
 
-let draftCommentCollection: OnyxCollection<string> = {};
+let draftComments: OnyxEntry<DraftReportComments> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS,
     callback: (nextVal) => {
-        draftCommentCollection = nextVal;
+        draftComments = nextVal;
     },
-    waitForCollectionCallback: true,
 });
 
 /**
@@ -17,22 +17,15 @@ Onyx.connect({
  * A valid use-case of this function is outside React components, like in utility functions.
  */
 function getDraftComment(reportID: string): OnyxEntry<string> | null | undefined {
-    return draftCommentCollection?.[ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID];
+    return draftComments?.[reportID];
 }
 
 /**
  * Returns true if the report has a valid draft comment.
- * A valid draft comment is a non-empty string.
- */
-function isValidDraftComment(comment?: string | null): boolean {
-    return !!comment;
-}
-
-/**
- * Returns true if the report has a valid draft comment.
+ * NOTE: please prefer useOnyx when possible
  */
 function hasValidDraftComment(reportID: string): boolean {
-    return isValidDraftComment(getDraftComment(reportID));
+    return !!getDraftComment(reportID);
 }
 
 /**
@@ -44,4 +37,4 @@ function prepareDraftComment(comment: string | null) {
     return comment || null;
 }
 
-export {getDraftComment, isValidDraftComment, hasValidDraftComment, prepareDraftComment};
+export {getDraftComment, hasValidDraftComment, prepareDraftComment};

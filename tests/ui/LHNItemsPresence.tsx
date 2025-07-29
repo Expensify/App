@@ -177,7 +177,7 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // And a draft message is added to the report.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`, 'draft report message');
+            await Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[draftReport.reportID]: 'draft report message'});
 
             // Then the sidebar should display the draft report.
             expect(getDisplayNames()).toHaveLength(1);
@@ -224,14 +224,16 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
+            await waitForBatchedUpdatesWithAct();
+
             // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
-            await waitForBatchedUpdatesWithAct();
 
             const expenseReport: Report = {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: report.reportID,
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
@@ -244,6 +246,8 @@ describe('SidebarLinksData', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
@@ -261,6 +265,8 @@ describe('SidebarLinksData', () => {
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should appear in the sidebar because it requires attention from the user
             expect(getOptionRows()).toHaveLength(1);
@@ -303,6 +309,8 @@ describe('SidebarLinksData', () => {
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the selfDM report should appear in the sidebar by default
             expect(getOptionRows()).toHaveLength(1);

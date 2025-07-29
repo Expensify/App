@@ -3,7 +3,7 @@ import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'r
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type BottomDockedModalProps from './BottomDockedModal/types';
+import type ReanimatedModalProps from './ReanimatedModal/types';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
@@ -19,7 +19,7 @@ type WindowState = {
 };
 
 type BaseModalProps = Partial<ReactNativeModalProps> &
-    Partial<BottomDockedModalProps> & {
+    Partial<ReanimatedModalProps> & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
 
@@ -123,6 +123,16 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
          * This is used to adjust the modal position when the Side Panel is open.
          */
         shouldApplySidePanelOffset?: boolean;
+
+        /**
+         * Disables the bottom safe area padding in the modal. Used in for scrollable FeatureTrainingModal.
+         */
+        shouldDisableBottomSafeAreaPadding?: boolean;
+
+        /**
+         * Whether the modal should use ReanimatedModal implementation.
+         */
+        shouldUseReanimatedModal?: boolean;
     };
 
 export default BaseModalProps;

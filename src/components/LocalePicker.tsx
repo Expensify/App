@@ -1,11 +1,11 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {setLocale} from '@userActions/App';
-import CONST from '@src/CONST';
+import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
@@ -20,13 +20,18 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
-        value: language,
-        label: translate(`languagePage.languages.${language}.label`),
-        keyForList: language,
-        isSelected: preferredLocale === language,
-    }));
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+
+    const locales = useMemo(() => {
+        const sortedLocales = SORTED_LOCALES;
+        return sortedLocales.map((locale) => ({
+            value: locale,
+            label: LOCALE_TO_LANGUAGE_STRING[locale],
+            keyForList: locale,
+            isSelected: preferredLocale === locale,
+        }));
+    }, [preferredLocale]);
+
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (
@@ -40,7 +45,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
                 setLocale(locale);
             }}
             isDisabled={shouldDisablePicker}
-            items={localesToLanguages}
+            items={locales}
             shouldAllowDisabledStyle={false}
             shouldShowOnlyTextWhenDisabled={false}
             size={size}

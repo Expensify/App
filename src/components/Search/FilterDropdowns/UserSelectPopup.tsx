@@ -1,27 +1,35 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import memoize from '@libs/memoize';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
     return {...option, reportID: `${option.reportID}`, selected: true};
 }
+
+const optionsMatch = (opt1: Option, opt2: Option) => {
+    // Below is just a boolean expression.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
+};
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 type UserSelectPopupProps = {
     /** The currently selected users */
@@ -41,13 +49,14 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
+    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
-        return value.reduce<OptionData[]>((acc, accountID) => {
-            const participant = personalDetails?.[accountID];
+    const initialSelectedOptions = useMemo(() => {
+        return value.reduce<OptionData[]>((acc, id) => {
+            const participant = personalDetails?.[id];
             if (!participant) {
                 return acc;
             }
@@ -59,48 +68,64 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
             return acc;
         }, []);
-    });
+    }, [value, personalDetails]);
+
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedOptions);
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
-    // Get a list of all options/personal details and filter them by the current search term
-    const listData = useMemo(() => {
-        const optionsList = getValidOptions(
+    const selectedAccountIDs = useMemo(() => {
+        return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
+    }, [selectedOptions]);
+
+    const optionsList = useMemo(() => {
+        return memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelectedOptions: true,
                 includeCurrentUser: true,
             },
         );
+    }, [options.reports, options.personalDetails]);
 
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+    const filteredOptions = useMemo(() => {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
         });
+    }, [optionsList, cleanSearchTerm]);
 
-        const personalDetailList = filteredOptionsList
+    const listData = useMemo(() => {
+        const personalDetailList = filteredOptions.personalDetails
             .map((participant) => ({
                 ...participant,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+                isSelected: selectedAccountIDs.has(participant.accountID),
             }))
             .sort((a, b) => {
                 // Put the current user at the top of the list
-                if (a.accountID === session?.accountID) {
+                if (a.accountID === accountID) {
                     return -1;
                 }
-                if (b.accountID === session?.accountID) {
+                if (b.accountID === accountID) {
                     return 1;
                 }
                 return 0;
             });
 
-        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
+        const recentReportsList = filteredOptions.recentReports.map((report) => {
+            const isSelected = selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID);
+            return {
+                ...report,
+                isSelected,
+            };
+        });
+
+        return [...personalDetailList, ...recentReportsList];
+    }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -122,21 +147,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const selectUser = useCallback(
         (option: Option) => {
-            const optionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                const matchesAccountID = selectedOption.accountID && selectedOption.accountID === option?.accountID;
-                const matchesReportID = selectedOption.reportID && selectedOption.reportID === option?.reportID;
+            const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
-                // Below is just a boolean expression.
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                return matchesAccountID || matchesReportID;
-            });
-
-            if (optionIndex === -1) {
-                setSelectedOptions([...selectedOptions, getSelectedOptionData(option)]);
-            } else {
-                const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
-                setSelectedOptions(newSelectedOptions);
-            }
+            setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
         },
         [selectedOptions],
     );
@@ -152,10 +165,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         closeOverlay();
     }, [closeOverlay, onChange]);
 
-    useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
-
     const isLoadingNewOptions = !!isSearchingForReports;
     const dataLength = sections.flatMap((section) => section.data).length;
 
@@ -163,7 +172,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
-                textInputAutoFocus
+                textInputAutoFocus={shouldFocusInputOnScreenFocus}
                 shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
