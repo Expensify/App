@@ -1813,7 +1813,7 @@ const translations = {
         expensifyWallet: 'Billetera Expensify (Beta)',
         sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify. Solo cuentas bancarias de EE. UU.',
         enableWallet: 'Habilitar billetera',
-        addBankAccountToSendAndReceive: 'Agrega una cuenta bancaria para realizar o recibir pagos.',
+        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para hacer o recibir pagos.',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
