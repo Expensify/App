@@ -576,6 +576,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         const currentRoute = Navigation.getActiveRouteWithoutParams();
 
         if ((hasErrors || !searchResults) && currentRoute === '/') {
+            // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
                 Navigation.setParams({q: buildCannedSearchQuery()});
             });
