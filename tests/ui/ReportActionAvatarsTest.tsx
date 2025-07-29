@@ -365,9 +365,7 @@ function isMultipleAvatarRendered({
 }
 
 function isSingleAvatarRendered({images, negate = false, userAvatar}: {images: AvatarData[]; negate?: boolean; userAvatar?: string}) {
-    const isUserAvatarCorrect = images.some(
-        (image) => image.uri === (userAvatar ?? USER_AVATAR) && ['ReportActionAvatars-SingleAvatar', 'ReportActionAvatars-MultipleAvatars-OneIcon'].includes(image.parent),
-    );
+    const isUserAvatarCorrect = images.some((image) => image.uri === (userAvatar ?? USER_AVATAR) && image.parent === 'ReportActionAvatars-SingleAvatar');
 
     expect(isUserAvatarCorrect).toBe(!negate);
 }

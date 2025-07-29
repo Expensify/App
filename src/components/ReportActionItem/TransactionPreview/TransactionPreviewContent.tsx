@@ -245,7 +245,7 @@ function TransactionPreviewContent({
                                                 <ReportActionAvatars
                                                     accountIDs={participantAccountIDs}
                                                     horizontalStacking={{
-                                                        sort: 'byID',
+                                                        sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
                                                         useCardBG: true,
                                                     }}
                                                     size={CONST.AVATAR_SIZE.SUBSCRIPT}

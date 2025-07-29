@@ -65,7 +65,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                                     displayInRows: shouldUseNarrowLayout,
                                     maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
                                     overlapDivider: 4,
-                                    sort: isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? 'reverse' : undefined,
+                                    sort: isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined,
                                 }}
                             />
                         </PressableWithoutFeedback>

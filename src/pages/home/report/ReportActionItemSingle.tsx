@@ -128,7 +128,7 @@ function ReportActionItemSingle({
 
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 
-    const headingText = avatarType === 'multiple' ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
+    const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -226,7 +226,7 @@ function ReportActionItemSingle({
                                     isSingleLine
                                     actorIcon={primaryAvatar}
                                     moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                    shouldShowTooltip={avatarType !== 'multiple'}
+                                    shouldShowTooltip={avatarType !== CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE}
                                 />
                             ))}
                         </PressableWithoutFeedback>

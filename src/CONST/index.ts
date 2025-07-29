@@ -292,6 +292,21 @@ const CONST = {
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
 
+    REPORT_ACTION_AVATARS: {
+        TYPE: {
+            MULTIPLE: 'multiple',
+            MULTIPLE_DIAGONAL: 'multipleDiagonal',
+            MULTIPLE_HORIZONTAL: 'multipleHorizontal',
+            SUBSCRIPT: 'subscript',
+            SINGLE: 'single',
+        },
+        SORT_BY: {
+            ID: 'id',
+            NAME: 'name',
+            REVERSE: 'reverse',
+        },
+    },
+
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,

@@ -67,7 +67,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
                         horizontalStacking={{
                             isHovered,
                             isActive,
-                            sort: 'byName',
+                            sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME,
                         }}
                         isInReportAction
                     />

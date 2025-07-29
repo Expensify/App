@@ -57,7 +57,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, Icon as IconType, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
@@ -3323,7 +3323,7 @@ function getReportActionAvatars({
     shouldStackHorizontally = false,
     shouldUseCardFeed = false,
     isReportArchived = false,
-    shouldUseAccountIDs = false,
+    accountIDs = [],
 }: {
     iouReport: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -3335,7 +3335,7 @@ function getReportActionAvatars({
     shouldStackHorizontally?: boolean;
     shouldUseCardFeed?: boolean;
     isReportArchived?: boolean;
-    shouldUseAccountIDs?: boolean;
+    accountIDs?: number[];
 }) {
     /* Get avatar type */
 
@@ -3353,6 +3353,7 @@ function getReportActionAvatars({
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
     const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID;
 
+    const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
     const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
     const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived) && policy?.type !== CONST.POLICY.TYPE.PERSONAL;
@@ -3368,12 +3369,12 @@ function getReportActionAvatars({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldUseMultipleAvatars = shouldUseAccountIDs || shouldShowAllActors || shouldShowConvertedSubscriptAvatar;
 
-    let avatarType = 'single';
+    let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
 
     if (shouldUseSubscriptAvatar) {
-        avatarType = 'subscript';
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
     } else if (shouldUseMultipleAvatars) {
-        avatarType = 'multiple';
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE;
     }
 
     /* Get correct primary & secondary icon */
@@ -3443,8 +3444,15 @@ function getReportActionAvatars({
         fallbackIcon,
     };
 
+    const avatarsForAccountIDs: IconType[] = accountIDs.map((id) => ({
+        id,
+        type: CONST.ICON_TYPE_AVATAR,
+        source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+        name: personalDetails?.[id]?.login ?? '',
+    }));
+
     return {
-        icons: [primaryAvatar, secondaryAvatar],
+        icons: avatarsForAccountIDs.length > 0 && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
         delegateAccountID: !isWorkspaceActor && delegatePersonalDetails ? actorAccountID : undefined,
         avatarType,
         accountID,
