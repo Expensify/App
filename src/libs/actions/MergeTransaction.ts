@@ -36,12 +36,8 @@ function getTransactionsForMerging(transactionID: string) {
 }
 
 function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
-    // If the supplied transaction is from a card, return only cash expenses
-    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
-        return false;
-    }
-
-    return true;
+    // Do not allow merging two card transactions
+    return !isCardTransaction(transaction1) || !isCardTransaction(transaction2);
 }
 
 /**
