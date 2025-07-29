@@ -18,12 +18,6 @@ type CopyTextToClipboardProps = {
     accessibilityRole?: AccessibilityRole;
 
     shouldShowHoveredState?: boolean;
-
-    /** Icon width */
-    iconWidth?: number;
-
-    /** Icon height */
-    iconHeight?: number;
 } & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles'>;
 
 function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole, ...rest}: CopyTextToClipboardProps) {
