@@ -281,7 +281,7 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
-    const inputVerticalPadding = StyleUtils.getPaddingVerticalFromStyle(newTextInputContainerStyles);
+    const verticalPaddingDiff = StyleUtils.getVeritcalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
@@ -454,7 +454,7 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
-                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, inputVerticalPadding)}
+                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();
@@ -467,7 +467,7 @@ function BaseTextInput(
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, inputVerticalPadding),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
                                         styles.ml1,
                                         loadingSpinnerStyle,
                                         StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
@@ -476,7 +476,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, inputVerticalPadding)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => {
                                         e.preventDefault();
@@ -492,7 +492,7 @@ function BaseTextInput(
                             {!inputProps.secureTextEntry && !!icon && (
                                 <View
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, inputVerticalPadding),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
                                         !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
                                         iconContainerStyle,
                                     ]}

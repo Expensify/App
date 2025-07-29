@@ -729,9 +729,9 @@ function getPaddingBottom(paddingBottom: number): ViewStyle {
 }
 
 /**
- * Get variable padding-bottom as style
+ * Get vertical padding diff from provided styles (paddingTop - paddingBottom)
  */
-function getPaddingVerticalFromStyle(textInputContainerStyles: ViewStyle): number {
+function getVeritcalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): number {
     const flatStyle = StyleSheet.flatten(textInputContainerStyles);
 
     // Safely extract padding values only if they are numbers
@@ -741,7 +741,7 @@ function getPaddingVerticalFromStyle(textInputContainerStyles: ViewStyle): numbe
 
     const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
     const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
-    return paddingTop + paddingBottom;
+    return paddingTop - paddingBottom;
 }
 
 /**
@@ -1254,7 +1254,7 @@ const staticStyleUtils = {
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,
-    getPaddingVerticalFromStyle,
+    getVeritcalPaddingDiffFromStyle,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1397,13 +1397,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     /**
      * Computes styles for the text input icon container.
-     * Applies horizontal padding if requested, and sets the top margin based on the presence of a label.
+     * Applies horizontal padding if requested, and sets the top margin based on padding difference.
      */
-    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, inputPaddingTop = styles.textInputContainer?.padding): ViewStyle => {
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, verticalPaddingDiff = 0): ViewStyle => {
         const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
         return {
             ...paddingStyle,
-            marginTop: -(inputPaddingTop / 2),
+            marginTop: -(verticalPaddingDiff / 2),
             height: '100%',
             justifyContent: 'center',
         };
