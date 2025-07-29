@@ -34,6 +34,8 @@ function PublicScreens() {
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 options={{
                     ...defaultScreenOptions,
+                    // If you want to change this, make sure there aren't any animation bugs when signing out.
+                    // This was put here to prevent excessive animations when resetting the navigation state in `resetNavigationState`
                     animation: Animations.NONE,
                 }}
                 component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
