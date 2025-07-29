@@ -474,7 +474,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && transactionThreadReportID !== CONST.FAKE_REPORT_ID) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report) && transactionThreadReportID !== CONST.FAKE_REPORT_ID) {
             return;
         }
 
@@ -511,12 +511,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [
         parentReportAction?.childMoneyRequestCount,
         reportMetadata.isOptimisticReport,
+        report,
         isOffline,
         route.params,
         currentUserEmail,
         reportIDFromRoute,
         reportActionIDFromRoute,
-        report,
         reportID,
         transactionThreadReport,
         transactionThreadReportID,

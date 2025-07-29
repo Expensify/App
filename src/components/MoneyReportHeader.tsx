@@ -33,7 +33,6 @@ import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/
 import {
     buildTransactionThread,
     changeMoneyRequestHoldStatus,
-    generateReportID,
     getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
@@ -682,11 +681,11 @@ function MoneyReportHeader({
                 onPress={() => {
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        threadID = generateReportID();
                         const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport, undefined, threadID);
+                        const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport);
+                        threadID = optimisticTransactionThread.reportID;
                         openReport(threadID, undefined, session?.email ? [session?.email] : [], optimisticTransactionThread, iouAction?.reportActionID);
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
@@ -933,6 +932,11 @@ function MoneyReportHeader({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     if (isMobileSelectionModeEnabled) {
+        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
+        if (transactions.length <= 1) {
+            turnOffMobileSelectionMode();
+        }
+
         return (
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
