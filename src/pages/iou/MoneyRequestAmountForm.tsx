@@ -222,7 +222,7 @@ function MoneyRequestAmountForm(
                 ref={(ref) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
-                    } else if (forwardedRef?.current) {
+                    } else if (forwardedRef && 'current' in forwardedRef) {
                         // eslint-disable-next-line no-param-reassign
                         forwardedRef.current = ref;
                     }

@@ -177,7 +177,7 @@ function MoneyRequestAmountInput(
             amountFormRef={(ref) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(ref);
-                } else if (moneyRequestAmountInputRef?.current) {
+                } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
                     // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
                     moneyRequestAmountInputRef.current = ref;
                 }
