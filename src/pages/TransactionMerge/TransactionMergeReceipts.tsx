@@ -38,10 +38,10 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                     >
                         <PressableWithFeedback
                             onPress={() => onSelect(transaction.receipt)}
-                            wrapperStyle={[styles.w100]}
+                            wrapperStyle={styles.w100}
                             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail, isSelected && styles.activeComponentBG]}
                             accessibilityRole={CONST.ROLE.RADIO}
-                            accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
+                            accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.w100, styles.mb5]}>
                                 <Text style={[styles.headerText]}>
@@ -50,7 +50,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 <RadioButton
                                     isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}
-                                    accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
+                                    accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
                                     shouldUseNewStyle
                                 />
                             </View>
@@ -83,4 +83,5 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
     );
 }
 
+TransactionMergeReceipts.displayName = 'TransactionMergeReceipts';
 export default TransactionMergeReceipts;
