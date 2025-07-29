@@ -44,7 +44,7 @@ function cacheAttachment(attachmentID: string, uri: string) {
 function getCachedAttachment(attachmentID: string, currentSource: string) {
     const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 
-    if (attachment?.remoteSource && attachment.remoteSource !== currentSource) {
+    if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
         cacheAttachment(attachmentID, currentSource);
         return currentSource;
     }
