@@ -45,6 +45,17 @@ jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
 
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModal: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    goBack: jest.fn(),
+    getTopmostReportId: jest.fn(() => undefined),
+    setNavigationActionToMicrotaskQueue: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getReportRHPActiveRoute: jest.fn(),
+}));
+
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 describe('OptionsListUtils', () => {
@@ -1893,7 +1904,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, 2, comparator);
+            const result = optionsOrderBy(options, comparator, 2);
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('4');
@@ -1907,7 +1918,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, 5, comparator);
+            const result = optionsOrderBy(options, comparator, 5);
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('2');
@@ -1916,7 +1927,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('returns empty array if options is empty', () => {
-            const result = optionsOrderBy([], 3, recentReportComparator);
+            const result = optionsOrderBy([], recentReportComparator, 3);
             expect(result).toEqual([]);
         });
 
@@ -1927,7 +1938,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, 2, comparator, (option) => option.isPinned);
+            const result = optionsOrderBy(options, comparator, 2, (option) => option.isPinned);
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('1');
