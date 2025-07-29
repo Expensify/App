@@ -34,20 +34,18 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -248,13 +246,17 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
+    const [draftReportComment] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true, selector: (draftReportComments) => draftReportComments?.[reportID]});
     const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
+        if (draftReportComment) {
+            emojisPresentBefore.current = extractEmojis(draftReportComment);
         }
-        return draftComment;
+        return draftReportComment ?? '';
     });
+
+    useEffect(() => {
+        setValue(draftReportComment ?? '');
+    }, [draftReportComment]);
 
     const commentRef = useRef(value);
 
@@ -305,8 +307,8 @@ function ComposerWithSuggestions(
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
+        RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
+    }, []);
 
     const debouncedSaveReportComment = useMemo(
         () =>
@@ -375,7 +377,7 @@ function ComposerWithSuggestions(
      * Update the value of the comment in Onyx
      */
     const updateComment = useCallback(
-        (commentValue: string, shouldDebounceSaveComment?: boolean) => {
+        (commentValue: string) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
@@ -417,12 +419,9 @@ function ComposerWithSuggestions(
             }
 
             commentRef.current = newCommentConverted;
-            if (shouldDebounceSaveComment) {
-                isCommentPendingSaved.current = true;
-                debouncedSaveReportComment(reportID, newCommentConverted);
-            } else {
-                saveReportDraftComment(reportID, newCommentConverted);
-            }
+
+            isCommentPendingSaved.current = true;
+            debouncedSaveReportComment(reportID, newCommentConverted);
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
             }
@@ -437,7 +436,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, text));
         },
         [selection, updateComment],
     );
@@ -495,7 +494,7 @@ function ComposerWithSuggestions(
                         positionX: prevSelection.positionX,
                         positionY: prevSelection.positionY,
                     }));
-                    updateComment(newText, true);
+                    updateComment(newText);
                 }
             }
         },
@@ -504,7 +503,7 @@ function ComposerWithSuggestions(
 
     const onChangeText = useCallback(
         (commentValue: string) => {
-            updateComment(commentValue, true);
+            updateComment(commentValue);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
                 const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
@@ -726,7 +725,7 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('', true);
+            updateComment('');
         },
         [onCleared, updateComment],
     );
@@ -843,16 +842,6 @@ function ComposerWithSuggestions(
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
             />
-
-            {isValidReportIDFromPath(reportID) && (
-                <SilentCommentUpdater
-                    reportID={reportID}
-                    value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
-                    isCommentPendingSaved={isCommentPendingSaved}
-                />
-            )}
 
             {/* Only used for testing so far */}
             {children}
