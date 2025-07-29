@@ -291,7 +291,7 @@ const SCREENS = {
     },
 
     MERGE_TRANSACTION: {
-        LIST_PAGE: 'Merge_Transaction_Page',
+        LIST_PAGE: 'Merge_Transaction_List_Page',
         RECEIPT_PAGE: 'Merge_Transaction_Receipt_Page',
         DETAILS_PAGE: 'Merge_Transaction_Details_Page',
         CONFIRMATION_PAGE: 'Merge_Transaction_Confirmation_Page',
