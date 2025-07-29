@@ -7,11 +7,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {importPolicyMembers} from '@libs/actions/Policy/Member';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyMember} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,9 +104,32 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             };
         });
 
-        if (members) {
+        const allMembers = [...(members ?? [])];
+
+        // add submitsTo and forwardsTo members if they are not in the workspace
+        members?.forEach((member) => {
+            if (member.submitsTo && !isPolicyMember(member.submitsTo, policyID) && !allMembers.some((m) => m.email === member.submitsTo)) {
+                allMembers.push({
+                    email: member.submitsTo,
+                    role: CONST.POLICY.ROLE.USER,
+                    submitsTo: '',
+                    forwardsTo: '',
+                });
+            }
+
+            if (member.forwardsTo && !isPolicyMember(member.forwardsTo, policyID) && !allMembers.some((m) => m.email === member.forwardsTo)) {
+                allMembers.push({
+                    email: member.forwardsTo,
+                    role: CONST.POLICY.ROLE.USER,
+                    submitsTo: '',
+                    forwardsTo: '',
+                });
+            }
+        });
+
+        if (allMembers) {
             setIsImporting(true);
-            importPolicyMembers(policyID, members);
+            importPolicyMembers(policyID, allMembers);
         }
     }, [validate, spreadsheet, containsHeader, policyID]);
 
