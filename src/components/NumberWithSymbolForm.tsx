@@ -15,6 +15,7 @@ import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectio
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
+import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithSymbol';
@@ -41,6 +42,12 @@ type NumberWithSymbolFormProps = {
 
     /** Error to display at the bottom of the form */
     errorText?: string;
+
+    /** Whether the form should use a standard TextInput as a base */
+    displayAsTextInput?: boolean;
+
+    /** Custom label for the TextInput */
+    label?: string;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -72,9 +79,11 @@ function NumberWithSymbolForm(
         onSymbolButtonPress,
         isSymbolPressable = true,
         shouldShowBigNumberPad = false,
+        displayAsTextInput = false,
         footer,
         amountFormRef,
-        ...rest
+        label,
+        ...props
     }: NumberWithSymbolFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -168,7 +177,29 @@ function NumberWithSymbolForm(
         [decimals, maxLength, onInputChange],
     );
 
-    // Clears text selection if user visits currency selector with selection and comes back
+    /**
+     * Set a new amount value properly formatted, used for the TextInput
+     * @param text - Changed text from user input
+     */
+    const setFormattedAmount = (text: string) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = stripSpacesFromAmount(text);
+        const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+        const withLeadingZero = addLeadingZero(replacedCommasAmount);
+
+        if (!validateAmount(withLeadingZero, decimals, maxLength)) {
+            setSelection((prevSelection) => ({...prevSelection}));
+            return;
+        }
+
+        const strippedAmount = stripCommaFromAmount(withLeadingZero);
+        const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+        setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+        onInputChange?.(strippedAmount);
+    };
+
+    // Clears text selection if user visits symbol (currency) selector and comes back
     useEffect(() => {
         if (!isFocused || wasFocused) {
             return;
@@ -256,6 +287,37 @@ function NumberWithSymbolForm(
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = canUseTouchScreenCheck();
 
+    if (displayAsTextInput) {
+        return (
+            <TextInput
+                label={label}
+                accessibilityLabel={label}
+                value={formattedAmount}
+                onChangeText={setFormattedAmount}
+                ref={(ref: BaseTextInputRef) => {
+                    if (typeof forwardedRef === 'function') {
+                        forwardedRef(ref);
+                    } else if (forwardedRef && 'current' in forwardedRef) {
+                        // eslint-disable-next-line no-param-reassign
+                        forwardedRef.current = ref;
+                    }
+                }}
+                prefixCharacter={symbol}
+                prefixStyle={styles.colorMuted}
+                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+                // See https://github.com/Expensify/App/issues/51868 for more information
+                autoCapitalize="words"
+                inputMode={CONST.INPUT_MODE.DECIMAL}
+                errorText={errorText}
+                autoFocus={props.autoFocus}
+                autoGrowExtraSpace={props.autoGrowExtraSpace}
+                autoGrowMarginSide={props.autoGrowMarginSide}
+                style={props.style}
+            />
+        );
+    }
+
     return (
         <>
             <View
@@ -301,7 +363,7 @@ function NumberWithSymbolForm(
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
+                    {...props}
                 />
                 {!!errorText && (
                     <FormHelpMessage
