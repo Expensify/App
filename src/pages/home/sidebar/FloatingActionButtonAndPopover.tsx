@@ -26,6 +26,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
+import {startTestDrive} from '@libs/actions/Tour';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -43,7 +44,6 @@ import {
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startTestDrive} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
