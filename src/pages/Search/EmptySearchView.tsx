@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
-import {InteractionManager, Linking, View} from 'react-native';
+import {Linking, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
@@ -28,13 +28,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
-import {completeTestDriveTask} from '@libs/actions/Task';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startTestDrive} from '@libs/TourUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -196,20 +196,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
             }
         }
 
-        const startTestDrive = () => {
-            InteractionManager.runAfterInteractions(() => {
-                if (
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
-                    (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
-                ) {
-                    completeTestDriveTask(viewTourReport, viewTourReportID);
-                    Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                } else {
-                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                }
-            });
+        const startTestDriveAction = () => {
+            startTestDrive(introSelected, viewTourReport, viewTourReportID);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -231,7 +219,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                         ? [
                               {
                                   buttonText: translate('emptySearchView.takeATestDrive'),
-                                  buttonAction: startTestDrive,
+                                  buttonAction: startTestDriveAction,
                               },
                           ]
                         : []),
@@ -298,7 +286,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDrive,
+                                          buttonAction: startTestDriveAction,
                                       },
                                   ]
                                 : []),
@@ -329,7 +317,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDrive,
+                                          buttonAction: startTestDriveAction,
                                       },
                                   ]
                                 : []),
@@ -371,8 +359,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
-        introSelected?.choice,
-        introSelected?.inviteType,
+        introSelected,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,

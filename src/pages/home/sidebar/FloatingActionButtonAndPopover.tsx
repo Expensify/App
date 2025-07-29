@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -26,7 +26,6 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
-import {completeTestDriveTask} from '@libs/actions/Task';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -44,6 +43,7 @@ import {
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startTestDrive} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
@@ -526,22 +526,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () =>
-                          interceptAnonymousUser(() => {
-                              InteractionManager.runAfterInteractions(() => {
-                                  if (
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
-                                      (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
-                                  ) {
-                                      completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
-                                      Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                                  } else {
-                                      Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                                  }
-                              });
-                          }),
+                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, viewTourReport, viewTourReportID, isAnonymousUser())),
                   },
               ]
             : []),
