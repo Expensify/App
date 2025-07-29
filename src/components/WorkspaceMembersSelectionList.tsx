@@ -12,7 +12,7 @@ import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {FallbackAvatar} from './Icon/Expensicons';
-import {usePersonalDetails} from './OnyxProvider';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/InviteMemberListItem';
 import type {Section} from './SelectionList/types';

@@ -22,7 +22,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getTagApproverRule,
-    getTagList,
+    getTagListByOrderWeight,
     getWorkflowApprovalsUnavailable,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -47,7 +47,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
+    const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);

@@ -1,8 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -29,12 +30,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Card, CompanyCardFeed} from '@src/types/onyx';
+import type {AccountData, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PaymentMethodPressHandler = (
@@ -70,9 +71,6 @@ type PaymentMethodListProps = {
 
     /** React ref being forwarded to the PaymentMethodList Button */
     buttonRef?: Ref<View>;
-
-    /** To enable/disable scrolling */
-    shouldEnableScroll?: boolean;
 
     /** List container style */
     style?: StyleProp<ViewStyle>;
@@ -187,7 +185,6 @@ function PaymentMethodList({
     shouldShowAssignedCards = false,
     selectedMethodID = '',
     onListContentSizeChange = () => {},
-    shouldEnableScroll = true,
     style = {},
     listItemStyle = {},
     shouldShowRightIcon = true,
@@ -200,13 +197,13 @@ function PaymentMethodList({
     const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
-    // const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
+    // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
@@ -395,7 +392,7 @@ function PaymentMethodList({
                 <Button
                     ref={buttonRef}
                     key="addBankAccountButton"
-                    text={translate('walletPage.addBankAccount')}
+                    text={translate('bankAccount.addBankAccount')}
                     large
                     success
                     onPress={onPress}
@@ -403,7 +400,7 @@ function PaymentMethodList({
             ) : (
                 <MenuItem
                     onPress={onPressItem}
-                    title={translate('walletPage.addBankAccount')}
+                    title={translate('bankAccount.addBankAccount')}
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     ref={buttonRef}
@@ -475,14 +472,14 @@ function PaymentMethodList({
     return (
         <>
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
-                <FlatList
+                <FlashList
+                    estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
                     onContentSizeChange={onListContentSizeChange}
-                    scrollEnabled={shouldEnableScroll}
                 />
                 {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>

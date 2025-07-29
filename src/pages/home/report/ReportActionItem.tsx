@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useBlockedFromConcierge} from '@components/OnyxProvider';
+import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -28,13 +28,16 @@ import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport'> & {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
+
+    /** All the data of the policy collection */
+    policies: OnyxCollection<Policy>;
 
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
@@ -43,13 +46,14 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
     transactions?: Array<OnyxEntry<Transaction>>;
 };
 
-function ReportActionItem({allReports, action, report, transactions, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
+function ReportActionItem({allReports, policies, action, report, transactions, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         canBeMissing: true,
         selector: (draftMessagesForReport) => {
@@ -87,9 +91,12 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
         <PureReportActionItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            allReports={allReports}
+            policies={policies}
             action={action}
             report={report}
             policy={policy}
+            currentUserAccountID={currentUserAccountID}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}

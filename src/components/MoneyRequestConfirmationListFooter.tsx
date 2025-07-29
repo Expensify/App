@@ -13,13 +13,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
-import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {
+    buildOptimisticExpenseReport,
+    getDefaultWorkspaceAvatar,
+    getOutstandingReportsForUser,
+    isMoneyRequestReport,
+    isReportOutstanding,
+    populateOptimisticReportFormula,
+} from '@libs/ReportUtils';
+import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
     getTaxAmount,
@@ -50,14 +56,6 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
-
-type TagVisibility = {
-    /** Flag indicating if the tag is required */
-    isTagRequired: boolean;
-
-    /** Flag indicating if the tag should be shown */
-    shouldShow: boolean;
-};
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -260,8 +258,6 @@ function MoneyRequestConfirmationListFooter({
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-    const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
@@ -300,7 +296,10 @@ function MoneyRequestConfirmationListFooter({
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
-    const shouldReportBeEditable = !!firstOutstandingReport;
+
+    // When creating an expense in an individual report, the report field becomes read-only
+    // since the destination is already determined and there's no need to show a selectable list.
+    const shouldReportBeEditable = !!firstOutstandingReport && !isMoneyRequestReport(reportID, allReports);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -348,28 +347,16 @@ function MoneyRequestConfirmationListFooter({
         [],
     );
 
-    const tagVisibility: TagVisibility[] = policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required ?? false;
-        let shouldShow = false;
-
-        if (shouldShowTags) {
-            if (hasDependentTags) {
-                if (index === 0) {
-                    shouldShow = true;
-                } else {
-                    const prevTagValue = getTagForDisplay(transaction, index - 1);
-                    shouldShow = !!prevTagValue;
-                }
-            } else {
-                shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
-            }
-        }
-
-        return {
-            isTagRequired,
-            shouldShow,
-        };
-    });
+    const tagVisibility = useMemo(
+        () =>
+            getTagVisibility({
+                shouldShowTags,
+                policy,
+                policyTags,
+                transaction,
+            }),
+        [shouldShowTags, policy, policyTags, transaction],
+    );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
@@ -841,6 +828,9 @@ function MoneyRequestConfirmationListFooter({
         ],
     );
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasReceiptImageOrThumbnail = receiptImage || receiptThumbnail;
+
     return (
         <>
             {isTypeInvoice && (
@@ -913,26 +903,21 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {!shouldShowMap && (
-                <View style={styles.mv3}>
-                    {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        receiptImage || receiptThumbnail
-                            ? receiptThumbnailContent
-                            : shouldShowReceiptEmptyState && (
-                                  <ReceiptEmptyState
-                                      onPress={() => {
-                                          if (!transactionID) {
-                                              return;
-                                          }
+                <View style={!hasReceiptImageOrThumbnail && !shouldShowReceiptEmptyState ? undefined : styles.mv3}>
+                    {hasReceiptImageOrThumbnail
+                        ? receiptThumbnailContent
+                        : shouldShowReceiptEmptyState && (
+                              <ReceiptEmptyState
+                                  onPress={() => {
+                                      if (!transactionID) {
+                                          return;
+                                      }
 
-                                          Navigation.navigate(
-                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
-                                          );
-                                      }}
-                                      style={styles.expenseViewImageSmall}
-                                  />
-                              )
-                    }
+                                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                                  }}
+                                  style={styles.expenseViewImageSmall}
+                              />
+                          )}
                 </View>
             )}
             <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>

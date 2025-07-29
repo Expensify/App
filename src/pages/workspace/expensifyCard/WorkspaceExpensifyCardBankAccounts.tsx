@@ -89,6 +89,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
             return (
                 <MenuItem
+                    key={bankAccountID}
                     title={bankName}
                     description={`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}
                     onPress={() => handleSelectBankAccount(bankAccountID)}

@@ -11530,7 +11530,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-const EmptyObject_1 = __nccwpck_require__(8227);
+const isEmptyObject_1 = __nccwpck_require__(6497);
 const run = function () {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', { required: true }));
     console.log(`Fetching issue number ${issueNumber}`);
@@ -11564,7 +11564,7 @@ const run = function () {
             return;
         }
         // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
-        if ((0, EmptyObject_1.isEmptyObject)(comments.data)) {
+        if ((0, isEmptyObject_1.isEmptyObject)(comments.data)) {
             console.log('No comments found on issue');
             core.setOutput('HAS_DEPLOY_BLOCKERS', true);
             return;
@@ -11602,8 +11602,8 @@ exports["default"] = run;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
-    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
 const CONST = {
@@ -11616,6 +11616,13 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+    },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -11635,6 +11642,7 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
@@ -11679,9 +11687,9 @@ const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const EmptyObject_1 = __nccwpck_require__(8227);
-const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
     static internalOctokit;
     /**
@@ -11872,7 +11880,7 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
             return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
                 // The format of this map is following:
                 // {
@@ -11891,7 +11899,10 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                // Warn deployers about potential bugs with the new process
+                issueBody +=
+                    '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
@@ -11902,7 +11913,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
-                if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
+                if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
                     Object.keys(internalQAPRMap).forEach((URL) => {
@@ -11994,6 +12005,14 @@ class GithubUtils {
             issue_number: issueNumber,
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
+    }
+    static getAllCommentDetails(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data);
     }
     /**
      * Create comment on pull request
@@ -12103,6 +12122,24 @@ class GithubUtils {
             .then((response) => response.url);
     }
     /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path, ref = 'main') {
+        const { data } = await this.octokit.repos.getContent({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
@@ -12166,22 +12203,7 @@ exports["default"] = GithubUtils;
 
 /***/ }),
 
-/***/ 8227:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
-exports.isEmptyObject = isEmptyObject;
-
-
-/***/ }),
-
-/***/ 7034:
+/***/ 7532:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -12195,6 +12217,21 @@ function arrayDifference(array1, array2) {
     return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
 }
 exports["default"] = arrayDifference;
+
+
+/***/ }),
+
+/***/ 6497:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = void 0;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
+}
+exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

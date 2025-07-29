@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
+import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -96,6 +97,10 @@ function ExpensifyCardPage({
     useEffect(() => {
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
+
+    useEffect(() => {
+        resetValidateActionCodeSent();
+    }, []);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
@@ -399,7 +404,10 @@ function ExpensifyCardPage({
                 validateError={validateError}
                 validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                onClose={() => {
+                    setIsValidateCodeActionModalVisible(false);
+                    resetValidateActionCodeSent();
+                }}
                 isVisible={isValidateCodeActionModalVisible}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
