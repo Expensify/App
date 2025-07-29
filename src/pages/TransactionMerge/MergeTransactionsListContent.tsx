@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {
     fillMissingReceiptSource,
-    getReportIDOfTargetTransaction,
+    getTransactionThreadReportID,
     getSourceTransaction,
     selectTargetAndSourceTransactionIDsForMerge,
     shouldNavigateToReceiptReview,
@@ -45,7 +45,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportIDOfTargetTransaction(targetTransaction)}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const currentUserLogin = session?.email;

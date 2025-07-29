@@ -39,6 +39,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                         <PressableWithFeedback
                             onPress={() => onSelect(transaction.receipt)}
                             wrapperStyle={styles.w100}
+                            hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
                             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail, isSelected && styles.activeComponentBG]}
                             accessibilityRole={CONST.ROLE.RADIO}
                             accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
