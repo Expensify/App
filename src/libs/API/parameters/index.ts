@@ -408,4 +408,3 @@ export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMul
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
-export type {default as SaveReportDraftCommentParams} from './SaveReportDraftCommentParams';
