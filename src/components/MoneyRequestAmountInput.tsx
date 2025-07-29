@@ -3,8 +3,8 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
-import BaseAmountForm from './BaseAmountForm';
-import type {BaseAmountFormRef} from './BaseAmountForm';
+import NumberWithSymbolForm from './NumberWithSymbolForm';
+import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
@@ -26,7 +26,7 @@ type MoneyRequestAmountInputProps = {
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
-    /** The decimals of the currency/unit. If not provided, it will be inferred from the currency */
+    /** The decimals of the currency. If not provided, it will be inferred from the currency */
     decimals?: number;
 
     /** Whether the currency symbol is pressable */
@@ -98,7 +98,7 @@ type MoneyRequestAmountInputProps = {
     footer?: React.ReactNode;
 
     /** Reference to the amount form */
-    moneyRequestAmountInputRef?: ForwardedRef<BaseAmountFormRef>;
+    moneyRequestAmountInputRef?: ForwardedRef<NumberWithSymbolFormRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
 
 type Selection = {
@@ -126,7 +126,7 @@ function MoneyRequestAmountInput(
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const textInput = useRef<BaseTextInputRef | null>(null);
-    const amountFormRef = useRef<BaseAmountFormRef | null>(null);
+    const amountFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     useEffect(() => {
         if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
@@ -155,7 +155,7 @@ function MoneyRequestAmountInput(
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
     return (
-        <BaseAmountForm
+        <NumberWithSymbolForm
             value={onFormatAmount(amount, currency)}
             onSymbolButtonPress={onCurrencyButtonPress}
             onInputChange={onAmountChange}

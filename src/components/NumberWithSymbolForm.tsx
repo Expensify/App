@@ -20,7 +20,7 @@ import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInp
 import TextInputWithCurrencySymbol from './TextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type BaseAmountFormProps = {
+type NumberWithSymbolFormProps = {
     /** Amount to display, should already be formatted */
     value?: string;
 
@@ -33,7 +33,7 @@ type BaseAmountFormProps = {
     /** Custom max amount length */
     maxLength?: number;
 
-    /** Number of decimals to display */
+    /** Number of decimals to display in the amount */
     decimals?: number;
 
     /** Whether the big number pad should be shown */
@@ -43,11 +43,11 @@ type BaseAmountFormProps = {
     footer?: React.ReactNode;
 
     /** Reference to the amount form */
-    amountFormRef?: ForwardedRef<BaseAmountFormRef>;
+    amountFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 } & Omit<BaseTextInputProps, 'onKeyPress' | 'onSelectionChange'> &
     Pick<TextInputWithSymbolProps, 'symbol' | 'hideSymbol' | 'symbolPosition' | 'onSymbolButtonPress' | 'onSelectionChange' | 'onKeyPress' | 'isSymbolPressable'>;
 
-type BaseAmountFormRef = {
+type NumberWithSymbolFormRef = {
     clearSelection: () => void;
     updateAmount: (newAmount: string) => void;
     getAmount: () => string;
@@ -65,7 +65,7 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function BaseAmountForm(
+function NumberWithSymbolForm(
     {
         value: amount,
         symbol = '',
@@ -79,7 +79,7 @@ function BaseAmountForm(
         footer,
         amountFormRef,
         ...rest
-    }: BaseAmountFormProps,
+    }: NumberWithSymbolFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -335,7 +335,7 @@ function BaseAmountForm(
     );
 }
 
-BaseAmountForm.displayName = 'BaseAmountForm';
+NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
 
-export default forwardRef(BaseAmountForm);
-export type {BaseAmountFormProps, BaseAmountFormRef};
+export default forwardRef(NumberWithSymbolForm);
+export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

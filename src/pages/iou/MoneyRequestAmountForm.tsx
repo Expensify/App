@@ -2,9 +2,10 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {BaseAmountFormRef} from '@components/BaseAmountForm';
 import Button from '@components/Button';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
@@ -22,21 +23,9 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
-type MoneyRequestAmountFormProps = {
-    /** IOU amount saved in Onyx */
-    amount?: number;
-
+type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad'> & {
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
-
-    /** Currency chosen by user or saved in Onyx */
-    currency?: string;
-
-    /** Unit of the amount. E.g. 'km', 'mi' */
-    unit?: string;
-
-    /** The decimals of the currency/unit. If not provided, it will be inferred from the currency */
-    decimals?: number;
 
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
@@ -50,12 +39,6 @@ type MoneyRequestAmountFormProps = {
     /** The policyID of the request */
     policyID?: string;
 
-    /** Whether the currency symbol is pressable */
-    isCurrencyPressable?: boolean;
-
-    /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
-
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
@@ -67,9 +50,6 @@ type MoneyRequestAmountFormProps = {
 
     /** The chatReportID of the request */
     chatReportID?: string;
-
-    /** Whether to hide the currency symbol */
-    hideCurrencySymbol?: boolean;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -93,7 +73,6 @@ function MoneyRequestAmountForm(
         chatReportID,
         decimals,
         hideCurrencySymbol = false,
-        unit,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -102,7 +81,7 @@ function MoneyRequestAmountForm(
     const {translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
-    const moneyRequestAmountInputRef = useRef<BaseAmountFormRef | null>(null);
+    const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [formError, setFormError] = useState<string>('');
 
@@ -144,9 +123,9 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency: unit ?? currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount, unit],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
