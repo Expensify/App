@@ -29,6 +29,7 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -299,15 +300,18 @@ function MoneyRequestReportTransactionList({
             {shouldShowBreakdown && (
                 <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
                     {[
-                        {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
-                        {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
+                        {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
+                        {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
                     ].map(({text, value}) => (
-                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                        <View
+                            key={text}
+                            style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                        >
                             <Text
                                 style={[styles.textLabelSupporting, styles.mr3]}
                                 numberOfLines={1}
                             >
-                                {text}
+                                {translate(text as TranslationPaths)}
                             </Text>
                             <Text
                                 numberOfLines={1}
