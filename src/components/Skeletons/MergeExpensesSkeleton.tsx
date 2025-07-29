@@ -70,7 +70,7 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
 
     return (
         <View
-            style={[styles.flex1, styles.pt3]}
+            style={styles.flex1}
             ref={containerRef}
         >
             <ItemListSkeletonView
