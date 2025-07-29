@@ -6,6 +6,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,11 +24,13 @@ type TransactionMergeReceiptsProps = {
 
 function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: TransactionMergeReceiptsProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentBetween]}>
             {transactions.map((transaction, index) => {
                 const receiptURIs = getThumbnailAndImageURIs(transaction);
+                const isSelected = selectedReceiptID === transaction.receipt?.receiptID;
                 return (
                     <View
                         key={transaction.transactionID}
@@ -36,14 +39,16 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                         <PressableWithFeedback
                             onPress={() => onSelect(transaction.receipt)}
                             wrapperStyle={[styles.w100]}
-                            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail]}
+                            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail, isSelected && styles.activeComponentBG]}
                             accessibilityRole={CONST.ROLE.RADIO}
                             accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.w100, styles.mb5]}>
-                                <Text style={[styles.headerText]}>Receipt {index + 1}</Text>
+                                <Text style={[styles.headerText]}>
+                                    {translate('common.receipt')} {index + 1}
+                                </Text>
                                 <RadioButton
-                                    isChecked={selectedReceiptID === transaction.receipt?.receiptID}
+                                    isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}
                                     accessibilityLabel={`Select receipt for transaction ${transaction.transactionID}`}
                                     newRadioButtonStyle

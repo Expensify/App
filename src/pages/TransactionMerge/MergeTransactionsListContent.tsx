@@ -148,6 +148,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             confirmButtonStyles={[styles.justifyContentCenter]}
             showConfirmButton
             confirmButtonText={translate('common.continue')}
+            isConfirmButtonDisabled={!mergeTransaction?.sourceTransactionID}
             onSelectRow={handleSelectRow}
             showLoadingPlaceholder
             LoadingPlaceholderComponent={MergeExpensesSkeleton}
