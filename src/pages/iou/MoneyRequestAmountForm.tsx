@@ -230,8 +230,8 @@ function MoneyRequestAmountForm(
                 }}
                 moneyRequestAmountInputRef={moneyRequestAmountInputRef}
                 shouldKeepUserInput={shouldKeepUserInput}
-                inputStyle={[styles.iouAmountTextInput]}
-                containerStyle={[styles.iouAmountTextInputContainer]}
+                inputStyle={styles.iouAmountTextInput}
+                containerStyle={styles.iouAmountTextInputContainer}
                 testID="moneyRequestAmountInput"
                 errorText={formError}
                 shouldShowBigNumberPad={canUseTouchScreen}
