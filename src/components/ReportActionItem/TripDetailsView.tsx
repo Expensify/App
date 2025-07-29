@@ -193,13 +193,21 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
             }
 
             switch (firstReservation?.type) {
-                case CONST.RESERVATION_TYPE.FLIGHT:
+                case CONST.RESERVATION_TYPE.FLIGHT: {
+                    if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
+                        return `${translate('travel.flightTo')} ${formatAirportInfo(lastReservation.start, true)}`;
+                    }
+                    if (reservations.length > 2 && lastReservation.end.shortName === firstReservation.start.shortName) {
+                        const secondLastReservation = reservations.at(reservations.length - 2)?.reservation;
+                        return secondLastReservation ? `${translate('travel.flightTo')} ${formatAirportInfo(secondLastReservation.end, true)}` : '';
+                    }
                     return `${translate('travel.flightTo')} ${formatAirportInfo(lastReservation.end, true)}`;
+                }
                 case CONST.RESERVATION_TYPE.TRAIN:
                     return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
                 case CONST.RESERVATION_TYPE.HOTEL: {
                     const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
-                    return `${nights} ${nights > 1 ? translate('travel.nightsIn') : translate('travel.nightIn')} ${firstReservation.start.longName}`;
+                    return `${nights} ${nights > 1 ? translate('travel.nightsIn') : translate('travel.nightIn')} ${Str.recapitalize(firstReservation.start.longName ?? '')}`;
                 }
                 case CONST.RESERVATION_TYPE.CAR: {
                     const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
