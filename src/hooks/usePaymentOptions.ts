@@ -171,7 +171,7 @@ function usePaymentOptions({
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
                         {
-                            text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                            text: translate('bankAccount.addBankAccount'),
                             icon: Expensicons.Bank,
                             onSelected: () => {
                                 const bankAccountRoute = getBankAccountRoute(chatReport);
@@ -190,7 +190,7 @@ function usePaymentOptions({
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
                     {
-                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                        text: translate('bankAccount.addBankAccount'),
                         icon: Expensicons.Bank,
                         onSelected: () => {
                             const bankAccountRoute = getBankAccountRoute(chatReport);
