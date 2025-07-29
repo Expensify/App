@@ -626,6 +626,7 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
     supportalNoAccess: {
         title: '慢一点',
