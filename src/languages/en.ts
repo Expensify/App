@@ -1328,7 +1328,8 @@ const translations = {
             noEligibleExpenseFound: 'No eligible expenses found',
             noEligibleExpenseFoundSubtitle: `You don't have any expenses that can be merged with this one. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Learn more</a> about eligible expenses.`,
             mergeButton: 'Merge Transactions',
-            selectTransactionToMerge: `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with <strong>${reportName}</strong>`,
         },
         receiptPage: {
             header: 'Select receipt',

@@ -1327,7 +1327,7 @@ const translations = {
             noEligibleExpenseFound: '未找到可合并的费用',
             noEligibleExpenseFoundSubtitle: `您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。`,
             mergeButton: '合并交易',
-            selectTransactionToMerge: `选择一个<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">可合并的费用</a>`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) => `选择一个<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">可合并的费用</a> <strong>${reportName}</strong>`,
         },
         receiptPage: {
             header: '选择收据',

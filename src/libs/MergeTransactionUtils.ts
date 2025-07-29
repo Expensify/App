@@ -167,6 +167,20 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     return {mergeableData, conflictFields};
 }
 
+function getReportIDOfTargetTransaction(transaction: OnyxEntry<Transaction>) {
+    if (!transaction) {
+        return undefined;
+    }
+
+    const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    if (isUnreportedExpense) {
+        return getTransactionThreadReportID(transaction);
+    }
+
+    return transaction.reportID;
+}
+
 /**
  * Get the report ID for an expense, if it's unreported, we'll return the self DM report ID
  */
@@ -256,6 +270,7 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
+    getReportIDOfTargetTransaction,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};

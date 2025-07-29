@@ -1339,7 +1339,8 @@ const translations = {
             noEligibleExpenseFound: 'Nie znaleziono kwalifikujących się wydatków',
             noEligibleExpenseFoundSubtitle: `Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.`,
             mergeButton: 'Scal transakcje',
-            selectTransactionToMerge: `Wybierz <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">kwalifikujący się wydatek</a> do scalenia`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Wybierz <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">kwalifikujący się wydatek</a> do scalenia <strong>${reportName}</strong>`,
         },
         receiptPage: {
             header: 'Wybierz paragon',

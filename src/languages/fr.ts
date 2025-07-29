@@ -1346,7 +1346,8 @@ const translations = {
             noEligibleExpenseFound: 'Aucune dépense éligible trouvée',
             noEligibleExpenseFoundSubtitle: `Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.`,
             mergeButton: 'Fusionner les transactions',
-            selectTransactionToMerge: `Sélectionnez une <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">dépense éligible</a> à fusionner`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Sélectionnez une <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">dépense éligible</a> à fusionner <strong>${reportName}</strong>`,
         },
         receiptPage: {
             header: 'Sélectionner le reçu',

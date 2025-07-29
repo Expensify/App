@@ -1340,7 +1340,8 @@ const translations = {
             noEligibleExpenseFound: 'Nenhuma despesa elegível encontrada',
             noEligibleExpenseFoundSubtitle: `Você não tem despesas que possam ser mescladas com esta. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Saiba mais</a> sobre despesas elegíveis.`,
             mergeButton: 'Mesclar transações',
-            selectTransactionToMerge: `Selecione uma <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">despesa elegível</a> para mesclar`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Selecione uma <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">despesa elegível</a> para mesclar <strong>${reportName}</strong>`,
         },
         receiptPage: {
             header: 'Selecionar recibo',

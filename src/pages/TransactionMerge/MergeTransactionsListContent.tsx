@@ -13,8 +13,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
-import {fillMissingReceiptSource, getSourceTransaction, selectTargetAndSourceTransactionIDsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
+import {
+    fillMissingReceiptSource,
+    getReportIDOfTargetTransaction,
+    getSourceTransaction,
+    selectTargetAndSourceTransactionIDsForMerge,
+    shouldNavigateToReceiptReview,
+} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +45,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportIDOfTargetTransaction(targetTransaction)}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const currentUserLogin = session?.email;
@@ -86,12 +93,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         () => (
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabel, styles.minHeight5]}>
-                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge')} />
-                    <Text style={[styles.textBold]}> {report?.reportName ?? ''}</Text>
+                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(report)})} />
                 </Text>
             </View>
         ),
-        [report?.reportName, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.textBold],
+        [report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5],
     );
 
     const subTitleContent = useMemo(() => {
