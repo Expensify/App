@@ -2317,7 +2317,7 @@ describe('actions/IOU', () => {
             expect(report?.participants?.[RORY_ACCOUNT_ID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
         });
 
-        it('should update the description correctly when completing the split bill', async () => {
+        it('the description should not be parsed again after completing the scan split bill without changing the description', async () => {
             const reportID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
@@ -2370,7 +2370,7 @@ describe('actions/IOU', () => {
 
             splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
 
-            // Then the description should be the same
+            // Then the description should be the same since it was not changed
             expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
         });
     });
