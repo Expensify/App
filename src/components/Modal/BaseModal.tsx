@@ -40,6 +40,7 @@ type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     shouldUseReanimatedModal?: boolean;
     shouldPreventScrollOnFocus?: boolean;
     initialFocus?: FocusTrapOptions['initialFocus'];
+    isVisible: boolean;
 };
 
 function ModalComponent({type, shouldUseReanimatedModal, isVisible, shouldPreventScrollOnFocus, initialFocus, children, ...props}: ModalComponentProps) {
@@ -66,7 +67,7 @@ function ModalComponent({type, shouldUseReanimatedModal, isVisible, shouldPreven
             isVisible={isVisible}
         >
             <FocusTrapForModal
-                active={isVisible ?? false}
+                active={isVisible}
                 initialFocus={initialFocus}
                 shouldPreventScroll={shouldPreventScrollOnFocus}
             >

@@ -187,13 +187,14 @@ function ReanimatedModal({
         );
     }
     const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
+    const modalVisibility = isVisibleState || isTransitioning || isContainerOpen !== isVisibleState;
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
                 transparent
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
+                visible={modalVisibility}
                 onRequestClose={onBackButtonPress}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
@@ -217,7 +218,7 @@ function ReanimatedModal({
                     </KeyboardAvoidingView>
                 ) : (
                     <FocusTrapForModal
-                        active={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
+                        active={modalVisibility}
                         initialFocus={initialFocus}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
