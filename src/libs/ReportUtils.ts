@@ -2394,8 +2394,12 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
+                // If there is a manager assigned, only allow payment if the user is both an admin and the manager.
+                // Otherwise, if there is no reimburser and no manager, only allow payment if the user is an admin.
+                if (iouReport?.managerID) {
+                    return isAdmin && isManager;
+                }
                 return isAdmin;
             }
 
