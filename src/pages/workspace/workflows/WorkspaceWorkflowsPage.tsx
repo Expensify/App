@@ -261,8 +261,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             )}
                             <MenuItem
-                                title={shouldShowBankAccount ? addressName : translate('workflowsPage.connectBankAccount')}
-                                titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
+                                title={shouldShowBankAccount ? addressName : translate('bankAccount.addBankAccount')}
+                                titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (isAccountLocked) {
@@ -280,15 +280,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     }
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                 }}
-                                icon={shouldShowBankAccount ? bankIcon.icon : undefined}
-                                iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                iconStyles={bankIcon.iconStyles}
+                                icon={shouldShowBankAccount ? bankIcon.icon : Plus}
+                                iconHeight={shouldShowBankAccount ? (bankIcon.iconHeight ?? bankIcon.iconSize) : 20}
+                                iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
+                                iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                shouldShowRightIcon={!isOffline && isPolicyAdmin}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                displayInDefaultIconColor
+                                displayInDefaultIconColor={shouldShowBankAccount}
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                             {shouldShowBankAccount && (

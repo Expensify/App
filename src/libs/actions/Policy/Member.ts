@@ -1,7 +1,6 @@
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -63,17 +62,19 @@ Onyx.connect({
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
             const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpDrafts: Record<string, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpDrafts[reportID] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
+            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -874,20 +875,14 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
     });
 }
 
-function buildAddMembersToWorkspaceOnyxData(
-    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policyID: string,
-    policyMemberAccountIDs: number[],
-    role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-) {
+function buildAddMembersToWorkspaceOnyxData(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, policyID: string, policyMemberAccountIDs: number[], role: string) {
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     const adminRoomMembers = buildRoomMembersOnyxData(
@@ -974,20 +969,12 @@ function buildAddMembersToWorkspaceOnyxData(
  * Adds members to the specified workspace/policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function addMembersToWorkspace(
-    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    welcomeNote: string,
-    policyID: string,
-    policyMemberAccountIDs: number[],
-    role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policyID,
         policyMemberAccountIDs,
         role,
-        formatPhoneNumber,
     );
 
     const params: AddMembersToWorkspaceParams = {
