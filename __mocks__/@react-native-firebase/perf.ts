@@ -1,5 +1,4 @@
-type PerfMock = () => void;
+/* eslint-disable import/prefer-default-export */
+const getPerformance = jest.fn();
 
-const perfMock: PerfMock = () => {};
-
-export default perfMock;
+export {getPerformance};
