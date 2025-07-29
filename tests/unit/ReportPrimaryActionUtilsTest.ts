@@ -363,7 +363,7 @@ describe('getPrimaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as unknown as Report;
-        
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
