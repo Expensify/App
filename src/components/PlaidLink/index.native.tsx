@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useState} from 'react';
 import {NativeModules} from 'react-native';
 import type {LinkEvent} from 'react-native-plaid-link-sdk';
 import {dismissLink, openLink, usePlaidEmitter} from 'react-native-plaid-link-sdk';
@@ -10,16 +10,16 @@ import type PlaidLinkProps from './types';
 const {AppStateTracker} = NativeModules;
 
 function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: PlaidLinkProps) {
-    const plaidLinkStarted = useRef(false);
+    const [plaidLinkStarted, setPlaidLinkStarted] = useState(false);
     usePlaidEmitter((event: LinkEvent) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, {...event});
         onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
-        if (plaidLinkStarted.current) {
+        if (plaidLinkStarted) {
             return;
         }
-        plaidLinkStarted.current = true;
+        setPlaidLinkStarted(true);
 
         onEvent(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN);
         openLink({
@@ -36,7 +36,7 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
                 if (getPlatform() === CONST.PLATFORM.ANDROID) {
                     AppStateTracker.getWasAppRelaunchedFromIcon().then((wasAppRelaunchedFromIcon) => {
                         if (wasAppRelaunchedFromIcon) {
-                            plaidLinkStarted.current = false;
+                            setPlaidLinkStarted(false);
                             return;
                         }
                         onExit();
@@ -54,7 +54,7 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
 
         // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [plaidLinkStarted.current]);
+    }, [plaidLinkStarted]);
     return null;
 }
 
