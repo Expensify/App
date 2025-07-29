@@ -27,6 +27,7 @@ import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/nativ
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
+import {triggerListLayout} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -216,6 +217,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
+                triggerListLayout();
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
@@ -361,18 +363,22 @@ describe('Unread Indicators', () => {
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
-            .then(waitForBatchedUpdates)
-            .then(() => {
-                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-                // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
-                expect(displayNameTexts).toHaveLength(2);
-                expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
-                expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
-                expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
-            }));
+            // We need to wait for the "ReadNewestAction" API call to be triggered. After that,
+            // the previous report will be marked as read and the chat display name will be updated.
+            .then(() =>
+                waitFor(() => () => {
+                    act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                    // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
+                    const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
+
+                    expect(displayNameTexts).toHaveLength(2);
+                    expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
+                    expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
+                    expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                    expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
+                }),
+            ));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
@@ -507,6 +513,7 @@ describe('Unread Indicators', () => {
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOption(0))
+                .then(() => triggerListLayout())
                 .then(() => {
                     // Leave a comment as the current user
                     addComment(REPORT_ID, 'Current User Comment 1');
@@ -553,6 +560,7 @@ describe('Unread Indicators', () => {
         });
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
+        triggerListLayout();
 
         addComment(REPORT_ID, 'Comment 1');
 
