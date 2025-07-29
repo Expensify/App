@@ -2,7 +2,7 @@ import React from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
@@ -32,7 +32,10 @@ function PublicScreens() {
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
             <RootStack.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                options={defaultScreenOptions}
+                options={{
+                    ...defaultScreenOptions,
+                    animation: Animations.NONE,
+                }}
                 component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
             />
             <RootStack.Screen

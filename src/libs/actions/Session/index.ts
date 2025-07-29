@@ -57,7 +57,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
@@ -874,17 +873,7 @@ function clearSignInData() {
  */
 function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
-        navigationRef.navigate(
-            NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-            {
-                initial: true,
-                screen: SCREENS.HOME,
-                path: ROUTES.HOME,
-            },
-            {
-                pop: true,
-            },
-        );
+        navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]});
     });
 }
 

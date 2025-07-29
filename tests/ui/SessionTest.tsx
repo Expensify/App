@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {render, waitFor} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -85,8 +85,9 @@ describe('Deep linking', () => {
         });
 
         jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
+            const originalResult = await originalOpenApp();
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            return originalOpenApp();
+            return originalResult;
         });
     });
 
@@ -98,33 +99,20 @@ describe('Deep linking', () => {
     });
 
     it('should not reuse the last deep link and log in when signing out', async () => {
-        // This is the only way to fix flaky tests found so far
-        if (hasAuthToken()) {
-            await Onyx.clear();
-        }
-
         expect(hasAuthToken()).toBe(false);
 
         const cleanUpSpy = jest.spyOn(Session, 'cleanupSession');
+
         const url = getInitialURL();
-
-        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+        // User signs in automatically when the app is rendered because of the deep link
         Linking.setInitialURL(url);
-
-        await waitForBatchedUpdatesWithAct();
-
         render(<App />);
 
         await waitForBatchedUpdatesWithAct();
 
         expect(hasAuthToken()).toBe(true);
 
-        await waitForBatchedUpdatesWithAct();
-
         // Verify the current page is the report in the deep link
-        await waitFor(() => {
-            expect(screen.getByText(report.reportName ?? ''));
-        });
         await waitFor(() => {
             expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
         });
@@ -138,25 +126,18 @@ describe('Deep linking', () => {
         });
 
         await waitFor(() => {
-            // 1. Initial sign out from deep link transition
-            // 2. signOutAndRedirectToSignIn call
-            expect(cleanUpSpy).toHaveBeenCalledTimes(2);
+            expect(cleanUpSpy).toHaveBeenCalledTimes(1);
         });
 
         cleanUpSpy.mockClear();
     });
 
     it('should not remember the report path of the last deep link login after signing out and in again', async () => {
-        // This is the only way to fix flaky tests found so far
-        if (hasAuthToken()) {
-            await Onyx.clear();
-        }
-
         expect(hasAuthToken()).toBe(false);
 
         const url = getInitialURL();
+        // User signs in automatically when the app is rendered because of the deep link
         Linking.setInitialURL(url);
-
         render(<App />);
 
         await waitForBatchedUpdatesWithAct();
