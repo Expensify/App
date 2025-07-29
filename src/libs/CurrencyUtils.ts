@@ -3,10 +3,13 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency} from '@src/types/onyx';
+import {COMMON_CURRENCIES} from '@src/CONST/LOCALES';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
+
+const currencyFormatterCache = new Map<string, Intl.NumberFormat>();
+const CACHE_SIZE_LIMIT = 100;
 
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
@@ -29,11 +32,6 @@ Onyx.connect({
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
     return decimals ?? 2;
-}
-
-function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
-    const currencyItem = currencyList?.[currency];
-    return currencyItem;
 }
 
 /**
@@ -99,31 +97,53 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
 }
 
 /**
+ * Get a cached currency formatter for better performance
+ */
+function getCachedCurrencyFormatter(locale: string, currency: string, decimals: number): Intl.NumberFormat | undefined {
+    const key = `${locale}-${currency}`;
+
+    if (!currencyFormatterCache.has(key)) {
+        // Limit cache size to prevent memory issues
+        if (currencyFormatterCache.size >= CACHE_SIZE_LIMIT) {
+            // Remove oldest entries (first half of the cache)
+            const entriesToDelete = Array.from(currencyFormatterCache.keys()).slice(0, CACHE_SIZE_LIMIT / 2);
+            entriesToDelete.forEach(k => currencyFormatterCache.delete(k));
+        }
+
+        currencyFormatterCache.set(key, new Intl.NumberFormat(locale, {
+            style: 'currency',
+            currency,
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: Math.min(decimals, 2),
+        }));
+    }
+
+    return currencyFormatterCache.get(key);
+}
+
+/**
  * Given an amount in the "cents", convert it to a string for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)
  *
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    /**
-     * Fallback currency to USD if it empty string or undefined
-     */
-    let currencyWithFallback = currency;
-    if (!currency) {
-        currencyWithFallback = CONST.CURRENCY.USD;
-    }
-    return format(IntlStore.getCurrentLocale(), convertedAmount, {
-        style: 'currency',
-        currency: currencyWithFallback,
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string | undefined {
+    const currencyWithFallback = currency || CONST.CURRENCY.USD;
+    const amount = convertToFrontendAmountAsInteger(amountInCents, currencyWithFallback);
+    const decimals = getCurrencyDecimals(currencyWithFallback);
+    const locale = IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT;
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-        // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
-        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-        maximumFractionDigits: 2,
-    });
+    try {
+        // Use cached formatter for better performance while preserving locale
+        const formatter = getCachedCurrencyFormatter(locale, currencyWithFallback, decimals);
+        return formatter?.format(amount);
+    } catch (e) {
+        // Fallback to manual formatting if Intl fails
+        const symbol = getCurrencySymbol(currencyWithFallback) ?? currencyWithFallback;
+        const formatted = Math.abs(amount).toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
+    }
 }
 
 /**
@@ -133,17 +153,21 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string | undefined {
+    const currencyWithFallback = currency || CONST.CURRENCY.USD;
+    const amount = convertToFrontendAmountAsInteger(amountInCents, currencyWithFallback);
+    const locale = IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT;
 
-    return format(IntlStore.getCurrentLocale(), convertedAmount, {
-        style: 'currency',
-        currency,
-
-        // There will be no decimals displayed (e.g. $9)
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    });
+    try {
+        // Use cached formatter with 0 decimals
+        const formatter = getCachedCurrencyFormatter(locale, currencyWithFallback, 0);
+        return formatter?.format(amount);
+    } catch (e) {
+        // Fallback to manual formatting if Intl fails
+        const symbol = getCurrencySymbol(currencyWithFallback) ?? currencyWithFallback;
+        const formatted = Math.abs(amount).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
+    }
 }
 
 /**
@@ -163,24 +187,46 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
 }
 
 /**
+ * Get a cached number formatter (without currency) for better performance
+ */
+function getCachedNumberFormatter(locale: string, decimals: number): Intl.NumberFormat | undefined {
+    const key = `${locale}-number-${decimals}`;
+
+    if (!currencyFormatterCache.has(key)) {
+        // Limit cache size to prevent memory issues
+        if (currencyFormatterCache.size >= CACHE_SIZE_LIMIT) {
+            // Remove oldest entries (first half of the cache)
+            const entriesToDelete = Array.from(currencyFormatterCache.keys()).slice(0, CACHE_SIZE_LIMIT / 2);
+            entriesToDelete.forEach(k => currencyFormatterCache.delete(k));
+        }
+
+        currencyFormatterCache.set(key, new Intl.NumberFormat(locale, {
+            style: 'decimal',
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: Math.min(decimals, 2),
+        }));
+    }
+
+    return currencyFormatterCache.get(key);
+}
+
+/**
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
-        style: 'currency',
-        currency,
+    const amount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const decimals = getCurrencyDecimals(currency);
+    const locale = IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT;
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-        // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
-        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-        maximumFractionDigits: 2,
-    })
-        .filter((x) => x.type !== 'currency')
-        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
-        .map((x) => x.value)
-        .join('');
+    try {
+        // Use cached number formatter for locale-aware formatting without currency
+        const formatter = getCachedNumberFormatter(locale, decimals);
+        return formatter?.format(amount);
+    } catch (e) {
+        // Fallback to manual formatting if Intl fails
+        const formatted = Math.abs(amount).toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return `${amount < 0 ? '-' : ''}${formatted}`;
+    }
 }
 
 /**
@@ -193,6 +239,21 @@ function isValidCurrencyCode(currencyCode: string): boolean {
 
 function sanitizeCurrencyCode(currencyCode: string): string {
     return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
+}
+
+/**
+ * Pre-warm the formatter cache with common currency combinations
+ * This improves performance for frequently used currencies
+ */
+function prewarmCurrencyCache() {
+    const locale = IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT;
+
+    COMMON_CURRENCIES.forEach(currency => {
+        const decimals = getCurrencyDecimals(currency);
+        // Pre-create formatters for common currencies
+        getCachedCurrencyFormatter(locale, currency, decimals);
+        getCachedCurrencyFormatter(locale, currency, 0);
+    });
 }
 
 export {
@@ -208,6 +269,6 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    getCurrency,
     sanitizeCurrencyCode,
+    prewarmCurrencyCache,
 };

@@ -41,6 +41,8 @@ const LOCALES = {
     ...BETA_LOCALES,
 } as const;
 
+const COMMON_CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'CHF', 'INR', 'MXN'];
+
 /**
  * Locales that are valid translation targets. This does not include English, because it's used as the source of truth.
  */
@@ -86,6 +88,7 @@ export {
     EXTENDED_LOCALES,
     FULLY_SUPPORTED_LOCALES,
     LOCALES,
+    COMMON_CURRENCIES,
     LOCALE_TO_LANGUAGE_STRING,
     SORTED_LOCALES,
     TRANSLATION_TARGET_LOCALES,
