@@ -79,10 +79,11 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        isFullScreenRef.current = true;
         updateCurrentURLAndReportID(url, reportID);
-        videoViewRef.current?.enterFullscreen();
+
+        const result = videoViewRef.current?.enterFullscreen();
+        // eslint-disable-next-line react-compiler/react-compiler
+        result?.then(() => (isFullScreenRef.current = true)).catch(() => {});
     }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(
