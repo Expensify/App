@@ -10,11 +10,8 @@ import com.facebook.react.bridge.WritableMap;
 import androidx.annotation.NonNull;
 
 public class AppStateTrackerModule extends ReactContextBaseJavaModule {
-    private final ReactApplicationContext reactContext;
-
     public AppStateTrackerModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        this.reactContext = reactContext;
     }
 
     @Override
@@ -24,11 +21,13 @@ public class AppStateTrackerModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getApplicationState(Promise promise) {
-        MainApplication applicationContext = (MainApplication) this.reactContext.getApplicationContext();
-        WritableMap params = Arguments.createMap();
-        params.putString("currentState", applicationContext.getCurrentState());
-        params.putString("prevState", applicationContext.getPrevState());
-        promise.resolve(params);
+    public void getWasAppRelaunchedFromIcon(Promise promise) {
+        Activity activity = getCurrentActivity();
+        if (activity instanceof MainActivity) {
+            promise.resolve(activity.wasAppRelaunchedFromIcon);
+            activity.wasAppRelaunchedFromIcon = false;
+        } else {
+            promise.resolve(false);
+        }
     }
 }
