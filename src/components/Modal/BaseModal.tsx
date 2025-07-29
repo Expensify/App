@@ -42,7 +42,7 @@ type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     initialFocus?: FocusTrapOptions['initialFocus'];
 };
 
-function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
+function ModalComponent({type, shouldUseReanimatedModal, isVisible, shouldPreventScrollOnFocus, initialFocus, children, ...props}: ModalComponentProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
         return (
@@ -50,12 +50,30 @@ function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalCompone
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as ReanimatedModalProps)}
                 type={type}
-            />
+                isVisible={isVisible}
+                shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
+                initialFocus={initialFocus}
+            >
+                {children}
+            </ReanimatedModal>
         );
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
+    return (
+        <ReactNativeModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...(props as ReactNativeModalProps)}
+            isVisible={isVisible}
+        >
+            <FocusTrapForModal
+                active={isVisible ?? false}
+                initialFocus={initialFocus}
+                shouldPreventScroll={shouldPreventScrollOnFocus}
+            >
+                {children}
+            </FocusTrapForModal>
+        </ReactNativeModal>
+    );
 }
 
 function BaseModal(
@@ -413,28 +431,13 @@ function BaseModal(
                             onModalWillShow={saveFocusState}
                             onDismiss={handleDismissModal}
                         >
-                            {type && !REANIMATED_MODAL_TYPES.includes(type) && !shouldUseReanimatedModal ? (
-                                <FocusTrapForModal
-                                    active={isVisible}
-                                    initialFocus={initialFocus}
-                                    shouldPreventScroll={shouldPreventScrollOnFocus}
-                                >
-                                    <Animated.View
-                                        style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
-                                        ref={ref}
-                                    >
-                                        <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                                    </Animated.View>
-                                </FocusTrapForModal>
-                            ) : (
-                                <Animated.View
-                                    onLayout={onViewLayout}
-                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
-                                    ref={ref}
-                                >
-                                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                                </Animated.View>
-                            )}
+                            <Animated.View
+                                onLayout={onViewLayout}
+                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
+                                ref={ref}
+                            >
+                                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                            </Animated.View>
                         </ModalContent>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ModalComponent>
