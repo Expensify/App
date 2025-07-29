@@ -575,10 +575,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
 
-        if (hasErrors && currentRoute === '/') {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+        if ((hasErrors || !searchResults) && currentRoute === '/') {
+            requestAnimationFrame(() => {
+                Navigation.setParams({q: buildCannedSearchQuery()});
+            });
         }
-    }, [hasErrors]);
+    }, [hasErrors, queryJSON, searchResults]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
