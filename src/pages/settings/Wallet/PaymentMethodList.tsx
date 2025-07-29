@@ -170,6 +170,10 @@ function keyExtractor(item: PaymentMethod) {
     return item.key ?? '';
 }
 
+function isAccountInSetupState(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
+}
+
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
@@ -196,7 +200,10 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
 
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => account?.validated,
+        canBeMissing: true,
+    });
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
@@ -410,6 +417,21 @@ function PaymentMethodList({
         [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
     );
 
+    const getBadgeText = useCallback(
+        (item: PaymentMethodItem) => {
+            if (isAccountInSetupState(item)) {
+                return translate('common.actionRequired');
+            }
+            return shouldShowDefaultBadge(
+                filteredPaymentMethods,
+                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+            )
+                ? translate('paymentMethodList.defaultPaymentMethod')
+                : undefined;
+        },
+        [filteredPaymentMethods, invoiceTransferBankAccountID, translate, userWallet?.walletLinkedAccountID],
+    );
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -434,14 +456,9 @@ function PaymentMethodList({
                     iconHeight={item.iconHeight ?? item.iconSize}
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
-                    badgeText={
-                        shouldShowDefaultBadge(
-                            filteredPaymentMethods,
-                            invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
-                        )
-                            ? translate('paymentMethodList.defaultPaymentMethod')
-                            : undefined
-                    }
+                    badgeText={getBadgeText(item)}
+                    badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
+                    badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}

@@ -78,6 +78,12 @@ type MenuItemBaseProps = {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
 
+    /** Icon to display on the left side of component */
+    badgeIcon?: IconAsset;
+
+    /** Whether the badge should be shown as success */
+    badgeSuccess?: boolean;
+
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
 
@@ -398,6 +404,8 @@ function MenuItem(
         interactive = true,
         onPress,
         badgeText,
+        badgeIcon,
+        badgeSuccess,
         style,
         wrapperStyle,
         titleWrapperStyle,
@@ -901,7 +909,9 @@ function MenuItem(
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
+                                                        icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
+                                                        success={badgeSuccess}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
