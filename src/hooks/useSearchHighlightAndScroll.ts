@@ -76,7 +76,7 @@ function useSearchHighlightAndScroll({
 
         const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
-        const hasTransactionsIDsChange = transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionsIDs.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
