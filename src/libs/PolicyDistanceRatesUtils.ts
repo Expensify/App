@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CustomUnit, Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as ErrorUtils from './ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {translateLocal} from './Localize';
 import {replaceAllDigits} from './MoneyRequestUtils';
@@ -103,7 +103,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {[fieldName]: null},
-                errorFields: {[fieldName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                errorFields: {[fieldName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
