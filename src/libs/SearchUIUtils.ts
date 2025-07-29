@@ -221,6 +221,10 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
+type RNVPArchivedOnly = Pick<OnyxTypes.ReportNameValuePairs, 'private_isArchived'>;
+
+type ReportNameValuePairsArchivedMap = Record<string, RNVPArchivedOnly | undefined>;
+
 /**
  * Returns a list of all possible searches in the LHN, along with their query & hash.
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
@@ -1010,7 +1014,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data'], reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], reportNameValuePairs?: ReportNameValuePairsArchivedMap): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1263,7 +1267,7 @@ function getSections(
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
+    reportNameValuePairs?: ReportNameValuePairsArchivedMap,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1782,4 +1786,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ReportNameValuePairsArchivedMap, RNVPArchivedOnly};
