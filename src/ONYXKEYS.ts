@@ -598,7 +598,6 @@ const ONYXKEYS = {
         SKIP_CONFIRMATION: 'skipConfirmation_',
         TRANSACTION_BACKUP: 'transactionsBackup_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
-        // Stores information about merge transaction data
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
