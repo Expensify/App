@@ -7,7 +7,7 @@ import type {IntroSelected} from './actions/Report';
 import {completeTestDriveTask} from './actions/Task';
 import Navigation from './Navigation/Navigation';
 
-function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected?: IntroSelected) {
+function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected?: IntroSelected): string {
     if (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE) {
         return shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_TOUR_MOBILE : CONST.STORYLANE.EMPLOYEE_TOUR;
     }
@@ -19,9 +19,16 @@ function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected?: IntroSe
     return shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_TOUR_MOBILE : CONST.STORYLANE.ADMIN_TOUR;
 }
 
-function startTestDrive(introSelected: IntroSelected | undefined, viewTourReport: OnyxEntry<Report>, viewTourReportID: string | undefined, shouldUpdateSelfTourViewedOnlyLocally = false) {
+function startTestDrive(
+    introSelected: IntroSelected | undefined,
+    viewTourReport: OnyxEntry<Report>,
+    viewTourReportID: string | undefined,
+    shouldUpdateSelfTourViewedOnlyLocally = false,
+    hasUserBeenAddedToNudgeMigration = false,
+) {
     InteractionManager.runAfterInteractions(() => {
         if (
+            hasUserBeenAddedToNudgeMigration ||
             introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||

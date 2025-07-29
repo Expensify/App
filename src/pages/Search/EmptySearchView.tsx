@@ -30,7 +30,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -90,6 +90,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
     });
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -197,7 +198,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(introSelected, viewTourReport, viewTourReportID);
+            startTestDrive(introSelected, viewTourReport, viewTourReportID, false, tryNewDot?.hasBeenAddedToNudgeMigration);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -372,6 +373,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         viewTourReport,
         viewTourReportID,
         transactions,
+        tryNewDot?.hasBeenAddedToNudgeMigration,
     ]);
 
     return (
