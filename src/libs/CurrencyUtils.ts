@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import {COMMON_CURRENCIES} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {COMMON_CURRENCIES} from '@src/CONST/LOCALES';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -107,15 +107,18 @@ function getCachedCurrencyFormatter(locale: string, currency: string, decimals: 
         if (currencyFormatterCache.size >= CACHE_SIZE_LIMIT) {
             // Remove oldest entries (first half of the cache)
             const entriesToDelete = Array.from(currencyFormatterCache.keys()).slice(0, CACHE_SIZE_LIMIT / 2);
-            entriesToDelete.forEach(k => currencyFormatterCache.delete(k));
+            entriesToDelete.forEach((k) => currencyFormatterCache.delete(k));
         }
 
-        currencyFormatterCache.set(key, new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency,
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: Math.min(decimals, 2),
-        }));
+        currencyFormatterCache.set(
+            key,
+            new Intl.NumberFormat(locale, {
+                style: 'currency',
+                currency,
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: Math.min(decimals, 2),
+            }),
+        );
     }
 
     return currencyFormatterCache.get(key);
@@ -141,7 +144,9 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     } catch (e) {
         // Fallback to manual formatting if Intl fails
         const symbol = getCurrencySymbol(currencyWithFallback) ?? currencyWithFallback;
-        const formatted = Math.abs(amount).toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const formatted = Math.abs(amount)
+            .toFixed(decimals)
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
     }
 }
@@ -165,7 +170,9 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
     } catch (e) {
         // Fallback to manual formatting if Intl fails
         const symbol = getCurrencySymbol(currencyWithFallback) ?? currencyWithFallback;
-        const formatted = Math.abs(amount).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const formatted = Math.abs(amount)
+            .toFixed(0)
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
     }
 }
@@ -197,14 +204,17 @@ function getCachedNumberFormatter(locale: string, decimals: number): Intl.Number
         if (currencyFormatterCache.size >= CACHE_SIZE_LIMIT) {
             // Remove oldest entries (first half of the cache)
             const entriesToDelete = Array.from(currencyFormatterCache.keys()).slice(0, CACHE_SIZE_LIMIT / 2);
-            entriesToDelete.forEach(k => currencyFormatterCache.delete(k));
+            entriesToDelete.forEach((k) => currencyFormatterCache.delete(k));
         }
 
-        currencyFormatterCache.set(key, new Intl.NumberFormat(locale, {
-            style: 'decimal',
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: Math.min(decimals, 2),
-        }));
+        currencyFormatterCache.set(
+            key,
+            new Intl.NumberFormat(locale, {
+                style: 'decimal',
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: Math.min(decimals, 2),
+            }),
+        );
     }
 
     return currencyFormatterCache.get(key);
@@ -224,7 +234,9 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         return formatter?.format(amount);
     } catch (e) {
         // Fallback to manual formatting if Intl fails
-        const formatted = Math.abs(amount).toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const formatted = Math.abs(amount)
+            .toFixed(decimals)
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         return `${amount < 0 ? '-' : ''}${formatted}`;
     }
 }
@@ -248,7 +260,7 @@ function sanitizeCurrencyCode(currencyCode: string): string {
 function prewarmCurrencyCache() {
     const locale = IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT;
 
-    COMMON_CURRENCIES.forEach(currency => {
+    COMMON_CURRENCIES.forEach((currency) => {
         const decimals = getCurrencyDecimals(currency);
         // Pre-create formatters for common currencies
         getCachedCurrencyFormatter(locale, currency, decimals);
