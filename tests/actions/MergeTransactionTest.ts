@@ -373,12 +373,12 @@ describe('setupMergeTransactionData', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    it('should initialize merge transaction data with target transaction ID', async () => {
+    it('should set merge transaction data with initial values', async () => {
         // Given a transaction ID
         const transactionID = 'test-transaction-123';
 
         // When we setup merge transaction data
-        setupMergeTransactionData(transactionID);
+        setupMergeTransactionData(transactionID, {targetTransactionID: transactionID});
         await waitForBatchedUpdates();
 
         // Then merge transaction should be created with the target transaction ID

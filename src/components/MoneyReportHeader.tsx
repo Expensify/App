@@ -859,7 +859,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setupMergeTransactionData(currentTransaction.transactionID);
+                setupMergeTransactionData(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getReportRHPActiveRoute()));
             },
         },

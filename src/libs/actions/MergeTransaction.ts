@@ -13,8 +13,8 @@ import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/ony
 /**
  * Setup merge transaction data for merging flow
  */
-function setupMergeTransactionData(transactionID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
+function setupMergeTransactionData(transactionID: string, values: Partial<MergeTransaction>) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
 }
 
 /**

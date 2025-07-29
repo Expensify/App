@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource, getSourceTransaction, selectTargetAndSourceTransactionIDsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -72,11 +72,14 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
-            setMergeTransactionKey(transactionID, {
+            // Clear the merge transaction data when select a new source transaction to merge
+            setupMergeTransactionData(transactionID, {
+                targetTransactionID: transactionID,
                 sourceTransactionID: item.transactionID,
+                eligibleTransactions: mergeTransaction?.eligibleTransactions,
             });
         },
-        [transactionID],
+        [mergeTransaction, transactionID],
     );
 
     const headerContent = useMemo(

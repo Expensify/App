@@ -253,7 +253,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                setupMergeTransactionData(transaction.transactionID);
+                setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getReportRHPActiveRoute()));
             },
         },

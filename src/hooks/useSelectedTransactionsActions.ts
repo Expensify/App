@@ -229,7 +229,7 @@ function useSelectedTransactionsActions({
                         return;
                     }
 
-                    setupMergeTransactionData(targetTransaction.transactionID);
+                    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction.transactionID});
                     Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getReportRHPActiveRoute()));
                 },
             });
