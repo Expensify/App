@@ -1163,11 +1163,11 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
 /**
  * Selector function to group reports by policy ID for reports that are:
  * - Expense reports
- * - Owned by the same user
+ * - Owned by the ownerAccountID
  * - Are either open or submitted
  * - Belong to a workspace
  */
-const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>, accountID?: number): ReportByPolicyMap => {
+const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>, ownerAccountID?: number): ReportByPolicyMap => {
     return Object.entries(reports ?? {}).reduce<ReportByPolicyMap>((acc, [reportID, report]) => {
         if (!report) {
             return acc;
@@ -1175,11 +1175,11 @@ const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>, accountID?: 
 
         // Get all reports, which are the ones that are:
         // - Expense reports
-        // - Owned by the same user
+        // - Owned by the ownerAccountID
         // - Are either open or submitted
         // - Belong to a workspace
         // This condition is similar to reportsByPolicyID and getOutstandingReportsForUser function
-        if (isExpenseReport(report) && report.policyID && report.ownerAccountID === accountID && (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED) {
+        if (isExpenseReport(report) && report.policyID && report.ownerAccountID === ownerAccountID && (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED) {
             if (!acc[report.policyID]) {
                 acc[report.policyID] = {};
             }
@@ -4284,9 +4284,9 @@ function canEditFieldOfMoneyRequest(
         }
         const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
 
-        // Based on the getOutstandingReportsForUser below, expenses can be edited by the submitter
-        // So we are early return here to prevent unnecessary loop
-        if (!isUnreportedExpense && !isSubmitter) {
+        // If the report is Open, then only submitters, admins can move expenses
+        const isOpen = isOpenExpenseReport(moneyRequestReport);
+        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
 

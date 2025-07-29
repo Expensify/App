@@ -7,8 +7,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, getPolicyName, reportsByPolicyIDSelector, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOutstandingReportsForUser, getPolicyName, isOpenReport, isReportOwner, reportsByPolicyIDSelector, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -33,11 +35,15 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const reportOwnerAccountID = useMemo(
+        () => transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+        [transactionsReports, currentUserPersonalDetails.accountID],
+    );
     const [reportsByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => reportsByPolicyIDSelector(reports, currentUserPersonalDetails.accountID),
+        selector: (reports) => reportsByPolicyIDSelector(reports, reportOwnerAccountID),
         canBeMissing: true,
     });
-
+    const reportPolicy = usePolicy(transactionsReports.at(0)?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
@@ -53,16 +59,11 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                 return [];
             }
-            const reports = getOutstandingReportsForUser(
-                policyID,
-                transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                reportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                reportNameValuePairs,
-            );
+            const reports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, reportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs);
 
             return reports;
         });
-    }, [reportsByPolicyID, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps]);
+    }, [reportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
@@ -95,6 +96,24 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(() => {
+        if (expenseReports.length === 0) {
+            return true;
+        }
+
+        const transactionReport = transactionsReports.at(0);
+        if (!transactionReport) {
+            return false;
+        }
+
+        const isAdmin = isPolicyAdmin(reportPolicy);
+        const isOpen = isOpenReport(transactionReport);
+        const isSubmitter = isReportOwner(transactionReport);
+        // If the report is Open, then only submitters, admins can move expenses
+        return isOpen && !isAdmin && !isSubmitter;
+    }, [transactionsReports, reportPolicy, expenseReports.length]);
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.report')}
@@ -102,7 +121,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             shouldShowWrapper
             testID="IOURequestEditReportCommon"
             includeSafeAreaPaddingBottom
-            shouldShowNotFoundPage={expenseReports.length === 0}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}

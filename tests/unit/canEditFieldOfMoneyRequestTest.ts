@@ -194,11 +194,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(true);
             });
 
-            it('should return false when the current user is not the submitter', async () => {
+            it('should return false when the current user is not the submitter or admin and the report is open', async () => {
                 // Given that there are outstanding expense reports but the current user is not the submitter
                 const nonSubmitterExpenseReport = {
                     ...expenseReport,
                     ownerAccountID: EXPENSE_NON_SUBMITTER_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, nonSubmitterExpenseReport);
@@ -206,10 +208,10 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
                 await waitForBatchedUpdates();
 
-                // When a non-submitter tries to move an expense between reports
+                // When a user tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
 
-                // Then they should not be able to move the expense since they are not the submitter
+                // Then they should not be able to move the expense since only the submitter or admin can edit the report when the report is open
                 expect(canEditReportField).toBe(false);
             });
 
