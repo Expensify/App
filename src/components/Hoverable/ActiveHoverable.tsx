@@ -85,9 +85,10 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     const prevIsModalVisible = usePrevious(isModalVisible);
 
     useEffect(() => {
-        if (isModalVisible && !prevIsModalVisible) {
-            setIsHovered(false);
+        if (!isModalVisible || prevIsModalVisible) {
+            return;
         }
+        setIsHovered(false);
     }, [isModalVisible]);
 
     const handleMouseEvents = useCallback(
