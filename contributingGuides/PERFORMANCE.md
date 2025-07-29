@@ -90,10 +90,7 @@ React Native uses the [Hermes](https://reactnative.dev/docs/hermes) JavaScript e
    - Open [SpeedScope](https://www.speedscope.app/) and upload the trace
    - Analyze the trace
 
-<video controls>
-   <source src="assets/videos/js-profiler.mov" type="video/mp4">
-   Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/fe00da26-af07-4ea1-bd92-2dbe06c4bdad
 
 #### Important Notes:
 - For more accurate performance data, prefer release builds when possible
@@ -176,10 +173,7 @@ curl https://get.flashlight.dev | bash
 
 You can run the same flow multiple times and record a measurements for each run. Once you download the report, you can later see an average results for all the runs.
 
-<video controls>
-   <source src="assets/videos/flashlight.mov" type="video/mp4">
-   Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/e024a1df-4b42-422e-affd-1c80a95dfe94
 
 #### Comparing Results:
 
@@ -227,10 +221,7 @@ The React DevTools Profiler provides React-specific performance insights and is 
    - Click on components to see why they rendered
    - Look for components with high render times or frequent re-renders
 
-<video controls>
-   <source src="assets/videos/react-devtools.mov" type="video/mp4">
-   Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/d1047706-1143-4860-9541-0487503b4041
 
 #### Key Metrics to Focus On:
 - **Commit duration:** Total time for a render cycle
@@ -256,10 +247,7 @@ React DevTools includes a built-in feature to visually highlight components when
 - Under "General" tab, enable "Highlight updates when components render"
 - Components will be highlighted with colored borders when they update
 
-<video controls>
-   <source src="assets/videos/highlight-rerenders.mov" type="video/mp4">
-   Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/4c3da04d-87a1-411f-a93b-2b146c115ad5
 
 #### React Scan
 
@@ -270,10 +258,7 @@ React DevTools includes a built-in feature to visually highlight components when
 npx react-scan https://localhost:8082
 ```
 
-<video controls>
-   <source src="assets/videos/react-scan.mov" type="video/mp4">
-   Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/39e8514a-caac-4296-b837-b986e088fa9a
 
 You need to have the web server running. The app will open in a separate browser window.
 
