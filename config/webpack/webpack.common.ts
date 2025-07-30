@@ -68,7 +68,6 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  * Get a production grade config for web or desktop
  */
 const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => {
-    // Determine if this is a development build
     const isDevelopment = file === '.env' || file === '.env.development';
     
     return {

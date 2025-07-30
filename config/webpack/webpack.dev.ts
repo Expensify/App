@@ -7,6 +7,7 @@ import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
 import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
+import ForceGarbageCollectionPlugin from './ForceGarbageCollectionPlugin';
 import type Environment from './types';
 import getCommonConfiguration from './webpack.common';
 
@@ -65,38 +66,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     'process.env.NODE_ENV': JSON.stringify('development'),
                 }),
                 new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'wss'}}),
-                // Custom plugin to force garbage collection every 5 compilations
-                {
-                    apply(compiler) {
-                        let compilationCount = 0;
-                        if (gc && typeof gc === 'function') {
-                            compiler.hooks.done.tap('ForceGCEvery5Compilations', () => {
-                                compilationCount++;
-                                
-                                // Log memory usage every compilation
-                                const memUsage = process.memoryUsage();
-                                const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
-                                const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
-                                
-                                // eslint-disable-next-line no-console
-                                console.log(`📊 Compilation #${compilationCount} - Heap: ${heapUsedMB}MB/${heapTotalMB}MB`);
-                                
-                                if (compilationCount % 5 === 0) {
-                                    // eslint-disable-next-line no-console
-                                    console.log(`🗑️  Forcing garbage collection after ${compilationCount} compilations`);
-                                    // @ts-expect-error - gc is a global function provided by Node.js when --expose-gc is used
-                                    gc();
-                                    
-                                    // Log memory after GC
-                                    const memAfterGC = process.memoryUsage();
-                                    const heapAfterMB = Math.round(memAfterGC.heapUsed / 1024 / 1024);
-                                    // eslint-disable-next-line no-console
-                                    console.log(`✅ Post-GC heap: ${heapAfterMB}MB (freed ${heapUsedMB - heapAfterMB}MB)`);
-                                }
-                            });
-                        }
-                    },
-                },
+                new ForceGarbageCollectionPlugin(),
             ],
             // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
             // where Pager is imported without extension due to having platform-specific implementations

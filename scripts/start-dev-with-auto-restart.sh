@@ -2,7 +2,9 @@
 
 # Auto-restart webpack-dev-server on memory crashes
 # This script monitors for heap out of memory errors and automatically restarts
+# Usage: ./start-dev-with-auto-restart.sh [webpack-dev-server arguments]
 
+WDS_ARGS="$@"
 MAX_RESTARTS=10
 RESTART_COUNT=0
 RESTART_DELAY=1
@@ -10,7 +12,7 @@ RESTART_DELAY=1
 echo "🚀 Starting webpack-dev-server with auto-restart (max restarts: $MAX_RESTARTS)"
 
 run_wds () {
-    node --expose-gc "$(npm root)/webpack-dev-server/bin/webpack-dev-server.js" $1 --config config/webpack/webpack.dev.ts
+    node --expose-gc ./node_modules/.bin/webpack-dev-server $1 $WDS_ARGS --config config/webpack/webpack.dev.ts
 }
 
 while [ $RESTART_COUNT -lt $MAX_RESTARTS ]; do
@@ -24,14 +26,13 @@ while [ $RESTART_COUNT -lt $MAX_RESTARTS ]; do
     
     # Capture exit code
     EXIT_CODE=$?
-    
     # Check if it was a memory-related crash
     if [ $EXIT_CODE -eq 134 ] || [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 139 ]; then
         echo "💥 Memory crash detected (exit code: $EXIT_CODE)"
         RESTART_COUNT=$((RESTART_COUNT + 1))
         
         if [ $RESTART_COUNT -lt $MAX_RESTARTS ]; then
-            echo "🔄 Auto-restarting in $RESTART_DELAY seconds... (restart #$RESTART_COUNT)"
+            echo "🔄 Auto-restarting... (restart #$RESTART_COUNT)"
             sleep $RESTART_DELAY
         else
             echo "❌ Max restarts reached ($MAX_RESTARTS). Exiting."
