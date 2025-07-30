@@ -8,6 +8,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidMoneyRequestType, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,6 +69,7 @@ function IOURequestStepDate({
     const canEditingSplitBill = isEditingSplit && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditSplitExpense = isSplitExpense && !!transaction;
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFound = false;
