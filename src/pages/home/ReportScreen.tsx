@@ -76,7 +76,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearDeleteTransactionNavigateBackUrl,
@@ -101,7 +101,9 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext} from './ReportScreenContext';
 
-type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
 
 type ReportScreenProps = ReportScreenNavigationProps;
 
@@ -141,6 +143,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
@@ -180,6 +183,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             if (reportActionID && !isValidReportActionID) {
                 Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
             }
+            return;
+        }
+
+        if (isReportInRHP) {
             return;
         }
 
@@ -486,15 +493,17 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
+        if (!isReportInRHP) {
+            const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
-        // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail && !report) {
-            const iouReport = getReportOrDraftReport(iouReportID);
-            const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
-            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, transactionID);
+            // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
+            // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
+            if (transactionID && currentUserEmail && !report) {
+                const iouReport = getReportOrDraftReport(iouReportID);
+                const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
+                const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
+                openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, transactionID);
+            }
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
@@ -514,6 +523,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         report,
         isOffline,
         route.params,
+        isReportInRHP,
         currentUserEmail,
         reportIDFromRoute,
         reportActionIDFromRoute,

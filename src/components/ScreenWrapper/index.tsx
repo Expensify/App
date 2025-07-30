@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RootNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
          *
          * This is required because transitionEnd event doesn't trigger in the testing environment.
          */
-        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
+        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList> | PlatformStackNavigationProp<SearchReportParamList>;
 
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
