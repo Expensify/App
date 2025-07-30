@@ -3,15 +3,12 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
-import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportActionAvatars, isChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed, ReportAction} from '@src/types/onyx';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
+import useReportActionAvatars from './useReportActionAvatars';
 
 type ReportActionAvatarsProps = {
     horizontalStacking?: HorizontalStacking | boolean;
@@ -55,7 +52,7 @@ type ReportActionAvatarsProps = {
 
 function ReportActionAvatars({
     reportID: potentialReportID,
-    action: passedAction,
+    action,
     accountIDs: passedAccountIDs = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
@@ -72,44 +69,23 @@ function ReportActionAvatars({
 
     const reportID =
         potentialReportID ??
-        ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === passedAction?.actionName) ? passedAction?.childReportID : undefined);
+        ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === action?.actionName) ? action?.childReportID : undefined);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-
-    const [potentialChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
-
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-    });
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
-    const iouReport = isChatReport(report) && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM ? undefined : report;
-    const chatReport = isChatReport(report) && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM ? report : potentialChatReport;
-
-    const action = passedAction ?? (iouReport?.parentReportActionID ? getReportAction(chatReport?.reportID ?? iouReport?.chatReportID, iouReport?.parentReportActionID) : undefined);
-
-    const reportPreviewSenderID = useReportPreviewSenderID({action, iouReport, chatReport});
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
     const {isHovered = false} = isHorizontalStackingAnObject ? horizontalStacking : {};
 
-    // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
-    const isReportArchived = useReportIsArchived(reportID);
-
     const {
         avatarType: notPreciseAvatarType,
-        icons,
-        delegateAccountID,
-    } = getReportActionAvatars({
-        chatReport,
-        iouReport,
+        avatars: icons,
+        details: {delegateAccountID},
+        source,
+    } = useReportActionAvatars({
+        report,
         action,
-        personalDetails,
-        reportPreviewSenderID,
-        policies,
         shouldStackHorizontally,
-        isReportArchived,
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
     });
@@ -149,7 +125,6 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
-                personalDetails={personalDetails}
             />
         );
     }
@@ -175,7 +150,7 @@ function ReportActionAvatars({
             containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
             shouldShowTooltip={shouldShowTooltip}
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            delegateAccountID={action?.delegateAccountID}
+            delegateAccountID={source.action?.delegateAccountID}
             fallbackIcon={primaryAvatar.fallbackIcon}
         />
     );

@@ -5,12 +5,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,9 +17,8 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
-import {getReportActionAvatars, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -81,51 +78,14 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT;
+    const {avatarType, avatars, details, source} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
 
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const reportID = source.chatReport?.reportID;
+    const iouReportID = source.iouReport?.reportID;
 
-    const chatReport = isReportAChatReport ? report : reportChatReport;
-    const iouReport = potentialIOUReport ?? (!isReportAChatReport ? report : undefined);
+    const [primaryAvatar, secondaryAvatar] = avatars;
 
-    const reportID = chatReport?.reportID;
-    const iouReportID = iouReport?.reportID;
-
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-    });
-
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
-    const reportPreviewSenderID = useReportPreviewSenderID({
-        iouReport,
-        action,
-        chatReport,
-    });
-
-    const isReportArchived = useReportIsArchived(iouReportID);
-
-    const {
-        avatarType,
-        icons: [primaryAvatar, secondaryAvatar],
-        delegateAccountID,
-        accountID,
-        actorHint,
-        shouldDisplayAllActors,
-        isWorkspaceActor,
-    } = getReportActionAvatars({
-        chatReport,
-        iouReport,
-        action,
-        personalDetails,
-        reportPreviewSenderID,
-        policies,
-        isReportArchived,
-    });
-
-    const {login, pendingFields, status} = personalDetails?.[accountID] ?? {};
-
-    const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
+    const accountOwnerDetails = getPersonalDetailByEmail(details.login ?? '');
 
     const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
@@ -142,23 +102,23 @@ function ReportActionItemSingle({
         : action?.person;
 
     const showActorDetails = useCallback(() => {
-        if (isWorkspaceActor) {
+        if (details.isWorkspaceActor) {
             showWorkspaceDetails(reportID);
         } else {
             // Show participants page IOU report preview
-            if (iouReportID && shouldDisplayAllActors) {
+            if (iouReportID && details.shouldDisplayAllActors) {
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
                 return;
             }
             showUserDetails(Number(primaryAvatar.id));
         }
-    }, [isWorkspaceActor, reportID, iouReportID, shouldDisplayAllActors, primaryAvatar.id]);
+    }, [details.isWorkspaceActor, reportID, iouReportID, details.shouldDisplayAllActors, primaryAvatar.id]);
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (accountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action, isWorkspaceActor, accountID],
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
+            (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID))),
+        [action, details.isWorkspaceActor, details.accountID],
     );
 
     const getBackgroundColor = () => {
@@ -171,9 +131,9 @@ function ReportActionItemSingle({
         return theme.sidebar;
     };
 
-    const hasEmojiStatus = !shouldDisplayAllActors && status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
-    const statusText = status?.text ?? '';
+    const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
+    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '');
+    const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
     return (
@@ -184,10 +144,10 @@ function ReportActionItemSingle({
                 onPressOut={ControlSelection.unblock}
                 onPress={showActorDetails}
                 disabled={shouldDisableDetailPage}
-                accessibilityLabel={actorHint}
+                accessibilityLabel={details.actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>
+                <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
                         singleAvatarContainerStyle={[styles.actionAvatar]}
                         subscriptAvatarBorderColor={getBackgroundColor()}
@@ -212,14 +172,14 @@ function ReportActionItemSingle({
                             onPressOut={ControlSelection.unblock}
                             onPress={showActorDetails}
                             disabled={shouldDisableDetailPage}
-                            accessibilityLabel={actorHint}
+                            accessibilityLabel={details.actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={Number(details.delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
@@ -234,7 +194,7 @@ function ReportActionItemSingle({
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${status?.emojiCode}`}</Text>
+                                >{`${details.status?.emojiCode}`}</Text>
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />
