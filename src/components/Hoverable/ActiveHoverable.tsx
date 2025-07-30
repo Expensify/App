@@ -89,7 +89,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
             return;
         }
         setIsHovered(false);
-    }, [isModalVisible]);
+    }, [isModalVisible, prevIsModalVisible]);
 
     const handleMouseEvents = useCallback(
         (type: 'enter' | 'leave') => () => {
