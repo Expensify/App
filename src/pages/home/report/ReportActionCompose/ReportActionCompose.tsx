@@ -7,8 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import ConfirmModal from '@components/ConfirmModal';
-import AttachmentComposerModal from '@components/AttachmentComposerModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
@@ -76,7 +74,6 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
-import usePermissions from '@hooks/usePermissions';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -581,6 +578,18 @@ function ReportActionCompose({
             }
         }
 
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+        if (files.length === 0) {
+            return;
+        }
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+        });
+
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
+    };
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -606,6 +615,7 @@ function ReportActionCompose({
                             !!exceededMaxLength && styles.borderColorDanger,
                         ]}
                     >
+                        {PDFValidationComponent}
                         <AttachmentPickerWithMenuItems
                             onAttachmentPicked={showAttachmentModalScreen}
                             reportID={reportID}
@@ -664,25 +674,25 @@ function ReportActionCompose({
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
                         />
-                                       {shouldDisplayDualDropZone && (
-                                            <DualDropZone
-                                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                                onAttachmentDrop={handleAttachmentDrop}
-                                                onReceiptDrop={handleAddingReceipt}
-                                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
-                                            />
-                                        )}
-                                        {!shouldDisplayDualDropZone && (
-                                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
-                                                <DropZoneUI
-                                                    icon={Expensicons.MessageInABottle}
-                                                    dropTitle={translate('dropzone.addAttachments')}
-                                                    dropStyles={styles.attachmentDropOverlay(true)}
-                                                    dropTextStyles={styles.attachmentDropText}
-                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
-                                                />
-                                            </DragAndDropConsumer>
-                                        )}
+                        {shouldDisplayDualDropZone && (
+                            <DualDropZone
+                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
+                                onAttachmentDrop={handleAttachmentDrop}
+                                onReceiptDrop={handleAddingReceipt}
+                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
+                            />
+                        )}
+                        {!shouldDisplayDualDropZone && (
+                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
+                                <DropZoneUI
+                                    icon={Expensicons.MessageInABottle}
+                                    dropTitle={translate('dropzone.addAttachments')}
+                                    dropStyles={styles.attachmentDropOverlay(true)}
+                                    dropTextStyles={styles.attachmentDropText}
+                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
+                                />
+                            </DragAndDropConsumer>
+                        )}
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
