@@ -102,7 +102,7 @@ function MoneyRequestParticipantsSelector(
     }: MoneyRequestParticipantsSelectorProps,
     ref: Ref<InputFocusRef>,
 ) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
@@ -139,10 +139,10 @@ function MoneyRequestParticipantsSelector(
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
+            const usersFromContact = getContacts(contactList, localeCompare);
             setContacts(usersFromContact);
         });
-    }, []);
+    }, [localeCompare]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
