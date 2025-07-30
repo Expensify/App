@@ -5,9 +5,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
 describe('PersonalDetailsUtils', () => {
-    beforeAll(async () => {
-        await Onyx.merge(ONYXKEYS.COUNTRY_CODE, 1);
-    });
 
     describe('getEffectiveDisplayName', () => {
         test('should return undefined when personalDetail is undefined', () => {
