@@ -330,7 +330,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  */
 function getEffectiveDisplayName(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
-        return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
+        return formatPhoneNumberUtils(personalDetail?.login ?? '') || personalDetail.displayName;
     }
 
     return undefined;
