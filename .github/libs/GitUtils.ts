@@ -173,7 +173,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
             return;
         }
 
-        // Retrieve the PR number from the commit subject, 
+        // Retrieve the PR number from the commit subject,
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
             return;

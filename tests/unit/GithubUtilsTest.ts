@@ -710,7 +710,7 @@ describe('GithubUtils', () => {
         test('should call GitHub API with correct parameters', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1');
+            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1', CONST.APP_REPO);
 
             expect(mockCompareCommits).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
@@ -725,21 +725,21 @@ describe('GithubUtils', () => {
         test('should return empty array when no commits found', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual([]);
         });
 
         test('should return formatted commit history when commits exist', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
         });
 
         test('should handle multiple commits correctly', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)).toEqual({
@@ -766,7 +766,7 @@ describe('GithubUtils', () => {
 
             mockCompareCommits.mockRejectedValue(requestError);
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow(requestError);
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow(requestError);
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 expect.stringContaining(
                     "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
@@ -777,7 +777,7 @@ describe('GithubUtils', () => {
         test('should handle generic API errors gracefully', async () => {
             mockCompareCommits.mockRejectedValue(new Error('API Error'));
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow('API Error');
         });
     });
 
