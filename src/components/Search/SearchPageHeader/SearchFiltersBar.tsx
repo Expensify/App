@@ -332,6 +332,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues?.feed;
+        const shouldDisplayPostedFilter = feedOptions.length > 1 && !!filterFormValues?.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
 
         const filterList = [
             {
@@ -360,7 +361,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       },
                   ]
                 : []),
-            ...(shouldDisplayFeedFilter
+            ...(shouldDisplayPostedFilter
                 ? [
                       {
                           label: translate('search.filters.posted'),
