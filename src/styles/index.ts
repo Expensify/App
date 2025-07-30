@@ -4775,7 +4775,7 @@ const styles = (theme: ThemeColors) =>
 
         mergeTransactionReceiptThumbnail: {
             backgroundColor: theme.highlightBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusNormal,
             padding: 20,
         },
 

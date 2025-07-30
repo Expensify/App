@@ -33,8 +33,8 @@ function MergeFieldReview({field, values, selectedValue, onValueSelected, errorT
                         onPress={() => onValueSelected(mergeValue)}
                         accessibilityLabel={formatValue(mergeValue)}
                         accessible={false}
-                        hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5, isSelected && styles.activeComponentBG]}
+                        hoverStyle={styles.hoveredComponentBG}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5]}
                     >
                         <Text style={[styles.mr1, styles.textBold]}>{displayValue}</Text>
                         <RadioButton
