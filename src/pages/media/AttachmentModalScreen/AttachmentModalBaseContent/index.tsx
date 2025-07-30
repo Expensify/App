@@ -204,7 +204,7 @@ function AttachmentModalBaseContent({
             return false;
         }
 
-        return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && !shouldShowDownloadButtonProp;
+        return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && shouldShowDownloadButtonProp;
     }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, report, shouldShowDownloadButtonProp, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
