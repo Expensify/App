@@ -57,6 +57,10 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
 
+        // Get merged Mobile-Expensify PRs
+        const mergedMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
+        console.info(`[api] Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');

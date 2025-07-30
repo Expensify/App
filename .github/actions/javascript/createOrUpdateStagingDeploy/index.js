@@ -11570,6 +11570,9 @@ async function run() {
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.APP_REPO);
+        // Get merged Mobile-Expensify PRs
+        const mergedMobileExpensifyPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.MOBILE_EXPENSIFY_REPO);
+        console.info(`[api] Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');
