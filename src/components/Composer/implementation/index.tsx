@@ -21,6 +21,7 @@ import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import Parser from '@libs/Parser';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -163,7 +164,7 @@ function Composer(
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                const files = Array.from(event.clipboardData.files);
+                const files = Array.from(event.clipboardData.files) as FileObject[];
                 onPasteFile(files);
                 return true;
             }
@@ -174,7 +175,7 @@ function Composer(
                 const pastedHTML = clipboardDataHtml;
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
 
-                const files = Array.from(embeddedImages).map((image) => base64ToFile(image.src, 'image.png'));
+                const files = Array.from(embeddedImages).map((image) => base64ToFile(image.src, 'image.png')) as FileObject[];
                 onPasteFile(files);
                 return true;
             }
@@ -198,7 +199,7 @@ function Composer(
                 });
 
                 Promise.all(filePromises).then((files) => {
-                    const validFiles = files.filter((file) => file !== undefined);
+                    const validFiles = files.filter((file) => file !== undefined) as FileObject[];
                     onPasteFile(validFiles);
                     return true;
                 });

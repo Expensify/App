@@ -108,7 +108,7 @@ function Composer(
                 let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
 
                 return getFileSize(file.uri ?? '')
-                    .then((size) => (file = {...file, size}))
+                    .then((size) => (file = {...file, size} as FileObject))
                     .finally(() => file);
             });
 
