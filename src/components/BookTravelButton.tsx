@@ -89,11 +89,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(
-                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />
-                </Text>,
-            );
+            setErrorMessage(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
             return;
         }
 
