@@ -1,7 +1,5 @@
 /* eslint-disable rulesdir/prefer-at */
 // .at() has a performance overhead we explicitly want to avoid here
-
-/* eslint-disable no-continue */
 import type DynamicArrayBuffer from '@libs/DynamicArrayBuffer';
 import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, stringToNumeric} from './utils';
 

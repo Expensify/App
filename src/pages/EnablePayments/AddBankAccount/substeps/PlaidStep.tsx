@@ -1,10 +1,10 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPersonalBankAccountSetupType, updateAddPersonalBankAccountDraft, validatePlaidSelection} from '@userActions/BankAccounts';

@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,21 +11,25 @@ import type {ListItem, SectionListDataType, SelectionListHandle} from '@componen
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
+import {isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import {startMoneyRequest} from '@userActions/IOU';
+import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
@@ -36,9 +40,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
+    const [selectedIds, setSelectedIds] = useState(new Set<string>());
 
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const policy = usePolicy(report?.policyID);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
@@ -49,9 +55,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         return Object.values(transactions || {}).filter((item) => item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '');
     }
 
-    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => getUnreportedTransactions(_transactions),
-        initialValue: [],
         canBeMissing: true,
     });
 
@@ -136,8 +141,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         );
     }
 
-    const selectedIds = new Set<string>();
-
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -154,11 +157,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             <SelectionList<Transaction & ListItem>
                 ref={selectionListRef}
                 onSelectRow={(item) => {
-                    if (selectedIds.has(item.transactionID)) {
-                        selectedIds.delete(item.transactionID);
-                    } else {
-                        selectedIds.add(item.transactionID);
-                    }
+                    setSelectedIds((prevIds) => {
+                        const newIds = new Set(prevIds);
+                        if (newIds.has(item.transactionID)) {
+                            newIds.delete(item.transactionID);
+                        } else {
+                            newIds.add(item.transactionID);
+                            if (errorMessage) {
+                                setErrorMessage('');
+                            }
+                        }
+
+                        return newIds;
+                    });
                 }}
                 shouldShowTextInput={false}
                 canSelectMultiple
@@ -173,7 +184,13 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return;
                     }
                     Navigation.dismissModal();
-                    changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+                    InteractionManager.runAfterInteractions(() => {
+                        if (report && isIOUReport(report)) {
+                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                        } else {
+                            changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);
+                        }
+                    });
                     setErrorMessage('');
                 }}
                 onEndReached={fetchMoreUnreportedTransactions}

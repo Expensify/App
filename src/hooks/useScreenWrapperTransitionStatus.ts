@@ -1,5 +1,5 @@
 import {useContext} from 'react';
-import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 /**
  * Hook to get the transition status of a screen inside a ScreenWrapper.

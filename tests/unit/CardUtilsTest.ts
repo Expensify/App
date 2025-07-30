@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
@@ -28,6 +28,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -442,7 +443,8 @@ describe('CardUtils', () => {
 
     describe('getCustomOrFormattedFeedName', () => {
         beforeAll(() => {
-            TranslationStore.load(CONST.LOCALES.EN);
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;

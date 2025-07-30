@@ -5,6 +5,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
+import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -13,6 +14,7 @@ import SignInPage from '@pages/signin/SignInPage';
 import SigningOutPage from '@pages/SigningOutPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
+import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -32,7 +34,7 @@ function PublicScreens() {
             <RootStack.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={SignInPage}
+                component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
@@ -93,6 +95,7 @@ function PublicScreens() {
                         cardStyle: {
                             ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                         },
+                        animation: InternalPlatformAnimations.FADE,
                     },
                 }}
                 component={TestToolsModalNavigator}

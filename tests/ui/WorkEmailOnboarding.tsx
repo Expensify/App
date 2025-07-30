@@ -5,7 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -51,7 +51,7 @@ const workEmail = 'testprivateemail@privateEmail.com';
 
 const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -72,7 +72,7 @@ const renderOnboardingWorkEmailValidationPage = (
     initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
 ) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -289,7 +289,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding purpose page when email is entered but shouldValidate is set to false', async () => {
+    it('should navigate to Onboarding private domain page when email is entered but shouldValidate is set to false', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -307,7 +307,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -333,6 +333,39 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate to Onboarding employee page when skip is pressed and user is routed app via smb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const skipButton = screen.getByTestId('onboardingPrivateEmailSkipButton');
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: skipButton,
+            currentTarget: skipButton,
+        };
+
+        fireEvent.press(skipButton, mockEvent);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -452,7 +485,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding purpose page when validate code step is successful and there is no signupQualifier', async () => {
+    it('should navigate to Onboarding workspaces page when validate code step is successful and there is no signupQualifier', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -474,7 +507,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -504,6 +537,36 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         await waitFor(() => {
             expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate to Onboarding employee page when validate code step is successful and user is routed app via smb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        MergeIntoAccountAndLoginSuccessful();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
         });
 
         unmount();

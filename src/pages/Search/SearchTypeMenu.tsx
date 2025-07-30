@@ -1,14 +1,13 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -18,16 +17,17 @@ import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
-import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
-import type {SavedSearchMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, createTypeMenuSections, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -64,29 +64,26 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const initialSearchKeys = useRef<string[]>([]);
 
-    const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
-    }, [translate, workspaceCardFeeds]);
-
-    const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => {
-        const sections = createTypeMenuSections(session, allPolicies);
-
-        // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we dont animate them in
-        // We only animate in items that a user gains access to later on
-        if (!initialSearchKeys.current.length) {
-            initialSearchKeys.current = sections.flatMap((section) => section.menuItems.map((item) => item.translationPath));
+    // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
+    // dont animate them in. We only animate in items that a user gains access to later on
+    useEffect(() => {
+        if (initialSearchKeys.current.length) {
+            return;
         }
 
-        return sections;
-    }, [session, allPolicies]);
+        initialSearchKeys.current = typeMenuSections.flatMap((section) => {
+            return section.menuItems.map((item) => item.key);
+        });
+    }, [typeMenuSections]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(
@@ -94,7 +91,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -140,7 +137,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             reports,
             taxRates,
             allCards,
-            cardFeedNamesWithType,
+            allFeeds,
             allPolicies,
         ],
     );
@@ -213,11 +210,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
+        return flattenedMenuItems.findIndex((item) => item.hash === hash);
     }, [hash, isSavedSearchActive, typeMenuSections]);
 
     return (
@@ -235,7 +228,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                             const flattenedIndex = previousItemCount + itemIndex;
                             const focused = activeItemIndex === flattenedIndex;
-                            const shouldShowTooltip = item.translationPath === 'common.expenseReports' && !focused && shouldShowExpenseReportsTypeTooltip;
+                            const shouldShowTooltip = item.translationPath === 'common.reports' && !focused && shouldShowExpenseReportsTypeTooltip;
 
                             const onPress = singleExecution(() => {
                                 if (shouldShowTooltip) {
@@ -243,15 +236,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 }
                                 clearAllFilters();
                                 clearSelectedTransactions();
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             });
 
-                            const isInitialItem = initialSearchKeys.current.includes(item.translationPath);
+                            const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
 
                             return (
-                                <Animated.View entering={!isInitialItem ? FadeIn : undefined}>
+                                <Animated.View
+                                    key={item.translationPath}
+                                    entering={!isInitialItem ? FadeIn : undefined}
+                                >
                                     <MenuItem
-                                        key={item.translationPath}
+                                        key={item.key}
                                         disabled={false}
                                         interactive
                                         title={translate(item.translationPath)}

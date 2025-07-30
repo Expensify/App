@@ -44,6 +44,7 @@ import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__t
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
@@ -324,4 +325,5 @@ export {
     PlaidCompanyCardDetail,
     ReceiptsStackedOnPin,
     PaperAirplane,
+    CardReplacementSuccess,
 };
