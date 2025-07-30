@@ -68,7 +68,7 @@ export default createOnyxDerivedValueConfig({
 
         const reportUpdatesRelatedToReportActions = new Set<string>();
 
-        for (const [_, actions] of Object.entries(reportActionsUpdates)) {
+        for (const actions of Object.values(reportActionsUpdates)) {
             if (!actions) {
                 continue;
             }
