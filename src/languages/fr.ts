@@ -6764,7 +6764,7 @@ const translations = {
     },
     signingOutPage: {
         title: 'Déconnexion...',
-        subtitle: "Un moment, s'il vous plaît.",
+        subtitle: 'Un moment, s\'il vous plaît.',
     },
     autoSubmitModal: {
         title: 'Tout est clair et soumis !',

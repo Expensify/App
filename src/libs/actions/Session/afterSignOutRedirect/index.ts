@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
 import asyncOpenURL from '@libs/asyncOpenURL';
+import {openApp} from '@userActions/App';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type AfterSignOutRedirect from './types';
 
-const afterSignOutRedirect: AfterSignOutRedirect = (onyxSetParams, _, accountID, isTransitioning) => {
+const afterSignOutRedirect: AfterSignOutRedirect = (onyxSetParams, hasSwitchedAccountInHybridMode, accountID, isTransitioning) => {
     // Sign out from classic as well so the user does not get logged back in when visiting expensify.com and subsequently auto redirected back to New Expensify
     const oldDotSignOutUrl = new URL(CONST.OLDDOT_URLS.SIGN_OUT, CONFIG.EXPENSIFY.EXPENSIFY_URL);
     oldDotSignOutUrl.searchParams.set('clean', 'true');
@@ -29,6 +30,10 @@ const afterSignOutRedirect: AfterSignOutRedirect = (onyxSetParams, _, accountID,
     } else {
         // Only redirect to sign out from OldDot if we're not transitioning from it.
         asyncOpenURL(getRedirectToSignInPromise(), oldDotSignOutUrl.toString(), true, true);
+    }
+
+    if (hasSwitchedAccountInHybridMode) {
+        openApp();
     }
 };
 
