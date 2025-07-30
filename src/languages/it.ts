@@ -1074,6 +1074,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta, poi conferma i dettagli tu stesso o lascia che SmartScan se ne occupi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Controlla più tardi o inserisci i dettagli ora.',
+        removeFromReport: 'Rimuovi dal rapporto',
+        moveToPersonalSpace: 'Sposta spese nello spazio personale',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? "Spese potenzialmente duplicate identificate. Rivedi i duplicati per consentire l'invio."

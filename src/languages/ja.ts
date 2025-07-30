@@ -1076,6 +1076,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'すべての領収書を一度に撮影し、自分で詳細を確認するか、SmartScanに任せましょう。',
         receiptScanInProgress: '領収書のスキャン中',
         receiptScanInProgressDescription: '領収書のスキャン中です。後で確認するか、今すぐ詳細を入力してください。',
+        removeFromReport: '領収書を削除',
+        moveToPersonalSpace: '領収書を個人スペースに移動',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? '重複の可能性がある経費が特定されました。提出を有効にするために重複を確認してください。'

@@ -1075,6 +1075,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
+        removeFromReport: 'Verwijder uit rapport',
+        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
