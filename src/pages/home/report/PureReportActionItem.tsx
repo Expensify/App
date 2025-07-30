@@ -17,7 +17,6 @@ import Icon from '@components/Icon';
 import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -820,19 +819,7 @@ function PureReportActionItem({
                 onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [
-        action,
-        isActionableWhisper,
-        reportID,
-        userBillingFundID,
-        createDraftTransactionAndNavigateToParticipantSelector,
-        dismissTrackExpenseActionableWhisper,
-        resolveActionableReportMentionWhisper,
-        formatPhoneNumber,
-        resolveActionableMentionWhisper,
-        originalReportID,
-        isBetaEnabled,
-    ]);
+    }, [action, isActionableWhisper, reportID, userBillingFundID, createDraftTransactionAndNavigateToParticipantSelector, dismissTrackExpenseActionableWhisper, resolveActionableReportMentionWhisper, resolveActionableMentionWhisper, originalReportID, isBetaEnabled]);
 
     /**
      * Get the content of ReportActionItem
