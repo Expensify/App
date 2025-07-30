@@ -12263,6 +12263,7 @@ class GithubUtils {
                 }
             }
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
+            core.endGroup();
             return allCommits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
@@ -12271,12 +12272,10 @@ class GithubUtils {
         }
         catch (error) {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
-                console.error(`❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`);
+                core.error(`❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`);
             }
-            throw error;
-        }
-        finally {
             core.endGroup();
+            throw error;
         }
     }
 }
