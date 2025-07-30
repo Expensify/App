@@ -825,7 +825,7 @@ function BaseSelectionList<TItem extends ListItem>(
         if (prevTextInputValue !== '' && textInputValue === '') {
             const foundSelectedItemIndex = flattenedSections.allOptions.findIndex(isItemSelected);
             const singleSectionList = slicedSections.length < 2;
-            if (foundSelectedItemIndex !== -1 && singleSectionList) {
+            if (foundSelectedItemIndex !== -1 && singleSectionList && !canSelectMultiple) {
                 updateAndScrollToFocusedIndex(foundSelectedItemIndex);
                 return;
             }
