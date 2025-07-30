@@ -71,7 +71,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Zoom}
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(getTransactionThreadReportID(transaction), transaction.transactionID, true));
+                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(getTransactionThreadReportID(transaction) ?? transaction.reportID, transaction.transactionID, true));
                                         }}
                                     />
                                 </View>
