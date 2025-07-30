@@ -90,7 +90,7 @@ import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -178,7 +178,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
-    PolicyEmployeeList,
     PolicyReportField,
     QuickAction,
     RecentlyUsedReportFields,
@@ -200,7 +199,7 @@ import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';
-import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
+import {buildRoomMembersOnyxData} from './Policy/Member';
 import {createPolicyExpenseChats} from './Policy/Policy';
 import {
     createUpdateCommentMatcher,
@@ -5743,59 +5742,6 @@ function changeReportPolicy(report: Report, policyID: string, reportNextStep?: R
 }
 
 /**
- * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
- */
-function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined) {
-    if (!report.reportID || !policyID || report.policyID === policyID || !isExpenseReport(report) || !report.ownerAccountID) {
-        return;
-    }
-
-    const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(report.ownerAccountID);
-
-    if (!submitterEmail) {
-        return;
-    }
-    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
-    const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
-        {[submitterEmail]: report.ownerAccountID},
-        policyID,
-        policyMemberAccountIDs,
-        CONST.POLICY.ROLE.USER,
-    );
-    const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
-    const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
-
-    if (!optimisticPolicyExpenseChatReportID) {
-        return;
-    }
-
-    const {
-        optimisticData: optimisticChangePolicyData,
-        successData: successChangePolicyData,
-        failureData: failureChangePolicyData,
-        optimisticReportPreviewAction,
-        optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policyID);
-    optimisticData.push(...optimisticChangePolicyData);
-    successData.push(...successChangePolicyData);
-    failureData.push(...failureChangePolicyData);
-
-    const params = {
-        reportID: report.reportID,
-        policyID,
-        reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
-        changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
-        policyExpenseChatReportID: optimisticPolicyExpenseChatReportID,
-        policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID,
-    };
-    API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
-
-    // If the dismissedProductTraining.changeReportModal is not set,
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
-}
-
-/**
  * Resolves Concierge category options by adding a comment and updating the report action
  * @param reportID - The report ID where the comment should be added
  * @param actionReportID - The report ID where the report action should be updated (may be different for threads)
@@ -5927,7 +5873,6 @@ export {
     moveIOUReportToPolicyAndInviteSubmitter,
     dismissChangePolicyModal,
     changeReportPolicy,
-    changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
 };
