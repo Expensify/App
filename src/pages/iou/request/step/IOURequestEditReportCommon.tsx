@@ -35,6 +35,7 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         stateNum: report.stateNum,
         statusNum: report.statusNum,
         type: report.type,
+        pendingFields: report.pendingFields,
     };
 
 type Props = {
@@ -42,9 +43,10 @@ type Props = {
     transactionsReports: Report[];
     policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
+    isEditing?: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, isEditing}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
@@ -65,10 +67,11 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
                     allReports ?? {},
                     reportNameValuePairs,
+                    isEditing,
                 );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs, policyIDFromProps],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, isEditing, allPoliciesID, reportNameValuePairs, policyIDFromProps],
     );
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
