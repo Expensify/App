@@ -58,8 +58,21 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
 
         // Get merged Mobile-Expensify PRs
-        const mergedMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
-        console.info(`[api] Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+        let mergedMobileExpensifyPRs: number[] = [];
+        try {
+            mergedMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
+            console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+        } catch (error) {
+            // Check if this is a forked repository
+            if (process.env.GITHUB_REPOSITORY !== 'Expensify/App') {
+                console.warn(
+                    "⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessable. This is expected for development/testing on forks.",
+                );
+            } else {
+                console.error('Failed to fetch Mobile-Expensify PRs from main repository:', error);
+                throw error;
+            }
+        }
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
