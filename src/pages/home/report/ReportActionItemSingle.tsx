@@ -124,7 +124,6 @@ function ReportActionItemSingle({
     });
 
     const {login, pendingFields, status} = personalDetails?.[accountID] ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 

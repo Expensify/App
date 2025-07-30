@@ -172,7 +172,7 @@ function ReportActionAvatars({
         <ReportActionAvatar.Single
             avatar={primaryAvatar}
             size={size}
-            containerStyles={singleAvatarContainerStyle}
+            containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
             shouldShowTooltip={shouldShowTooltip}
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={action?.delegateAccountID}

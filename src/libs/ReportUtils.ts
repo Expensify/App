@@ -3399,6 +3399,7 @@ function getReportActionAvatars({
     const isWorkspaceChatWithoutChatReport = !chatReport && isAWorkspaceChat;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview;
+    const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (report: OnyxInputOrEntry<Report>) =>
         getIcons(report, personalDetails, avatar ?? fallbackIcon ?? FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
@@ -3407,7 +3408,9 @@ function getReportActionAvatars({
 
     let primaryAvatar;
 
-    if (isWorkspaceActor || usePersonalDetailsAvatars) {
+    if (useNearestReportAvatars) {
+        primaryAvatar = getIconsWithDefaults(iouReport ?? chatReport).at(0);
+    } else if (isWorkspaceActor || usePersonalDetailsAvatars) {
         primaryAvatar = reportIcons.at(0);
     } else if (delegatePersonalDetails) {
         primaryAvatar = getIconsWithDefaults(iouReport).at(0);
@@ -3426,7 +3429,9 @@ function getReportActionAvatars({
 
     let secondaryAvatar;
 
-    if (usePersonalDetailsAvatars) {
+    if (useNearestReportAvatars) {
+        secondaryAvatar = getIconsWithDefaults(iouReport ?? chatReport).at(1);
+    } else if (usePersonalDetailsAvatars) {
         secondaryAvatar = reportIcons.at(1);
     } else if (isATripPreview) {
         secondaryAvatar = reportIcons.at(0);
