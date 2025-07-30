@@ -12,7 +12,7 @@ else
 fi
 
 # Get changed files in src directory
-readarray -t ALL_CHANGED_FILES < <(git diff --name-only $DIFF_RANGE | grep '^src/' | grep -E '\.(ts|tsx|js|jsx)$' || true)
+readarray -t ALL_CHANGED_FILES < <(git diff --name-only "$DIFF_RANGE" | grep '^src/' | grep -E '\.(ts|tsx|js|jsx)$' || true)
 
 # Filter out excluded directories and files
 CHANGED_FILES=()
