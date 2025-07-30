@@ -656,7 +656,6 @@ class GithubUtils {
             }
 
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
-            core.endGroup();
             return allCommits.map(
                 (commit): CommitType => ({
                     commit: commit.sha,
@@ -670,8 +669,9 @@ class GithubUtils {
                     `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`,
                 );
             }
-            core.endGroup();
             throw error;
+        } finally {
+            core.endGroup();
         }
     }
 }
