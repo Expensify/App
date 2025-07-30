@@ -2380,11 +2380,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 52,
         },
 
-        singleAvatarLarge: {
-            height: 80,
-            width: 80,
+        singleAvatarMediumLarge: {
+            height: 60,
+            width: 60,
             backgroundColor: theme.icon,
-            borderRadius: 52,
+            borderRadius: 80,
         },
 
         secondAvatar: {
@@ -2407,18 +2407,18 @@ const styles = (theme: ThemeColors) =>
 
         secondAvatarMedium: {
             position: 'absolute',
-            right: -42,
-            bottom: -42,
+            right: -36,
+            bottom: -36,
             borderWidth: 3,
             borderRadius: 52,
             borderColor: 'transparent',
         },
 
-        secondAvatarLarge: {
+        secondAvatarMediumLarge: {
             position: 'absolute',
-            right: -50,
-            bottom: -50,
-            borderWidth: 4,
+            right: -42,
+            bottom: -42,
+            borderWidth: 3,
             borderRadius: 80,
             borderColor: 'transparent',
         },

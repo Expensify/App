@@ -418,7 +418,7 @@ function ReportActionAvatarMultipleDiagonal({
     const StyleUtils = useStyleUtils();
 
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
-    const useHugeBottomMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
+    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
@@ -432,8 +432,8 @@ function ReportActionAvatarMultipleDiagonal({
                 secondAvatarStyles: styles.secondAvatarMedium,
             },
             [CONST.AVATAR_SIZE.X_LARGE]: {
-                singleAvatarStyle: styles.singleAvatarLarge,
-                secondAvatarStyles: styles.secondAvatarLarge,
+                singleAvatarStyle: styles.singleAvatarMediumLarge,
+                secondAvatarStyles: styles.secondAvatarMediumLarge,
             },
             [CONST.AVATAR_SIZE.DEFAULT]: {
                 singleAvatarStyle: styles.singleAvatar,
@@ -453,7 +453,7 @@ function ReportActionAvatarMultipleDiagonal({
         }
 
         if (size === CONST.AVATAR_SIZE.X_LARGE) {
-            return CONST.AVATAR_SIZE.LARGE;
+            return CONST.AVATAR_SIZE.MEDIUM_LARGE;
         }
 
         return CONST.AVATAR_SIZE.SMALLER;
@@ -463,7 +463,7 @@ function ReportActionAvatarMultipleDiagonal({
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     return (
-        <View style={[avatarContainerStyles, useHugeBottomMargin && styles.mb7]}>
+        <View style={[avatarContainerStyles, removeRightMargin && styles.mr0]}>
             <View
                 style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}
                 testID="ReportActionAvatars-MultipleAvatars"
