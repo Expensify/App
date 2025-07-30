@@ -113,7 +113,7 @@ function Composer(
             });
 
             Promise.all(filePromises).then((files) => {
-                const validFiles = files.filter((file) => file !== undefined);
+                const validFiles = files.filter((file) => file !== undefined) as FileObject[];
                 onPasteFile(validFiles);
             });
         },
