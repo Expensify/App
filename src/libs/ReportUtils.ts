@@ -5403,29 +5403,14 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, policy?: Policy): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy>): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
-        const ownerAccountID = report?.ownerAccountID;
-        const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
-        const login = personalDetails ? personalDetails.login : null;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
-
-        if (isExpenseReport(report)) {
-            return {
-                reportName: translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
-                workspaceName: policy?.name,
-            };
-        }
-        if (isIOUReport(report)) {
-            return {reportName: reportOwnerDisplayName ?? ''};
-        }
         return {};
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
+        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport, invoiceReceiverPolicy)}`;
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
