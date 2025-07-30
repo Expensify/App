@@ -459,10 +459,7 @@ function beginSignIn(email: string) {
     const params: BeginSignInParams = {email};
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData}).then(() => {
-        // TODO: this is only a temporary change until we fix things on backend side
-        Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, null);
-    });
+    API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
 }
 
 /**

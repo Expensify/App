@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -35,14 +34,12 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
-    useFocusEffect(
-        useCallback(() => {
-            if (!isKeyboardShown) {
-                return;
-            }
-            Keyboard.dismiss();
-        }, [isKeyboardShown]),
-    );
+    useEffect(() => {
+        if (!isKeyboardShown) {
+            return;
+        }
+        Keyboard.dismiss();
+    }, [isKeyboardShown]);
 
     return (
         <>

@@ -1,6 +1,7 @@
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -9,12 +10,23 @@ import type {GoogleSignInProps} from '.';
 import type GoogleError from './types';
 
 /**
+ * Helper function returning webClientId based on a platform used
+ */
+function getWebClientId() {
+    if (!CONFIG.IS_HYBRID_APP) {
+        return CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID;
+    }
+
+    return getPlatform() === CONST.PLATFORM.ANDROID ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.WEB_CLIENT_ID.ANDROID : CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.WEB_CLIENT_ID.IOS;
+}
+
+/**
  * Google Sign In method for iOS and android that returns identityToken.
  */
 function googleSignInRequest() {
     GoogleSignin.configure({
-        webClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_WEB_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-        iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
+        webClientId: getWebClientId(),
+        iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
         offlineAccess: false,
     });
 
