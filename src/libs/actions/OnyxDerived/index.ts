@@ -90,11 +90,9 @@ function init() {
                 const newDerivedValue = compute(dependencyValues, baseContext);
 
                 // Only update if value actually changed
-                if (newDerivedValue !== derivedValue) {
-                    Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
-                    derivedValue = newDerivedValue;
-                    setDerivedValue(key, derivedValue);
-                }
+                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
+                derivedValue = newDerivedValue;
+                setDerivedValue(key, derivedValue);
             };
 
             for (let i = 0; i < dependencies.length; i++) {
