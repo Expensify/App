@@ -1341,9 +1341,8 @@ const translations = {
             header: 'Kosten samenvoegen',
             noEligibleExpenseFound: 'Geen in aanmerking komende kosten gevonden',
             noEligibleExpenseFoundSubtitle: `Je hebt geen kosten die samengevoegd kunnen worden met deze. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Meer informatie</a> over in aanmerking komende kosten.`,
-            mergeButton: 'Transacties samenvoegen',
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
-                `Selecteer een <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">geschikte kost</a> om te combineren <strong>${reportName}</strong>`,
+                `Selecteer een <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">geschikte kost</a> om te combineren <strong>${reportName}</strong>.`,
         },
         receiptPage: {
             header: 'Ontvangstbewijs selecteren',

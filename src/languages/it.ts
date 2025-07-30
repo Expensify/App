@@ -1339,9 +1339,8 @@ const translations = {
             header: 'Unisci spese',
             noEligibleExpenseFound: 'Nessuna spesa idonea trovata',
             noEligibleExpenseFoundSubtitle: `Non hai spese che possono essere unite a questa. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Scopri di più</a> sulle spese idonee.`,
-            mergeButton: 'Unisci transazioni',
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
-                `Seleziona una <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">spesa idonea</a> da unire <strong>${reportName}</strong>`,
+                `Seleziona una <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">spesa idonea</a> da unire <strong>${reportName}</strong>.`,
         },
         receiptPage: {
             header: 'Seleziona ricevuta',
