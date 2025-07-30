@@ -284,7 +284,7 @@ function ReportActionAvatarMultipleHorizontal({
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
 
     const icons = useMemo(() => {
-        let avatars: IconType[] = [];
+        let avatars: IconType[] = unsortedIcons;
 
         if (sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
             avatars = sortIconsByName(unsortedIcons, personalDetails);
