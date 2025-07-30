@@ -3,10 +3,10 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PerDiemRequestUtils from '@libs/PerDiemRequestUtils';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
 import type {Destination} from '@libs/PerDiemRequestUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
@@ -21,8 +21,8 @@ type DestinationPickerProps = {
 
 function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
-    const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
-    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
+    const customUnit = getPerDiemCustomUnit(policy);
+    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -49,7 +49,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
     }, [customUnit?.rates, selectedDestination]);
 
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const destinationOptions = PerDiemRequestUtils.getDestinationListSections({
+        const destinationOptions = getDestinationListSections({
             searchValue: debouncedSearchValue,
             selectedOptions,
             destinations: Object.values(customUnit?.rates ?? {}),
@@ -57,7 +57,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
         });
 
         const destinationData = destinationOptions?.at(0)?.data ?? [];
-        const header = OptionsListUtils.getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue);
+        const header = getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue);
         const destinationsCount = Object.values(customUnit?.rates ?? {}).length;
         const isDestinationsCountBelowThreshold = destinationsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
         const showInput = !isDestinationsCountBelowThreshold;
@@ -81,6 +81,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
+            shouldHideKeyboardOnScroll={false}
         />
     );
 }
