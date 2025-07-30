@@ -130,7 +130,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
-        }, 500);
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
@@ -161,7 +161,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 const {updateTargetBounds, showTooltip} = genericTooltipState;
                 // eslint-disable-next-line react-compiler/react-compiler
                 genericTooltipStateRef.current = genericTooltipState;
-                return React.cloneElement(children as React.ReactElement, {
+                return React.cloneElement(children as React.ReactElement<{onLayout?: (e: LayoutChangeEventWithTarget) => void}>, {
                     onLayout: (e: LayoutChangeEventWithTarget) => {
                         if (!shouldMeasure) {
                             setShouldMeasure(true);

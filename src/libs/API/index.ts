@@ -1,13 +1,15 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
+import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
+import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
-import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
@@ -62,8 +64,15 @@ function prepareRequest<TCommand extends ApiCommand>(
 ): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
+    let shouldApplyOptimisticData = true;
+    if (conflictResolver?.checkAndFixConflictingRequest) {
+        const requests = getAll();
+        const {conflictAction} = conflictResolver.checkAndFixConflictingRequest(requests);
+        shouldApplyOptimisticData = conflictAction.type !== 'noAction';
+    }
+
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
-    if (optimisticData) {
+    if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
         Onyx.update(optimisticData);
     }
@@ -127,16 +136,6 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 
 function write<TCommand extends WriteCommand>(
@@ -151,23 +150,45 @@ function write<TCommand extends WriteCommand>(
 }
 
 /**
+ * This function is used to write data to the API while ensuring that there are no duplicate requests in the queue.
+ * If a duplicate request is found, it resolves the conflict by replacing the duplicated request with the new one.
+ */
+function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+    requestMatcher: RequestMatcher = (request) => request.command === command,
+): Promise<void | Response> {
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
+ * This function is used to write data to the API while ensuring that there are no conflicts with enabling policy features.
+ * If a conflict is found, it resolves the conflict by deleting the duplicated request.
+ */
+function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+): Promise<void | Response> {
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
  * For commands where the network response must be accessed directly or when there is functionality that can only
  * happen once the request is finished (eg. calling third-party services like Onfido and Plaid, redirecting a user
  * depending on the response data, etc.).
  * It works just like API.read(), except that it will return a promise.
  * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted.
  * It is best to discuss it in Slack anytime you are tempted to use this method.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
- * @returns
  */
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     command: TCommand,
@@ -195,16 +216,6 @@ function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
 
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
@@ -212,7 +223,7 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
     // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
-    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN) {
+    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN) {
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
         return;
     }
@@ -274,4 +285,4 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate};
+export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts};

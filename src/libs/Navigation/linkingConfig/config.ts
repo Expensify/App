@@ -135,6 +135,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_ACCOUNTING.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
+                    path: ROUTES.ONBOARDING_INTERESTED_FEATURES.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.WORKSPACES]: {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
@@ -203,15 +207,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
                             path: ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
                         },
                         [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
                             path: ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
                         },
                         [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_LOCK_ACCOUNT,
@@ -343,22 +341,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
                             path: ROUTES.SETTINGS_DELEGATE_ROLE.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
                         },
                         [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
                             path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                                ...getHistoryParamParse(HISTORY_PARAM.SHOW_VALIDATE_CODE_ACTION_MODAL),
-                            },
+                            parse: getHistoryParamParse(HISTORY_PARAM.SHOW_VALIDATE_CODE_ACTION_MODAL),
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
                             path: ROUTES.SETTINGS_STATUS,
@@ -506,6 +495,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_BANK_ACCOUNT_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC]: {path: ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_ACCOUNTING_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.route},
@@ -684,6 +675,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
@@ -710,9 +704,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.route,
-                            parse: {
-                                firstApproverEmail: (firstApproverEmail: string) => decodeURIComponent(firstApproverEmail),
-                            },
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.route,
@@ -728,15 +719,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.UPGRADE]: {
                             path: ROUTES.WORKSPACE_UPGRADE.route,
-                            parse: {
-                                featureName: (featureName: string) => decodeURIComponent(featureName),
-                            },
                         },
                         [SCREENS.WORKSPACE.DOWNGRADE]: {
                             path: ROUTES.WORKSPACE_DOWNGRADE.route,
@@ -779,51 +764,27 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_GL_CODE.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_APPROVER.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
@@ -874,28 +835,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.WORKSPACE.TAG_APPROVER]: {
                             path: ROUTES.WORKSPACE_TAG_APPROVER.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.WORKSPACE.TAG_GL_CODE]: {
                             path: ROUTES.WORKSPACE_TAG_GL_CODE.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.WORKSPACE.TAG_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
@@ -921,36 +878,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
-                            parse: {
-                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
-                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.route,
-                            parse: {
-                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
-                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.route,
-                            parse: {
-                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
-                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_VALUE.route,
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.route,
-                            parse: {
-                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
-                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
-                            parse: {
-                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
-                            },
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
@@ -977,27 +919,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAX_EDIT]: {
                             path: ROUTES.WORKSPACE_TAX_EDIT.route,
-                            parse: {
-                                taxID: (taxID: string) => decodeURIComponent(taxID),
-                            },
                         },
                         [SCREENS.WORKSPACE.TAX_CODE]: {
                             path: ROUTES.WORKSPACE_TAX_CODE.route,
-                            parse: {
-                                taxID: (taxID: string) => decodeURIComponent(taxID),
-                            },
                         },
                         [SCREENS.WORKSPACE.TAX_NAME]: {
                             path: ROUTES.WORKSPACE_TAX_NAME.route,
-                            parse: {
-                                taxID: (taxID: string) => decodeURIComponent(taxID),
-                            },
                         },
                         [SCREENS.WORKSPACE.TAX_VALUE]: {
                             path: ROUTES.WORKSPACE_TAX_VALUE.route,
-                            parse: {
-                                taxID: (taxID: string) => decodeURIComponent(taxID),
-                            },
                         },
                         [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
                             path: ROUTES.RULES_CUSTOM_NAME.route,
@@ -1125,9 +1055,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
                             path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
                             path: ROUTES.SETTINGS_CATEGORIES_SETTINGS.route,
@@ -1137,9 +1064,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
                             path: ROUTES.SETTINGS_CATEGORY_EDIT.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT]: {
                             path: ROUTES.SETTINGS_CATEGORIES_IMPORT.route,
@@ -1149,15 +1073,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE]: {
                             path: ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
                             path: ROUTES.SETTINGS_CATEGORY_GL_CODE.route,
-                            parse: {
-                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
-                            },
                         },
                     },
                 },
@@ -1179,21 +1097,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_TAG_EDIT.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
                             path: ROUTES.SETTINGS_TAG_SETTINGS.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER]: {
                             path: ROUTES.SETTINGS_TAG_APPROVER.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW]: {
@@ -1206,7 +1121,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_TAG_GL_CODE.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT]: {
@@ -1325,20 +1239,28 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             screens: {
                                 distance: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
-                                    exact: true,
                                 },
                                 manual: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-                                    exact: true,
                                 },
                                 scan: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-                                    exact: true,
                                 },
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
-                                    exact: true,
+                                },
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
+                            path: ROUTES.DISTANCE_REQUEST_CREATE.route,
+                            exact: true,
+                            screens: {
+                                map: {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
+                                },
+                                manual: {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
                             },
                         },
@@ -1360,6 +1282,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
+                        [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
@@ -1466,9 +1389,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
                             path: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
-                            parse: {
-                                fieldID: (fieldID: string) => decodeURIComponent(fieldID),
-                            },
                         },
                     },
                 },
@@ -1513,6 +1433,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_BY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_SUBMITTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_SUBMITTED,
@@ -1803,7 +1724,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
-                    path: ROUTES.TEST_TOOLS_MODAL,
+                    path: ROUTES.TEST_TOOLS_MODAL.route,
                     exact: true,
                 },
             },

@@ -20,6 +20,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
@@ -175,7 +176,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         title: prohibitedExpenses,
         descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
         action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+        pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;

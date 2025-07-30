@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,7 +12,9 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -35,6 +36,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const {isDevelopment} = useEnvironment();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
@@ -46,17 +48,23 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const bank = addNewCard?.data?.selectedBank;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
+    // s77rt remove DEV lock
+    const shouldSelectStatementCloseDate = isDevelopment;
+
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
         if (!addNewCard?.data) {
             return;
         }
 
-        const feedDetails = Object.entries({
+        const feedDetails = {
             ...values,
             bankName: addNewCard.data.bankName ?? 'Amex',
-        })
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ');
+        };
+
+        if (shouldSelectStatementCloseDate) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
+            return;
+        }
 
         addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, lastSelectedFeed);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
@@ -141,6 +149,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
+                            defaultValue={addNewCard?.data.feedDetails?.processorID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -148,6 +157,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
+                            defaultValue={addNewCard?.data.feedDetails?.bankID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -155,6 +165,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
+                            defaultValue={addNewCard?.data.feedDetails?.companyID}
                         />
                     </>
                 );
@@ -167,6 +178,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
+                        defaultValue={addNewCard?.data.feedDetails?.distributionID}
                     />
                 );
             case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
@@ -178,6 +190,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
+                        defaultValue={addNewCard?.data.feedDetails?.deliveryFileName}
                     />
                 );
             default:
@@ -198,11 +211,10 @@ function DetailsStep({policyID}: DetailsStepProps) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                submitButtonText={translate('common.submit')}
+                submitButtonText={shouldSelectStatementCloseDate ? translate('common.next') : translate('common.submit')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
-                enabledWhenOffline
                 shouldHideFixErrorsAlert={feedProvider !== CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}
                 addBottomSafeAreaPadding
             >

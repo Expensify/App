@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {getDevicePreferredLocale} from '@libs/Localize';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /* There are scenarios where locale is not loaded and we start to render UI which results in rendering translations keys instead of real translations.
@@ -13,7 +13,7 @@ function init() {
         initWithStoredValues: true,
         callback: (locale) => {
             Onyx.disconnect(connection);
-            TranslationStore.load(locale ?? getDevicePreferredLocale());
+            IntlStore.load(locale ?? getDevicePreferredLocale());
         },
     });
 }

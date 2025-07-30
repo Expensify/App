@@ -1,14 +1,20 @@
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
+import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
@@ -156,6 +162,54 @@ function getTagViolationsForMultiLevelTags(
     }
 
     return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, updatedTransaction);
+}
+
+/**
+ * Returns a period-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
+ */
+function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
+    if (isEmpty(errorIndexes) || isEmpty(tags)) {
+        return translate('violations.someTagLevelsRequired', {tagName});
+    }
+    const tagsWithIndexes = keyBy(Object.values(tags), 'orderWeight');
+    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join('. ');
+}
+
+/**
+ * Extracts unique error messages from errors and actions
+ */
+function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleContextProps['translate']): string[] {
+    const uniqueMessages = new Set<string>();
+
+    // Combine transaction and action errors
+    let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...errors};
+    errorActions.forEach((action) => {
+        if (!action.errors) {
+            return;
+        }
+        allErrors = {...allErrors, ...action.errors};
+    });
+
+    // Extract error messages
+    Object.values(allErrors).forEach((errorValue) => {
+        if (!errorValue) {
+            return;
+        }
+        if (typeof errorValue === 'string') {
+            uniqueMessages.add(errorValue);
+        } else if (isReceiptError(errorValue)) {
+            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+        } else {
+            Object.values(errorValue).forEach((nestedErrorValue) => {
+                if (!nestedErrorValue) {
+                    return;
+                }
+                uniqueMessages.add(nestedErrorValue);
+            });
+        }
+    });
+
+    return Array.from(uniqueMessages);
 }
 
 const ViolationsUtils = {
@@ -351,7 +405,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -365,11 +419,12 @@ const ViolationsUtils = {
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,
-            tagName,
+            tagName = '',
             taxName,
             type,
             rterType,
             message = '',
+            errorIndexes = [],
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -440,7 +495,7 @@ const ViolationsUtils = {
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
-                return translate('violations.someTagLevelsRequired', {tagName});
+                return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
                 return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':
@@ -471,6 +526,34 @@ const ViolationsUtils = {
     // We have to use regex, because Violation limit is given in a inconvenient form: "$2,000.00"
     getViolationAmountLimit(violation: TransactionViolation): number {
         return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
+    },
+
+    getRBRMessages(
+        transaction: Transaction,
+        transactionViolations: TransactionViolation[],
+        translate: LocaleContextProps['translate'],
+        missingFieldError?: string,
+        transactionThreadActions?: ReportAction[],
+        tags?: PolicyTagLists,
+    ): string {
+        const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
+
+        return [
+            ...errorMessages,
+            ...(missingFieldError ? [`${missingFieldError}.`] : []),
+            // Some violations end with a period already so lets make sure the connected messages have only single period between them
+            // and end with a single dot.
+            ...transactionViolations.map((violation) => {
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags);
+                if (!message) {
+                    return;
+                }
+                const textMessage = Parser.htmlToText(message);
+                return textMessage.endsWith('.') ? message : `${message}.`;
+            }),
+        ]
+            .filter(Boolean)
+            .join(' ');
     },
 };
 

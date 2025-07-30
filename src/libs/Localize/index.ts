@@ -5,7 +5,7 @@ import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
@@ -26,6 +26,7 @@ Onyx.connect({
 // Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
 let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
+
 function init() {
     CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
         // eslint-disable-next-line no-param-reassign
@@ -33,6 +34,10 @@ function init() {
         return memo;
     }, {});
 }
+
+// Memoized function to create PluralRules instances
+const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
+const memoizedCreatePluralRules = memoize(createPluralRules);
 
 /**
  * Helper function to get the translated string for given
@@ -48,7 +53,7 @@ function init() {
  * the translated value.
  */
 function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
-    const translatedPhrase = TranslationStore.get(phraseKey, language);
+    const translatedPhrase = IntlStore.get(phraseKey, language);
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
@@ -70,7 +75,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, ph
                 throw new Error(`Invalid plural form for '${phraseKey}'`);
             }
 
-            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+            const pluralRule = memoizedCreatePluralRules(language).select(phraseObject.count);
 
             const pluralResult = translateResult[pluralRule];
             if (pluralResult) {
@@ -136,7 +141,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
  * Uses the locale in this file updated by the Onyx subscriber.
  */
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
-    const currentLocale = TranslationStore.getCurrentLocale();
+    const currentLocale = IntlStore.getCurrentLocale();
     return translate(currentLocale, phrase, ...parameters);
 }
 
@@ -145,7 +150,7 @@ function getPreferredListFormat(): Intl.ListFormat {
         init();
     }
 
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[TranslationStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
+    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
 }
 
 /**
