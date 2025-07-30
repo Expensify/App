@@ -50,6 +50,14 @@ type ReportActionAvatarsProps = {
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
 };
 
+/**
+ * The component that renders proper user avatars based on either:
+ *
+ * - accountIDs - if this is passed, it is prioritized and render even if report or action has different avatars attached, useful for option items, menu items etc.
+ * - action - this is useful when we want to display avatars of chat threads, messages, report/trip previews etc.
+ * - reportID - this can be passed without above props, when we want to display chat report avatars, DM chat avatars etc.
+ *
+ */
 function ReportActionAvatars({
     reportID: potentialReportID,
     action,

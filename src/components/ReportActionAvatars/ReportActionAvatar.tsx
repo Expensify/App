@@ -543,6 +543,10 @@ function ReportActionAvatarMultipleDiagonal({
     );
 }
 
+/**
+ * This component should not be used outside ReportActionAvatars; its sole purpose is to render the ReportActionAvatars UI.
+ * To render user avatars, use ReportActionAvatars.
+ */
 export default {
     Single: ReportActionAvatarSingle,
     Subscript: ReportActionAvatarSubscript,
