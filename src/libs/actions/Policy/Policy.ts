@@ -538,6 +538,21 @@ function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMe
                     },
                 },
             });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [paymentMethodKey]: {
+                        iou: {
+                            name: lastUsedPaymentMethod?.iou?.name,
+                        },
+                        lastUsed: {
+                            name: lastUsedPaymentMethod?.iou?.name,
+                        },
+                    },
+                },
+            });
         }
     });
 

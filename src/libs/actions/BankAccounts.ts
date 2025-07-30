@@ -396,14 +396,18 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
             return;
         }
 
-        if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed.name : null;
+        if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed?.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed?.name : null;
 
             onyxData.successData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [personalPolicy?.id]: revertedLastUsedPaymentMethod,
+                    [personalPolicy?.id]: {
+                        iou: {
+                            name: revertedLastUsedPaymentMethod
+                        }
+                    },
                 },
             });
 
@@ -411,7 +415,11 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [personalPolicy?.id]: lastUsedPaymentMethod.iou.name,
+                    [personalPolicy?.id]: {
+                        iou: {
+                            name: lastUsedPaymentMethod.iou.name
+                        }
+                    },
                 },
             });
         }
@@ -423,7 +431,11 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [paymentMethodID]: revertedLastUsedPaymentMethod,
+                    [paymentMethodID]: {
+                        expense: {
+                            name: revertedLastUsedPaymentMethod
+                        }
+                    },
                 },
             });
 
@@ -431,7 +443,11 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [paymentMethodID]: lastUsedPaymentMethod.expense.name,
+                    [paymentMethodID]: {
+                        expense: {
+                            name: lastUsedPaymentMethod.expense?.name
+                        }
+                    },
                 },
             });
         }
