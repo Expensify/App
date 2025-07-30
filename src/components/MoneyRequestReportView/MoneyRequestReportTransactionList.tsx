@@ -160,8 +160,8 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
-        (activeTransactionID: string) => {
-            const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
+        (activeTransaction: TransactionWithOptionalHighlight) => {
+            const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
             const reportIDToNavigate = iouAction?.childReportID;
             if (!reportIDToNavigate) {
                 return;
@@ -173,7 +173,9 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}),
+                );
             });
         },
         [reportActions, sortedTransactions],
@@ -208,13 +210,13 @@ function MoneyRequestReportTransactionList({
     );
 
     const handleOnPress = useCallback(
-        (transactionID: string) => {
+        (transaction: TransactionWithOptionalHighlight) => {
             if (isMobileSelectionModeEnabled) {
-                toggleTransaction(transactionID);
+                toggleTransaction(transaction.transactionID);
                 return;
             }
 
-            navigateToTransaction(transactionID);
+            navigateToTransaction(transaction);
         },
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
