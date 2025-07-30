@@ -46,7 +46,6 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
             } else if (Object.values(customUnit?.rates ?? {}).some((r) => r.name === newRateName) && currentRateName !== newRateName) {
                 errors.rateName = translate('workspace.distanceRates.errors.existingRateName');
             } else if ([...newRateName].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
-                // TODO: Confirm max length
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 errors.rateName = translate('common.error.characterLimitExceedCounter', {length: [...newRateName].length, limit: CONST.TAX_RATES.NAME_MAX_LENGTH});
             }
