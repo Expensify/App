@@ -115,7 +115,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
-                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.MOBILE_EXPENSIFY_URL),
+                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.APP_REPO_URL),
                     isVerified,
                 };
             });
@@ -126,7 +126,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
-                    url: GithubUtils.getPullRequestURLFromNumber(prNum),
+                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.MOBILE_EXPENSIFY_URL),
                     isVerified,
                 };
             });

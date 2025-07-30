@@ -11621,7 +11621,7 @@ async function run() {
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
-                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum, CONST_1.default.MOBILE_EXPENSIFY_URL),
+                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum, CONST_1.default.APP_REPO_URL),
                     isVerified,
                 };
             });
@@ -11631,7 +11631,7 @@ async function run() {
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
-                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum),
+                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum, CONST_1.default.MOBILE_EXPENSIFY_URL),
                     isVerified,
                 };
             });
