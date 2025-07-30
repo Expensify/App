@@ -31,7 +31,7 @@ Exceptions:
 ### - MUST convey page hierarchy
 Just like breadcrumbs, the URL should reflect the path a user has taken.
 
-Example of the paths taken to manage a workspace member
+Example of the paths taken to manage a workspace member:
 1. `workspaces`
 1. `workspaces/:policyID/overview`
 1. `workspaces/:policyID/members`
@@ -47,49 +47,22 @@ Internet routers and third-party-services can see and store any information in t
 
 ### - SHOULD NOT use query parameters
 Exceptions:
-- When a URL needs to be encoded and added to the path (eg. `?exitTo=URL`)
+- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`)
 - When complex data needs to be part of the path (eg. `/search?q=QUERY`)
 
 ### - SHOULD NOT use optional parameters
 If there are optional parameters, use two separate route definitions instead to be explicit.
-
-## Object Routes
-Object Routes that uniquely identify a specific data element in the product (eg, a report, a workspace, etc) should aim for brevity, as they are generally the building blocks of other routes.
-
-### - MUST end with an ID in their path
-Examples:
-
-- `settings/wallet/card/:cardID` the route for a specific credit card
-- `workspace/:policyID` the route for a specific workspace
 
 ### - SHOULD use plural nouns when there are multiple objects that can exist
 Exceptions:
 
 - When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) then plurality does not matter
 
-### - MUST NOT nest inside other object paths
-If an object can be accessed by its own ID that doesn't depend on any other object IDs, then only use the object's ID in the URL.
-
+### - SHOULD use only the minimal necessary information to render the page
 Examples:
-- `r/:threadReportID` GOOD - uses the minimum information required
+- `r/:threadReportID` GOOD - `threadReportID` is all that is needed and all the rest of the page can be derived from that
 - `r/:parentReportID/:threadReportID` BAD - the `parentReportID` is not necessary so it just adds cruft to the URL
 
 Exceptions:
 
 - When multiple IDs are **required** to render the page.
-
-## Page Routes
-Page Routes should attempt to reflect the navigational position in the UI hierarchy, ideally matching the names of the elements pressed to get there, similar to a "trail of breadcrumbs".
-
-### - MUST end with a page name
-Examples:
-
-- `workspaces` the page to manage workspaces
-- `settings/wallet` the page where you manage your settings
-
-### - MAY contain an ID in the path
-Examples:
-
-- `r/:reportID/details` the route for the details of a specific report
-- `workspace/:policyID/invite` the page where workspace invites are managed
-
