@@ -79,7 +79,10 @@ function getTransactionsForMergingLocally(
             }
 
             const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            return areTransactionsEligibleForMerge(targetTransaction, transaction) && (isUnreportedExpense || isMoneyRequestReportEligibleForMerge(transaction.reportID, false));
+            return (
+                areTransactionsEligibleForMerge(targetTransaction, transaction) &&
+                (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
+            );
         });
     }
 
