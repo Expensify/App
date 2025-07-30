@@ -146,7 +146,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
 
-function getShortLivedLoginParams(authToken: string, isSupportAuthTokenUsed = false) {
+function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -165,11 +165,6 @@ function getShortLivedLoginParams(authToken: string, isSupportAuthTokenUsed = fa
                 isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.LAST_SHORT_LIVED_TOKEN,
-            value: authToken,
         },
     ];
 
@@ -673,7 +668,7 @@ function beginGoogleSignIn(token: string | null) {
  * re-authenticating after an authToken expires.
  */
 function signInWithShortLivedAuthToken(authToken: string) {
-    const {optimisticData, finallyData} = getShortLivedLoginParams(authToken);
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
 }
 
