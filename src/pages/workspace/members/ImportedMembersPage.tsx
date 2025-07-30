@@ -7,12 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {importPolicyMembers} from '@libs/actions/Policy/Member';
+import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMember} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,6 +71,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             return;
         }
 
+        let isRoleMissing = true;
+        let firstMemberRole = '';
+
         const columns = Object.values(spreadsheet?.columns ?? {});
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
@@ -82,9 +84,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
         const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
-            let role: string = CONST.POLICY.ROLE.USER;
+            let role = '';
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
+                isRoleMissing = false;
+                if (!firstMemberRole) {
+                    firstMemberRole = membersRoles?.[containsHeader ? index + 1 : index];
+                }
             }
             let submitsTo = '';
             if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
@@ -103,30 +109,39 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             };
         });
 
-        const allMembers = [...(members ?? [])];
+        let allMembers = [...(members ?? [])];
 
         // add submitsTo and forwardsTo members if they are not in the workspace
         members?.forEach((member) => {
-            if (member.submitsTo && !isPolicyMember(member.submitsTo, policyID) && !allMembers.some((m) => m.email === member.submitsTo)) {
+            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo)) {
                 allMembers.push({
                     email: member.submitsTo,
-                    role: CONST.POLICY.ROLE.USER,
+                    role: firstMemberRole,
                     submitsTo: '',
                     forwardsTo: '',
                 });
             }
 
-            if (member.forwardsTo && !isPolicyMember(member.forwardsTo, policyID) && !allMembers.some((m) => m.email === member.forwardsTo)) {
+            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo)) {
                 allMembers.push({
                     email: member.forwardsTo,
-                    role: CONST.POLICY.ROLE.USER,
+                    role: firstMemberRole,
                     submitsTo: '',
                     forwardsTo: '',
                 });
             }
         });
 
-        if (allMembers) {
+        if (isRoleMissing) {
+            setImportedSpreadsheetMemberData(allMembers);
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
+        } else {
+            allMembers = allMembers.map((member) => {
+                return {
+                    ...member,
+                    role: member.role || firstMemberRole
+                }
+            })
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
@@ -165,7 +180,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isButtonLoading={isImporting}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
-
             <ConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 title={spreadsheet?.importFinalModal?.title ?? ''}

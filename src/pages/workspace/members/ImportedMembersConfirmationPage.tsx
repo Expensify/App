@@ -1,0 +1,252 @@
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
+import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MultipleAvatars from '@components/MultipleAvatars';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useCloseImportPage from '@hooks/useCloseImportPage';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
+import {importPolicyMembers} from '@libs/actions/Policy/Member';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
+import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
+import { isPolicyMember } from '@libs/PolicyUtils';
+
+type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+
+function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPageProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
+    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    const [isImporting, setIsImporting] = useState(false);
+    const {isOffline} = useNetwork();
+
+    const personalDetails = usePersonalDetails();
+    const {setIsClosing} = useCloseImportPage();
+
+    const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
+    const newMembers = useMemo(() => {
+        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMember(member.email, policyID)) ?? [];
+    }, [importedSpreadsheetMemberData, policyID]);
+    const invitedEmailsToAccountIDsDraft = useMemo(() => {
+        const memberEmails = newMembers.map((member) => member.email);
+        return memberEmails.reduce(
+            (acc, email) => {
+                acc[email] = getAccountIDsByLogins([email])?.at(0) ?? 0;
+                return acc;
+            },
+            {} as Record<string, number>,
+        );
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [importedSpreadsheetMemberData, personalDetails]);
+
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+
+    /** Opens privacy url as an external link */
+    const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        event?.preventDefault();
+        openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
+    };
+
+    const importMembers = useCallback(() => {
+        if (!newMembers) {
+            return;
+        }
+        setIsImporting(true);
+        const newMembersWithRole = newMembers.map((member) => ({...member, role}));
+        importPolicyMembers(policyID, newMembersWithRole);
+    }, [newMembers, policyID, role]);
+
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImporting(false);
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    };
+
+    const roleItems: ListItemType[] = useMemo(
+        () => [
+            {
+                value: CONST.POLICY.ROLE.ADMIN,
+                text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.ADMIN,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
+            },
+            {
+                value: CONST.POLICY.ROLE.USER,
+                text: translate('common.member'),
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.USER,
+                keyForList: CONST.POLICY.ROLE.USER,
+            },
+        ],
+        [role, translate],
+    );
+
+    if (!spreadsheet || !importedSpreadsheetMemberData) {
+        return <NotFoundPage />;
+    }
+
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            shouldUseCachedViewportHeight
+            testID={ImportedMembersConfirmationPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
+            <HeaderWithBackButton
+                title={translate('workspace.inviteMessage.confirmDetails')}
+                subtitle={policy?.name}
+                shouldShowBackButton
+                onBackButtonPress={() => {
+                    Navigation.goBack();
+                }}
+                // onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+            />
+            <View style={styles.ph5}>
+                <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <MultipleAvatars
+                        size={CONST.AVATAR_SIZE.LARGE}
+                        icons={getAvatarsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {}, invitedEmailsToAccountIDsDraft ?? {})}
+                        shouldStackHorizontally
+                        shouldDisplayAvatarsInRows
+                        secondAvatarStyle={[styles.secondAvatarInline]}
+                    />
+                </View>
+                <View style={[styles.mb5]}>
+                    <Text>{translate('spreadsheet.importMemberConfirmation', {totalMembers: importedSpreadsheetMemberData?.length, newMembers: newMembers?.length})}</Text>
+                </View>
+                <View style={[styles.mb3]}>
+                    <View style={[styles.mhn5, styles.mb3]}>
+                        <MenuItemWithTopDescription
+                            title={translate(`workspace.common.roleName`, {role})}
+                            description={translate('common.role')}
+                            shouldShowRightIcon
+                            onPress={() => {
+                                setIsRoleSelectionModalVisible(true);
+                            }}
+                        />
+                    </View>
+                    {/* <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.WELCOME_MESSAGE}
+                        label={translate('workspace.inviteMessage.personalMessagePrompt')}
+                        accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
+                        autoCompleteType="off"
+                        type="markdown"
+                        autoCorrect={false}
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        value={welcomeNote}
+                        onChangeText={(text: string) => {
+                            setWelcomeNote(text);
+                        }}
+                        ref={(element: AnimatedTextInputRef) => {
+                            if (!element) {
+                                return;
+                            }
+                            if (!inputRef.current) {
+                                updateMultilineInputRange(element);
+                            }
+                            inputCallbackRef(element);
+                        }}
+                        shouldSaveDraft
+                    /> */}
+                </View>
+            </View>
+            {/* <FormProvider
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
+                validate={validate}
+                onSubmit={sendInvitation}
+                // submitButtonText={translate('common.invite')}
+                enabledWhenOffline
+                shouldHideFixErrorsAlert
+                addBottomSafeAreaPadding
+            > */}
+            {/* </FormProvider> */}
+            <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
+                <Button
+                    text={translate('common.import')}
+                    onPress={importMembers}
+                    isLoading={isImporting}
+                    isDisabled={isOffline}
+                    pressOnEnter
+                    success
+                    large
+                    style={styles.mb3}
+                />
+                <PressableWithoutFeedback
+                    onPress={openPrivacyURL}
+                    role={CONST.ROLE.LINK}
+                    accessibilityLabel={translate('common.privacy')}
+                    href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                    style={[styles.mv2, styles.alignSelfStart]}
+                >
+                    <View style={[styles.flexRow]}>
+                        <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
+                    </View>
+                </PressableWithoutFeedback>
+            </FixedFooter>
+            <ConfirmModal
+                isVisible={spreadsheet?.shouldFinalModalBeOpened}
+                title={spreadsheet?.importFinalModal?.title ?? ''}
+                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
+                onConfirm={closeImportPageAndModal}
+                onCancel={closeImportPageAndModal}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                shouldHandleNavigationBack
+            />
+            <WorkspaceMemberDetailsRoleSelectionModal
+                isVisible={isRoleSelectionModalVisible}
+                items={roleItems}
+                onRoleChange={(item) => {
+                    setRole(item.value);
+                    setIsRoleSelectionModalVisible(false);
+                }}
+                onClose={() => setIsRoleSelectionModalVisible(false)}
+            />
+        </ScreenWrapper>
+    );
+}
+
+ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
+
+export default ImportedMembersConfirmationPage;

@@ -99,6 +99,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -954,6 +955,8 @@ const translations = {
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
         importSpreadsheet: 'Importar hoja de cálculo',
         downloadCSV: 'Descargar CSV',
+        importMemberConfirmation: ({totalMembers, newMembers}: ImportMemberConfirmationParams) =>
+            `${newMembers} de las ${totalMembers} personas que has subido aún no es miembro de este espacio de trabajo. Las opciones a continuación solo se aplican a las personas recién añadidas. Los miembros existentes incluidos en tu carga no tendrán cambios en su configuración ni recibirán un correo electrónico.`,
     },
     receipt: {
         upload: 'Subir recibo',

@@ -818,7 +818,13 @@ type SettlementAccountInfoParams = {
     accountNumber: string;
 };
 
+type ImportMemberConfirmationParams = {
+    totalMembers: number;
+    newMembers: number;
+};
+
 export type {
+    ImportMemberConfirmationParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,

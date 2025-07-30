@@ -27,7 +27,17 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -1316,6 +1326,14 @@ function clearInviteDraft(policyID: string) {
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
+function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[]) {
+    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
+}
+
+function clearImportedSpreadsheetMemberData() {
+    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, null);
+}
+
 export {
     removeMembers,
     buildUpdateWorkspaceMembersRoleOnyxData,
@@ -1341,4 +1359,6 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
+    setImportedSpreadsheetMemberData,
+    clearImportedSpreadsheetMemberData,
 };

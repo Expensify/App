@@ -699,6 +699,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORTED.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.route,
+                        },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.route,
                         },

@@ -1341,6 +1341,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/imported',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/imported` as const,
     },
+    WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/members/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/imported/confirmation` as const,
+    },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
         getRoute: (policyID: string | undefined, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {

@@ -34,6 +34,7 @@ import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
+import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -247,6 +248,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
