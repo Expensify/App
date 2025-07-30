@@ -1,5 +1,5 @@
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
@@ -13,27 +13,21 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import fileDownload from '@libs/fileDownload';
-import {getFileName} from '@libs/fileDownload/FileUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {AttachmentModalBaseContentProps} from './types';
@@ -47,30 +41,26 @@ function AttachmentModalBaseContent({
     attachmentID,
     isAuthTokenRequired = false,
     maybeIcon = false,
-    headerTitle: headerTitleProp,
     type,
-    draftTransactionID,
-    iouAction,
-    iouType: iouTypeProp,
     accountID,
     attachmentLink = '',
     allowDownload = false,
-    isTrackExpenseAction = false,
     report,
     reportID,
-    isReceiptAttachment = false,
     isWorkspaceAvatar = false,
-    canEditReceipt = false,
-    canDeleteReceipt = false,
+    headerTitle,
+    threeDotsMenuItems: threeDotsMenuItemsProp,
     isLoading = false,
     shouldShowNotFoundPage = false,
+    shouldShowCarousel = true,
+    shouldShowDownloadButton: shouldShowDownloadButtonProp = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = true,
     submitRef,
+    onDownloadAttachment,
     onClose,
     onConfirm,
     ExtraModals,
-    onRequestDeleteReceipt,
     onCarouselAttachmentChange = () => {},
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
@@ -94,7 +84,6 @@ function AttachmentModalBaseContent({
     }, [isAuthTokenRequired]);
 
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
@@ -139,6 +128,25 @@ function AttachmentModalBaseContent({
         [onCarouselAttachmentChange, setFile],
     );
 
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems: PopoverMenuItem[] = [];
+
+        threeDotsMenuItemsProp?.forEach((menuItem) => {
+            if (typeof menuItem === 'function') {
+                const generatedMenuItem = menuItem({file: fileToDisplay, source, isLocalSource});
+                if (generatedMenuItem) {
+                    menuItems.push(generatedMenuItem);
+                }
+
+                return;
+            }
+
+            menuItems.push(menuItem);
+        });
+
+        return menuItems;
+    }, [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp]);
+
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = useState(true);
     const setDownloadButtonVisibility = useCallback(
         (isButtonVisible: boolean) => {
@@ -149,25 +157,6 @@ function AttachmentModalBaseContent({
         },
         [isDownloadButtonReadyToBeShown],
     );
-
-    /**
-     * Download the currently viewed attachment.
-     */
-    const downloadAttachment = useCallback(() => {
-        let sourceURL = source;
-        if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
-            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
-        }
-
-        if (typeof sourceURL === 'string') {
-            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : fileToDisplay?.name;
-            fileDownload(sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, !draftTransactionID);
-        }
-
-        // At ios, if the keyboard is open while opening the attachment, then after downloading
-        // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
-        Keyboard.dismiss();
-    }, [source, isAuthTokenRequiredState, type, fileToDisplay?.name, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -204,61 +193,6 @@ function AttachmentModalBaseContent({
         return unsubscribeEscapeKey;
     }, [onClose]);
 
-    const threeDotsMenuItems = useMemo(() => {
-        if (!isReceiptAttachment) {
-            return [];
-        }
-
-        const menuItems = [];
-        if (canEditReceipt) {
-            menuItems.push({
-                icon: Expensicons.Camera,
-                text: translate('common.replace'),
-                onSelected: () => {
-                    const goToScanScreen = () => {
-                        InteractionManager.runAfterInteractions(() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    iouAction ?? CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    draftTransactionID ?? transaction?.transactionID,
-                                    report?.reportID,
-                                    Navigation.getActiveRoute(),
-                                ),
-                            );
-                        });
-                    };
-
-                    onClose?.({shouldCallDirectly: true, onAfterClose: goToScanScreen});
-                },
-            });
-        }
-        if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
-            menuItems.push({
-                icon: Expensicons.Download,
-                text: translate('common.download'),
-                onSelected: () => downloadAttachment(),
-            });
-        }
-
-        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDeleteReceipt && !hasMissingSmartscanFields(transaction)) {
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('receipt.deleteReceipt'),
-                onSelected: onRequestDeleteReceipt,
-                shouldCallAfterModalHide: true,
-            });
-        }
-        return menuItems;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isReceiptAttachment, transaction, files, source, iouType]);
-
-    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
-    // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    const headerTitle = useMemo(() => headerTitleProp ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment'), [headerTitleProp, isReceiptAttachment, translate]);
-    const shouldShowThreeDotsButton = useMemo(() => isReceiptAttachment && threeDotsMenuItems.length !== 0, [isReceiptAttachment, threeDotsMenuItems.length]);
-
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {
         return () => {
@@ -266,11 +200,12 @@ function AttachmentModalBaseContent({
         };
     }, [clearAttachmentErrors]);
     const shouldShowDownloadButton = useMemo(() => {
-        if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(source)) {
-            return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
+        if ((isEmptyObject(report) && type !== CONST.ATTACHMENT_TYPE.SEARCH) || isErrorInAttachment(source)) {
+            return false;
         }
-        return false;
-    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, source, type]);
+
+        return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && !shouldShowDownloadButtonProp;
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, report, shouldShowDownloadButtonProp, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -289,21 +224,23 @@ function AttachmentModalBaseContent({
         [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
     );
 
+    const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
+
     return (
         <GestureHandlerRootView style={styles.flex1}>
             {shouldUseNarrowLayout && <HeaderGap />}
             <HeaderWithBackButton
                 shouldMinimizeMenuButton
-                title={headerTitle}
+                title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
                 shouldDisplayHelpButton={shouldDisplayHelpButton}
-                onDownloadButtonPress={() => downloadAttachment()}
+                onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
                 shouldShowCloseButton={!shouldUseNarrowLayout}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={onClose}
                 onCloseButtonPress={onClose}
-                shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                shouldShowThreeDotsButton={threeDotsMenuItems && threeDotsMenuItems.length !== 0}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                 threeDotsAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -328,10 +265,8 @@ function AttachmentModalBaseContent({
                         onLinkPress={onClose}
                     />
                 )}
-                {!shouldShowNotFoundPage &&
-                    !isLoading &&
-                    // We shouldn't show carousel arrow in search result attachment
-                    (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
+                {shouldDisplayContent &&
+                    (!isEmptyObject(report) && shouldShowCarousel && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
                         <AttachmentCarousel
                             accountID={accountID}
                             type={type}

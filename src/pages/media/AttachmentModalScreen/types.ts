@@ -1,5 +1,6 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import type {IOUAction, IOUType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
@@ -36,6 +37,12 @@ type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
         readonly?: boolean;
         isFromReviewDuplicates?: boolean;
         hashKey?: number;
+
+        /** The iou action of the expense creation flow of which we are displaying the receipt for. */
+        iouAction?: IOUAction;
+
+        /** The iou type of the expense creation flow of which we are displaying the receipt for. */
+        iouType?: IOUType;
     };
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.REPORT_ATTACHMENTS>;

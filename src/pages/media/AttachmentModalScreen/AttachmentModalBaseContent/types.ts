@@ -3,9 +3,9 @@ import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -13,6 +13,18 @@ type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
     onAfterClose?: () => void;
 };
+
+type AttachmentModalContentData = {
+    source: AvatarSource;
+    file: FileObject | undefined;
+};
+
+type ThreeDotsMenuItemGeneratorProps = AttachmentModalContentData & {
+    isLocalSource: boolean;
+};
+type ThreeDotsMenuItemGenerator = (props: ThreeDotsMenuItemGeneratorProps) => PopoverMenuItem | undefined;
+
+type DownloadAttachmentCallback = (props: AttachmentModalContentData) => void;
 
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
@@ -39,11 +51,11 @@ type AttachmentModalBaseContentProps = {
     /** Determines if download Button should be shown or not */
     allowDownload?: boolean;
 
-    /** Determines if the receipt comes from track expense action */
-    isTrackExpenseAction?: boolean;
-
     /** Title shown in the header of the modal */
     headerTitle?: string;
+
+    /** The menu items for the three dots button */
+    threeDotsMenuItems?: Array<PopoverMenuItem | ThreeDotsMenuItemGenerator>;
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
@@ -54,23 +66,11 @@ type AttachmentModalBaseContentProps = {
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
-    /** The iou action of the expense creation flow of which we are displaying the receipt for. */
-    iouAction?: IOUAction;
-
-    /** The iou type of the expense creation flow of which we are displaying the receipt for. */
-    iouType?: IOUType;
-
-    /** The id of the draft transaction linked to the receipt. */
-    draftTransactionID?: string;
-
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
 
     /** The data is loading or not */
     isLoading?: boolean;
-
-    /** Should display not found page or not */
-    shouldShowNotFoundPage?: boolean;
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
@@ -78,19 +78,19 @@ type AttachmentModalBaseContentProps = {
     /** Denotes whether it can be an icon (ex: SVG) */
     maybeIcon?: boolean;
 
-    /** Whether it is a receipt attachment or not */
-    isReceiptAttachment?: boolean;
+    /** Whether to display not found page */
+    shouldShowNotFoundPage?: boolean;
 
-    /** Determines if the user can edit the receipt or not */
-    canEditReceipt?: boolean;
+    /** Whether to show an attachmentcarousel */
+    shouldShowCarousel?: boolean;
 
-    /** Determines if the user can delete the receipt or not */
-    canDeleteReceipt?: boolean;
+    /** Whether to show download button */
+    shouldShowDownloadButton?: boolean;
 
-    /** Determines if the send button should be disabled or not */
+    /** Whether to disable send button */
     shouldDisableSendButton?: boolean;
 
-    /** Determines if the help button should be displayed or not */
+    /** Whether to display help button */
     shouldDisplayHelpButton?: boolean;
 
     /** The link of the attachment */
@@ -102,17 +102,17 @@ type AttachmentModalBaseContentProps = {
     /** Extra modals to be displayed in the modal */
     ExtraModals?: React.ReactNode;
 
+    /** Callback triggered when the download button is pressed */
+    onDownloadAttachment?: DownloadAttachmentCallback;
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: (file: FileObject | FileObject[]) => void;
 
     /** Callback triggered when the modal is closed */
     onClose?: (options?: AttachmentModalOnCloseOptions) => void;
 
-    /** Callback triggered when the delete receipt modal is shown */
-    onRequestDeleteReceipt?: () => void;
-
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
 };
 
-export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, ThreeDotsMenuItemGeneratorProps, ThreeDotsMenuItemGenerator, DownloadAttachmentCallback};

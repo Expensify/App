@@ -1,26 +1,31 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
-import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
+import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemGenerator} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
-    const {reportID = '', transactionID = '', iouAction, iouType, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
+    const {reportID = '', transactionID = '', iouAction, iouType: iouTypeParam, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -34,7 +39,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = !!readonlyProp;
     const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
-    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -56,7 +61,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptPath = transaction?.receipt?.source;
 
     useEffect(() => {
-        if (!isDraftTransaction || !iouType || !transaction) {
+        if (!isDraftTransaction || !iouTypeParam || !transaction) {
             return;
         }
 
@@ -68,7 +73,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             receiptPath,
             () => {},
             requestType,
-            iouType,
+            iouTypeParam,
             transactionID,
             reportID,
             receiptType,
@@ -76,10 +81,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 Navigation.goBack(
                     ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                         CONST.IOU.ACTION.CREATE,
-                        iouType,
+                        iouTypeParam,
                         transactionID,
                         reportID,
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouAction, iouType, transactionID, reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouAction, iouTypeParam, transactionID, reportID),
                     ),
                 ),
         );
@@ -121,43 +126,112 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
     );
 
+    const downloadAttachment = useDownloadAttachment({
+        isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
+        draftTransactionID: isDraftTransaction ? transactionID : undefined,
+    });
+
+    const draftTransactionID = isDraftTransaction ? transactionID : undefined;
+    const allowDownload = !isEReceipt;
+
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems = [];
+        const canEdit = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+
+        if (canEdit) {
+            menuItems.push({
+                icon: Expensicons.Camera,
+                text: translate('common.replace'),
+                onSelected: () => {
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                iouAction ?? CONST.IOU.ACTION.EDIT,
+                                iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT),
+                                draftTransactionID ?? transaction?.transactionID,
+                                report?.reportID,
+                                Navigation.getActiveRoute(),
+                            ),
+                        );
+                    });
+                },
+            });
+        }
+
+        const menuItemGenerator: ThreeDotsMenuItemGenerator = ({source: sourceState, file, isLocalSource}) => {
+            if (!((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID)) {
+                return;
+            }
+
+            return {
+                icon: Expensicons.Download,
+                text: translate('common.download'),
+                onSelected: () => downloadAttachment({source: sourceState, file}),
+            };
+        };
+        menuItems.push(menuItemGenerator);
+
+        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
+        const canDelete = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
+
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDelete && !hasMissingSmartscanFields(transaction)) {
+            menuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('receipt.deleteReceipt'),
+                onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+                shouldCallAfterModalHide: true,
+            });
+        }
+        return menuItems;
+    }, [
+        canEditReceipt,
+        readonly,
+        isDraftTransaction,
+        transaction,
+        canDeleteReceipt,
+        translate,
+        iouAction,
+        iouTypeParam,
+        isTrackExpenseActionValue,
+        draftTransactionID,
+        report?.reportID,
+        isOffline,
+        allowDownload,
+        downloadAttachment,
+    ]);
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            source: imageSource,
+            source,
             isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
             report,
-            isReceiptAttachment: true,
-            canEditReceipt: ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt,
-            canDeleteReceipt: canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt,
-            allowDownload: !isEReceipt,
+            headerTitle: translate('common.receipt'),
+            threeDotsMenuItems,
+            allowDownload,
             isTrackExpenseAction: isTrackExpenseActionValue,
             originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
-            iouAction,
-            iouType,
-            draftTransactionID: isDraftTransaction ? transactionID : undefined,
             shouldShowNotFoundPage,
+            shouldShowDownloadButton: false,
+            shouldShowCarousel: false,
+            onDownloadAttachment: downloadAttachment,
             ExtraModals,
-            onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
         }),
         [
-            ExtraModals,
-            canDeleteReceipt,
-            canEditReceipt,
-            imageSource,
-            iouAction,
-            iouType,
-            isDraftTransaction,
-            isEReceipt,
+            source,
             isLocalFile,
-            isTrackExpenseActionValue,
-            readonly,
-            receiptURIs?.filename,
+            isDraftTransaction,
             report,
+            translate,
+            threeDotsMenuItems,
+            allowDownload,
+            isTrackExpenseActionValue,
+            transaction,
+            receiptURIs?.filename,
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
-            transaction,
-            transactionID,
+            downloadAttachment,
+            ExtraModals,
         ],
     );
 
