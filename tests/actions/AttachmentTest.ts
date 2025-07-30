@@ -158,7 +158,7 @@ describe('AttachmentStorage', () => {
 
         // Given the new markdown attachment link
         const newSourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=100';
-        getCachedAttachment(attachment, newSourceURL);
+        getCachedAttachment(attachmentID, attachment, newSourceURL);
 
         await waitForBatchedUpdates();
 
@@ -213,7 +213,7 @@ describe('AttachmentStorage', () => {
 
         // Given the new markdown attachment link
         const newSourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=100';
-        getCachedAttachment(attachment, newSourceURL);
+        getCachedAttachment(attachmentID, attachment, newSourceURL);
 
         await waitForBatchedUpdates();
 

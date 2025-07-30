@@ -28,15 +28,12 @@ function cacheAttachment(attachmentID: string, uri: string) {
         });
 }
 
-function getCachedAttachment(attachment: OnyxEntry<Attachment>, currentSource: string) {
-    if (!attachment?.attachmentID) {
-        return currentSource;
-    }
+function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
-        cacheAttachment(attachment.attachmentID, currentSource);
-        return currentSource;
+        cacheAttachment(attachmentID, currentSource);
+        return Promise.resolve(currentSource);
     }
-    return attachment?.source;
+    return Promise.resolve(attachment?.source ?? currentSource);
 }
 
 function removeCachedAttachment(attachmentID: string) {

@@ -23,13 +23,10 @@ function cacheAttachment(attachmentID: string, uri: string) {
         });
 }
 
-function getCachedAttachment(attachment: OnyxEntry<Attachment>, currentSource: string) {
-    if (!attachment?.attachmentID) {
-        return currentSource;
-    }
+function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
-        cacheAttachment(attachment.attachmentID, currentSource);
-        return currentSource;
+        cacheAttachment(attachmentID, currentSource);
+        return Promise.resolve(currentSource);
     }
 
     return CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachment.attachmentID)?.then((response) => {
