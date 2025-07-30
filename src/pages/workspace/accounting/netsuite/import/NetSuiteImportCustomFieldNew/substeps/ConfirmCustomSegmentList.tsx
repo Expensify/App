@@ -31,6 +31,7 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
                 <MenuItemWithTopDescription
+                    key={fieldName}
                     description={translate(
                         `workspace.netsuite.import.importCustomFields.customSegments.fields.${
                             fieldName === INPUT_IDS.SCRIPT_ID && customSegmentType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD
