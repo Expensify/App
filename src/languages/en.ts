@@ -6274,8 +6274,7 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invite to submit expenses',
-        inviteToChat: 'Invite to chat only',
+        invite: 'Invite them',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {

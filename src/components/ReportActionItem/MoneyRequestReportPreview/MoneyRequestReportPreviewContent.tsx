@@ -290,7 +290,7 @@ function MoneyRequestReportPreviewContent({
 
     const reportStatus = useMemo(() => getReportStatusTranslation(iouReport?.stateNum, iouReport?.statusNum), [iouReport?.stateNum, iouReport?.statusNum]);
 
-    const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsBaseline];
+    const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
@@ -739,7 +739,7 @@ function MoneyRequestReportPreviewContent({
                                             {/* height is needed to avoid flickering on animation */}
                                             <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
                                             {transactions.length > 1 && (
-                                                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsBaseline]}>
+                                                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsCenter]}>
                                                     <Text
                                                         style={[styles.textLabelSupporting]}
                                                         numberOfLines={1}

@@ -753,19 +753,17 @@ Onyx.connect({
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = getAllPolicyReports(policyID);
             const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            const cleanUpDrafts: Record<string, null> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpDrafts[reportID] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
-            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -5609,7 +5607,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     if (activeReportID && !isMoneyRequestReport) {
-        notifyNewAction(activeReportID, payeeAccountID);
+        Navigation.setNavigationActionToMicrotaskQueue(() =>
+            setTimeout(() => {
+                notifyNewAction(activeReportID, payeeAccountID, reportPreviewAction);
+            }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
+        );
     }
 }
 
@@ -7071,6 +7073,9 @@ function startSplitBill({
 
     Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     notifyNewAction(splitChatReport.reportID, currentUserAccountID);
+
+    // Return the split transactionID for testing purpose
+    return {splitTransactionID: splitTransaction.transactionID};
 }
 
 /** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
@@ -7083,12 +7088,16 @@ function startSplitBill({
  */
 function completeSplitBill(
     chatReportID: string,
-    reportAction: OnyxTypes.ReportAction,
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
     sessionAccountID: number,
     sessionEmail?: string,
 ) {
-    const parsedComment = getParsedComment(updatedTransaction?.comment?.comment ?? '');
+    if (!reportAction) {
+        return;
+    }
+
+    const parsedComment = getParsedComment(Parser.htmlToMarkdown(updatedTransaction?.comment?.comment ?? ''));
     if (updatedTransaction?.comment) {
         // eslint-disable-next-line no-param-reassign
         updatedTransaction.comment.comment = parsedComment;
@@ -11661,10 +11670,12 @@ function getSearchOnyxUpdate({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, isOpenCreatedSplit?: boolean) {
     if (!transaction) {
         return;
     }
+
+    const reportID = transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
     if (isOpenCreatedSplit) {
         const originalTransactionID = transaction.comment?.originalTransactionID;

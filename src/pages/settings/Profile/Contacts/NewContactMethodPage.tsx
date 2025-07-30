@@ -76,7 +76,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!pendingContactAction?.actionVerified) {
+        if (!pendingContactAction?.actionVerified || !prevPendingContactAction?.contactMethod) {
             return;
         }
 
