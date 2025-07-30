@@ -5966,7 +5966,7 @@ const translations = {
         },
         statements: 'Declarações',
         unapprovedCash: 'Dinheiro não aprovado',
-        unapprovedCompanyCards: 'Cartões corporativos não aprovados',
+        unapprovedCard: 'Cartão não aprovado',
         saveSearch: 'Salvar pesquisa',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
@@ -6315,8 +6315,7 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Convidar para enviar despesas',
-        inviteToChat: 'Convidar apenas para conversar',
+        invite: 'Convide-os',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
