@@ -1,17 +1,10 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
-
-let attachments: OnyxCollection<Attachment>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
-    callback: (value) => (attachments = value ?? {}),
-});
 
 function cacheAttachment(attachmentID: string, uri: string) {
     fetch(uri)
@@ -30,15 +23,16 @@ function cacheAttachment(attachmentID: string, uri: string) {
         });
 }
 
-function getCachedAttachment(attachmentID: string, currentSource: string) {
-    const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
-
+function getCachedAttachment(attachment: OnyxEntry<Attachment>, currentSource: string) {
+    if (!attachment?.attachmentID) {
+        return currentSource;
+    }
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
-        cacheAttachment(attachmentID, currentSource);
+        cacheAttachment(attachment.attachmentID, currentSource);
         return currentSource;
     }
 
-    return CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID)?.then((response) => {
+    return CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachment.attachmentID)?.then((response) => {
         if (!response) {
             throw new Error('Failed to get attachment');
         }

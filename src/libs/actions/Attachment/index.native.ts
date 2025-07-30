@@ -1,15 +1,8 @@
 import RNFetchBlob from 'react-native-blob-util';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
-
-let attachments: OnyxCollection<Attachment>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
-    callback: (value) => (attachments = value ?? {}),
-});
 
 function cacheAttachment(attachmentID: string, uri: string) {
     if (uri.startsWith('file://')) {
@@ -17,12 +10,6 @@ function cacheAttachment(attachmentID: string, uri: string) {
             attachmentID,
             source: uri,
         });
-        return;
-    }
-
-    const attachment = attachments?.[attachmentID];
-
-    if (attachment?.source && attachment.remoteSource === uri) {
         return;
     }
 
@@ -41,11 +28,12 @@ function cacheAttachment(attachmentID: string, uri: string) {
         });
 }
 
-function getCachedAttachment(attachmentID: string, currentSource: string) {
-    const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
-
+function getCachedAttachment(attachment: OnyxEntry<Attachment>, currentSource: string) {
+    if (!attachment?.attachmentID) {
+        return currentSource;
+    }
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
-        cacheAttachment(attachmentID, currentSource);
+        cacheAttachment(attachment.attachmentID, currentSource);
         return currentSource;
     }
     return attachment?.source;
