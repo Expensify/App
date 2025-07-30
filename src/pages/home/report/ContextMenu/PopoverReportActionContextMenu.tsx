@@ -279,7 +279,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         setIsPopoverVisible(false);
     };
 
-    // Move transaction ID logic and hook calls to the very top
     const transactionIDs: string[] = [];
     if (isMoneyRequestAction(reportActionRef.current)) {
         const originalMessage = getOriginalMessage(reportActionRef.current);

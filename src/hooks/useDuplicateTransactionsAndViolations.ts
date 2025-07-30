@@ -8,7 +8,7 @@ import useOnyx from './useOnyx';
 /**
  * Selects violations related to provided transaction IDs and if present, the violations of their duplicates.
  * @param transactionIDs - An array of transaction IDs to fetch their violations for.
- * @param allTransactionsViolations - A collection of all transaction violations currently in the onyx.
+ * @param allTransactionsViolations - A collection of all transaction violations currently in the onyx db.
  * @returns - A collection of violations related to the transaction IDs and if present, the violations of their duplicates.
  * @private
  */

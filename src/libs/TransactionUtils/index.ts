@@ -1419,36 +1419,25 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
 
         // Skip further violations
         if (foundDuplicateViolation) {
-            Log.warn(`Multiple duplicate violations found for transaction ${transactionID}. Only one expected.`);
+            Log.warn(`Multiple duplicate violations found for transaction. Only one expected.`, {transactionID});
             continue;
         }
 
         foundDuplicateViolation = true;
-
-        const duplicatesIDs = violation?.data?.duplicates;
-        if (!duplicatesIDs || duplicatesIDs.length === 0) {
-            Log.warn(`Violation ${violation.name} lacks duplicates. Transaction ID: ${transactionID}`);
-            break;
-        }
+        const duplicatesIDs = violation.data?.duplicates ?? [];
 
         const validTransactions: Transaction[] = [];
 
         for (const duplicateID of duplicatesIDs) {
             // Skip self-reference
-            if (duplicateID === transactionID) {
+            if (duplicateID === transactionID || seen.has(duplicateID)) {
                 continue;
             }
-
-            if (seen.has(duplicateID)) {
-                Log.warn(`Duplicate ID ${duplicateID} is repeated in violation for transaction ${transactionID}.`);
-                continue;
-            }
-
             seen.add(duplicateID);
 
             const transaction = transactionCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`];
             if (!transaction?.transactionID) {
-                Log.warn(`Transaction ${duplicateID} does not exist or is invalid. Found in transaction ${transactionID}.`);
+                Log.warn(`Transaction does not exist or is invalid. Found in transaction.`, {duplicateID, transactionID});
                 continue;
             }
 
@@ -1475,7 +1464,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  * @param transactionViolations - The collection of the transaction violations including the duplicates violations.
  *
  */
-function updateDuplicatesTransactionsViolations(
+function removeTransactionFromDuplicateTransactionViolation(
     onyxData: OnyxData,
     transactionID: string,
     transactions: OnyxCollection<Transaction>,
@@ -1947,7 +1936,7 @@ export {
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
-    updateDuplicatesTransactionsViolations,
+    removeTransactionFromDuplicateTransactionViolation,
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
