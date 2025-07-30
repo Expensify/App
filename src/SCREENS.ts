@@ -275,6 +275,9 @@ const SCREENS = {
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DISTANCE_CREATE: 'Money_Request_Distance_Create',
+        STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
+        STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -665,6 +668,7 @@ const SCREENS = {
         PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        INTERESTED_FEATURES: 'Onboarding_Interested_Features',
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
