@@ -4734,7 +4734,7 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusNormal,
             aspectRatio: 16 / 9,
             height: 180,
             maxWidth: '100%',
@@ -4775,7 +4775,7 @@ const styles = (theme: ThemeColors) =>
 
         mergeTransactionReceiptThumbnail: {
             backgroundColor: theme.highlightBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
         },
 
