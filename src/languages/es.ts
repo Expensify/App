@@ -531,6 +531,7 @@ const translations = {
         type: 'Tipo',
         action: 'Acción',
         expenses: 'Gastos',
+        totalSpend: 'Gasto total',
         tax: 'Impuesto',
         shared: 'Compartidos',
         drafts: 'Borradores',
@@ -912,9 +913,9 @@ const translations = {
     spreadsheet: {
         upload: 'Importar',
         import: 'Importar hoja de cálculo',
-        dragAndDrop: 'Arrastra y suelta un archivo de hoja de cálculo aquí',
+        dragAndDrop: '<muted-link>Arrastra y suelta un archivo de hoja de cálculo aquí</muted-link>',
         dragAndDropMultiLevelTag: `<muted-link>Arrastra y suelta un archivo de hoja de cálculo aquí, o elige un archivo a continuación. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
-        chooseSpreadsheet: 'Elige un archivo de hoja de cálculo para importar. Los formatos soportados son .csv, .txt, .xls y .xlsx.',
+        chooseSpreadsheet: '<muted-link>Elige un archivo de hoja de cálculo para importar. Los formatos soportados son .csv, .txt, .xls y .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Elige un archivo de hoja de cálculo para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
         fileContainsHeader: 'El archivo contiene encabezados',
         column: ({name}: SpreadSheetColumnParams) => `Columna ${name}`,
@@ -1813,7 +1814,6 @@ const translations = {
         sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify. Solo cuentas bancarias de EE. UU.',
         enableWallet: 'Habilitar billetera',
         addBankAccountToSendAndReceive: 'Recibe el reembolso de los gastos que envíes a un espacio de trabajo.',
-        addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
@@ -1878,7 +1878,6 @@ const translations = {
         addApprovalButton: 'Añadir flujo de aprobación',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
-        connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
@@ -3110,7 +3109,6 @@ const translations = {
         termsAndConditions: 'Términos y Condiciones',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Conectar cuenta bancaria',
         finishButtonText: 'Finalizar configuración',
         validateYourBankAccount: 'Valida tu cuenta bancaria',
         validateButtonText: 'Validar',
@@ -3202,7 +3200,6 @@ const translations = {
         pleaseUploadTheDirect: 'Por favor, cargue los Acuerdos de Débito Directo y la página de firma de Docusign.',
     },
     finishStep: {
-        connect: 'Conectar cuenta bancaria',
         letsFinish: '¡Terminemos en el chat!',
         thanksFor:
             'Gracias por esos detalles. Un agente de soporte dedicado revisará ahora tu información. Nos pondremos en contacto si necesitamos algo más de tu parte, pero mientras tanto, no dudes en comunicarte con nosotros si tienes alguna pregunta.',
@@ -3395,7 +3392,6 @@ const translations = {
             profile: 'Resumen',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
-            connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
@@ -5168,7 +5164,6 @@ const translations = {
                 personal: 'Personal',
                 business: 'Empresas',
                 chooseInvoiceMethod: 'Elija un método de pago:',
-                addBankAccount: 'Añadir cuenta bancaria',
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
@@ -5952,7 +5947,6 @@ const translations = {
             },
         },
         statements: 'Extractos',
-        unapproved: 'No aprobado',
         unapprovedCash: 'Efectivo no aprobado',
         unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',
         saveSearch: 'Guardar búsqueda',
@@ -6743,8 +6737,7 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invitar a enviar gastos',
-        inviteToChat: 'Invitar solo a chatear',
+        invite: 'Invitar',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6850,14 +6843,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: 'Inicia un chat y ',
-            buttonText2: 'recomienda a un amigo',
+            buttonText: 'Inicia un chat y <success><strong>recomienda a un amigo</strong></success>',
             header: 'Inicia un chat, recomienda a un amigo',
             body: '¿Quieres que tus amigos también usen Expensify? Simplemente inicia un chat con ellos y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Presenta un gasto, ',
-            buttonText2: 'recomienda a tu jefe',
+            buttonText: 'Presenta un gasto y <success><strong>recomienda a tu jefe</strong></success>',
             header: 'Envía un gasto, recomienda a tu jefe',
             body: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
