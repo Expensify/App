@@ -4914,6 +4914,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Limiter le type',
                 name: 'Nom',
+                disabledApprovalForSmartLimitError: "Veuillez activer le flux de travail d'approbation sur votre politique pour configurer les cartes Limite Intelligent.",
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
