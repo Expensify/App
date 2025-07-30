@@ -1,16 +1,2 @@
-***src/libs/actions/ProfilingTool.ts
->>> Line 7: ONYXKEYS.APP_PROFILING_IN_PROGRESS
-
-***src/libs/actions/Policy/ReportField.ts
->>> Line 29: ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT
->>> Line 43: ONYXKEYS.COLLECTION.REPORT
->>> Line 51: ONYXKEYS.COLLECTION.POLICY
-
-***src/libs/actions/Search.ts
->>> Line 31: ONYXKEYS.NVP_LAST_PAYMENT_METHOD
->>> Line 39: ONYXKEYS.COLLECTION.SNAPSHOT
-
-***src/libs/actions/Workflow.ts
->>> Line 18: ONYXKEYS.APPROVAL_WORKFLOW
->>> Line 26: ONYXKEYS.COLLECTION.POLICY
->>> Line 331: ONYXKEYS.SESSION
+***src/libs/actions/TaxRate.ts
+>>> Line 30: ONYXKEYS.COLLECTION.POLICY
