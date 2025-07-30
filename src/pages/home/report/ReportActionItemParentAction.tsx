@@ -85,9 +85,6 @@ type ReportActionItemParentActionProps = {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
-
-    /** Current user account ID */
-    currentUserAccountID: number | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -109,7 +106,6 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
-    currentUserAccountID,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -225,7 +221,6 @@ function ReportActionItemParentAction({
                             emojiReactions={actionEmojiReactions}
                             linkedTransactionRouteError={linkedTransactionRouteError}
                             userBillingFundID={userBillingFundID}
-                            currentUserAccountID={currentUserAccountID}
                         />
                     </OfflineWithFeedback>
                 );

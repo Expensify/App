@@ -128,7 +128,6 @@ function DebugReportActionCreatePage({
                                     isUserValidated={isUserValidated}
                                     personalDetails={personalDetailsList}
                                     userBillingFundID={userBillingFundID}
-                                    currentUserAccountID={session?.accountID}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

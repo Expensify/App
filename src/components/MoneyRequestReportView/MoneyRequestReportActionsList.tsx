@@ -509,7 +509,6 @@ function MoneyRequestReportActionsList({
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
                     draftMessage={matchingDraftMessageString}
-                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -531,7 +530,6 @@ function MoneyRequestReportActionsList({
             userBillingFundID,
             emojiReactions,
             draftMessage,
-            currentUserAccountID,
         ],
     );
 

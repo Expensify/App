@@ -500,9 +500,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
-
-    /** Current user account ID */
-    currentUserAccountID: number | undefined;
 };
 
 type ValidListItem =

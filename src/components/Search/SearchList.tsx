@@ -192,7 +192,6 @@ function SearchList(
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -360,7 +359,6 @@ function SearchList(
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
-                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -383,7 +381,6 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            currentUserAccountID,
         ],
     );
 

@@ -21,7 +21,6 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         isUserValidated?: boolean | undefined;
         personalDetails?: OnyxEntry<PersonalDetailsList>;
         userBillingFundID?: number | undefined;
-        currentUserAccountID?: number | undefined;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -56,7 +55,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
-    currentUserAccountID,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -112,7 +110,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
-                currentUserAccountID={currentUserAccountID}
             />
             {item.footerContent && item.footerContent}
         </>

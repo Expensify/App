@@ -27,7 +27,6 @@ function ChatListItem<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
-    currentUserAccountID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
@@ -102,7 +101,6 @@ function ChatListItem<TItem extends ListItem>({
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
-                currentUserAccountID={currentUserAccountID}
             />
         </BaseListItem>
     );

@@ -63,6 +63,9 @@ type ReportActionsListItemRendererProps = {
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
+    /** Animate highlight action in few seconds */
+    shouldHighlight?: boolean;
+
     /** Draft messages for the report */
     draftMessage?: string;
 
@@ -89,9 +92,6 @@ type ReportActionsListItemRendererProps = {
 
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
-
-    /** Current user account ID */
-    currentUserAccountID: number | undefined;
 };
 
 function ReportActionsListItemRenderer({
@@ -123,7 +123,6 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
-    currentUserAccountID,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -220,7 +219,6 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
-                currentUserAccountID={currentUserAccountID}
             />
         );
     }
@@ -262,7 +260,6 @@ function ReportActionsListItemRenderer({
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
-            currentUserAccountID={currentUserAccountID}
         />
     );
 }

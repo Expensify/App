@@ -27,7 +27,6 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
@@ -79,7 +78,6 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
                 emojiReactions={emojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
-                currentUserAccountID={currentUserAccountID}
             />
         </View>
     );

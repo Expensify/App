@@ -65,9 +65,6 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
-
-    /** Current user account ID */
-    currentUserAccountID: number | undefined;
 };
 
 function ReportActionItem({
@@ -83,7 +80,6 @@ function ReportActionItem({
     personalDetails,
     linkedTransactionRouteError,
     userBillingFundID,
-    currentUserAccountID,
     ...props
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
@@ -92,10 +88,6 @@ function ReportActionItem({
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-<<<<<<< HEAD
-=======
-
->>>>>>> 3ae9370e809 (perf: move useOnyx from ReportActionItem to list component)
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.

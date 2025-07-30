@@ -179,8 +179,6 @@ function ReportActionsList({
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
-
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     useEffect(() => {
@@ -636,7 +634,6 @@ function ReportActionsList({
                     allEmojiReactions={emojiReactions}
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
-                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -662,7 +659,6 @@ function ReportActionsList({
             isUserValidated,
             personalDetailsList,
             userBillingFundID,
-            currentUserAccountID,
         ],
     );
 
