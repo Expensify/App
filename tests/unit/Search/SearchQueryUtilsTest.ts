@@ -285,7 +285,7 @@ describe('SearchQueryUtils', () => {
             expect(sortedOptions).toEqual([CONST.SEARCH.CATEGORY_EMPTY_VALUE, 'A', 'B', 'C']);
         });
 
-        it('should not change order of non-empty values', () => {
+        it('should sort non-empty values properly', () => {
             const options = ['B', 'A', 'C'];
             const sortedOptions = options.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare));
 
