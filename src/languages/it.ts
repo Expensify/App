@@ -1831,7 +1831,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Invia e ricevi denaro con gli amici. Solo conti bancari statunitensi.',
         enableWallet: 'Abilita portafoglio',
-        addBankAccountToSendAndReceive: "Ricevi il rimborso per le spese che invii a un'area di lavoro.",
+        addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Queste sono carte assegnate da un amministratore del workspace per gestire le spese aziendali.',
         expensifyCard: 'Expensify Card',
@@ -1842,6 +1842,8 @@ const translations = {
         chooseYourBankAccount: 'Scegli il tuo conto bancario',
         chooseAccountBody: 'Assicurati di selezionare quello giusto.',
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
+        personalBankAccounts: 'Conti bancari personali',
+        businessBankAccounts: 'Conti bancari aziendali',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
