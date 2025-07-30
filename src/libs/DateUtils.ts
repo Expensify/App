@@ -165,6 +165,19 @@ function isToday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
+ * Test function for coverage bot
+ *
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is today; otherwise, false.
+ */
+function isTodayVersion2(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const currentDateInTimeZone = toZonedTime(currentDate, timeZone);
+    return isSameDay(date, currentDateInTimeZone);
+}
+
+/**
  * Checks if a given date is tomorrow in the specified time zone.
  *
  * @param date - The date to compare.
@@ -1023,6 +1036,7 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    isTodayVersion2,
 };
 
 export default DateUtils;
