@@ -1910,10 +1910,10 @@ const CONST = {
     },
 
     MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS: {
-        WRONG_FILE_TYPE: 'wrongFileType',
-        FILE_TOO_LARGE: 'fileTooLarge',
-        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
+        WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
+        FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
+        FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
