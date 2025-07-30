@@ -257,7 +257,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
 {{#status.isIncrease}}+ 📈 Overall Coverage: ↑ {{current.lines}}% (main: {{baseline.lines}}%){{/status.isIncrease}}{{#status.isDecrease}}- 📉 Overall Coverage: ↓ {{current.lines}}% (main: {{baseline.lines}}%){{/status.isDecrease}}
 \`\`\`
 {{/status.hasChange}}{{/hasBaseline}}{{#status.hasChange}}
-> {{#status.isIncrease}}[!TIP]{{/status.isIncrease}}{{#status.isDecrease}}[!CAUTION]{{/status.isDecrease}}
+> {{#status.isIncrease}}[!NOTE]{{/status.isIncrease}}{{#status.isDecrease}}[!CAUTION]{{/status.isDecrease}}
 > {{status.changeEmoji}} **{{status.changeText}}**
 {{/status.hasChange}}{{^status.hasChange}}{{#hasBaseline}}
 \`\`\`diff
@@ -265,7 +265,7 @@ function generateCoverageSection(coverageData: CoverageData, artifactUrl: string
 \`\`\`
 {{/hasBaseline}}{{^hasBaseline}}
 \`\`\`diff
-🔁 **Overall Coverage**: {{current.lines}}%
+🔁 Overall Coverage: {{current.lines}}%
 \`\`\`
 {{/hasBaseline}}{{/status.hasChange}}
 <details>

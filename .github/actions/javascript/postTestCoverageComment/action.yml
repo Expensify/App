@@ -6,7 +6,7 @@ inputs:
     required: true
   PR_NUMBER:
     description: 'Pull request number'
-    required: true
+    required: false
   BASE_COVERAGE_PATH:
     description: 'Path to base coverage summary for comparison'
     required: false
