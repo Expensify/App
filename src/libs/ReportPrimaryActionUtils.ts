@@ -33,6 +33,7 @@ import {
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportManager,
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
@@ -255,7 +256,7 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
         return false;
     }
 
-    const isReportApprover = report.managerID === getCurrentUserAccountID();
+    const isReportApprover = isReportManager(report);
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
