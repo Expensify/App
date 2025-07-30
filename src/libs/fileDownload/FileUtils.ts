@@ -394,6 +394,41 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
+/**
+ * Normalizes a file-like object specifically for Android clipboard image pasting,
+ * where limited file metadata is available (e.g., only a URI).
+ * If the object is already a File or contains a size, it is returned as-is.
+ * Otherwise, it attempts to fetch the file via its URI and reconstruct a File
+ * with full metadata (name, size, type).
+ */
+const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
+    if (file instanceof File || file instanceof Blob) {
+        return Promise.resolve(file);
+    }
+
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+
+    if (!isAndroidNative || 'size' in file) {
+        return Promise.resolve(file);
+    }
+
+    if (typeof file.uri !== 'string') {
+        return Promise.resolve(file);
+    }
+
+    return fetch(file.uri)
+        .then((response) => response.blob())
+        .then((blob) => {
+            const name = file.name ?? 'unknown';
+            const type = file.type ?? blob.type ?? 'application/octet-stream';
+            const normalizedFile = new File([blob], name, {type});
+            return normalizedFile;
+        })
+        .catch((error) => {
+            return Promise.reject(error);
+        });
+};
+
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > maxFileSize) {
@@ -509,5 +544,6 @@ export {
     validateReceipt,
     validateAttachment,
     isValidReceiptExtension,
+    normalizeFileObject,
     getFileValidationErrorText,
 };

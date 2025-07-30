@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import {cleanFileName, validateImageForCorruption} from './fileDownload/FileUtils';
+import {cleanFileName, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 
 type ValidatedFile = {
     fileType: 'file' | 'uri';
@@ -121,32 +121,34 @@ function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleA
 }
 
 function isFileCorrupted(fileObject: FileObject): Promise<SingleAttachmentValidationResult> {
-    return validateImageForCorruption(fileObject)
-        .then(() => {
-            if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+    return normalizeFileObject(fileObject).then((normalizedFile) => {
+        return validateImageForCorruption(normalizedFile)
+            .then(() => {
+                if (normalizedFile.size && normalizedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                    return {
+                        isValid: false,
+                        error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
+                    } as SingleAttachmentInvalidResult;
+                }
+
+                if (normalizedFile.size && normalizedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                    return {
+                        isValid: false,
+                        error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_SMALL,
+                    } as SingleAttachmentInvalidResult;
+                }
+
+                return {
+                    isValid: true,
+                } as SingleAttachmentValidResult;
+            })
+            .catch(() => {
                 return {
                     isValid: false,
-                    error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
+                    error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_INVALID,
                 } as SingleAttachmentInvalidResult;
-            }
-
-            if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                return {
-                    isValid: false,
-                    error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_SMALL,
-                } as SingleAttachmentInvalidResult;
-            }
-
-            return {
-                isValid: true,
-            } as SingleAttachmentValidResult;
-        })
-        .catch(() => {
-            return {
-                isValid: false,
-                error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_INVALID,
-            } as SingleAttachmentInvalidResult;
-        });
+            });
+    });
 }
 
 function isDirectory(data: FileObject) {
