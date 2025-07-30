@@ -81,10 +81,10 @@ async function run(): Promise<IssuesCreateResponse | void> {
         try {
             const allMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
             mergedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => !previousMobileExpensifyPRNumbers.has(prNum));
-            
+
             console.info(`Found ${allMobileExpensifyPRs.length} total Mobile-Expensify PRs, ${mergedMobileExpensifyPRs.length} new ones after filtering:`);
             console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
-            
+
             // Log the Mobile-Expensify PRs that were filtered out
             const removedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => previousMobileExpensifyPRNumbers.has(prNum));
             if (removedMobileExpensifyPRs.length > 0) {
@@ -178,7 +178,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 PRList.map((pr) => pr.url),
-                PRListMobileExpensify.map((pr) => pr.url), 
+                PRListMobileExpensify.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),
