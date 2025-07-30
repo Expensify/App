@@ -52,6 +52,7 @@ function useOptions() {
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeCurrentUser: true,
             },
         );
 
