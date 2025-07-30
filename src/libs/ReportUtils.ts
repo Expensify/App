@@ -210,7 +210,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import type {RNVPArchivedOnly} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -2056,7 +2055,7 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchRep
  * Whether the provided report is an archived report
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs> | RNVPArchivedOnly): boolean {
+function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
 }
 

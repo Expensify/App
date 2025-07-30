@@ -42,7 +42,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ReportNameValuePairsArchivedMap, SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDList, SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -54,7 +54,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -169,17 +170,18 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
 
-    // Create a selector for only returning the required field `private_isArchived`
-    const [reportNameValuePairs = getEmptyObject<ReportNameValuePairsArchivedMap>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+    const [archivedReportsIDList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ReportNameValuePairsArchivedMap => {
+        selector: (all): ArchivedReportsIDList => {
             if (!all) {
-                return {};
+                return [];
             }
 
-            const result: ReportNameValuePairsArchivedMap = {};
+            const result: ArchivedReportsIDList = [];
             for (const [key, value] of Object.entries(all)) {
-                result[key] = {private_isArchived: value?.private_isArchived};
+                if (value?.private_isArchived) {
+                    result.push(key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ''));
+                }
             }
             return result;
         },
@@ -319,8 +321,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (groupBy && (isChat || isTask)) {
             return [];
         }
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, reportNameValuePairs);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, reportNameValuePairs]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, archivedReportsIDList);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIDList]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */

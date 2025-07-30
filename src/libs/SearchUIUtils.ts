@@ -221,9 +221,7 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
-type RNVPArchivedOnly = Pick<OnyxTypes.ReportNameValuePairs, 'private_isArchived'>;
-
-type ReportNameValuePairsArchivedMap = Record<string, RNVPArchivedOnly | undefined>;
+type ArchivedReportsIDList = string[];
 
 /**
  * Returns a list of all possible searches in the LHN, along with their query & hash.
@@ -1014,7 +1012,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data'], reportNameValuePairs?: ReportNameValuePairsArchivedMap): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], archivedReportsIDList?: ArchivedReportsIDList): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1054,8 +1052,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data'], reportNameValueP
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                    const parentReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`];
-                    const isParentReportArchived = isArchivedReport(parentReportNameValuePairs);
+                    const isParentReportArchived = archivedReportsIDList?.includes(parentReport?.reportID);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                     const parentReportIcon = icons?.at(0);
 
@@ -1267,13 +1264,13 @@ function getSections(
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    reportNameValuePairs?: ReportNameValuePairsArchivedMap,
+    archivedReportsIDList?: ArchivedReportsIDList,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, reportNameValuePairs);
+        return getTaskSections(data, archivedReportsIDList);
     }
 
     if (groupBy) {
@@ -1786,4 +1783,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ReportNameValuePairsArchivedMap, RNVPArchivedOnly};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDList};
