@@ -1015,6 +1015,7 @@ describe('SidebarUtils', () => {
                     childReportID: '5186125925096828',
                     created: '2025-07-10 17:45:31.448',
                     reportActionID: '7425617950691586420',
+                    shouldShow: true,
                     message: [
                         {
                             type: 'COMMENT',
@@ -1319,6 +1320,116 @@ describe('SidebarUtils', () => {
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+            });
+
+            it('uses the 2nd-last visible message as alternateText when the latest action is a deleted IOU', async () => {
+                const MOCK_REPORT: Report = {
+                    reportID: '1',
+                    ownerAccountID: 12345,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    policyID: '6',
+                };
+
+                const MOCK_REPORTS: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
+                };
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'test action',
+                            text: 'test action',
+                        },
+                    ],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
+
+                    shouldShow: true,
+                    pendingAction: null,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: undefined,
+                    created: '2025-07-25 07:38:54.211',
+                };
+                const deletedAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    actionName: 'IOU',
+                    actorAccountID: 20337430,
+                    automatic: false,
+                    isAttachmentOnly: false,
+                    originalMessage: {
+                        amount: 100,
+                        comment: '',
+                        currency: 'VND',
+                        IOUTransactionID: '7823889167761419930',
+                        IOUReportID: '0',
+                        type: 'track',
+                        participantAccountIDs: [20337430, 0],
+                        lastModified: '2025-07-25 07:39:02.550',
+                        deleted: '2025-07-25 07:39:02.550',
+                        html: '',
+                    },
+                    message: [
+                        {
+                            type: '',
+                            text: '',
+                            isDeletedParentAction: true,
+                        },
+                    ],
+                    reportActionID: '869069913568459256',
+                    shouldShow: true,
+                    created: '2025-07-25 07:38:54.311',
+                    person: [
+                        {
+                            style: 'strong',
+                            text: '123',
+                            type: 'TEXT',
+                        },
+                    ],
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_21.png',
+                    childReportID: '3044322706237838',
+                    lastModified: '2025-07-25 07:39:02.550',
+                    childCommenterCount: 1,
+                    childLastVisibleActionCreated: '2025-07-25 07:38:47.598',
+                    childOldestFourAccountIDs: '20337430',
+                    childStateNum: 0,
+                    childStatusNum: 0,
+                    childType: 'chat',
+                    childVisibleActionCount: 1,
+                    timestamp: 1753429134,
+                    reportActionTimestamp: 1753429134311,
+                    whisperedToAccountIDs: [],
+                    childReportNotificationPreference: 'always',
+                };
+                const MOCK_REPORT_ACTIONS: ReportActions = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    [lastAction.reportActionID]: lastAction,
+                    [deletedAction.reportActionID]: deletedAction,
+                };
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    ...MOCK_REPORTS,
+
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report: MOCK_REPORT,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
             });
         });
     });
