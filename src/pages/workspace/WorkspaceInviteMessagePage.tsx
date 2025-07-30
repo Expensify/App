@@ -26,7 +26,7 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -41,6 +41,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
@@ -65,7 +66,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
-
+    const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {}); 
+    
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
         [policy?.name, currentUserPersonalDetails?.displayName],
@@ -202,11 +204,20 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             secondAvatarStyle={[styles.secondAvatarInline]}
                         />
                     </View>
-                    <View style={[styles.mb5]}>
-                        <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
-                    </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
+                        <MenuItemWithTopDescription
+                                title={Object.values(personalDetailsOfInvitedEmails)
+                                    .map((personalDetail) => getDisplayNameOrDefault(personalDetail, '', false))
+                                    .join(', ')}
+                                description={translate('common.members')}
+                                numberOfLinesTitle={2}
+                                shouldShowRightIcon
+                                onPress={() => {
+                                    Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
+                                }}
+                            />
+
                             <MenuItemWithTopDescription
                                 title={translate(`workspace.common.roleName`, {role: workspaceInviteRoleDraft})}
                                 description={translate('common.role')}
@@ -215,6 +226,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                                     Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
                                 }}
                             />
+                        </View>
+                        <View style={[styles.mb5]}>
+                            <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <InputWrapper
                             InputComponent={TextInput}
