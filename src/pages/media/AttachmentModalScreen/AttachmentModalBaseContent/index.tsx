@@ -60,6 +60,7 @@ function AttachmentModalBaseContent({
     onDownloadAttachment,
     onClose,
     onConfirm,
+    AttachmentContent,
     ExtraModals,
     onCarouselAttachmentChange = () => {},
 }: AttachmentModalBaseContentProps) {
@@ -225,6 +226,74 @@ function AttachmentModalBaseContent({
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
+    const Content = useMemo(() => {
+        if (AttachmentContent) {
+            return (
+                <AttachmentContent
+                    fileToDisplay={fileToDisplay}
+                    files={files}
+                />
+            );
+        }
+
+        return !isEmptyObject(report) && shouldShowCarousel && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
+            <AttachmentCarousel
+                accountID={accountID}
+                type={type}
+                attachmentID={attachmentID}
+                report={report}
+                onNavigate={onNavigate}
+                onClose={onClose}
+                source={sourceProp}
+                setDownloadButtonVisibility={setDownloadButtonVisibility}
+                attachmentLink={currentAttachmentLink}
+                onAttachmentError={setAttachmentError}
+            />
+        ) : (
+            !!sourceForAttachmentView && (
+                <AttachmentCarouselPagerContext.Provider value={context}>
+                    <AttachmentView
+                        containerStyles={[styles.mh5]}
+                        source={sourceForAttachmentView}
+                        isAuthTokenRequired={isAuthTokenRequiredState}
+                        file={fileToDisplay}
+                        onToggleKeyboard={setIsConfirmButtonDisabled}
+                        isWorkspaceAvatar={isWorkspaceAvatar}
+                        maybeIcon={maybeIcon}
+                        fallbackSource={fallbackSource}
+                        isUsedInAttachmentModal
+                        transactionID={transaction?.transactionID}
+                        isUploaded={!isEmptyObject(report)}
+                        reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                    />
+                </AttachmentCarouselPagerContext.Provider>
+            )
+        );
+    }, [
+        AttachmentContent,
+        accountID,
+        attachmentID,
+        context,
+        currentAttachmentLink,
+        fallbackSource,
+        fileToDisplay,
+        files,
+        isAuthTokenRequiredState,
+        isWorkspaceAvatar,
+        maybeIcon,
+        onClose,
+        onNavigate,
+        report,
+        reportID,
+        setAttachmentError,
+        setDownloadButtonVisibility,
+        shouldShowCarousel,
+        sourceForAttachmentView,
+        sourceProp,
+        styles.mh5,
+        transaction?.transactionID,
+        type,
+    ]);
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
@@ -265,40 +334,7 @@ function AttachmentModalBaseContent({
                         onLinkPress={onClose}
                     />
                 )}
-                {shouldDisplayContent &&
-                    (!isEmptyObject(report) && shouldShowCarousel && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
-                        <AttachmentCarousel
-                            accountID={accountID}
-                            type={type}
-                            attachmentID={attachmentID}
-                            report={report}
-                            onNavigate={onNavigate}
-                            onClose={onClose}
-                            source={sourceProp}
-                            setDownloadButtonVisibility={setDownloadButtonVisibility}
-                            attachmentLink={currentAttachmentLink}
-                            onAttachmentError={setAttachmentError}
-                        />
-                    ) : (
-                        !!sourceForAttachmentView && (
-                            <AttachmentCarouselPagerContext.Provider value={context}>
-                                <AttachmentView
-                                    containerStyles={[styles.mh5]}
-                                    source={sourceForAttachmentView}
-                                    isAuthTokenRequired={isAuthTokenRequiredState}
-                                    file={fileToDisplay}
-                                    onToggleKeyboard={setIsConfirmButtonDisabled}
-                                    isWorkspaceAvatar={isWorkspaceAvatar}
-                                    maybeIcon={maybeIcon}
-                                    fallbackSource={fallbackSource}
-                                    isUsedInAttachmentModal
-                                    transactionID={transaction?.transactionID}
-                                    isUploaded={!isEmptyObject(report)}
-                                    reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
-                                />
-                            </AttachmentCarouselPagerContext.Provider>
-                        )
-                    ))}
+                {shouldDisplayContent && Content}
             </View>
             {/* If we have an onConfirm method show a confirmation button */}
             {!!onConfirm && !isConfirmButtonDisabled && (

@@ -1,6 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
+import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
+import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
@@ -9,7 +12,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -20,6 +23,58 @@ import useFileErrorModal from './hooks/useFileErrorModal';
 import useFileUploadValidation from './hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
+
+const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
+    if (!file) {
+        return {source: ''};
+    }
+
+    return {
+        file,
+        source: file.uri ?? '',
+    };
+};
+
+function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentContentProps) {
+    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
+    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+
+    const [page, setPage] = useState<number>(0);
+    const attachments = useMemo(() => {
+        if (Array.isArray(files)) {
+            return files?.map((file) => convertFileToAttachment(file)) ?? [];
+        }
+
+        if (!files) {
+            return [];
+        }
+
+        return [convertFileToAttachment(files)];
+    }, [files]);
+    const currentAttachment = useMemo(() => convertFileToAttachment(fileToDisplay), [fileToDisplay]);
+
+    useEffect(() => {
+        clearAttachmentErrors();
+    }, [clearAttachmentErrors]);
+
+    if (attachments.length === 0 || !currentAttachment) {
+        return null;
+    }
+
+    return (
+        <AttachmentCarouselView
+            attachments={attachments}
+            source={currentAttachment.source}
+            page={page}
+            setPage={setPage}
+            autoHideArrows={autoHideArrows}
+            cancelAutoHideArrow={cancelAutoHideArrows}
+            setShouldShowArrows={setShouldShowArrows}
+            onAttachmentError={setAttachmentError}
+            shouldShowArrows={shouldShowArrows}
+        />
+    );
+}
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
     const {
@@ -173,6 +228,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
+            AttachmentContent: AddAttachmentModalCarouselView,
             ExtraModals,
         };
     }, [

@@ -26,6 +26,12 @@ type ThreeDotsMenuItemGenerator = (props: ThreeDotsMenuItemGeneratorProps) => Po
 
 type DownloadAttachmentCallback = (props: AttachmentModalContentData) => void;
 
+type AttachmentContentProps = {
+    fileToDisplay: FileObject | undefined;
+    files: FileObject | FileObject[] | undefined;
+};
+type AttachmentContent = React.FC<AttachmentContentProps>;
+
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
@@ -99,6 +105,8 @@ type AttachmentModalBaseContentProps = {
     /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement | null>;
 
+    AttachmentContent?: AttachmentContent;
+
     /** Extra modals to be displayed in the modal */
     ExtraModals?: React.ReactNode;
 
@@ -115,4 +123,12 @@ type AttachmentModalBaseContentProps = {
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
 };
 
-export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, ThreeDotsMenuItemGeneratorProps, ThreeDotsMenuItemGenerator, DownloadAttachmentCallback};
+export type {
+    AttachmentModalBaseContentProps,
+    AttachmentModalOnCloseOptions,
+    ThreeDotsMenuItemGeneratorProps,
+    ThreeDotsMenuItemGenerator,
+    DownloadAttachmentCallback,
+    AttachmentContent,
+    AttachmentContentProps,
+};
