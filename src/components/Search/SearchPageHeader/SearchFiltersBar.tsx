@@ -331,8 +331,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
-        // s77rt remove DEV lock
-        const shouldDisplayFeedFilter = isDevelopment && feedOptions.length > 1;
+        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues?.feed;
         const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
 
         const filterList = [
@@ -399,6 +398,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         displayDate,
         displayPosted,
         filterFormValues.from,
+        filterFormValues.feed,
         translate,
         typeComponent,
         groupByComponent,

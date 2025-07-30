@@ -80,6 +80,7 @@ function BaseTextInput(
         placeholderTextColor,
         onClearInput,
         iconContainerStyle,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -280,12 +281,12 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-
     return (
         <>
             <View
@@ -368,7 +369,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        shouldUseDefaultLineHeight={!Object.keys(StyleSheet.flatten(prefixStyle)).includes('lineHeight')}
+                                        shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
                                         {prefixCharacter}
                                     </Text>
@@ -453,7 +454,7 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
-                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
+                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();
@@ -466,9 +467,8 @@ function BaseTextInput(
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
                                         styles.ml1,
-                                        styles.justifyContentStart,
                                         loadingSpinnerStyle,
                                         StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
                                     ]}
@@ -476,7 +476,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => {
                                         e.preventDefault();
@@ -490,7 +490,13 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                        iconContainerStyle,
+                                    ]}
+                                >
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}

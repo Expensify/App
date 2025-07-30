@@ -11,6 +11,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, {canBeMissing: true});
+    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {canBeMissing: true});
 
     const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
         selector: (cardSettings) => {
@@ -24,7 +25,7 @@ function useDefaultFundID(policyID: string | undefined) {
         canBeMissing: true,
     });
 
-    if (lastSelectedExpensifyCardFeed) {
+    if (lastSelectedExpensifyCardFeed && lastSelectedCardSettings?.paymentBankAccountID) {
         return lastSelectedExpensifyCardFeed;
     }
 

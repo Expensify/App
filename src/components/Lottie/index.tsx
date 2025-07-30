@@ -98,8 +98,9 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         isError ||
         appState.isBackground ||
         !animationFile ||
+        hasNavigatedAway ||
         splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
-        ((!isInteractionComplete || hasNavigatedAway) && shouldLoadAfterInteractions)
+        (!isInteractionComplete && shouldLoadAfterInteractions)
     ) {
         return (
             <View

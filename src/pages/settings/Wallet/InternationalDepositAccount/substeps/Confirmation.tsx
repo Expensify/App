@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useState} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,9 +13,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
+import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,8 +44,9 @@ function TermsAndConditionsLabel() {
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: false});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const {isOffline} = useNetwork();
 
     const getTitle = (field: CorpayFormField, fieldName: string) => {
@@ -62,19 +62,24 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     };
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
-        createCorpayBankAccountForWalletFlow({...formValues, ...values}, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
+        setError('');
+        setIsSubmitting(true);
+        createCorpayBankAccountForWalletFlow(
+            {...formValues, ...values},
+            corpayFields?.classification ?? '',
+            corpayFields?.destinationCountry ?? '',
+            corpayFields?.preferredMethod ?? '',
+        ).then((response) => {
+            setIsSubmitting(false);
+            if (response?.jsonCode) {
+                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    onNext();
+                } else {
+                    setError(response.message ?? '');
+                }
+            }
+        });
     };
-
-    useEffect(() => {
-        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
-            return;
-        }
-
-        if (reimbursementAccount?.isSuccess === true) {
-            onNext();
-            clearReimbursementAccountBankCreation();
-        }
-    }, [reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess, reimbursementAccount?.errors, onNext]);
 
     const summaryItems: MenuItemProps[] = [
         {
@@ -157,8 +162,6 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         [translate],
     );
 
-    const errorMessage = getLatestErrorMessage(reimbursementAccount);
-
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
@@ -182,7 +185,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 submitButtonText={translate('common.confirm')}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline={false}
-                isLoading={reimbursementAccount?.isLoading}
+                isLoading={isSubmitting}
                 shouldHideFixErrorsAlert
             >
                 <InputWrapper
@@ -193,13 +196,11 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />
-                {!!errorMessage && (
-                    <FormHelpMessage
-                        style={[styles.mt3, styles.mbn1]}
-                        isError
-                        message={errorMessage}
-                    />
-                )}
+                <FormHelpMessage
+                    style={[styles.mt3, styles.mbn1]}
+                    isError
+                    message={error}
+                />
             </FormProvider>
         </ScrollView>
     );

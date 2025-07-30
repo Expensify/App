@@ -245,13 +245,13 @@ function WorkspaceTaxesPage({
         if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policy, selectedTaxesIDs);
+        deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
         setIsDeleteModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
-    }, [policy, selectedTaxesIDs]);
+    }, [policy, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {

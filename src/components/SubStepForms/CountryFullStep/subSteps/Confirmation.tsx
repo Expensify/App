@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,9 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -32,8 +33,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
@@ -91,15 +91,18 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 title={currency}
                 interactive={false}
             />
-            <Text style={[styles.ph5, styles.mb3, styles.mutedTextLabel]}>
-                {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                <TextLink
-                    style={[styles.label]}
-                    onPress={handleSettingsPress}
-                >
-                    {translate('common.settings').toLowerCase()}.
-                </TextLink>
-            </Text>
+            <View style={styles.ph5}>
+                <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                    {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                    <TextLink
+                        style={[styles.label]}
+                        onPress={handleSettingsPress}
+                    >
+                        {translate('common.settings').toLowerCase()}
+                    </TextLink>
+                    .
+                </Text>
+            </View>
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
