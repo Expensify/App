@@ -87,7 +87,7 @@ type AttachmentModalBaseContentProps = {
     /** Whether to display not found page */
     shouldShowNotFoundPage?: boolean;
 
-    /** Whether to show an attachmentcarousel */
+    /** Whether to show an attachment carousel */
     shouldShowCarousel?: boolean;
 
     /** Whether to show download button */
