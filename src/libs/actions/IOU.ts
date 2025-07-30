@@ -11670,10 +11670,12 @@ function getSearchOnyxUpdate({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, isOpenCreatedSplit?: boolean) {
     if (!transaction) {
         return;
     }
+
+    const reportID = transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
     if (isOpenCreatedSplit) {
         const originalTransactionID = transaction.comment?.originalTransactionID;
