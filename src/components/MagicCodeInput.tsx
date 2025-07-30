@@ -17,6 +17,44 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
+/**
+ * Trims whitespace from pasted magic codes
+ */
+const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void, isActive: boolean) => {
+    useEffect(() => {
+        if (!isActive || typeof document === 'undefined') {
+            return;
+        }
+
+        const handlePaste = (event: ClipboardEvent) => {
+            if (!inputRef.current) {
+                return;
+            }
+
+            const isFocused = inputRef.current.isFocused?.();
+            if (!isFocused) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const plainText = event.clipboardData?.getData('text/plain');
+            if (plainText) {
+                const trimmedText = plainText.trim();
+                if (trimmedText && isNumeric(trimmedText)) {
+                    onChangeText(trimmedText);
+                }
+            }
+        };
+
+        document.addEventListener('paste', handlePaste, true);
+
+        return () => {
+            document.removeEventListener('paste', handlePaste, true);
+        };
+    }, [inputRef, onChangeText, isActive]);
+};
+
 type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
 
 type MagicCodeInputProps = {
@@ -121,6 +159,8 @@ function MagicCodeInput(
     const lastFocusedIndex = useRef(0);
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
+
+    useMagicCodePaste(inputRef, onChangeTextProp, true);
 
     useEffect(() => {
         lastValue.current = input.length;
