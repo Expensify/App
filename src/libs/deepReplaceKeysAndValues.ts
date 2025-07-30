@@ -26,6 +26,11 @@ function deepReplaceKeysAndValues<T extends ReplaceableValue>(target: T, oldVal:
     Object.entries(target).forEach(([key, val]) => {
         const newKey = key.replace(oldVal, newVal);
 
+        if (val instanceof File || val instanceof Blob) {
+            newObj[newKey] = val;
+            return;
+        }
+
         if (typeof val === 'object') {
             newObj[newKey] = deepReplaceKeysAndValues(val as T, oldVal, newVal);
             return;

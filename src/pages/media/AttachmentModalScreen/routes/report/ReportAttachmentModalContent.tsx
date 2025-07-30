@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';

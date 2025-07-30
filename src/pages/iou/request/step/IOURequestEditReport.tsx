@@ -1,9 +1,10 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
@@ -18,7 +19,7 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.EDIT_REPORT>;
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
-    const {backTo, reportID} = route.params;
+    const {backTo, reportID, action} = route.params;
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
@@ -32,7 +33,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         changeTransactionsReport(selectedTransactionIDs, item.value);
         clearSelectedTransactions(true);
-        Navigation.dismissModalWithReport({reportID: item.value});
+        Navigation.dismissModal();
     };
 
     return (
@@ -40,6 +41,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
+            isEditing={action === CONST.IOU.ACTION.EDIT}
         />
     );
 }

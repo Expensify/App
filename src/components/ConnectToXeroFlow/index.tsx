@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';

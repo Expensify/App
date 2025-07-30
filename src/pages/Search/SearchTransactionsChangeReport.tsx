@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
@@ -45,6 +45,7 @@ function SearchTransactionsChangeReport() {
             backTo={undefined}
             transactionsReports={transactionsReports}
             selectReport={selectReport}
+            isEditing
         />
     );
 }

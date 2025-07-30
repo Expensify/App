@@ -61,6 +61,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose, sho
                 return contentProps.submitRef.current;
             }}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
+            onClose={closeModal}
         >
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading

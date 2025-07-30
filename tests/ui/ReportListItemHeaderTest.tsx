@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {Context as SearchContext} from '@components/Search/SearchContext';
 import ReportListItemHeader from '@components/SelectionList/Search/ReportListItemHeader';
 import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
@@ -29,7 +29,7 @@ const mockSearchContext = {
     setSelectedReports: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
-    setCurrentSearchHash: jest.fn(),
+    setCurrentSearchHashAndKey: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     setShouldShowExportModeOption: jest.fn(),
@@ -94,7 +94,7 @@ const createReportListItem = (
 // Helper function to wrap component with context
 const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader

@@ -123,6 +123,16 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
          * This is used to adjust the modal position when the Side Panel is open.
          */
         shouldApplySidePanelOffset?: boolean;
+
+        /**
+         * Disables the bottom safe area padding in the modal. Used in for scrollable FeatureTrainingModal.
+         */
+        shouldDisableBottomSafeAreaPadding?: boolean;
+
+        /**
+         * Whether the modal should use ReanimatedModal implementation.
+         */
+        shouldUseReanimatedModal?: boolean;
     };
 
 export default BaseModalProps;

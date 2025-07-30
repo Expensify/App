@@ -332,15 +332,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
     if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         return Promise.resolve(file);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) =>
-        getImageManipulator({
-            fileUri: file.uri ?? '',
-            width,
-            height,
-            fileName: file.name ?? '',
-            type: file.type,
-        }),
-    );
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
 
 const createFile = (file: File): FileObject => {
@@ -394,6 +386,14 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
+const isHeicOrHeifImage = (file: FileObject) => {
+    return (
+        file?.type?.startsWith('image') &&
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
+    );
+};
+
 /**
  * Normalizes a file-like object specifically for Android clipboard image pasting,
  * where limited file metadata is available (e.g., only a URI).
@@ -433,7 +433,8 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
 
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > maxFileSize) {
+
+    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.FILE_TOO_LARGE : CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -456,6 +457,7 @@ type TranslationAdditionalData = {
 const getFileValidationErrorText = (
     validationError: SingleAttachmentValidationError | MultipleAttachmentsValidationError | undefined,
     additionalData: TranslationAdditionalData = {},
+    isValidatingReceipt = false,
 ): {
     title: string;
     reason: string;
@@ -466,6 +468,7 @@ const getFileValidationErrorText = (
             reason: '',
         };
     }
+    const maxSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     switch (validationError) {
         case CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
@@ -480,13 +483,17 @@ const getFileValidationErrorText = (
         case CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translateLocal('attachmentPicker.attachmentTooLarge'),
-                reason: translateLocal('attachmentPicker.sizeExceeded'),
+                reason: isValidatingReceipt
+                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
+                      })
+                    : translateLocal('attachmentPicker.sizeExceeded'),
             };
         case CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
-                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
         case CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
@@ -522,6 +529,16 @@ const getFileValidationErrorText = (
     }
 };
 
+const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
+    if (!attachmentInvalidReason) {
+        return '';
+    }
+    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+    }
+    return translateLocal(attachmentInvalidReason);
+};
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -545,7 +562,9 @@ export {
     createFile,
     validateReceipt,
     validateAttachment,
-    isValidReceiptExtension,
     normalizeFileObject,
+    isValidReceiptExtension,
     getFileValidationErrorText,
+    isHeicOrHeifImage,
+    getConfirmModalPrompt,
 };
