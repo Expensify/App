@@ -332,7 +332,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues?.feed;
-        const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
+        const shouldDisplayPostedFilter = !!filterFormValues?.feed && (!!filterFormValues?.postedOn || !!filterFormValues?.postedAfter || !!filterFormValues?.postedBefore);
 
         const filterList = [
             {
