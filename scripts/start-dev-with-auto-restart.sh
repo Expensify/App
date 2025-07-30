@@ -12,7 +12,14 @@ RESTART_DELAY=1
 echo "🚀 Starting webpack-dev-server with auto-restart (max restarts: $MAX_RESTARTS)"
 
 run_wds () {
-    node --expose-gc ./node_modules/.bin/webpack-dev-server "$1" "${WDS_ARGS[@]}" --config config/webpack/webpack.dev.ts
+    # Check if platform is Desktop to determine open behavior
+    if [[ "${WDS_ARGS[*]}" == *"--env platform=desktop"* ]]; then
+        # For Desktop, always use --no-open since app is handled by Electron
+        node --expose-gc --max-old-space-size=1100 ./node_modules/.bin/webpack-dev-server --no-open "${WDS_ARGS[@]}" --config config/webpack/webpack.dev.ts
+    else
+        # For Web, use the provided open flag
+        node --expose-gc ./node_modules/.bin/webpack-dev-server "$1" "${WDS_ARGS[@]}" --config config/webpack/webpack.dev.ts
+    fi
 }
 
 while [ $RESTART_COUNT -lt $MAX_RESTARTS ]; do
