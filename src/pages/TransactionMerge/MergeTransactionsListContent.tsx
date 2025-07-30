@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {
     fillMissingReceiptSource,
+    getMergeableDataAndConflictFields,
     getSourceTransaction,
     getTransactionThreadReportID,
     selectTargetAndSourceTransactionIDsForMerge,
@@ -130,7 +131,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 sourceTransactionID: newSourceTransactionID,
                 receipt: mergedReceipt,
             });
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            if (conflictFields.length > 0) {
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            } else {
+                // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
+                setMergeTransactionKey(transactionID, mergeableData);
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            }
         }
     }, [mergeTransaction, transactionID, targetTransaction]);
 
