@@ -209,7 +209,8 @@ function useSelectedTransactionsActions({
                 icon: Expensicons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {
-                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
+                    const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
+                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode);
                     Navigation.navigate(route);
                 },
             });
@@ -260,13 +261,14 @@ function useSelectedTransactionsActions({
         report,
         selectedTransactions,
         translate,
+        isReportArchived,
         reportActions,
         clearSelectedTransactions,
         onExportFailed,
+        allTransactionsLength,
         iouType,
         session?.accountID,
         showDeleteModal,
-        isReportArchived,
         policy,
     ]);
 

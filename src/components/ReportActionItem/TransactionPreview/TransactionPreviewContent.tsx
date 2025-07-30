@@ -231,18 +231,17 @@ function TransactionPreviewContent({
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
                                 {shouldShowIOUHeader && (
-                                    <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
-                                        <UserInfoCellsWithArrow
-                                            shouldShowToRecipient
-                                            participantFrom={from}
-                                            participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
-                                            participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
-                                            participantTo={to}
-                                            avatarSize="mid-subscript"
-                                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                                            infoCellsAvatarStyle={styles.pr1}
-                                        />
-                                    </View>
+                                    <UserInfoCellsWithArrow
+                                        shouldShowToRecipient
+                                        participantFrom={from}
+                                        participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
+                                        participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
+                                        participantTo={to}
+                                        avatarSize="mid-subscript"
+                                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                                        infoCellsAvatarStyle={styles.pr1}
+                                        style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}
+                                    />
                                 )}
                                 <View style={previewTextViewGap}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>

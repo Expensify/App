@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -13,6 +13,7 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isPolicyMember,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
@@ -101,6 +102,13 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
     const isOpenReport = isOpenReportUtils(report);
+    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
+    const currentUserEmail = getCurrentUserEmail();
+    const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
+
+    if (!(userIsPolicyMember && isPolicyExpenseChat)) {
+        return false;
+    }
 
     if (isOpenReport) {
         return isSubmitter || isAdmin;
