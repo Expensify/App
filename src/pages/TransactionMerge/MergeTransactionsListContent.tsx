@@ -15,8 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {
     fillMissingReceiptSource,
-    getTransactionThreadReportID,
     getSourceTransaction,
+    getTransactionThreadReportID,
     selectTargetAndSourceTransactionIDsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
