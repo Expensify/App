@@ -210,7 +210,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             }}
                             defaultSelectedIndex={finalIndex}
                             options={options}
-                            success
+                            success={false}
                         />
                     </View>
                 )}
