@@ -366,8 +366,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
     const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
-    // If we are on the 'Approve' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+
+    // If we are on the 'Approve', `Unapproved cash` or the `Unapproved company cards` suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+    const approveActionSuggestedSearches: Partial<SearchKey[]> = [
+        CONST.SEARCH.SEARCH_KEYS.APPROVE,
+        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
+    ];
+
+    const successData: OnyxUpdate[] = approveActionSuggestedSearches.includes(currentSearchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});

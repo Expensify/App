@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
@@ -24,7 +24,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isExportIntegrationAction, isIntegrationMessageAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -44,12 +44,14 @@ import {
 } from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -252,7 +254,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        if (!isFocused || isOffline) {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
             return;
         }
 
@@ -468,6 +473,26 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
+            const backTo = Navigation.getActiveRoute();
+
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const transactionThreadReportID = generateReportID();
+                const reportAction = getReportAction(item.reportID, item.moneyRequestReportActionID);
+                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReportID);
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: transactionThreadReportID,
+                        backTo,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                        iouReportID,
+                    }),
+                );
+                return;
+            }
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -481,25 +506,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
-            const backTo = Navigation.getActiveRoute();
-
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-                return;
-            }
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const generatedReportID = generateReportID();
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: generatedReportID,
-                        backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                    }),
-                );
                 return;
             }
 
