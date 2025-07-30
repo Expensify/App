@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
@@ -33,6 +34,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
+import useFilesValidation from '@hooks/useFilesValidation';
 import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
 
@@ -53,8 +55,19 @@ function ShareDetailsPage({
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+    const {validateFiles} = useFilesValidation(setValidFilesToUpload);
+
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+
+    useEffect(() => {
+        if (!currentAttachment || isTextShared || validFilesToUpload.length !== 0) {
+            return;
+        }
+
+        validateFiles([{name: currentAttachment.id, uri: currentAttachment.content, type: currentAttachment.mimeType}]);
+    }, [currentAttachment, isTextShared, validFilesToUpload.length, validateFiles]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -92,7 +105,7 @@ function ShareDetailsPage({
     const fileName = currentAttachment?.content.split('/').pop();
 
     const handleShare = () => {
-        if (!currentAttachment) {
+        if (!currentAttachment || validFilesToUpload.length === 0) {
             return;
         }
 
@@ -103,9 +116,10 @@ function ShareDetailsPage({
             return;
         }
 
+        const validatedFile = validFilesToUpload.at(0);
         readFileAsync(
-            currentAttachment.content,
-            getFileName(currentAttachment.content),
+            validatedFile?.uri ?? '',
+            getFileName(validatedFile?.uri ?? 'shared_image.png'),
             (file) => {
                 if (isDraft) {
                     openReport(
@@ -126,7 +140,7 @@ function ShareDetailsPage({
                 Navigation.navigate(routeToNavigate, {forceReplace: true});
             },
             () => {},
-            currentAttachment.mimeType,
+            validatedFile?.type ?? 'image/jpeg',
         );
     };
 
@@ -197,13 +211,13 @@ function ShareDetailsPage({
                                 <SafeAreaView>
                                     <AttachmentModal
                                         headerTitle={fileName}
-                                        source={currentAttachment?.content}
+                                        source={validFilesToUpload.at(0)?.uri}
                                         originalFileName={fileName}
                                         fallbackSource={FallbackAvatar}
                                     >
                                         {({show}) => (
                                             <AttachmentPreview
-                                                source={currentAttachment?.content ?? ''}
+                                                source={validFilesToUpload.at(0)?.uri ?? ''}
                                                 aspectRatio={currentAttachment?.aspectRatio}
                                                 onPress={show}
                                                 onLoadError={() => {

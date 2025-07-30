@@ -29,6 +29,8 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@components/AttachmentModal';
+import useFilesValidation from '@hooks/useFilesValidation';
 import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
@@ -55,6 +57,17 @@ function SubmitDetailsPage({
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+    const {validateFiles} = useFilesValidation(setValidFilesToUpload);
+
+    useEffect(() => {
+        if (!currentAttachment || validFilesToUpload.length !== 0) {
+            return;
+        }
+
+        validateFiles([{name: currentAttachment.id, uri: currentAttachment.content, type: currentAttachment.mimeType}]);
+    }, [currentAttachment, validFilesToUpload.length, validateFiles]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -184,12 +197,13 @@ function SubmitDetailsPage({
             return;
         }
 
+        const validatedFile = validFilesToUpload.at(0);
         readFileAsync(
-            currentAttachment?.content ?? '',
-            getFileName(currentAttachment?.content ?? 'shared_image.png'),
+            validatedFile?.uri ?? '',
+            getFileName(validatedFile?.name ?? 'shared_image.png'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
-            currentAttachment?.mimeType ?? 'image/jpeg',
+            validatedFile?.type ?? 'image/jpeg',
         );
     };
 
@@ -220,8 +234,8 @@ function SubmitDetailsPage({
                         iouComment={trimmedComment}
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={currentAttachment?.content}
-                        receiptFilename={getFileName(currentAttachment?.content ?? '')}
+                        receiptPath={validFilesToUpload.at(0)?.uri}
+                        receiptFilename={getFileName(validFilesToUpload.at(0)?.name ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
