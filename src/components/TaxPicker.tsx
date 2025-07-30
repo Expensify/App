@@ -43,7 +43,7 @@ type TaxPickerProps = {
 };
 
 function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -86,10 +86,11 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             getTaxRatesSection({
                 policy,
                 searchValue,
+                localeCompare,
                 selectedOptions,
                 transaction: currentTransaction,
             }),
-        [searchValue, selectedOptions, policy, currentTransaction],
+        [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
     );
 
     const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
