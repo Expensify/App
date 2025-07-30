@@ -18,8 +18,6 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
     const transactionItem = item as unknown as TransactionListItemType;
     const theme = useTheme();
 
-    const pressableStyle = [styles.transactionListItemStyle, item.isSelected && styles.activeComponentBG];
-
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -43,12 +41,12 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 style={[
-                    pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    styles.transactionListItemStyle,
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(false, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
@@ -61,6 +59,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                     dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                    shouldHighlightItemWhenSelected={false}
                     shouldShowErrors={false}
                     shouldShowRadioButton
                     onRadioButtonPress={() => {

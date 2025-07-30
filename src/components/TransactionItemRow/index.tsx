@@ -95,6 +95,7 @@ type TransactionItemRowProps = {
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
     shouldShowErrors?: boolean;
+    shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
 };
 
@@ -137,6 +138,7 @@ function TransactionItemRow({
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
     shouldShowErrors = true,
+    shouldHighlightItemWhenSelected = true,
     isDisabled = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
@@ -151,11 +153,11 @@ function TransactionItemRow({
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const bgActiveStyles = useMemo(() => {
-        if (!isSelected) {
+        if (!isSelected || !shouldHighlightItemWhenSelected) {
             return [];
         }
         return styles.activeComponentBG;
-    }, [isSelected, styles.activeComponentBG]);
+    }, [isSelected, styles.activeComponentBG, shouldHighlightItemWhenSelected]);
 
     const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
     const missingFieldError = useMemo(() => {
