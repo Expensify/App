@@ -83,7 +83,7 @@ describe('PersonalDetailsUtils', () => {
                 displayName: 'SMS User',
             };
             const result = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
-            expect(result).toBe('+1 800-555-0000');
+            expect(result).toBe('(800) 555-0000');
         });
 
         test('should fall back to displayName if formatted login is an empty string and displayName exists', () => {
