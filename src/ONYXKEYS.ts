@@ -556,9 +556,6 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
-    /** Draft report comments */
-    NVP_DRAFT_REPORT_COMMENTS: 'nvp_draftReportComments',
-
     /** Collection Keys */
     COLLECTION: {
         ATTACHMENT: 'attachment_',
@@ -593,8 +590,7 @@ const ONYXKEYS = {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_PAGES: 'reportActionsPages_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
-        /** @deprecated */
-        REPORT_DRAFT_COMMENT: 'reportDraftComment_', // eslint-disable-line deprecation/deprecation
+        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
@@ -993,7 +989,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES]: OnyxTypes.Pages;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
-    // eslint-disable-next-line deprecation/deprecation
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
@@ -1215,7 +1210,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
-    [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: OnyxTypes.DraftReportComments;
 };
 
 type OnyxDerivedValuesMapping = {

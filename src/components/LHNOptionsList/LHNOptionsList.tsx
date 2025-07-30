@@ -19,6 +19,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
@@ -52,7 +53,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -188,7 +189,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment = !!draftComments?.[reportID];
+            const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
             const canUserPerformWrite = canUserPerformWriteAction(item);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
@@ -283,6 +284,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
+            draftComments,
             optionMode,
             preferredLocale,
             transactions,
@@ -299,6 +301,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
+            draftComments,
             optionMode,
             preferredLocale,
             transactions,
