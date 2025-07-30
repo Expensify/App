@@ -22,7 +22,7 @@ type WorkspaceCompanyCardStatementCloseDatePageProps = PlatformStackScreenProps<
 
 function WorkspaceCompanyCardStatementCloseDatePage({
     route: {
-        params: {policyID},
+        params: {policyID, backTo},
     },
 }: WorkspaceCompanyCardStatementCloseDatePageProps) {
     const {translate} = useLocalize();
@@ -60,8 +60,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
+        Navigation.goBack(backTo);
+    }, [backTo]);
 
     const clearError = useCallback(() => {
         if (!selectedFeed) {

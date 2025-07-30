@@ -1813,7 +1813,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: {
         route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
-        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/settings/statement-close-date`, backTo),
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
