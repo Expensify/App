@@ -109,18 +109,26 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
-        if (chatOptions.currentUserOption) {
+        // If the current user is already selected, remove them from the recent reports and personal details
+        if (selectedCurrentUser) {
+            chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== selectedCurrentUser.accountID);
+            chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
+        }
+
+        // If the current user is not selected, add them to the top of the list
+        if (!selectedCurrentUser && chatOptions.currentUserOption) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
             });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
-            } else {
-                chatOptions.currentUserOption.text = formattedName;
-                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
-            }
+            chatOptions.currentUserOption.text = formattedName;
+
+            newSections.push({
+                title: '',
+                data: [chatOptions.currentUserOption],
+                shouldShow: true,
+            });
         }
 
         newSections.push(formattedResults.section);
