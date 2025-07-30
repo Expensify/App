@@ -841,6 +841,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
@@ -984,14 +988,24 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
- * Helper for filtering out Report Actions that are either:
+ * Determines whether a report action should be visible in the report view.
+ * Filters out:
  * - ReportPreview with shouldShow set to false and without a pending action
  * - Money request with parent action deleted
  */
+function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
+    const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+
+    return !isDeletedMoneyRequest && !isHiddenReportPreviewWithoutPendingAction;
+}
+
+/**
+ * Helper for filtering out report actions that should not be displayed in the report view.
+ * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
+ */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
-    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
-    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
+    return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
 /**
@@ -1883,9 +1897,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
+function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
+    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
