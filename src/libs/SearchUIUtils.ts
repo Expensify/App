@@ -357,8 +357,8 @@ function getSuggestedSearchesVisibility(
     let shouldShowApproveSuggestion = false;
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
-    let showShowUnapprovedCashSuggestion = false;
-    let showShowUnapprovedCardSuggestion = false;
+    let shouldShowUnapprovedCashSuggestion = false;
+    let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
     Object.values(policies ?? {}).some((policy) => {
@@ -391,8 +391,8 @@ function getSuggestedSearchesVisibility(
         shouldShowApproveSuggestion ||= isEligibleForApproveSuggestion;
         shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
-        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
-        showShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
+        shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
@@ -402,8 +402,8 @@ function getSuggestedSearchesVisibility(
             shouldShowApproveSuggestion &&
             shouldShowExportSuggestion &&
             shouldShowStatementsSuggestion &&
-            showShowUnapprovedCashSuggestion &&
-            showShowUnapprovedCardSuggestion &&
+            shouldShowUnapprovedCashSuggestion &&
+            shouldShowUnapprovedCardSuggestion &&
             shouldShowReconciliationSuggestion
         );
     });
@@ -417,8 +417,8 @@ function getSuggestedSearchesVisibility(
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: showShowUnapprovedCardSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
     };
 }
 
