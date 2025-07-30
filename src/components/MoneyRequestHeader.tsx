@@ -83,7 +83,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: false});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
@@ -218,6 +218,18 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
                     return;
+                }
+
+                changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD]: {
+            text: translate('iou.unhold'),
+            icon: Expensicons.Stopwatch,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD,
+            onSelected: () => {
+                if (!parentReportAction) {
+                    throw new Error('Parent action does not exist');
                 }
 
                 changeMoneyRequestHoldStatus(parentReportAction);
