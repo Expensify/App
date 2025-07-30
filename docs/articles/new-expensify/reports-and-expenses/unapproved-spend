@@ -1,0 +1,47 @@
+---
+title: Track Unapproved Spend in New Expensify
+description: Learn how to identify and track unapproved expenses for both out-of-pocket and company card transactions to support accurate accounting accruals.
+keywords: [New Expensify, unapproved spend, expense accruals, out-of-pocket expenses, card expenses, accounting workflows, group-by, search filters]
+---
+
+<div id="new-expensify" markdown="1">
+
+Tracking unapproved expenses helps ensure your financial reporting is accurate and complete. This article explains how to identify and export both out-of-pocket and company card expenses that haven’t yet been approved or paid.
+
+# Track unapproved spend
+
+## Where to find unapproved expenses
+
+From the left-hand menu on **Reports**, select:
+
+- **Unapproved cash** for out-of-pocket expenses
+- **Unapproved card** for company card transactions
+
+These filtered views automatically show:
+
+- Out-of-pocket expenses that haven’t been approved or exported
+- Card transactions that haven’t been approved or exported
+
+Totals are displayed at the bottom of the page to help calculate month-end liabilities.
+
+## Optional: Export a CSV for reporting
+
+To analyze unapproved spend by employee or card:
+
+1. Scroll to the bottom of the list to load all results.
+2. Select the checkbox at the top-left of the list.
+3. Click **Select all matching items**, then choose **Export**.
+4. Open the CSV in Excel and use a pivot table to group by **Submitter** or **Card**.
+
+# FAQ
+
+## Why is it important to track unapproved expenses?
+
+Unapproved expenses represent liabilities your company is responsible for. Even if they haven’t been reimbursed or exported, they affect your financials and must be accounted for to ensure accuracy.
+
+## What's the difference between out-of-pocket and card accruals?
+
+- **Out-of-pocket:** Expenses submitted by employees for reimbursement.
+- **Card:** Company-paid transactions.
+
+</div>
