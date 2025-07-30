@@ -657,6 +657,7 @@ class GithubUtils {
 
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
+            console.log('');
             return allCommits.map(
                 (commit): CommitType => ({
                     commit: commit.sha,
@@ -671,6 +672,7 @@ class GithubUtils {
                 );
             }
             core.endGroup();
+            console.log('');
             throw error;
         }
     }
