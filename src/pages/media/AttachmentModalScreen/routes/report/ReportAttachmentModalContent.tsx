@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
@@ -15,8 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useFileErrorModal from './hooks/useFileErrorModal';
-import useFileUploadValidation from './hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
@@ -104,24 +102,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         ComposerFocusManager.setReadyToFocus();
     }, []);
 
-    const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
-    const {validFilesToUpload, fileError, isFileErrorModalVisible} = useFileUploadValidation({
-        files: fileParam,
-        onValid: (result) => {
-            if (!('validatedFile' in result)) {
-                return;
-            }
-            setSource(result.validatedFile.source);
-        },
-    });
+    const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
     const modalType = useReportAttachmentModalType(fileParam);
-
-    const ExtraModals = useFileErrorModal({
-        fileError,
-        isFileErrorModalVisible,
-        onCancel: navigation.goBack,
-        isMultipleFiles: Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0,
-    });
 
     const contentTypeProps = useMemo<AttachmentModalBaseContentProps>(
         () =>
@@ -154,9 +136,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
-            ExtraModals,
         }),
-        [ExtraModals, accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
+        [accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
     );
 
     return (
