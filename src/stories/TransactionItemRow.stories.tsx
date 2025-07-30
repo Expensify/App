@@ -32,6 +32,7 @@ type TransactionItemRowProps = {
     shouldShowTooltip: boolean;
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    isParentHovered?: boolean;
 };
 
 const story: Meta<typeof TransactionItemRow> = {
@@ -61,6 +62,9 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldShowCheckbox: {
             control: 'boolean',
         },
+        isParentHovered: {
+            control: 'boolean',
+        },
 
         columns: {
             control: {
@@ -75,7 +79,7 @@ const story: Meta<typeof TransactionItemRow> = {
 };
 
 function Template(
-    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox, columns}: TransactionItemRowProps,
+    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox, columns, isParentHovered}: TransactionItemRowProps,
     {parameters}: {parameters: {useLightTheme?: boolean}},
 ) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
@@ -95,6 +99,7 @@ function Template(
                         onCheckboxPress={() => {}}
                         shouldShowCheckbox={shouldShowCheckbox}
                         columns={columns}
+                        isParentHovered={isParentHovered}
                         onButtonPress={() => {}}
                     />
                 </ThemeStylesProvider>

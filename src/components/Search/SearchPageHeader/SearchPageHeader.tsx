@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -36,10 +37,12 @@ function SearchPageHeader({
 
     if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
         return (
-            <SearchSelectedNarrow
-                options={headerButtonsOptions}
-                itemsLength={selectedTransactionsKeys.length}
-            />
+            <View>
+                <SearchSelectedNarrow
+                    options={headerButtonsOptions}
+                    itemsLength={selectedTransactionsKeys.length}
+                />
+            </View>
         );
     }
 

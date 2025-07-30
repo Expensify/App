@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
@@ -15,12 +15,11 @@ type UserInfoCellProps = {
     avatar: AvatarSource | undefined;
     displayName: string;
     avatarSize?: AvatarSizeName;
-    containerStyle?: StyleProp<ViewStyle>;
     textStyle?: TextStyle;
     avatarStyle?: ViewStyle;
 };
 
-function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyle, textStyle, avatarStyle}: UserInfoCellProps) {
+function UserInfoCell({avatar, accountID, displayName, avatarSize, textStyle, avatarStyle}: UserInfoCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
@@ -29,7 +28,7 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={avatarSize ?? CONST.AVATAR_SIZE.MID_SUBSCRIPT}

@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import {Receipt} from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,7 +13,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 
-function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle}) {
+function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transaction; isSelected: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -36,7 +35,6 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
-                style,
             ]}
         >
             <ReceiptImage
