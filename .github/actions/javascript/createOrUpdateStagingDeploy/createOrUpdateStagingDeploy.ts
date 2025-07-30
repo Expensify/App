@@ -101,8 +101,8 @@ async function run(): Promise<IssuesCreateResponse | void> {
             // TODO: should check for mobile-expensify diff?
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
-                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
-                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
+                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -115,7 +115,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
-                    url: GithubUtils.getPullRequestURLFromNumber(prNum),
+                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.MOBILE_EXPENSIFY_URL),
                     isVerified,
                 };
             });

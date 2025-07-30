@@ -522,8 +522,8 @@ class GithubUtils {
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
-    static getPullRequestURLFromNumber(value: number): string {
-        return `${CONST.APP_REPO_URL}/pull/${value}`;
+    static getPullRequestURLFromNumber(value: number, repositoryURL: string): string {
+        return `${repositoryURL}/pull/${value}`;
     }
 
     /**

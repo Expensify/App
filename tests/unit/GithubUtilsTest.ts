@@ -789,6 +789,10 @@ describe('GithubUtils', () => {
         test.each([
             [1234, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`],
             [54321, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/54321`],
-        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.APP_REPO_URL)).toBe(expectedOutput));
+        test.each([
+            [1234, `https://github.com/Expensify/Mobile-Expensify/pull/1234`],
+            [54321, `https://github.com/Expensify/Mobile-Expensify/pull/54321`],
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.MOBILE_EXPENSIFY_URL)).toBe(expectedOutput));
     });
 });
