@@ -1075,6 +1075,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tire fotos de todos os seus recibos de uma vez, depois confirme os detalhes você mesmo ou deixe o SmartScan cuidar disso.',
         receiptScanInProgress: 'Digitalização de recibo em andamento',
         receiptScanInProgressDescription: 'Digitalização do recibo em andamento. Verifique mais tarde ou insira os detalhes agora.',
+        removeFromReport: 'Remover do relatório',
+        moveToPersonalSpace: 'Mover despesas para o espaço pessoal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Despesas duplicadas potenciais identificadas. Revise as duplicatas para permitir o envio.'
@@ -1830,7 +1832,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Envie e receba dinheiro com amigos. Apenas contas bancárias dos EUA.',
         enableWallet: 'Ativar carteira',
-        addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
+        addBankAccountToSendAndReceive: 'Adicione uma conta bancária para fazer ou receber pagamentos.',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -1841,6 +1843,8 @@ const translations = {
         chooseYourBankAccount: 'Escolha sua conta bancária',
         chooseAccountBody: 'Certifique-se de selecionar o correto.',
         confirmYourBankAccount: 'Confirme sua conta bancária',
+        personalBankAccounts: 'Contas bancárias pessoais',
+        businessBankAccounts: 'Contas bancárias empresariais',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5960,7 +5964,7 @@ const translations = {
         },
         statements: 'Declarações',
         unapprovedCash: 'Dinheiro não aprovado',
-        unapprovedCompanyCards: 'Cartões corporativos não aprovados',
+        unapprovedCard: 'Cartão não aprovado',
         saveSearch: 'Salvar pesquisa',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',

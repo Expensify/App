@@ -6450,7 +6450,7 @@ const CONST = {
             EXPORT: 'export',
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
-            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CARD: 'unapprovedCard',
         },
     },
 

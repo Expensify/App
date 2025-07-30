@@ -1073,6 +1073,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta, poi conferma i dettagli tu stesso o lascia che SmartScan se ne occupi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Controlla più tardi o inserisci i dettagli ora.',
+        removeFromReport: 'Rimuovi dal rapporto',
+        moveToPersonalSpace: 'Sposta spese nello spazio personale',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? "Spese potenzialmente duplicate identificate. Rivedi i duplicati per consentire l'invio."
@@ -1830,7 +1832,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Invia e ricevi denaro con gli amici. Solo conti bancari statunitensi.',
         enableWallet: 'Abilita portafoglio',
-        addBankAccountToSendAndReceive: "Ricevi il rimborso per le spese che invii a un'area di lavoro.",
+        addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Queste sono carte assegnate da un amministratore del workspace per gestire le spese aziendali.',
         expensifyCard: 'Expensify Card',
@@ -1841,6 +1843,8 @@ const translations = {
         chooseYourBankAccount: 'Scegli il tuo conto bancario',
         chooseAccountBody: 'Assicurati di selezionare quello giusto.',
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
+        personalBankAccounts: 'Conti bancari personali',
+        businessBankAccounts: 'Conti bancari aziendali',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5969,7 +5973,7 @@ const translations = {
         },
         statements: 'Dichiarazioni',
         unapprovedCash: 'Contanti non approvati',
-        unapprovedCompanyCards: 'Carte aziendali non approvate',
+        unapprovedCard: 'Carta non approvata',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
