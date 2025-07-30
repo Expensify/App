@@ -207,7 +207,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useFocusEffect(
@@ -546,7 +546,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, data, sortBy, sortOrder, groupBy).map((item) => {
+            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -567,7 +567,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
