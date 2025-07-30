@@ -210,7 +210,7 @@ class GithubUtils {
                 number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
-                PRListMobileExpensify: [], // TODO!!! get the existing Mobile-Expensify PR list from the issue body
+                PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
@@ -244,6 +244,22 @@ class GithubUtils {
         }));
 
         return PRList.sort((a, b) => a.number - b.number);
+    }
+
+    static getStagingDeployCashPRListMobileExpensify(issue: OctokitIssueItem): StagingDeployCashPR[] {
+        let mobileExpensifySection: RegExpMatchArray | string | null = issue.body?.match(/Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (mobileExpensifySection?.length !== 2) {
+            return [];
+        }
+
+        mobileExpensifySection = mobileExpensifySection[1];
+        const mobileExpensifyPRs = [...mobileExpensifySection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isVerified: match[1] === 'x',
+        }));
+
+        return mobileExpensifyPRs.sort((a, b) => a.number - b.number);
     }
 
     /**

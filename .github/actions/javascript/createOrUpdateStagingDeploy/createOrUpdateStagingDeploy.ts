@@ -102,7 +102,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
-                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
+                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.MOBILE_EXPENSIFY_URL)),
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -159,15 +159,21 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 });
             });
 
-            // TODO: do the same for mobile-expensify -- get from existing checklist'????
+            // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
+            currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
+                const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
+                if (!isAlreadyIncluded) {
+                    PRListMobileExpensify.push(existingPR);
+                }
+            });
 
             const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 PRList.map((pr) => pr.url),
-                PRListMobileExpensify.map((pr) => pr.url), // TODO: mobile-expensify PR list
+                PRListMobileExpensify.map((pr) => pr.url), 
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
-                PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url), // TODO: mobile-expensify verified PR list
+                PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
