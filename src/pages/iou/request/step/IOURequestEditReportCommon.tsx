@@ -47,7 +47,7 @@ type Props = {
 };
 
 function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, isEditing}: Props) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -82,7 +82,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
         const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
 
         return expenseReports
-            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID))
+            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .map((report) => {
@@ -97,7 +97,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [allReports, debouncedSearchValue, expenseReports, options.reports, transactionsReports]);
+    }, [allReports, debouncedSearchValue, expenseReports, options.reports, transactionsReports, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
