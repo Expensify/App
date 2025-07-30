@@ -240,7 +240,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                initSplitExpense(transaction);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -248,7 +248,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             text: translate('iou.viewDetails'),
             icon: Expensicons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(report, Navigation.getActiveRoute());
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
