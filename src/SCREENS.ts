@@ -541,6 +541,7 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
+        MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
