@@ -852,7 +852,6 @@ function PureReportActionItem({
         action,
         userBillingFundID,
         isActionableWhisper,
-        report?.policyID,
         policy,
         currentUserAccountID,
         reportID,
