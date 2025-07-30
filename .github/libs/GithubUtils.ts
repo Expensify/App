@@ -57,11 +57,13 @@ type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment'][
 type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
 
 type StagingDeployCashData = {
+    // TODO: when is this used?
     title: string;
     url: string;
     number: number;
     labels: OctokitIssueItem['labels'];
     PRList: StagingDeployCashPR[];
+    PRListMobileExpensify: StagingDeployCashPR[];
     deployBlockers: StagingDeployCashBlocker[];
     internalQAPRList: StagingDeployCashBlocker[];
     isFirebaseChecked: boolean;
@@ -208,6 +210,7 @@ class GithubUtils {
                 number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
+                PRListMobileExpensify: [], // TODO!!! get the existing Mobile-Expensify PR list from the issue body
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
@@ -290,7 +293,9 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(
         tag: string,
         PRList: string[],
+        PRListMobileExpensify: string[],
         verifiedPRList: string[] = [],
+        verifiedPRListMobileExpensify: string[] = [], // TODO: make sure this is passed and filtered
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
@@ -314,9 +319,12 @@ class GithubUtils {
 
                     const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
+                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
+                        (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
+                    );
+                    const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
                     );
                     const sortedDeployBlockers = [...new Set(deployBlockers)].sort(
@@ -335,6 +343,16 @@ class GithubUtils {
                     if (sortedPRList.length > 0) {
                         issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                         sortedPRList.forEach((URL) => {
+                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                            issueBody += ` ${URL}\r\n`;
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
+
+                    // Mobile-Expensify PR list
+                    if (sortedPRListMobileExpensify.length > 0) {
+                        issueBody += '**Mobile-Expensify PRs:**\r\n';
+                        sortedPRListMobileExpensify.forEach((URL) => {
                             issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
                         });

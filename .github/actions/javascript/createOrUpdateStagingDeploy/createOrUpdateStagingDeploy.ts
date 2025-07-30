@@ -67,6 +67,8 @@ async function run(): Promise<IssuesCreateResponse | void> {
         core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
         core.info(JSON.stringify(newPRNumbers));
 
+        // TODO: DO THE SAME FOR MOBILE-EXPENSIFY!!!!!
+
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
@@ -96,9 +98,11 @@ async function run(): Promise<IssuesCreateResponse | void> {
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
+            // TODO: should check for mobile-expensify diff?
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -109,6 +113,17 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const PRList = newPRNumbers.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
+                return {
+                    number: prNum,
+                    url: GithubUtils.getPullRequestURLFromNumber(prNum),
+                    isVerified,
+                };
+            });
+
+            // Generate the updated Mobile-Expensify PR list, preserving the previous state of `isVerified` for existing PRs
+            const PRListMobileExpensify = mergedMobileExpensifyPRs.map((prNum) => {
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRListMobileExpensify.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
                     url: GithubUtils.getPullRequestURLFromNumber(prNum),
@@ -144,11 +159,15 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 });
             });
 
+            // TODO: do the same for mobile-expensify -- get from existing checklist'????
+
             const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 PRList.map((pr) => pr.url),
+                PRListMobileExpensify.map((pr) => pr.url), // TODO: mobile-expensify PR list
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
+                PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url), // TODO: mobile-expensify verified PR list
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
