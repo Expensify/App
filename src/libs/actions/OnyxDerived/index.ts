@@ -89,7 +89,6 @@ function init() {
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                 const newDerivedValue = compute(dependencyValues, baseContext);
 
-                // Only update if value actually changed
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
                 setDerivedValue(key, derivedValue);
