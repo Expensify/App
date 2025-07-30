@@ -18,7 +18,7 @@ type ActivateStepProps = {
 
 function ActivateStep({userWallet}: ActivateStepProps) {
     const {translate} = useLocalize();
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const isActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
     const kycWallRef = useContext(KYCWallContext);
 
