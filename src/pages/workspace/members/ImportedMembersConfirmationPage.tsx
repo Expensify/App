@@ -149,7 +149,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     />
                 </View>
                 <View style={[styles.mb5]}>
-                    <Text>{translate('spreadsheet.importMemberConfirmation', {totalMembers: importedSpreadsheetMemberData?.length, newMembers: newMembers?.length})}</Text>
+                    <Text>{translate('spreadsheet.importMemberConfirmation', {newMembers: newMembers?.length})}</Text>
                 </View>
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
@@ -162,45 +162,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                             }}
                         />
                     </View>
-                    {/* <InputWrapper
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.WELCOME_MESSAGE}
-                        label={translate('workspace.inviteMessage.personalMessagePrompt')}
-                        accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
-                        autoCompleteType="off"
-                        type="markdown"
-                        autoCorrect={false}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        value={welcomeNote}
-                        onChangeText={(text: string) => {
-                            setWelcomeNote(text);
-                        }}
-                        ref={(element: AnimatedTextInputRef) => {
-                            if (!element) {
-                                return;
-                            }
-                            if (!inputRef.current) {
-                                updateMultilineInputRange(element);
-                            }
-                            inputCallbackRef(element);
-                        }}
-                        shouldSaveDraft
-                    /> */}
                 </View>
             </View>
-            {/* <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
-                validate={validate}
-                onSubmit={sendInvitation}
-                // submitButtonText={translate('common.invite')}
-                enabledWhenOffline
-                shouldHideFixErrorsAlert
-                addBottomSafeAreaPadding
-            > */}
-            {/* </FormProvider> */}
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
                 <Button
                     text={translate('common.import')}

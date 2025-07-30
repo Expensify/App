@@ -955,8 +955,8 @@ const translations = {
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
         importSpreadsheet: 'Importar hoja de cálculo',
         downloadCSV: 'Descargar CSV',
-        importMemberConfirmation: ({totalMembers, newMembers}: ImportMemberConfirmationParams) =>
-            `${newMembers} de las ${totalMembers} personas que has subido aún no es miembro de este espacio de trabajo. Las opciones a continuación solo se aplican a las personas recién añadidas. Los miembros existentes incluidos en tu carga no tendrán cambios en su configuración ni recibirán un correo electrónico.`,
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Confirma los detalles a continuación para el/los ${newMembers} nuevo(s) miembro(s) del espacio de trabajo que se añadirán como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
     },
     receipt: {
         upload: 'Subir recibo',

@@ -112,6 +112,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -969,6 +970,8 @@ const translations = {
             'アップロードしたファイルは空であるか、無効なデータが含まれています。ファイルが正しくフォーマットされ、必要な情報が含まれていることを確認してから、再度アップロードしてください。',
         importSpreadsheet: 'スプレッドシートをインポート',
         downloadCSV: 'CSVをダウンロード',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `このアップロードによって追加される${newMembers}名の新しいワークスペースメンバーの詳細を以下で確認してください。既存のメンバーには、役割の更新や招待メッセージは送信されません。`,
     },
     receipt: {
         upload: '領収書をアップロード',

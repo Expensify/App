@@ -819,7 +819,6 @@ type SettlementAccountInfoParams = {
 };
 
 type ImportMemberConfirmationParams = {
-    totalMembers: number;
     newMembers: number;
 };
 

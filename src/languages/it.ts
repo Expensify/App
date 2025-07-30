@@ -112,6 +112,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -967,6 +968,8 @@ const translations = {
             'Il file che hai caricato è vuoto o contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
         importSpreadsheet: 'Importa foglio di calcolo',
         downloadCSV: 'Scarica CSV',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Conferma i dettagli qui sotto per il/i ${newMembers} nuovo/i membro/i dello spazio di lavoro che verrà/verranno aggiunto/i con questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
     },
     receipt: {
         upload: 'Carica ricevuta',

@@ -112,6 +112,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -968,6 +969,8 @@ const translations = {
             'Het bestand dat u heeft geüpload is ofwel leeg of bevat ongeldige gegevens. Zorg ervoor dat het bestand correct is opgemaakt en de benodigde informatie bevat voordat u het opnieuw uploadt.',
         importSpreadsheet: 'Spreadsheet importeren',
         downloadCSV: 'CSV downloaden',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Please confirm the details below for the ${newMembers} new workspace member(s) that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
     },
     receipt: {
         upload: 'Bonnetje uploaden',

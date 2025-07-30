@@ -112,6 +112,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -972,6 +973,8 @@ const translations = {
             'Le fichier que vous avez téléchargé est soit vide, soit contient des données invalides. Veuillez vous assurer que le fichier est correctement formaté et contient les informations nécessaires avant de le télécharger à nouveau.',
         importSpreadsheet: 'Importer une feuille de calcul',
         downloadCSV: 'Télécharger CSV',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Veuillez confirmer les informations ci-dessous pour le(s) ${newMembers} nouveau(x) membre(s) de l’espace de travail qui sera/seront ajouté(s) dans le cadre de cet import. Les membres existants ne recevront pas de mises à jour de rôle ni de messages d’invitation.`,
     },
     receipt: {
         upload: 'Télécharger le reçu',

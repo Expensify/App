@@ -961,8 +961,8 @@ const translations = {
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
         importSpreadsheet: 'Import spreadsheet',
         downloadCSV: 'Download CSV',
-        importMemberConfirmation: ({totalMembers, newMembers}: ImportMemberConfirmationParams) =>
-            `${newMembers} of the ${totalMembers} people you’ve uploaded is not yet a member of this workspace. The options below apply only to newly added people. Existing members in your upload will not have their settings changed, nor receive an email.`,
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Please confirm the details below for the ${newMembers} new workspace member(s) that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
     },
     receipt: {
         upload: 'Upload receipt',
