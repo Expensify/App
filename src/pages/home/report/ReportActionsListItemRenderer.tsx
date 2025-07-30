@@ -73,7 +73,7 @@ type ReportActionsListItemRendererProps = {
     emojiReactions?: OnyxEntry<ReportActionReactions>;
 
     /** User wallet tierName */
-    userWallet: string | undefined;
+    userWalletTierName: string | undefined;
 
     /** Linked transaction route error */
     linkedTransactionRouteError?: OnyxEntry<Errors>;
@@ -116,7 +116,7 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
     draftMessage,
     emojiReactions,
-    userWallet,
+    userWalletTierName,
     linkedTransactionRouteError,
     isUserValidated,
     userBillingFundID,
@@ -212,7 +212,7 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                userWallet={userWallet}
+                userWalletTierName={userWalletTierName}
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 allDraftMessages={allDraftMessages}
@@ -253,7 +253,7 @@ function ReportActionsListItemRenderer({
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            userWallet={userWallet}
+            userWalletTierName={userWalletTierName}
             isUserValidated={isUserValidated}
             personalDetails={personalDetails}
             draftMessage={draftMessage}

@@ -189,7 +189,7 @@ function SearchList(
 
     const personalDetails = usePersonalDetails();
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
@@ -355,7 +355,7 @@ function SearchList(
                     isDisabled={isDisabled}
                     allReports={allReports}
                     groupBy={groupBy}
-                    userWallet={userWallet}
+                    userWalletTierName={userWalletTierName}
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
@@ -377,7 +377,7 @@ function SearchList(
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
-            userWallet,
+            userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
