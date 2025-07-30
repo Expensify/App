@@ -143,7 +143,7 @@ describe('Post test coverage comment action tests', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
         expect(updateCall.body).toContain('## 📊 Test Coverage Report');
-        expect(updateCall.body).toContain('🔁 **Overall Coverage**:');
+        expect(updateCall.body).toContain('🔁 Overall Coverage:');
         expect(updateCall.body).toContain('src/libs/TransactionUtils/index.ts');
         expect(updateCall.body).toContain('<!-- END_COVERAGE_SECTION -->');
         expect(updateCall.body).toContain('<!-- START_COVERAGE_SECTION -->');
@@ -248,7 +248,7 @@ describe('Post test coverage comment action tests', () => {
         const updateCall = mockUpdatePR.mock.calls.at(0)?.at(0) as {body: string};
         expect(updateCall.body).not.toContain('Old coverage information here');
         expect(updateCall.body).toContain('## 📊 Test Coverage Report');
-        expect(updateCall.body).toContain('🔁 **Overall Coverage**:');
+        expect(updateCall.body).toContain('🔁 Overall Coverage:');
         expect(updateCall.body).toContain('<!-- END_COVERAGE_SECTION -->');
         expect(updateCall.body).toContain('<!-- START_COVERAGE_SECTION -->');
         expect(updateCall.body).toContain('More PR description'); // Original content should be preserved
