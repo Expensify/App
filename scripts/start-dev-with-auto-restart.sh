@@ -4,7 +4,7 @@
 # This script monitors for heap out of memory errors and automatically restarts
 # Usage: ./start-dev-with-auto-restart.sh [webpack-dev-server arguments]
 
-WDS_ARGS="$@"
+WDS_ARGS=("$@")
 MAX_RESTARTS=10
 RESTART_COUNT=0
 RESTART_DELAY=1
@@ -12,7 +12,7 @@ RESTART_DELAY=1
 echo "🚀 Starting webpack-dev-server with auto-restart (max restarts: $MAX_RESTARTS)"
 
 run_wds () {
-    node --expose-gc ./node_modules/.bin/webpack-dev-server $1 $WDS_ARGS --config config/webpack/webpack.dev.ts
+    node --expose-gc ./node_modules/.bin/webpack-dev-server "$1" "${WDS_ARGS[@]}" --config config/webpack/webpack.dev.ts
 }
 
 while [ $RESTART_COUNT -lt $MAX_RESTARTS ]; do
