@@ -407,8 +407,10 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
     }
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+    const isNativePlatform = isAndroidNative || isIOSNative;
 
-    if (!isAndroidNative || 'size' in file) {
+    if (!isNativePlatform || 'size' in file) {
         return Promise.resolve(file);
     }
 
