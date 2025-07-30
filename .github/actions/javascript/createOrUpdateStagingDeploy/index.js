@@ -11607,7 +11607,6 @@ async function run() {
         let checklistBody = '';
         let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            // TODO: should check for mobile-expensify diff?
             const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, newPRNumbers.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value, CONST_1.default.APP_REPO_URL)), mergedMobileExpensifyPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value, CONST_1.default.APP_REPO_URL)));
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;

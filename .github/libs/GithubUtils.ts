@@ -311,7 +311,7 @@ class GithubUtils {
         PRList: string[],
         PRListMobileExpensify: string[],
         verifiedPRList: string[] = [],
-        verifiedPRListMobileExpensify: string[] = [], // TODO: make sure this is passed and filtered
+        verifiedPRListMobileExpensify: string[] = [],
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],

@@ -59,6 +59,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');
         core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
         core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
@@ -67,9 +68,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
         core.info(JSON.stringify(newPRNumbers));
 
-        // TODO: DO THE SAME FOR MOBILE-EXPENSIFY!!!!!
-
-        // Log the PRs that were filtered out
+        // Filter out cherry-picked PRs that were released with the previous checklist
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
             core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
@@ -80,8 +79,17 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Get merged Mobile-Expensify PRs
         let mergedMobileExpensifyPRs: number[] = [];
         try {
-            mergedMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
+            const allMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
+            mergedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => !previousMobileExpensifyPRNumbers.has(prNum));
+            
+            console.info(`Found ${allMobileExpensifyPRs.length} total Mobile-Expensify PRs, ${mergedMobileExpensifyPRs.length} new ones after filtering:`);
             console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+            
+            // Log the Mobile-Expensify PRs that were filtered out
+            const removedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => previousMobileExpensifyPRNumbers.has(prNum));
+            if (removedMobileExpensifyPRs.length > 0) {
+                core.info(`⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.join(', ')} ⚠️⚠️`);
+            }
         } catch (error) {
             // Check if this is a forked repository
             if (process.env.GITHUB_REPOSITORY !== 'Expensify/App') {
@@ -98,7 +106,6 @@ async function run(): Promise<IssuesCreateResponse | void> {
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
-            // TODO: should check for mobile-expensify diff?
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
