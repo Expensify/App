@@ -114,7 +114,6 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     return isSubmitter || isAdmin || isManager;
-
 }
 
 function isSubmitAction(
