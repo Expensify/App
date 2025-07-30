@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,6 +30,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {setIsClosing} = useCloseImportPage();
 
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -84,7 +86,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
         const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
-            let role = '';
+            let role = policy?.employeeList?.[email]?.role ?? '';
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
                 isRoleMissing = false;
@@ -116,7 +118,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo)) {
                 allMembers.push({
                     email: member.submitsTo,
-                    role: firstMemberRole,
+                    role: policy?.employeeList?.[member.submitsTo]?.role ?? firstMemberRole,
                     submitsTo: '',
                     forwardsTo: '',
                 });
@@ -125,7 +127,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo)) {
                 allMembers.push({
                     email: member.forwardsTo,
-                    role: firstMemberRole,
+                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? firstMemberRole,
                     submitsTo: '',
                     forwardsTo: '',
                 });
@@ -139,13 +141,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             allMembers = allMembers.map((member) => {
                 return {
                     ...member,
-                    role: member.role || firstMemberRole
-                }
-            })
+                    role: member.role || firstMemberRole,
+                };
+            });
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet, containsHeader, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyID, policy?.employeeList]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

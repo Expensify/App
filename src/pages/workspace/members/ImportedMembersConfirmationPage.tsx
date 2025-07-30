@@ -25,14 +25,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import {isPolicyMember} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
+import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
-import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
-import { isPolicyMember } from '@libs/PolicyUtils';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
 
@@ -81,9 +81,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             return;
         }
         setIsImporting(true);
-        const newMembersWithRole = newMembers.map((member) => ({...member, role}));
-        importPolicyMembers(policyID, newMembersWithRole);
-    }, [newMembers, policyID, role]);
+        const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
+        importPolicyMembers(policyID, membersWithRole);
+    }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
