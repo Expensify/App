@@ -35,7 +35,21 @@ Maintaining a stable setup for these baseline measurements is critical for accur
 - Use [`React.memo`](https://react.dev/reference/react/memo), [`useMemo`](https://react.dev/reference/react/useMemo), and [`useCallback`](https://react.dev/reference/react/useCallback) to prevent expensive re-renders.
 - Using a combination of [React DevTools Profiler](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) and [Chrome Dev Tools Performance Timing](https://calibreapp.com/blog/react-performance-profiling-optimization) can help identify unnecessary re-renders. Both tools can be used to time an interaction like the app starting up or navigating to a new screen.
 - Watch out for [very large lists](https://reactnative.dev/docs/optimizing-flatlist-configuration) and things like `Image` components re-fetching images on render when a remote uri did not change.
-- Avoid the temptation to over-optimize. There is added cost in both code complexity and performance when using memoization hooks like `useMemo` and `useCallback`. Be selective about when you use them and make sure there is a measurable difference before proposing the change. As a very general rule, it should be measurably faster to run the memoized logic than it would be to let React re-render the component without any extra intervention from us.
+- **When to use memoization (useMemo/useCallback/React.memo):**
+  - ✅ Component renders frequently (>10 times during normal user interaction)
+  - ✅ Heavy computations that take >10ms to execute
+  - ✅ Large lists or complex data transformations
+  - ✅ Props passed to many child components that could cause cascading re-renders
+  - ✅ You can measure a meaningful performance improvement with profiling tools
+
+- **When NOT to use memoization:**
+  - ❌ Component only renders a few times during normal usage
+  - ❌ Computations are simple/fast (<1ms)
+  - ❌ Small lists or basic data operations
+  - ❌ You're just guessing it might help without measuring
+  - ❌ The memoization logic itself is more expensive than re-rendering
+
+**Rule of thumb:** Profile first, optimize second. Always measure the performance impact before and after adding memoization.
 - Use caution when adding subscriptions that might re-render very large trees of components e.g. subscribing to state that changes often (current report, current route, etc) in the app root.
 - Avoid passing new functions as props to components on every render. This can be avoided by using `useCallback` or by defining the function outside of the component.
 
@@ -49,7 +63,7 @@ Maintaining a stable setup for these baseline measurements is critical for accur
 
 #### Steps to Profile:
 
-1. **Open Chrome DevTools (`cmd+shift+j`)**
+1. **Open Chrome DevTools (`cmd+option+j`)**
    
 2. **Capture Performance Data**
    - Open "Performance" tab
@@ -62,7 +76,7 @@ Maintaining a stable setup for these baseline measurements is critical for accur
    - Open [SpeedScope](https://www.speedscope.app/) and upload the trace
    - Analyze the trace
 
-**Suggested:** [React Performance Profiling](https://calibreapp.com/blog/react-performance-profiling-optimization)
+**Suggested reading:** [React Performance Profiling](https://calibreapp.com/blog/react-performance-profiling-optimization)
 
 ### **iOS & Android:** React Native DevTools
 
