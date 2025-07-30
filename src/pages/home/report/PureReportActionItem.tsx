@@ -819,7 +819,18 @@ function PureReportActionItem({
                 onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, reportID, userBillingFundID, createDraftTransactionAndNavigateToParticipantSelector, dismissTrackExpenseActionableWhisper, resolveActionableReportMentionWhisper, resolveActionableMentionWhisper, originalReportID, isBetaEnabled]);
+    }, [
+        action,
+        isActionableWhisper,
+        reportID,
+        userBillingFundID,
+        createDraftTransactionAndNavigateToParticipantSelector,
+        dismissTrackExpenseActionableWhisper,
+        resolveActionableReportMentionWhisper,
+        resolveActionableMentionWhisper,
+        originalReportID,
+        isBetaEnabled,
+    ]);
 
     /**
      * Get the content of ReportActionItem
