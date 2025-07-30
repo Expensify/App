@@ -96,7 +96,7 @@ function Composer(
             const filePromises = e.nativeEvent.items.map((item) => {
                 const clipboardContent = item;
                 if (clipboardContent?.type === 'text/plain') {
-                    return Promise.resolve();
+                    return Promise.resolve(undefined);
                 }
 
                 const mimeType = clipboardContent?.type ?? '';

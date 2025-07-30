@@ -194,7 +194,7 @@ function Composer(
                                 return file;
                             });
                     }
-                    return Promise.resolve();
+                    return Promise.resolve(undefined);
                 });
 
                 Promise.all(filePromises).then((files) => {
