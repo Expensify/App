@@ -5948,7 +5948,7 @@ const translations = {
         },
         statements: 'Extractos',
         unapprovedCash: 'Efectivo no aprobado',
-        unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',
+        unapprovedCard: 'Tarjeta no aprobada',
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
@@ -6737,8 +6737,7 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invitar a enviar gastos',
-        inviteToChat: 'Invitar solo a chatear',
+        invite: 'Invitar',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {

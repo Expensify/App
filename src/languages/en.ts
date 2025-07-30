@@ -4320,7 +4320,7 @@ const translations = {
             somethingMightBeBroken: 'Or something might be broken. Either way, if you have any questions, just',
             contactConcierge: 'contact Concierge',
             chooseTransactionStartDate: 'Choose a transaction start date',
-            startDateDescription: "We'll import all transaction from this date onwards. If no date is specified, we’ll go as far back as your bank allows.",
+            startDateDescription: "We'll import all transactions from this date onwards. If no date is specified, we’ll go as far back as your bank allows.",
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',
@@ -5927,7 +5927,7 @@ const translations = {
         },
         statements: 'Statements',
         unapprovedCash: 'Unapproved cash',
-        unapprovedCompanyCards: 'Unapproved company cards',
+        unapprovedCard: 'Unapproved card',
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
@@ -6273,8 +6273,7 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invite to submit expenses',
-        inviteToChat: 'Invite to chat only',
+        invite: 'Invite them',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {

@@ -5955,7 +5955,7 @@ const translations = {
         },
         statements: 'Erklärungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
-        unapprovedCompanyCards: 'Nicht genehmigte Firmenkarten',
+        unapprovedCard: 'Nicht genehmigte Karte',
         saveSearch: 'Suche speichern',
         deleteSavedSearch: 'Gespeicherte Suche löschen',
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
@@ -6304,8 +6304,7 @@ const translations = {
         levelThreeResult: 'Nachricht aus dem Kanal entfernt, anonyme Warnung gesendet und Nachricht zur Überprüfung gemeldet.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Zum Einreichen von Ausgaben einladen',
-        inviteToChat: 'Nur zum Chatten einladen',
+        invite: 'Lade sie ein',
         nothing: 'Nichts tun',
     },
     actionableMentionJoinWorkspaceOptions: {
