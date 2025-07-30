@@ -96,6 +96,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            tooltip: HTMLElementModel.fromCustomModel({
+                tagName: 'tooltip',
+                mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
+                contentModel: HTMLContentModel.block,
+            }),
+            success: HTMLElementModel.fromCustomModel({
+                tagName: 'success',
+                mixedUAStyles: {...styles.textSuccess},
+                contentModel: HTMLContentModel.textual,
+            }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.strong),
@@ -149,6 +159,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.mb0,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
+            styles.productTrainingTooltipText,
             styles.textLabelSupporting,
             styles.lh16,
             styles.textSupporting,
@@ -162,6 +173,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
             styles.subTextFileUpload,
+            styles.textSuccess,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

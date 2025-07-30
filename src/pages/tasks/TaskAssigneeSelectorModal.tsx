@@ -5,7 +5,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, useSession} from '@components/OnyxProvider';
+import {useBetas, useSession} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -23,6 +23,7 @@ import {searchInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions, isCurrentUser} from '@libs/OptionsListUtils';
@@ -34,6 +35,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'TaskAssigneeSelectorModal.getValidOptions'});
+
 function useOptions() {
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +44,7 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,

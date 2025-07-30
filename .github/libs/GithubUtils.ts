@@ -54,6 +54,8 @@ type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
 
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
 
+type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
+
 type StagingDeployCashData = {
     title: string;
     url: string;
@@ -323,7 +325,11 @@ class GithubUtils {
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+
+                    // Warn deployers about potential bugs with the new process
+                    issueBody +=
+                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
 
                     // PR list
                     if (sortedPRList.length > 0) {
@@ -451,6 +457,19 @@ class GithubUtils {
                 per_page: 100,
             },
             (response) => response.data.map((comment) => comment.body),
+        );
+    }
+
+    static getAllCommentDetails(issueNumber: number): Promise<ListCommentsResponse['data']> {
+        return this.paginate(
+            this.octokit.issues.listComments,
+            {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                issue_number: issueNumber,
+                per_page: 100,
+            },
+            (response) => response.data,
         );
     }
 
@@ -658,4 +677,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData, CommitType};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, ListCommentsResponse, StagingDeployCashData, CommitType};

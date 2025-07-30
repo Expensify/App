@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
@@ -23,7 +23,6 @@ import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
@@ -379,26 +378,31 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
-function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
+function getFilterDisplayTitle(
+    filters: Partial<SearchAdvancedFiltersForm>,
+    filterKey: SearchFilterKey,
+    translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
+) {
     if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
         const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
-        const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+        const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const dateOn = filters[keyOn];
-        const dateBefore = filters[keyBefore];
         const dateAfter = filters[keyAfter];
+        const dateBefore = filters[keyBefore];
         const dateValue = [];
 
         if (dateOn) {
             dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', {date: dateOn}));
         }
 
-        if (dateBefore) {
-            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
-        }
-
         if (dateAfter) {
             dateValue.push(translate('search.filters.date.after', {date: dateAfter}));
+        }
+
+        if (dateBefore) {
+            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
         }
 
         return dateValue.join(', ');
@@ -432,7 +436,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[nonDateFilterKey]) {
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
-            .sort(sortOptionsWithEmptyValue)
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.noCategory') : value))
             .join(', ');
     }
@@ -440,7 +444,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[nonDateFilterKey]) {
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
-            .sort(sortOptionsWithEmptyValue)
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.TAG_EMPTY_VALUE ? translate('search.noTag') : getCleanedTagName(value)))
             .join(', ');
     }
@@ -539,7 +543,7 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 }
 
 function AdvancedSearchFilters() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
@@ -663,17 +667,17 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
                         if (!shouldDisplayCategoryFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
                         if (!shouldDisplayTagFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
                         if (!shouldDisplayCardFilter) {
                             return;
@@ -683,7 +687,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayCardFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
                         if (!shouldDisplayTaxFilter) {
                             return;
@@ -707,7 +711,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayGroupByFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     }
                     return {
                         key,
