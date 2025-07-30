@@ -397,7 +397,11 @@ describe('GithubUtils', () => {
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`, // No QA
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`, // No QA
         ];
-
+        const PRListMobileExpensify = [
+            `https://github.com/Expensify/Mobile-Expensify/pull/1`,
+            `https://github.com/Expensify/Mobile-Expensify/pull/2`,
+            `https://github.com/Expensify/Mobile-Expensify/pull/3`,
+        ];
         const internalQAPRList = [
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, // Internal QA
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`, // Internal QA
@@ -441,7 +445,7 @@ describe('GithubUtils', () => {
             `${lineBreak}`;
 
         test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -571,7 +575,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
