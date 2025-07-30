@@ -23,7 +23,6 @@ import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
-import Text from './Text';
 
 type BookTravelButtonProps = {
     text: string;
