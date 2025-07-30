@@ -188,11 +188,11 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
             >
                 {columnHeader}
             </Text>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.justifyContentBetween, styles.w100]}>
                 <Text
                     numberOfLines={2}
                     ellipsizeMode="tail"
-                    style={[styles.flex1, styles.flexWrap, styles.breakAll]}
+                    style={[styles.flex1, styles.flexWrap]}
                 >
                     {columnValuesString}
                 </Text>
@@ -210,6 +210,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             }}
                             defaultSelectedIndex={finalIndex}
                             options={options}
+                            success
                         />
                     </View>
                 )}
