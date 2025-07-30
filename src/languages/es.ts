@@ -608,6 +608,7 @@ const translations = {
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
+        actionRequired: 'Acción requerida',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

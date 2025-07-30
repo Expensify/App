@@ -5,6 +5,7 @@ import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {Plus} from '@components/Icon/Expensicons';
 import {Workflows} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
@@ -152,8 +153,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
+        const {addressName, bankName, bankAccountID, state} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const isAccountInSetupState = state === CONST.BANK_ACCOUNT.STATE.SETUP;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
@@ -285,6 +287,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
                                 iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
+                                badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
+                                badgeIcon={isAccountInSetupState ? Expensicons.DotIndicator : undefined}
+                                badgeSuccess={isAccountInSetupState ? true : undefined}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor={shouldShowBankAccount}
