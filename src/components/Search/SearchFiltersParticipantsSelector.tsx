@@ -45,7 +45,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
@@ -74,12 +73,21 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(unselectedOptions, cleanSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
+
+        const {currentUserOption} = unselectedOptions;
+
+        // Ensure current user is not in personalDetails when they should be excluded
+        if (currentUserOption) {
+            filteredOptions.personalDetails = filteredOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
+        }
+
+        return filteredOptions;
     }, [unselectedOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
