@@ -51,13 +51,13 @@ type PressableWithDelayToggleProps = PressableProps & {
     inline?: boolean;
     accessibilityRole?: string;
 
-    /** For overriding hovered value from the PressableWithoutFeedback container and getting the BG based on that */
-    shouldShowHoveredState?: boolean;
+    /** For using the hovered style by default, e.g. if we always need the hovered bg */
+    shouldUseHoveredStyle?: boolean;
 
-    /** Icon width */
+    /** Copy icon width */
     iconWidth?: number;
 
-    /** Icon height */
+    /** Copy icon height */
     iconHeight?: number;
 };
 
@@ -75,7 +75,7 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
         accessibilityRole,
-        shouldShowHoveredState,
+        shouldUseHoveredStyle,
         iconWidth = variables.iconSizeSmall,
         iconHeight = variables.iconSizeSmall,
     }: PressableWithDelayToggleProps,
@@ -99,7 +99,7 @@ function PressableWithDelayToggle(
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
     const labelText =
-        !text && !textChecked ? null : (
+        text && textChecked ? (
             <Text
                 suppressHighlighting
                 style={textStyles}
@@ -107,7 +107,7 @@ function PressableWithDelayToggle(
                 {!isActive && textChecked ? textChecked : text}
                 &nbsp;
             </Text>
-        );
+        ) : null;
 
     return (
         <PressableView
@@ -134,7 +134,7 @@ function PressableWithDelayToggle(
                             pressableStyle,
                             !isActive && styles.cursorDefault,
                             styles.reportActionContextMenuMiniButton,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(!!shouldShowHoveredState || hovered, shouldShowHoveredState ? hovered : pressed, !isActive), true),
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(!!shouldUseHoveredStyle || hovered, shouldUseHoveredStyle ? hovered : pressed, !isActive), true),
                         ]}
                     >
                         {({hovered, pressed}) => (

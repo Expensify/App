@@ -17,10 +17,11 @@ type CopyTextToClipboardProps = {
 
     accessibilityRole?: AccessibilityRole;
 
-    shouldShowHoveredState?: boolean;
+    /** For using the hovered style by default, e.g. if we always need the hovered bg */
+    shouldUseHoveredStyle?: boolean;
 } & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles'>;
 
-function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole, ...rest}: CopyTextToClipboardProps) {
+function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole, iconHeight, iconStyles, iconWidth, shouldUseHoveredStyle, styles}: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
 
     const copyToClipboard = useCallback(() => {
@@ -39,8 +40,11 @@ function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole, ..
             accessible
             accessibilityLabel={translate('reportActionContextMenu.copyToClipboard')}
             accessibilityRole={accessibilityRole}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            shouldUseHoveredStyle={shouldUseHoveredStyle}
+            iconWidth={iconWidth}
+            iconHeight={iconHeight}
+            iconStyles={iconStyles}
+            styles={styles}
         />
     );
 }

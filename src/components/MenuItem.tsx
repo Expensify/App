@@ -969,14 +969,14 @@ function MenuItem(
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
                                                 )}
-                                                {isHovered && !!copyValue && hasHoverSupport() && (
-                                                    <View style={{justifyContent: 'center'}}>
+                                                {hasHoverSupport() && isHovered && !!copyValue && (
+                                                    <View style={styles.justifyContentCenter}>
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
-                                                            shouldShowHoveredState
+                                                            shouldUseHoveredStyle
                                                             iconHeight={variables.iconSizeExtraSmall}
                                                             iconWidth={variables.iconSizeExtraSmall}
-                                                            iconStyles={{top: 0}}
+                                                            iconStyles={styles.t0}
                                                         />
                                                     </View>
                                                 )}
