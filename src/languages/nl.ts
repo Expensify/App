@@ -4845,6 +4845,7 @@ const translations = {
             selectFeatures: 'Select features to copy',
             whichFeatures: 'Which features do you want to copy over to your new workspace?',
             confirmDuplicate: 'Are you sure you want to proceed?',
+            categories: 'categories and your auto-categorization rules',
             confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
                 `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },

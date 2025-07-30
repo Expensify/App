@@ -11,14 +11,18 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getAllValidConnectedIntegration, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import {openWorkspaceMembersPage} from '@userActions/Policy/Member';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
 };
+const DEFAULT_SELECT_ALL = 'selectAll';
 
 function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateFormProps) {
     const styles = useThemeStyles();
@@ -31,12 +35,24 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
     const totalTags = Object.keys(policyTags ?? {}).length ?? 0;
     const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const categoriesCount = Object.keys(policyCategories ?? {}).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const reportFields = Object.keys(getReportFieldsByPolicyID(policyID)).length ?? 0;
+    const customUnits = getPerDiemCustomUnit(policy);
+    const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
+    const allRates = Object.values(customUnitRates)?.length;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
 
     const customUnit = getDistanceRateCustomUnit(policy);
     const ratesCount = Object.keys(customUnit?.rates ?? {}).length;
+    const invoiceCompany =
+        policy?.invoice?.companyName && policy?.invoice?.companyWebsite
+            ? `${policy?.invoice?.companyName}, ${policy?.invoice?.companyWebsite}`
+            : (policy?.invoice?.companyName ?? policy?.invoice?.companyWebsite);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
@@ -48,7 +64,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         const result = [
             {
                 translation: translate('workspace.common.selectAll'),
-                value: 'selectAll',
+                value: DEFAULT_SELECT_ALL,
             },
             {
                 translation: translate('workspace.common.profile'),
@@ -62,31 +78,39 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            {
-                translation: translate('workspace.common.reports'),
-                value: 'reports',
-                alternateText: 'eqwewq',
-            },
-            {
-                translation: translate('workspace.common.accounting'),
-                value: 'accounting',
-                alternateText: 'eqwewq',
-            },
-            {
-                translation: translate('workspace.common.tags'),
-                value: 'tags',
-                alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
-            },
+            reportFields > 0
+                ? {
+                      translation: translate('workspace.common.reports'),
+                      value: 'reports',
+                      alternateText: reportFields ? `${reportFields} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined,
+                  }
+                : undefined,
+            connectedIntegration && connectedIntegration?.length > 0
+                ? {
+                      translation: translate('workspace.common.accounting'),
+                      value: 'accounting',
+                      alternateText: connectedIntegration.map((connectionName) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]).join(', '),
+                  }
+                : undefined,
+            totalTags > 0
+                ? {
+                      translation: translate('workspace.common.tags'),
+                      value: 'tags',
+                      alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
+                  }
+                : undefined,
             {
                 translation: translate('workspace.common.categories'),
                 value: 'categories',
-                alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.common.categories').toLowerCase()}` : undefined,
+                alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined,
             },
-            {
-                translation: translate('workspace.common.taxes'),
-                value: 'taxes',
-                alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
-            },
+            taxesLength > 0
+                ? {
+                      translation: translate('workspace.common.taxes'),
+                      value: 'taxes',
+                      alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
+                  }
+                : undefined,
             {
                 translation: translate('workspace.common.workflows'),
                 value: 'workflows',
@@ -102,20 +126,37 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 value: 'distanceRates',
                 alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
             },
-            {
-                translation: translate('workspace.common.perDiem'),
-                value: 'perDiem',
-                alternateText: 'eqwewq',
-            },
+            allRates > 0
+                ? {
+                      translation: translate('workspace.common.perDiem'),
+                      value: 'perDiem',
+                      alternateText: allRates ? `${allRates}${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
+                  }
+                : undefined,
             {
                 translation: translate('workspace.common.invoices'),
                 value: 'invoices',
-                alternateText: 'eqwewq',
+                alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
             },
         ];
 
         return result.filter((item): item is NonNullable<typeof item> => item !== undefined);
-    }, [categoriesCount, formattedAddress, policy?.name, policy?.outputCurrency, ratesCount, taxesLength, totalMembers, totalTags, translate]);
+    }, [
+        translate,
+        policy?.name,
+        policy?.outputCurrency,
+        formattedAddress,
+        totalMembers,
+        reportFields,
+        connectedIntegration,
+        totalTags,
+        categoriesCount,
+        taxesLength,
+        ratesCount,
+        allRates,
+        bankAccountList,
+        invoiceCompany,
+    ]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((option) => ({
@@ -140,14 +181,14 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
             if (listItem.isSelected) {
-                if (listItem.keyForList === 'selectAll') {
+                if (listItem.keyForList === DEFAULT_SELECT_ALL) {
                     setSelectedItems([]);
                     return;
                 }
-                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList && i !== 'selectAll'));
+                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList && i !== DEFAULT_SELECT_ALL));
                 return;
             }
-            if (listItem.keyForList === 'selectAll') {
+            if (listItem.keyForList === DEFAULT_SELECT_ALL) {
                 setSelectedItems(items.map((i) => i.value));
                 return;
             }
@@ -156,11 +197,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
             if (newItem) {
                 const newSelectedItems = [...selectedItems, newItem];
-                const featuresOptions = items.filter((i) => i.value !== 'selectAll');
+                const featuresOptions = items.filter((i) => i.value !== DEFAULT_SELECT_ALL);
                 const allItemsSelected = featuresOptions.length === newSelectedItems.length;
 
                 if (allItemsSelected) {
-                    setSelectedItems([...newSelectedItems, 'selectAll']);
+                    setSelectedItems([...newSelectedItems, DEFAULT_SELECT_ALL]);
                 } else {
                     setSelectedItems(newSelectedItems);
                 }
