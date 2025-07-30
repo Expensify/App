@@ -75,7 +75,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
     };
 
-    const errorMessage = getLatestErrorMessage(issueNewCard) ?? (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
+    const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
