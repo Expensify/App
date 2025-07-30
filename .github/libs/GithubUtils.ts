@@ -611,7 +611,7 @@ class GithubUtils {
     /**
      * Get commits between two tags via the GitHub API
      */
-    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string, repo: string): Promise<CommitType[]> {
+    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string, repositoryName: string): Promise<CommitType[]> {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
         core.startGroup('Fetching paginated commits:');
 
@@ -626,7 +626,7 @@ class GithubUtils {
 
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST.GITHUB_OWNER,
-                    repo: repo,
+                    repo: repositoryName,
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,
