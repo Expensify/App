@@ -889,6 +889,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -6443,7 +6444,7 @@ const CONST = {
             EXPORT: 'export',
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
-            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CARD: 'unapprovedCard',
         },
     },
 
