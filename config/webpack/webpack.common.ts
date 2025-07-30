@@ -69,7 +69,7 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => {
     const isDevelopment = file === '.env' || file === '.env.development';
-    
+
     return {
         mode: isDevelopment ? 'development' : 'production',
         devtool: 'source-map',
@@ -145,10 +145,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             }),
             ...(file === '.env.production' || file === '.env.staging'
                 ? [
-                    new IgnorePlugin({
-                        resourceRegExp: /@welldone-software\/why-did-you-render/,
-                    }),
-                ]
+                      new IgnorePlugin({
+                          resourceRegExp: /@welldone-software\/why-did-you-render/,
+                      }),
+                  ]
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
             new DefinePlugin({
