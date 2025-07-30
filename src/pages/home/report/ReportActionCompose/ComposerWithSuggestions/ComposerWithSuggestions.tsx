@@ -99,7 +99,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Callback when a file is pasted */
-    onFilePasted: (file: FileObject) => void;
+    onFilePasted: (file: FileObject | FileObject[]) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -810,9 +810,9 @@ function ComposerWithSuggestions(
                     }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
-                    onPasteFile={(file) => {
+                    onPasteFile={(files) => {
                         textInputRef.current?.blur();
-                        onFilePasted(file);
+                        onFilePasted(files);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}

@@ -92,18 +92,24 @@ function Composer(
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const clipboardContent = e.nativeEvent.items.at(0);
-            if (clipboardContent?.type === 'text/plain') {
-                return;
-            }
-            const mimeType = clipboardContent?.type ?? '';
-            const fileURI = clipboardContent?.data;
-            const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
-            const fileName = `${stem}.${fileExtension}`;
-            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
-            onPasteFile(file);
+            const files: FileObject[] = [];
+            e.nativeEvent.items.forEach((item) => {
+                const clipboardContent = item;
+                if (clipboardContent?.type === 'text/plain') {
+                    return;
+                }
+                const mimeType = clipboardContent?.type ?? '';
+                const fileURI = clipboardContent?.data;
+                const baseFileName = fileURI?.split('/').pop() ?? 'file';
+                const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+                const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+                const fileName = `${stem}.${fileExtension}`;
+                const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
+
+                files.push(file);
+            });
+
+            onPasteFile(files);
         },
         [onPasteFile],
     );
