@@ -192,7 +192,7 @@ function MoneyRequestReportPreviewContent({
     // Or if the report has been reopened or retracted
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
         const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && (hasReportBeenRetracted || hasReportBeenReopened);
-        return isOwnAndReportHasBeenReopened || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
+        return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
     }, [chatReport, policy, hasReportBeenReopened, hasReportBeenRetracted, iouReport]);
 
     const confirmPayment = useCallback(
