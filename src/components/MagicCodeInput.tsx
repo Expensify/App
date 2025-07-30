@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData, TextInput as RNTextInput} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
@@ -31,7 +31,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
                 return;
             }
 
-            const isFocused = inputRef.current.isFocused?.();
+            const isFocused = (inputRef.current as RNTextInput)?.isFocused?.() ?? false;
             if (!isFocused) {
                 return;
             }
