@@ -399,6 +399,7 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: false,
                 billable: true,
+                filename: 'merged.jpg',
                 receipt: {receiptID: 1235, source: 'merged.jpg'},
             });
         });

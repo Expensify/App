@@ -220,6 +220,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
+        filename: mergeTransaction.receipt?.source?.split('/').pop(),
         receipt: mergeTransaction.receipt,
     };
 }
