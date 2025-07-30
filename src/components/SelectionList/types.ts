@@ -215,9 +215,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -829,6 +826,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Whether to hide the keyboard when scrolling a list */
+    shouldHideKeyboardOnScroll?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
