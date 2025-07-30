@@ -4,11 +4,14 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
+import ConfirmModal from '@components/ConfirmModal';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -19,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useFileErrorModal from './hooks/useFileErrorModal';
 import useFileUploadValidation from './hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
@@ -107,6 +109,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     const submitRef = useRef<View | HTMLElement>(null);
 
@@ -164,6 +167,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             }
         },
     });
+    const isMultipleFiles = useMemo(() => Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0, [validFilesToUpload]);
+
     const modalType = useReportAttachmentModalType(validFilesToUpload ?? fileParam);
 
     const onConfirm = useCallback(
@@ -198,13 +203,21 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         setFilesToValidate(fileParam);
     }, [fileError, fileParam]);
 
-    const ExtraModals = useFileErrorModal({
-        fileError,
-        isFileErrorModalVisible,
-        onConfirm: confirmAndContinue,
-        onCancel: navigation.goBack,
-        isMultipleFiles: Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0,
-    });
+    const ExtraModals = useMemo(
+        () => (
+            <ConfirmModal
+                title={getFileValidationErrorText(fileError).title}
+                onConfirm={() => confirmAndContinue()}
+                onCancel={navigation.goBack}
+                isVisible={isFileErrorModalVisible}
+                prompt={getFileValidationErrorText(fileError).reason}
+                confirmText={translate(isMultipleFiles ? 'common.continue' : 'common.close')}
+                shouldShowCancelButton={isMultipleFiles}
+                cancelText={translate('common.cancel')}
+            />
+        ),
+        [confirmAndContinue, fileError, isFileErrorModalVisible, isMultipleFiles, navigation.goBack, translate],
+    );
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
         if (validFilesToUpload === undefined) {
