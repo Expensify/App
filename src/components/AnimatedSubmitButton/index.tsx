@@ -75,10 +75,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 .withCallback(stretchOutY),
         [buttonDuration, stretchOutY],
     );
-    let icon;
-    if (isAnimationRunning) {
-        icon = Expensicons.Send;
-    }
+    const icon = isAnimationRunning ? Expensicons.Send : null;
 
     useEffect(() => {
         if (!isAnimationRunning) {
