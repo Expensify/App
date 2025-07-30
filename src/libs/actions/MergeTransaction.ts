@@ -67,14 +67,14 @@ function getTransactionsForMergingLocally(
     } else if (isAdmin || isManager) {
         const reportTransactions = getReportTransactions(report?.reportID);
         eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
-            if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
+            if (!transaction || transaction.transactionID === targetTransactionID) {
                 return false;
             }
             return areTransactionsEligibleForMerge(targetTransaction, transaction);
         });
     } else {
         eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
-            if (!transaction || transaction.transactionID === targetTransactionID || !transaction.reportID) {
+            if (!transaction || transaction.transactionID === targetTransactionID) {
                 return false;
             }
 

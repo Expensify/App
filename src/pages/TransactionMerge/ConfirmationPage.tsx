@@ -43,9 +43,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const sourceTransaction = getSourceTransaction(mergeTransaction);
 
     // Build the merged transaction data for display
-    const mergedTransactionData = useMemo(() => {
-        return buildMergedTransactionData(targetTransaction, mergeTransaction);
-    }, [targetTransaction, mergeTransaction]);
+    const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
 
     const contextValue = useMemo(
         () => ({
