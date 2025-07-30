@@ -5962,7 +5962,7 @@ const translations = {
         },
         statements: 'Verklaringen',
         unapprovedCash: 'Niet goedgekeurd contant geld',
-        unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',
+        unapprovedCard: 'Niet-goedgekeurde kaart',
         saveSearch: 'Zoekopdracht opslaan',
         deleteSavedSearch: 'Verwijder opgeslagen zoekopdracht',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',

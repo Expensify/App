@@ -5948,7 +5948,7 @@ const translations = {
         },
         statements: 'Extractos',
         unapprovedCash: 'Efectivo no aprobado',
-        unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',
+        unapprovedCard: 'Tarjeta no aprobada',
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',

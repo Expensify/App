@@ -5955,7 +5955,7 @@ const translations = {
         },
         statements: 'Erklärungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
-        unapprovedCompanyCards: 'Nicht genehmigte Firmenkarten',
+        unapprovedCard: 'Nicht genehmigte Karte',
         saveSearch: 'Suche speichern',
         deleteSavedSearch: 'Gespeicherte Suche löschen',
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
