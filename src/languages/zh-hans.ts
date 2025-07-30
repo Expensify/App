@@ -1068,6 +1068,8 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
+        removeFromReport: '不在此报告中',
+        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',

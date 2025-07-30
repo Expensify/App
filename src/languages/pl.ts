@@ -1073,6 +1073,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Zrób zdjęcia wszystkich swoich paragonów naraz, a następnie potwierdź szczegóły samodzielnie lub pozwól, aby SmartScan się tym zajął.',
         receiptScanInProgress: 'Skanowanie paragonu w toku',
         receiptScanInProgressDescription: 'Trwa skanowanie paragonu. Sprawdź później lub wprowadź dane teraz.',
+        removeFromReport: 'Usuń z raportu',
+        moveToPersonalSpace: 'Przenieś wydatek do przestrzeni osobistej',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Zidentyfikowano potencjalne duplikaty wydatków. Przejrzyj duplikaty, aby umożliwić przesłanie.'
