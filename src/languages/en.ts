@@ -1063,6 +1063,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Snap photos of all your receipts at once, then confirm details yourself or we'll do it for you.",
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        removeFromReport: 'Remove from report',
+        moveToPersonalSpace: 'Move expenses to your personal space',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
@@ -1815,7 +1817,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Send and receive money with friends. US bank accounts only.',
         enableWallet: 'Enable wallet',
-        addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
+        addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
@@ -1826,6 +1828,8 @@ const translations = {
         chooseYourBankAccount: 'Choose your bank account',
         chooseAccountBody: 'Make sure that you select the right one.',
         confirmYourBankAccount: 'Confirm your bank account',
+        personalBankAccounts: 'Personal bank accounts',
+        businessBankAccounts: 'Business bank accounts',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

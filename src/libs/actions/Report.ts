@@ -3507,16 +3507,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
-        const isChatThread = isChatThreadReportUtils(currentReport);
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-        if (isChatThread) {
-            // Using requestAnimationFrame to wait for RHP modal dismissal before navigating, avoiding navigation stack issues on web/desktop.
-            requestAnimationFrame(() => {
-                Navigation.navigate(lastAccessedReportRoute);
-            });
-            return;
-        }
-
         Navigation.goBack(lastAccessedReportRoute);
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
