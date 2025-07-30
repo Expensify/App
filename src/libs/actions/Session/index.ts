@@ -249,7 +249,6 @@ function signOutAndRedirectToSignIn(
     shouldResetToHome?: boolean,
     shouldStashSession?: boolean,
     shouldKillHybridApp = true,
-    shouldSignOutFromOldDot = true,
     shouldForceUseStashedSession?: boolean,
     isTransitioning?: boolean,
 ) {
