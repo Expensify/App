@@ -5,7 +5,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
 describe('PersonalDetailsUtils', () => {
-
     describe('getEffectiveDisplayName', () => {
         test('should return undefined when personalDetail is undefined', () => {
             const result = getEffectiveDisplayName(formatPhoneNumber, undefined);
