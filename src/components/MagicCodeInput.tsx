@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData, TextInput as RNTextInput} from 'react-native';
+import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
