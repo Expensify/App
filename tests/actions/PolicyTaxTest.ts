@@ -74,6 +74,10 @@ describe('actions/PolicyTax', () => {
             const originalCustomTaxName = fakePolicy?.taxRates?.name;
 
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyCustomTaxName', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
             return waitForBatchedUpdates()
                 .then(
@@ -93,7 +97,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -162,6 +165,10 @@ describe('actions/PolicyTax', () => {
             const originalDefaultExternalID = fakePolicy?.taxRates?.defaultExternalID;
 
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyCurrencyDefaultTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
             return waitForBatchedUpdates()
                 .then(
@@ -181,7 +188,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -250,6 +256,10 @@ describe('actions/PolicyTax', () => {
             const originalDefaultForeignCurrencyID = fakePolicy?.taxRates?.foreignTaxDefault;
 
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyForeignCurrencyDefaultTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
             return waitForBatchedUpdates()
                 .then(
@@ -270,7 +280,6 @@ describe('actions/PolicyTax', () => {
                 )
 
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -350,6 +359,10 @@ describe('actions/PolicyTax', () => {
             };
 
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('CreatePolicyTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             createPolicyTax(fakePolicy.id, newTaxRate);
             return waitForBatchedUpdates()
                 .then(
@@ -371,7 +384,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -439,6 +451,10 @@ describe('actions/PolicyTax', () => {
         it('Disable policy`s taxes but API returns an error, then enable policy`s taxes again', () => {
             const disableTaxID = 'id_TAX_RATE_1';
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyTaxesEnabled', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             const originalTaxes = {...fakePolicy?.taxRates?.taxes};
             return waitForBatchedUpdates()
@@ -461,7 +477,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -535,6 +550,10 @@ describe('actions/PolicyTax', () => {
             const newTaxName = 'Tax rate 1 updated';
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('RenamePolicyTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             renamePolicyTax(fakePolicy.id, taxID, newTaxName);
             return waitForBatchedUpdates()
                 .then(
@@ -556,7 +575,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -631,6 +649,10 @@ describe('actions/PolicyTax', () => {
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             const stringTaxValue = `${newTaxValue}%`;
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('UpdatePolicyTaxValue', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
             return waitForBatchedUpdates()
                 .then(
@@ -652,7 +674,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
@@ -782,6 +803,10 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockAxios?.pause?.();
+            mockAxios.mockAPICommand('DeletePolicyTaxes', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             deletePolicyTaxes(fakePolicy, [taxID]);
             return waitForBatchedUpdates()
                 .then(
@@ -804,7 +829,6 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockAxios?.fail?.();
                     return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)

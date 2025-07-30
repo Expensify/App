@@ -129,7 +129,10 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    mockAxios?.fail?.();
+                    mockAxios.mockAPICommand('SetPolicyRequiresTag', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
                     setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
@@ -259,7 +262,10 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockAxios?.fail?.();
+                    mockAxios.mockAPICommand('RenamePolicyTaglist', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     renamePolicyTagList(
                         fakePolicy.id,
@@ -371,7 +377,10 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockAxios?.fail?.();
+                    mockAxios.mockAPICommand('CreatePolicyTag', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
@@ -491,7 +500,10 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockAxios?.fail?.();
+                    mockAxios.mockAPICommand('SetPolicyTagsEnabled', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
@@ -607,7 +619,10 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockAxios?.fail?.();
+                    mockAxios.mockAPICommand('RenamePolicyTag', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     renamePolicyTag(
                         fakePolicy.id,
@@ -716,7 +731,10 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockAxios?.fail?.();
+                    mockAxios.mockAPICommand('DeletePolicyTags', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
