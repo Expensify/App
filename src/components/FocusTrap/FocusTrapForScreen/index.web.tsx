@@ -46,7 +46,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                     if (activeElement?.nodeName === CONST.ELEMENT_NAME.INPUT || activeElement?.nodeName === CONST.ELEMENT_NAME.TEXTAREA) {
                         return;
                     }
-                    activeElement?.blur();
+                    // activeElement?.blur();
                 },
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
