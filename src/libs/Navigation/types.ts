@@ -1268,6 +1268,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         reportID: string;
         backTo: Routes;
+        shouldTurnOffSelectionMode?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
