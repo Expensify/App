@@ -337,11 +337,19 @@ const ContextMenuActions: ContextMenuAction[] = [
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
-                hideContextMenu(false);
-                const childReportID = reportAction?.childReportID;
-                openReport(childReportID);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
-                return;
+                if (isMoneyRequestAction(reportAction)) {
+                    const editExpense = () => {
+                        const childReportID = reportAction?.childReportID;
+                        openReport(childReportID);
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+                    };
+                    if (closePopover) {
+                        hideContextMenu(false, editExpense);
+                        return;
+                    }
+                    editExpense();
+                    return;
+                }
             }
             const editAction = () => {
                 if (!draftMessage) {
