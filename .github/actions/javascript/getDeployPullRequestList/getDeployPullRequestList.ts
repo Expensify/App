@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import {getJSONInput} from '@github/libs/ActionUtils';
+import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
@@ -60,7 +61,7 @@ async function run() {
         }
 
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsDeployedBetween(priorTag, inputTag);
+        const prList = await GitUtils.getPullRequestsDeployedBetween(priorTag, inputTag, CONST.APP_REPO);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     } catch (error) {
