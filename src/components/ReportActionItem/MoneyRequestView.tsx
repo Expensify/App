@@ -486,8 +486,8 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         setCurrentTransactionTag(transactionTag);
     }, [transactionTag, previousTransactionTag]);
 
-    const parentTagLength = getLengthOfTag(previousTag ?? '');
-    const childTagLength = getLengthOfTag(currenttransactionTag ?? '');
+    const previousTagLength = getLengthOfTag(previousTag ?? '');
+    const currentTagLength = getLengthOfTag(currenttransactionTag ?? '');
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
@@ -523,7 +523,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <MenuItemWithTopDescription
-                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && childTagLength > parentTagLength}
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && currentTagLength > previousTagLength}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
