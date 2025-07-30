@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { NativeModules } from 'react-native';
+import {useState} from 'react';
+import {NativeModules} from 'react-native';
 import BaseNativePlaidLink from './BaseNativePlaidLink';
 import type PlaidLinkProps from './types';
-
 
 const {AppStateTracker} = NativeModules;
 
@@ -14,7 +13,7 @@ function PlaidLink({onExit = () => {}, ...restProps}: PlaidLinkProps) {
             onExit={() => {
                 AppStateTracker.getWasAppRelaunchedFromIcon().then((wasAppRelaunchedFromIcon) => {
                     if (wasAppRelaunchedFromIcon) {
-                        setKey(prevKey => prevKey + 1);
+                        setKey((prevKey) => prevKey + 1);
                         return;
                     }
                     onExit();

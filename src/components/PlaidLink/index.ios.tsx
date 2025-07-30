@@ -1,5 +1,5 @@
-import type PlaidLinkProps from './types';
 import BaseNativePlaidLink from './BaseNativePlaidLink';
+import type PlaidLinkProps from './types';
 
 function PlaidLink(props: PlaidLinkProps) {
     return (
