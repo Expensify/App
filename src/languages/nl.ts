@@ -970,7 +970,7 @@ const translations = {
         importSpreadsheet: 'Spreadsheet importeren',
         downloadCSV: 'CSV downloaden',
         importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
-            `Please confirm the details below for the ${newMembers} new workspace member(s) that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
+            `Bevestig hieronder de gegevens voor de ${newMembers} nieuw(e) werkruimte-lid/leden die worden toegevoegd als onderdeel van deze upload. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
     },
     receipt: {
         upload: 'Bonnetje uploaden',
