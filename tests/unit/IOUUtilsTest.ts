@@ -1,17 +1,24 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {IOURequestType} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
-import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type {Policy, PolicyEmployeeList, PolicyReportField, Report, ReportAction, TaxRatesWithDefault, Transaction, TransactionViolations} from '@src/types/onyx';
+import {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
+import {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import {ACHAccount, ApprovalRule, Attributes, CompanyAddress, Connections, CustomUnit, ExpenseRule, MccGroup, PolicyDetailsForNonMembers, ProhibitedExpenses} from '@src/types/onyx/Policy';
+import {InvoiceReceiver, Note, Participants, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {Comment, Receipt, ReceiptErrors, Routes, SplitShares, TransactionCollectionDataSet, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+import {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
+import {TripData} from '@src/types/onyx/TripData';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -253,7 +260,7 @@ describe('hasRTERWithoutViolation', () => {
     });
 });
 
-describe('canSubmitReport', () => {
+describe('canSubmitReportInSearch', () => {
     test('Return true if report can be submitted', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         const fakePolicy: Policy = {
@@ -309,7 +316,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReportInSearch(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -373,7 +380,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReportInSearch(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -392,7 +399,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false)).toBe(false);
+        expect(canSubmitReportInSearch(expenseReport, fakePolicy, [], {}, false)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -417,7 +424,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
+        expect(canSubmitReportInSearch(report, policy, [], {}, isReportArchived.current)).toBe(false);
     });
 });
 
@@ -460,3 +467,420 @@ describe('Check valid amount for IOU/Expense request', () => {
         expect(unreportedAmount).toBeLessThan(0);
     });
 });
+function canSubmitReportInSearch(
+    expenseReport: {
+        avatarUrl?: string;
+        chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+        hasOutstandingChildRequest?: boolean;
+        hasOutstandingChildTask?: boolean;
+        isOwnPolicyExpenseChat?: boolean;
+        isPinned?: boolean;
+        lastMessageText?: string;
+        lastVisibleActionCreated?: string;
+        lastReadTime?: string;
+        lastReadSequenceNumber?: number;
+        lastMentionedTime?: string | null;
+        policyAvatar?: string | null;
+        policyName?: string | null;
+        oldPolicyName?: string;
+        hasParentAccess?: boolean;
+        description?: string;
+        isDeletedParentAction?: boolean;
+        policyID?: string;
+        reportName?: string;
+        reportID: string;
+        chatReportID?: string;
+        stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+        statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+        writeCapability?: WriteCapability;
+        type?: string;
+        visibility?: RoomVisibility;
+        invoiceReceiver?: InvoiceReceiver;
+        parentReportID?: string;
+        parentReportActionID?: string;
+        managerID?: number;
+        lastVisibleActionLastModified?: string;
+        lastMessageHtml?: string;
+        lastActorAccountID?: number;
+        lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
+        ownerAccountID?: number;
+        participants?: Participants;
+        total?: number;
+        unheldTotal?: number;
+        unheldNonReimbursableTotal?: number;
+        currency?: string;
+        errorFields?: ErrorFields;
+        errors?: Errors;
+        isWaitingOnBankAccount?: boolean;
+        isCancelledIOU?: boolean;
+        iouReportID?: string;
+        preexistingReportID?: string;
+        nonReimbursableTotal?: number;
+        privateNotes?: Record<number, Note>;
+        fieldList?: Record<string, PolicyReportField>;
+        permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
+        tripData?: {startDate?: string; endDate?: string; tripID: string; payload?: TripData};
+        welcomeMessage?: string;
+    } & {
+        pendingAction?: PendingAction;
+        pendingFields?:
+            | PendingFields<
+                  | 'errorFields'
+                  | 'errors'
+                  | 'addWorkspaceRoom'
+                  | 'type'
+                  | 'ownerAccountID'
+                  | 'description'
+                  | 'fieldList'
+                  | 'avatar'
+                  | 'createChat'
+                  | 'partial'
+                  | 'reimbursed'
+                  | 'preview'
+                  | 'createReport'
+                  | 'avatarUrl'
+                  | 'chatType'
+                  | 'hasOutstandingChildRequest'
+                  | 'hasOutstandingChildTask'
+                  | 'isOwnPolicyExpenseChat'
+                  | 'isPinned'
+                  | 'lastMessageText'
+                  | 'lastVisibleActionCreated'
+                  | 'lastReadTime'
+                  | 'lastReadSequenceNumber'
+                  | 'lastMentionedTime'
+                  | 'policyAvatar'
+                  | 'policyName'
+                  | 'oldPolicyName'
+                  | 'hasParentAccess'
+                  | 'isDeletedParentAction'
+                  | 'policyID'
+                  | 'reportName'
+                  | 'reportID'
+                  | 'chatReportID'
+                  | 'stateNum'
+                  | 'statusNum'
+                  | 'writeCapability'
+                  | 'visibility'
+                  | 'invoiceReceiver'
+                  | 'parentReportID'
+                  | 'parentReportActionID'
+                  | 'managerID'
+                  | 'lastVisibleActionLastModified'
+                  | 'lastMessageHtml'
+                  | 'lastActorAccountID'
+                  | 'lastActionType'
+                  | 'participants'
+                  | 'total'
+                  | 'unheldTotal'
+                  | 'unheldNonReimbursableTotal'
+                  | 'currency'
+                  | 'isWaitingOnBankAccount'
+                  | 'isCancelledIOU'
+                  | 'iouReportID'
+                  | 'preexistingReportID'
+                  | 'nonReimbursableTotal'
+                  | 'privateNotes'
+                  | 'permissions'
+                  | 'tripData'
+                  | 'welcomeMessage'
+              >
+            | undefined;
+    },
+    fakePolicy: {
+        id: string;
+        name: string;
+        role: ValueOf<typeof CONST.POLICY.ROLE>;
+        type: ValueOf<typeof CONST.POLICY.TYPE>;
+        owner: string;
+        ownerAccountID?: number;
+        outputCurrency: string;
+        address?: CompanyAddress;
+        avatarURL?: string;
+        errorFields?: ErrorFields;
+        errors?: Errors;
+        isFromFullPolicy?: boolean;
+        lastModified?: string;
+        customUnits?: Record<string, CustomUnit>;
+        isPolicyExpenseChatEnabled: boolean;
+        autoReporting?: boolean;
+        autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
+        harvesting?: {enabled: boolean; jobID?: number};
+        preventSelfApproval?: boolean;
+        autoReportingOffset?: number | ValueOf<{readonly LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth'; readonly LAST_DAY_OF_MONTH: 'lastDayOfMonth'}>;
+        employeeList?: PolicyEmployeeList;
+        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+        reimburser?: string;
+        exporter?: string;
+        autoReimbursement?: OnyxValueWithOfflineFeedback<{limit?: number}, 'limit'>;
+        autoReimbursementLimit?: number;
+        shouldShowAutoApprovalOptions?: boolean;
+        autoApproval?: OnyxValueWithOfflineFeedback<{limit?: number; auditRate?: number}, 'limit' | 'auditRate'>;
+        makeMeAdmin?: boolean;
+        originalFileName?: string;
+        alertMessage?: string;
+        primaryLoginsInvited?: Record<string, string>;
+        isPolicyUpdating?: boolean;
+        approver?: string;
+        approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+        defaultBillable?: boolean;
+        description?: string;
+        disabledFields?: {defaultBillable?: boolean; reimbursable?: boolean};
+        requiresTag?: boolean;
+        requiresCategory?: boolean;
+        hasMultipleTagLists?: boolean;
+        isTaxTrackingEnabled?: boolean;
+        invoice?: {
+            companyName?: string;
+            companyWebsite?: string;
+            bankAccount?: {stripeConnectAccountBalance?: number; stripeConnectAccountID?: string; transferBankAccountID?: number};
+            markUp?: number;
+        } & {pendingAction?: PendingAction; pendingFields?: PendingFields<'companyName' | 'bankAccount' | 'companyWebsite' | 'markUp'> | undefined};
+        tax?: {trackingEnabled: boolean};
+        taxRates?: TaxRatesWithDefault;
+        rules?: {approvalRules?: ApprovalRule[]; expenseRules?: ExpenseRule[]};
+        customRules?: string;
+        chatReportIDAdmins?: number;
+        chatReportIDAnnounce?: number;
+        connections?: Connections;
+        fieldList?: Record<string, OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
+        areCategoriesEnabled?: boolean;
+        areTagsEnabled?: boolean;
+        areAccountingEnabled?: boolean;
+        areDistanceRatesEnabled?: boolean;
+        arePerDiemRatesEnabled?: boolean;
+        areExpensifyCardsEnabled?: boolean;
+        areWorkflowsEnabled?: boolean;
+        areRulesEnabled?: boolean;
+        areReportFieldsEnabled?: boolean;
+        areConnectionsEnabled?: boolean;
+        areInvoicesEnabled?: boolean;
+        areCompanyCardsEnabled?: boolean;
+        achAccount?: ACHAccount;
+        eReceipts?: boolean;
+        prohibitedExpenses?: ProhibitedExpenses;
+        isLoading?: boolean;
+        isLoadingWorkspaceReimbursement?: boolean;
+        isChangeOwnerSuccessful?: boolean;
+        isChangeOwnerFailed?: boolean;
+        travelSettings?: WorkspaceTravelSettings;
+        isPendingUpgrade?: boolean;
+        isPendingDowngrade?: boolean;
+        maxExpenseAge?: number;
+        maxExpenseAmount?: number;
+        maxExpenseAmountNoReceipt?: number;
+        glCodes?: boolean;
+        shouldShowAutoReimbursementLimitOption?: boolean;
+        mccGroup?: Record<string, MccGroup>;
+        workspaceAccountID?: number;
+        assignedGuide?: {email: string};
+        canDowngrade?: boolean;
+        isAttendeeTrackingEnabled?: boolean;
+    } & Partial<{isJoinRequestPending: boolean; policyDetailsForNonMembers: Record<string, OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>}> & {
+            pendingAction?: PendingAction;
+            pendingFields?:
+                | PendingFields<
+                      | 'isLoading'
+                      | 'errorFields'
+                      | 'errors'
+                      | 'addWorkspaceRoom'
+                      | keyof ACHAccount
+                      | keyof Attributes
+                      | keyof {isJoinRequestPending: boolean; policyDetailsForNonMembers: Record<string, OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>}
+                      | 'id'
+                      | 'name'
+                      | 'role'
+                      | 'type'
+                      | 'owner'
+                      | 'ownerAccountID'
+                      | 'outputCurrency'
+                      | 'address'
+                      | 'avatarURL'
+                      | 'isFromFullPolicy'
+                      | 'lastModified'
+                      | 'customUnits'
+                      | 'isPolicyExpenseChatEnabled'
+                      | 'autoReporting'
+                      | 'autoReportingFrequency'
+                      | 'harvesting'
+                      | 'preventSelfApproval'
+                      | 'autoReportingOffset'
+                      | 'employeeList'
+                      | 'reimbursementChoice'
+                      | 'exporter'
+                      | 'autoReimbursement'
+                      | 'autoReimbursementLimit'
+                      | 'shouldShowAutoApprovalOptions'
+                      | 'autoApproval'
+                      | 'makeMeAdmin'
+                      | 'originalFileName'
+                      | 'alertMessage'
+                      | 'primaryLoginsInvited'
+                      | 'isPolicyUpdating'
+                      | 'approver'
+                      | 'approvalMode'
+                      | 'defaultBillable'
+                      | 'description'
+                      | 'disabledFields'
+                      | 'requiresTag'
+                      | 'requiresCategory'
+                      | 'hasMultipleTagLists'
+                      | 'isTaxTrackingEnabled'
+                      | 'invoice'
+                      | 'tax'
+                      | 'taxRates'
+                      | 'rules'
+                      | 'customRules'
+                      | 'chatReportIDAdmins'
+                      | 'chatReportIDAnnounce'
+                      | 'connections'
+                      | 'fieldList'
+                      | 'areCategoriesEnabled'
+                      | 'areTagsEnabled'
+                      | 'areAccountingEnabled'
+                      | 'areDistanceRatesEnabled'
+                      | 'arePerDiemRatesEnabled'
+                      | 'areExpensifyCardsEnabled'
+                      | 'areWorkflowsEnabled'
+                      | 'areRulesEnabled'
+                      | 'areReportFieldsEnabled'
+                      | 'areConnectionsEnabled'
+                      | 'areInvoicesEnabled'
+                      | 'areCompanyCardsEnabled'
+                      | 'achAccount'
+                      | 'eReceipts'
+                      | 'prohibitedExpenses'
+                      | 'isLoadingWorkspaceReimbursement'
+                      | 'isChangeOwnerSuccessful'
+                      | 'isChangeOwnerFailed'
+                      | 'travelSettings'
+                      | 'isPendingUpgrade'
+                      | 'isPendingDowngrade'
+                      | 'maxExpenseAge'
+                      | 'maxExpenseAmount'
+                      | 'maxExpenseAmountNoReceipt'
+                      | 'glCodes'
+                      | 'shouldShowAutoReimbursementLimitOption'
+                      | 'mccGroup'
+                      | 'workspaceAccountID'
+                      | 'assignedGuide'
+                      | 'canDowngrade'
+                      | 'isAttendeeTrackingEnabled'
+                  >
+                | undefined;
+        },
+    arg2: ({
+        amount: number;
+        accountant?: Accountant;
+        taxAmount?: number;
+        taxCode?: string;
+        billable?: boolean;
+        category?: string;
+        comment?: Comment;
+        created: string;
+        currency: string;
+        errors?: Errors | ReceiptErrors;
+        errorFields?: ErrorFields;
+        filename?: string;
+        iouRequestType?: IOURequestType;
+        merchant: string;
+        modifiedAmount?: number;
+        modifiedAttendees?: Attendee[];
+        modifiedCreated?: string;
+        modifiedCurrency?: string;
+        modifiedMerchant?: string;
+        modifiedWaypoints?: WaypointCollection;
+        participantsAutoAssigned?: boolean;
+        participants?: Participant[];
+        receipt?: Receipt;
+        reportID: string | undefined;
+        routes?: Routes;
+        transactionID: string;
+        tag?: string;
+        isFromGlobalCreate?: boolean;
+        taxRate?: string | undefined;
+        parentTransactionID?: string;
+        reimbursable?: boolean;
+        cardID?: number;
+        status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
+        hasEReceipt?: boolean;
+        mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+        modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+        originalAmount?: number;
+        originalCurrency?: string;
+        isLoading?: boolean;
+        splitShares?: SplitShares;
+        splitPayerAccountIDs?: number[];
+        shouldShowOriginalAmount?: boolean;
+        actionableWhisperReportActionID?: string;
+        linkedTrackedExpenseReportAction?: ReportAction;
+        linkedTrackedExpenseReportID?: string;
+        bank?: string;
+        cardName?: string;
+        cardNumber?: string;
+        managedCard?: boolean;
+        posted?: string;
+        inserted?: string;
+    } & {
+        pendingAction?: PendingAction;
+        pendingFields?:
+            | PendingFields<
+                  | 'errorFields'
+                  | 'errors'
+                  | 'mccGroup'
+                  | 'reportID'
+                  | 'participants'
+                  | 'currency'
+                  | 'created'
+                  | 'receipt'
+                  | 'billable'
+                  | 'merchant'
+                  | 'category'
+                  | 'tag'
+                  | 'amount'
+                  | 'reimbursable'
+                  | 'accountant'
+                  | 'taxRate'
+                  | 'taxAmount'
+                  | 'iouRequestType'
+                  | 'modifiedAmount'
+                  | 'taxCode'
+                  | 'status'
+                  | 'cardID'
+                  | 'posted'
+                  | keyof Comment
+                  | keyof TransactionCustomUnit
+                  | 'filename'
+                  | 'modifiedAttendees'
+                  | 'modifiedCreated'
+                  | 'modifiedCurrency'
+                  | 'modifiedMerchant'
+                  | 'modifiedWaypoints'
+                  | 'participantsAutoAssigned'
+                  | 'routes'
+                  | 'transactionID'
+                  | 'isFromGlobalCreate'
+                  | 'parentTransactionID'
+                  | 'hasEReceipt'
+                  | 'modifiedMCCGroup'
+                  | 'originalAmount'
+                  | 'originalCurrency'
+                  | 'splitShares'
+                  | 'splitPayerAccountIDs'
+                  | 'shouldShowOriginalAmount'
+                  | 'actionableWhisperReportActionID'
+                  | 'linkedTrackedExpenseReportAction'
+                  | 'linkedTrackedExpenseReportID'
+                  | 'bank'
+                  | 'cardName'
+                  | 'cardNumber'
+                  | 'managedCard'
+                  | 'inserted'
+              >
+            | undefined;
+    })[],
+    violations: Record<string, TransactionViolations | undefined>,
+    arg4: boolean,
+): any {
+    throw new Error('Function not implemented.');
+}
