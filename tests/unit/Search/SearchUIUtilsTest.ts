@@ -10,6 +10,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import {localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -398,6 +399,9 @@ const searchResults: OnyxTypes.SearchResults = {
             shouldShowCategoryColumn: true,
             shouldShowTagColumn: false,
             shouldShowTaxColumn: false,
+            shouldShowFromColumn: true,
+            shouldShowToColumn: true,
+            shouldShowDescriptionColumn: false,
         },
         hasMoreResults: false,
         hasResults: true,
@@ -479,10 +483,13 @@ const transactionsListItems = [
         reportID: '123456789',
         reportType: 'expense',
         shouldShowCategory: true,
+        shouldShowDescription: false,
         shouldShowMerchant: true,
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        shouldShowFrom: true,
+        shouldShowTo: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -546,6 +553,9 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        shouldShowFrom: true,
+        shouldShowTo: true,
+        shouldShowDescription: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -625,6 +635,9 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        shouldShowFrom: true,
+        shouldShowTo: true,
+        shouldShowDescription: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -689,6 +702,9 @@ const transactionsListItems = [
         shouldShowTax: false,
         keyForList: '3',
         shouldShowYear: true,
+        shouldShowFrom: true,
+        shouldShowTo: true,
+        shouldShowDescription: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -782,6 +798,9 @@ const transactionReportGroupListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
+                shouldShowFrom: true,
+                shouldShowTo: true,
+                shouldShowDescription: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -888,6 +907,9 @@ const transactionReportGroupListItems = [
                 shouldShowTag: false,
                 shouldShowTax: false,
                 shouldShowYear: true,
+                shouldShowFrom: true,
+                shouldShowTo: true,
+                shouldShowDescription: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1265,7 +1287,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSortedSections', () => {
         it('should return getSortedReportActionData result when type is CHAT', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL, reportActionListItems)).toStrictEqual([
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL, reportActionListItems, localeCompare)).toStrictEqual([
                 {
                     accountID: 18439984,
                     actionName: 'ADDCOMMENT',
@@ -1300,37 +1322,43 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
         });
 
         it('should return getSortedReportData result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+            expect(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
+            ).toStrictEqual(transactionReportGroupListItems);
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+            expect(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
+            ).toStrictEqual(transactionReportGroupListItems);
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+            expect(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
+            ).toStrictEqual(transactionReportGroupListItems);
         });
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+            expect(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
+            ).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getSortedMemberData result when type is TRIP and groupBy is member', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+            expect(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
+            ).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getSortedMemberData result when type is INVOICE and groupBy is member', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+            expect(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
+            ).toStrictEqual([]); // s77rt update test
         });
 
         // s77rt add test for group by card
@@ -1507,6 +1535,9 @@ describe('SearchUIUtils', () => {
                     shouldShowCategoryColumn: true,
                     shouldShowTagColumn: true,
                     shouldShowTaxColumn: true,
+                    shouldShowFromColumn: true,
+                    shouldShowToColumn: true,
+                    shouldShowDescriptionColumn: false,
                 },
             },
         };
@@ -1548,5 +1579,190 @@ describe('SearchUIUtils', () => {
         ] as TransactionListItemType[]);
         expect(isAmountLengthLong3).toBe(true);
         expect(isTaxAmountLengthLong2).toBe(true);
+    });
+
+    describe('Test getColumnsToShow', () => {
+        test('Should only show columns when at least one transaction has a value for them', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+
+            // Use the existing transaction as a base and modify only the fields we need to test
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+
+            // Create test transactions as arrays (getColumnsToShow accepts arrays)
+            const emptyTransaction = {
+                ...baseTransaction,
+                transactionID: 'empty',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
+            };
+
+            const merchantTransaction = {
+                ...baseTransaction,
+                transactionID: 'merchant',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
+            };
+
+            const categoryTransaction = {
+                ...baseTransaction,
+                transactionID: 'category',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: 'Office Supplies',
+                tag: '',
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
+            };
+
+            const tagTransaction = {
+                ...baseTransaction,
+                transactionID: 'tag',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: 'Project A',
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
+            };
+
+            const descriptionTransaction = {
+                ...baseTransaction,
+                transactionID: 'description',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: 'Business meeting lunch'},
+                category: '',
+                tag: '',
+                accountID: submitterAccountID,
+                managerID: submitterAccountID,
+            };
+
+            const differentUsersTransaction = {
+                ...baseTransaction,
+                transactionID: 'differentUsers',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                accountID: approverAccountID, // Different from current user
+                managerID: adminAccountID, // Different from current user
+                reportID: reportID2, // Needs to be a submitter report for 'To' to show
+            };
+
+            // Test 1: No optional fields should be shown when all transactions are empty
+            let columns = SearchUIUtils.getColumnsToShow([emptyTransaction, emptyTransaction], false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(false);
+
+            // Test 2: Merchant column should show when at least one transaction has merchant
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, merchantTransaction], false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+
+            // Test 3: Category column should show when at least one transaction has category
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, categoryTransaction], false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
+
+            // Test 4: Tag column should show when at least one transaction has tag
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, tagTransaction], false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+
+            // Test 5: Description column should show when at least one transaction has description
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, descriptionTransaction], false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
+
+            // Test 6: From/To columns should show when at least one transaction has different users
+            // @ts-expect-error -- no need to construct all data again, the function below only needs the report and transactions
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
+                [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
+            };
+            columns = SearchUIUtils.getColumnsToShow(data, false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
+
+            // Test 7: Multiple columns should show when transactions have different fields
+            columns = SearchUIUtils.getColumnsToShow([merchantTransaction, categoryTransaction, tagTransaction], false);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(false);
+        });
+
+        test('Should respect isExpenseReportView flag and not show From/To columns', () => {
+            // Create transaction with different users using existing transaction as base
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: 'Test description'},
+                category: 'Office Supplies',
+                tag: 'Project A',
+                accountID: submitterAccountID, // Different from current user
+                managerID: approverAccountID, // Different from current user
+            };
+
+            // In expense report view, From/To columns should not be shown
+            const columns = SearchUIUtils.getColumnsToShow([testTransaction], true);
+
+            // These columns should be shown based on data
+            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
+            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]).toBe(true);
+            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]).toBe(true);
+            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]).toBe(true);
+
+            // From/To columns should not exist in expense report view
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBeUndefined();
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBeUndefined();
+        });
+
+        test('Should handle modifiedMerchant and empty category/tag values correctly', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'modified',
+                merchant: '',
+                modifiedMerchant: 'Modified Merchant',
+                comment: {comment: ''},
+                category: 'Uncategorized', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
+                tag: CONST.SEARCH.TAG_EMPTY_VALUE, // This is the empty tag value
+                accountID: adminAccountID,
+                managerID: adminAccountID,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow([testTransaction], false);
+
+            // Should show merchant column because modifiedMerchant has value
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
+
+            // Should not show category column because 'Uncategorized' is an empty value
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+
+            // Should not show tag column because it's the empty tag value
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
+        });
     });
 });
