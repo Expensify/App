@@ -14,6 +14,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
+import {isMobileSafari} from '@libs/Browser';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -358,6 +359,7 @@ function SignInPageWrapper({ref}: SignInPageProps) {
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
+            shouldEnableMaxHeight
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageWrapper.displayName}
         >
@@ -368,7 +370,11 @@ function SignInPageWrapper({ref}: SignInPageProps) {
 
 SignInPageWrapper.displayName = 'SignInPage';
 
-export {SignInPage as SignInPageBase};
+// Use of SignInPageWrapper with shouldEnableMaxHeight prop is a workaround for Safari not supporting interactive-widget=resizes-content.
+// This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
+// More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
+// eslint-disable-next-line rulesdir/no-inline-named-export
+export const SignInPageBase = isMobileSafari() ? SignInPageWrapper : SignInPage;
 
 export default SignInPageWrapper;
 
