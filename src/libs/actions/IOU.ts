@@ -12122,22 +12122,23 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             const existing = getTransactionDetails(splitTransaction);
 
             const split = splits.at(index);
-            if (split) {
-                split.reimbursable = splitTransaction?.reimbursable;
-                split.billable = splitTransaction?.billable;
-            }
 
             const transactionChanges = {
                 ...currentSplit,
                 comment: currentSplit?.comment?.comment,
             } as TransactionChanges;
 
+            if (split) {
+                split.reimbursable = splitTransaction?.reimbursable;
+                split.billable = splitTransaction?.billable;
+            }
+
             Object.keys(transactionChanges).forEach((key) => {
                 const newValue = transactionChanges[key as keyof typeof transactionChanges];
                 const oldValue = existing?.[key as keyof typeof existing];
                 if (newValue === oldValue) {
                     delete transactionChanges[key as keyof typeof transactionChanges];
-                    // Ensure we pass the currency to getUpdateMoneyRequestParams as well, so the amount is updated correctly
+                    // Ensure we pass the currency to getUpdateMoneyRequestParams as well, so the amount message is created correctly
                 } else if (key === 'amount') {
                     transactionChanges.currency = originalTransactionDetails?.currency;
                 }
