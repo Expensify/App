@@ -5236,6 +5236,10 @@ const translations = {
                 one: 'Möchten Sie diesen Satz wirklich löschen?',
                 other: 'Möchten Sie diese Tarife wirklich löschen?',
             }),
+            errors: {
+                rateNameRequired: 'Ratenname ist erforderlich',
+                existingRateName: 'Ein Entfernungsrate mit diesem Namen existiert bereits.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',

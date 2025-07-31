@@ -5249,6 +5249,10 @@ const translations = {
                 one: 'Êtes-vous sûr de vouloir supprimer ce tarif ?',
                 other: 'Êtes-vous sûr de vouloir supprimer ces tarifs ?',
             }),
+            errors: {
+                rateNameRequired: 'Le nom du tarif est requis',
+                existingRateName: 'Un tarif de distance avec ce nom existe déjà.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Description',
