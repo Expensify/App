@@ -1386,7 +1386,7 @@ type RBRReasonAndReportAction = {
 };
 
 /**
- * Gets the report action that is causing the RBR to show up in LHN
+ * Gets the report action that is causing the RBR to show up in LHN (test coverage report)
  */
 function getReasonAndReportActionForRBRInLHNRow(
     report: Report,
