@@ -47,6 +47,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     shouldSyncFocus,
     groupBy,
     policies,
+    shouldAnimateInHighlight,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
