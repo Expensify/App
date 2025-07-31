@@ -129,7 +129,7 @@ function MoneyRequestAmountInput(
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const textInput = useRef<BaseTextInputRef | null>(null);
-    const amountFormRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
 
     useEffect(() => {
@@ -139,8 +139,8 @@ function MoneyRequestAmountInput(
         const frontendAmount = onFormatAmount(amount, currency);
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
         // In the line below the currentAmount is not immediately updated, it should still hold the previous value.
-        if (frontendAmount !== amountFormRef.current?.getAmount()) {
-            amountFormRef.current?.updateAmount(frontendAmount);
+        if (frontendAmount !== numberFormRef.current?.getNumber()) {
+            numberFormRef.current?.updateNumber(frontendAmount);
         }
 
         // we want to re-initialize the state only when the amount changes
@@ -155,7 +155,7 @@ function MoneyRequestAmountInput(
         if (maxLength && formattedAmount.length > maxLength) {
             return;
         }
-        amountFormRef.current?.updateAmount(formattedAmount);
+        numberFormRef.current?.updateNumber(formattedAmount);
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
     return (
@@ -175,14 +175,14 @@ function MoneyRequestAmountInput(
                 // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = ref;
             }}
-            amountFormRef={(ref) => {
+            numberFormRef={(ref) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(ref);
                 } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
                     // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
                     moneyRequestAmountInputRef.current = ref;
                 }
-                amountFormRef.current = ref;
+                numberFormRef.current = ref;
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}

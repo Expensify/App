@@ -21,13 +21,13 @@ import TextInputWithCurrencySymbol from './TextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
 type NumberWithSymbolFormProps = {
-    /** Amount to display, should already be formatted */
+    /** Value to display, should already be formatted */
     value?: string;
 
-    /** Callback to update the amount in the FormProvider */
-    onInputChange?: (value: string) => void;
+    /** Callback to update the value in the FormProvider */
+    onInputChange?: (number: string) => void;
 
-    /** Number of decimals to display in the amount */
+    /** Number of decimals to display in the number */
     decimals?: number;
 
     /** Whether the big number pad should be shown */
@@ -36,8 +36,8 @@ type NumberWithSymbolFormProps = {
     /** Footer to display at the bottom of the form */
     footer?: React.ReactNode;
 
-    /** Reference to the amount form */
-    amountFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
+    /** Reference to the number form */
+    numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
     /** Error to display at the bottom of the form */
     errorText?: string;
@@ -51,31 +51,31 @@ type NumberWithSymbolFormProps = {
 
 type NumberWithSymbolFormRef = {
     clearSelection: () => void;
-    updateAmount: (newAmount: string) => void;
-    getAmount: () => string;
+    updateNumber: (newNumber: string) => void;
+    getNumber: () => string;
 };
 
 /**
- * Returns the new selection object based on the updated amount's length
+ * Returns the new selection object based on the updated number's length
  */
 const getNewSelection = (oldSelection: {start: number; end: number}, prevLength: number, newLength: number) => {
     const cursorPosition = oldSelection.end + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const AMOUNT_VIEW_ID = 'amountView';
+const NUMBER_VIEW_ID = 'numberView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 /**
  * Generic number input form with symbol (currency or unit).
  *
- * Can render either a standard TextInput or an amount input with BigNumberPad and symbol interaction.
+ * Can render either a standard TextInput or a number input with BigNumberPad and symbol interaction.
  * Already handles number decimals and input validation.
  */
 function NumberWithSymbolForm(
     {
-        value: amount,
+        value: number,
         symbol = '',
         decimals = 0,
         maxLength,
@@ -86,7 +86,7 @@ function NumberWithSymbolForm(
         shouldShowBigNumberPad = false,
         displayAsTextInput = false,
         footer,
-        amountFormRef,
+        numberFormRef,
         label,
         style,
         containerStyle,
@@ -99,8 +99,8 @@ function NumberWithSymbolForm(
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
-    const amountRef = useRef<string | undefined>(undefined);
-    const [currentAmount, setCurrentAmount] = useState(typeof amount === 'string' ? amount : '');
+    const numberRef = useRef<string | undefined>(undefined);
+    const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -108,12 +108,12 @@ function NumberWithSymbolForm(
     const wasFocused = usePrevious(isFocused);
 
     const [selection, setSelection] = useState({
-        start: currentAmount.length,
-        end: currentAmount.length,
+        start: currentNumber.length,
+        end: currentNumber.length,
     });
 
     const forwardDeletePressedRef = useRef(false);
-    // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewAmount
+    // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
 
     const {setMouseDown, setMouseUp} = useMouseContext();
@@ -151,60 +151,60 @@ function NumberWithSymbolForm(
     };
 
     /**
-     * Sets the selection and the amount accordingly to the value passed to the input
-     * @param newAmount - Changed amount from user input
+     * Sets the selection and the number accordingly to the number passed to the input
+     * @param newNumber - Changed number from user input
      */
-    const setNewAmount = useCallback(
-        (newAmount: string) => {
-            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+    const setNewNumber = useCallback(
+        (newNumber: string) => {
+            // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
             // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const finalAmount = newAmountWithoutSpaces.includes('.') ? stripCommaFromAmount(newAmountWithoutSpaces) : replaceCommasWithPeriod(newAmountWithoutSpaces);
+            const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
+            const finalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalAmount, decimals, maxLength)) {
+            if (!validateAmount(finalNumber, decimals, maxLength)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
 
             willSelectionBeUpdatedManually.current = true;
             let hasSelectionBeenSet = false;
-            const strippedAmount = stripCommaFromAmount(finalAmount);
-            amountRef.current = strippedAmount;
-            setCurrentAmount((prevAmount) => {
-                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+            const strippedNumber = stripCommaFromAmount(finalNumber);
+            numberRef.current = strippedNumber;
+            setCurrentNumber((prevNumber) => {
+                const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
                 if (!hasSelectionBeenSet) {
                     hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
-                onInputChange?.(strippedAmount);
-                return strippedAmount;
+                onInputChange?.(strippedNumber);
+                return strippedNumber;
             });
         },
         [decimals, maxLength, onInputChange],
     );
 
     /**
-     * Set a new amount value properly formatted, used for the TextInput
+     * Set a new number number properly formatted, used for the TextInput
      * @param text - Changed text from user input
      */
-    const setFormattedAmount = (text: string) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+    const setFormattedNumber = (text: string) => {
+        // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
-        const withLeadingZero = addLeadingZero(replacedCommasAmount);
+        const newNumberWithoutSpaces = stripSpacesFromAmount(text);
+        const replacedCommasNumber = replaceCommasWithPeriod(newNumberWithoutSpaces);
+        const withLeadingZero = addLeadingZero(replacedCommasNumber);
 
         if (!validateAmount(withLeadingZero, decimals, maxLength)) {
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
 
-        const strippedAmount = stripCommaFromAmount(withLeadingZero);
-        const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-        setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
-        onInputChange?.(strippedAmount);
+        const strippedNumber = stripCommaFromAmount(withLeadingZero);
+        const isForwardDelete = currentNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+        setSelection(getNewSelection(selection, isForwardDelete ? strippedNumber.length : currentNumber.length, strippedNumber.length));
+        onInputChange?.(strippedNumber);
     };
 
     // Clears text selection if user visits symbol (currency) selector and comes back
@@ -215,46 +215,46 @@ function NumberWithSymbolForm(
         clearSelection();
     }, [isFocused, wasFocused, clearSelection]);
 
-    // Modifies the amount to match changed decimals.
+    // Modifies the number to match changed decimals.
     useEffect(() => {
-        // If the amount supports decimals, we can return
-        if (validateAmount(currentAmount, decimals, maxLength)) {
+        // If the number supports decimals, we can return
+        if (validateAmount(currentNumber, decimals, maxLength)) {
             return;
         }
 
-        // If the amount doesn't support decimals, we can strip the decimals
-        setNewAmount(stripDecimalsFromAmount(currentAmount));
+        // If the number doesn't support decimals, we can strip the decimals
+        setNewNumber(stripDecimalsFromAmount(currentNumber));
 
         // we want to update only when decimals change.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**
-     * Update amount with number or Backspace pressed for BigNumberPad.
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
+     * Update number with number or Backspace pressed for BigNumberPad.
+     * Validate new number with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      */
-    const updateAmountNumberPad = useCallback(
+    const updateValueNumberPad = useCallback(
         (key: string) => {
             if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             // Backspace button is pressed
             if (key === '<' || key === 'Backspace') {
-                if (currentAmount.length > 0) {
+                if (currentNumber.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
-                    const newAmount = `${currentAmount.substring(0, selectionStart)}${currentAmount.substring(selection.end)}`;
-                    setNewAmount(addLeadingZero(newAmount));
+                    const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
+                    setNewNumber(addLeadingZero(newNumber));
                 }
                 return;
             }
-            const newAmount = addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
-            setNewAmount(newAmount);
+            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
+            setNewNumber(newNumber);
         },
-        [currentAmount, selection, shouldUpdateSelection, setNewAmount],
+        [currentNumber, selection, shouldUpdateSelection, setNewNumber],
     );
 
     /**
-     * Update long press value, to remove items pressing on <
+     * Update long press number, to remove items pressing on <
      *
      * @param value - Changed text from user input
      */
@@ -283,24 +283,24 @@ function NumberWithSymbolForm(
         forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
     };
 
-    useImperativeHandle(amountFormRef, () => ({
+    useImperativeHandle(numberFormRef, () => ({
         clearSelection,
-        updateAmount: (newAmount: string) => {
-            setCurrentAmount(newAmount);
-            setSelection({start: newAmount.length, end: newAmount.length});
+        updateNumber: (newNumber: string) => {
+            setCurrentNumber(newNumber);
+            setSelection({start: newNumber.length, end: newNumber.length});
         },
-        getAmount: () => currentAmount,
+        getNumber: () => currentNumber,
     }));
 
-    const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
+    const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
     if (displayAsTextInput) {
         return (
             <TextInput
                 label={label}
                 accessibilityLabel={label}
-                value={formattedAmount}
-                onChangeText={setFormattedAmount}
+                value={formattedNumber}
+                onChangeText={setFormattedNumber}
                 ref={(ref: BaseTextInputRef) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
@@ -328,13 +328,13 @@ function NumberWithSymbolForm(
     return (
         <>
             <View
-                id={AMOUNT_VIEW_ID}
-                onMouseDown={(event) => focusTextInput(event, [AMOUNT_VIEW_ID])}
+                id={NUMBER_VIEW_ID}
+                onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
                 style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
-                    formattedAmount={formattedAmount}
-                    onChangeAmount={setNewAmount}
+                    formattedAmount={formattedNumber}
+                    onChangeAmount={setNewNumber}
                     onSymbolButtonPress={onSymbolButtonPress}
                     placeholder={numberFormat(0)}
                     ref={(ref: BaseTextInputRef) => {
@@ -356,9 +356,9 @@ function NumberWithSymbolForm(
                         if (!shouldUpdateSelection) {
                             return;
                         }
-                        // When the amount is updated in setNewAmount on iOS, in onSelectionChange formattedAmount stores the value before the update. Using amountRef allows us to read the updated value
-                        const maxSelection = amountRef.current?.length ?? formattedAmount.length;
-                        amountRef.current = undefined;
+                        // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
+                        const maxSelection = numberRef.current?.length ?? formattedNumber.length;
+                        numberRef.current = undefined;
                         const start = Math.min(selectionStart, maxSelection);
                         const end = Math.min(selectionEnd, maxSelection);
                         setSelection({start, end});
@@ -405,7 +405,7 @@ function NumberWithSymbolForm(
                     {shouldShowBigNumberPad ? (
                         <BigNumberPad
                             id={NUM_PAD_VIEW_ID}
-                            numberPressed={updateAmountNumberPad}
+                            numberPressed={updateValueNumberPad}
                             longPressHandlerStateChanged={updateLongPressHandlerState}
                         />
                     ) : null}
