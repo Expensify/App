@@ -156,7 +156,6 @@ function ConfirmModal({
     // Previous state needed for exiting animation to play correctly.
     const prevVisible = usePrevious(isVisible);
     if (!isVisible && !prevVisible) {
-        // eslint-disable-next-line react/jsx-no-useless-fragment
         return null;
     }
 
