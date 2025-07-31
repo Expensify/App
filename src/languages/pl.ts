@@ -1076,6 +1076,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Zrób zdjęcia wszystkich swoich paragonów naraz, a następnie potwierdź szczegóły samodzielnie lub pozwól, aby SmartScan się tym zajął.',
         receiptScanInProgress: 'Skanowanie paragonu w toku',
         receiptScanInProgressDescription: 'Trwa skanowanie paragonu. Sprawdź później lub wprowadź dane teraz.',
+        removeFromReport: 'Usuń z raportu',
+        moveToPersonalSpace: 'Przenieś wydatek do przestrzeni osobistej',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Zidentyfikowano potencjalne duplikaty wydatków. Przejrzyj duplikaty, aby umożliwić przesłanie.'
@@ -1830,7 +1832,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Wysyłaj i odbieraj pieniądze z przyjaciółmi. Tylko konta bankowe w USA.',
         enableWallet: 'Włącz portfel',
-        addBankAccountToSendAndReceive: 'Otrzymaj zwrot kosztów za wydatki, które zgłaszasz do przestrzeni roboczej.',
+        addBankAccountToSendAndReceive: 'Dodaj konto bankowe, aby dokonywać lub otrzymywać płatności.',
         assignedCards: 'Przypisane karty',
         assignedCardsDescription: 'Są to karty przypisane przez administratora przestrzeni roboczej do zarządzania wydatkami firmy.',
         expensifyCard: 'Expensify Card',
@@ -1841,6 +1843,8 @@ const translations = {
         chooseYourBankAccount: 'Wybierz swoje konto bankowe',
         chooseAccountBody: 'Upewnij się, że wybierasz właściwy.',
         confirmYourBankAccount: 'Potwierdź swoje konto bankowe',
+        personalBankAccounts: 'Osobiste konta bankowe',
+        businessBankAccounts: 'Firmowe konta bankowe',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5236,6 +5240,10 @@ const translations = {
                 one: 'Czy na pewno chcesz usunąć tę stawkę?',
                 other: 'Czy na pewno chcesz usunąć te stawki?',
             }),
+            errors: {
+                rateNameRequired: 'Nazwa stawki jest wymagana',
+                existingRateName: 'Stawka odległości o tej nazwie już istnieje',
+            },
         },
         editor: {
             descriptionInputLabel: 'Opis',
@@ -5950,7 +5958,7 @@ const translations = {
         },
         statements: 'Oświadczenia',
         unapprovedCash: 'Niezatwierdzone środki pieniężne',
-        unapprovedCompanyCards: 'Niezatwierdzone karty firmowe',
+        unapprovedCard: 'Niezatwierdzona karta',
         saveSearch: 'Zapisz wyszukiwanie',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwarkę',
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
