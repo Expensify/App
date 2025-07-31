@@ -20,12 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let stashedSession: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_SESSION,
-    callback: (value) => (stashedSession = value ?? {}),
-});
-
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -159,7 +153,7 @@ function connect(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>, cre
         });
 }
 
-function disconnect(stashedCredentials: OnyxEntry<Credentials>) {
+function disconnect(stashedCredentials: OnyxEntry<Credentials>, stashedSession: OnyxEntry<Session>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -202,13 +196,13 @@ function disconnect(stashedCredentials: OnyxEntry<Credentials>) {
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession);
+                restoreDelegateSession(stashedSession ?? {});
                 return;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession);
+                restoreDelegateSession(stashedSession ?? {});
                 return;
             }
 
