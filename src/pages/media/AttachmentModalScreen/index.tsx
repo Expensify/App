@@ -2,8 +2,9 @@ import React, {useContext, useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
-import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
-import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
+import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
+import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
+import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
@@ -23,13 +24,20 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         return route.params;
     }, [attachmentsContext, route.params]);
 
-    if (route.name === SCREENS.ATTACHMENTS) {
+    if (route.name === SCREENS.REPORT_ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
                 route={{...route, params: paramsWithContext}}
                 navigation={navigation}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...paramsWithContext}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.REPORT_ADD_ATTACHMENT) {
+        return (
+            <ReportAddAttachmentModalContent
+                route={{...route, params: paramsWithContext}}
+                navigation={navigation}
             />
         );
     }

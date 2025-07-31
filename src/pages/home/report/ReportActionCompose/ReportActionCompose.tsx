@@ -7,7 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import AttachmentComposerModal from '@components/AttachmentComposerModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
@@ -57,6 +56,7 @@ import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -485,6 +485,43 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
+    const reportAttachmentsContext = useContext(AttachmentModalContext);
+    const showAttachmentModalScreen = useCallback(
+        (file: FileObject | FileObject[]) => {
+            reportAttachmentsContext.setCurrentAttachment({
+                file,
+                headerTitle: translate('reportActionCompose.sendAttachment'),
+                onConfirm: addAttachment,
+                onShow: () => setIsAttachmentPreviewActive(true),
+                onClose: onAttachmentPreviewClose,
+                shouldDisableSendButton: !!exceededMaxLength,
+            });
+            Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
+        },
+        [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, reportID, translate],
+    );
+
+    const handleAttachmentDrop = (event: DragEvent) => {
+        if (isAttachmentPreviewActive) {
+            return;
+        }
+        if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+            const files = Array.from(event.dataTransfer?.files).map((file) => {
+                // eslint-disable-next-line no-param-reassign
+                file.uri = URL.createObjectURL(file);
+                return file;
+            });
+            showAttachmentModalScreen(files);
+            return;
+        }
+
+        const data = event.dataTransfer?.files[0];
+        if (data) {
+            data.uri = URL.createObjectURL(data);
+            showAttachmentModalScreen(data);
+        }
+    };
+
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         if (files.length === 0) {
             return;
@@ -579,119 +616,83 @@ function ReportActionCompose({
                         ]}
                     >
                         {PDFValidationComponent}
-                        <AttachmentComposerModal
-                            headerTitle={translate('reportActionCompose.sendAttachment')}
-                            onConfirm={addAttachment}
-                            onModalShow={() => setIsAttachmentPreviewActive(true)}
-                            onModalHide={onAttachmentPreviewClose}
-                            shouldDisableSendButton={!!exceededMaxLength}
+                        <AttachmentPickerWithMenuItems
+                            onAttachmentPicked={showAttachmentModalScreen}
+                            reportID={reportID}
                             report={report}
-                        >
-                            {({displayFilesInModal}) => {
-                                const handleAttachmentDrop = (event: DragEvent) => {
-                                    if (isAttachmentPreviewActive) {
-                                        return;
-                                    }
-                                    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
-                                        const files = Array.from(event.dataTransfer?.files).map((file) => {
-                                            // eslint-disable-next-line no-param-reassign
-                                            file.uri = URL.createObjectURL(file);
-                                            return file;
-                                        });
-                                        displayFilesInModal(files, Array.from(event.dataTransfer?.items ?? []));
-                                        return;
-                                    }
-
-                                    const data = event.dataTransfer?.files[0];
-                                    if (data) {
-                                        data.uri = URL.createObjectURL(data);
-                                        displayFilesInModal([data], Array.from(event.dataTransfer?.items ?? []));
-                                    }
-                                };
-
-                                return (
-                                    <>
-                                        <AttachmentPickerWithMenuItems
-                                            displayFilesInModal={displayFilesInModal}
-                                            reportID={reportID}
-                                            report={report}
-                                            currentUserPersonalDetails={currentUserPersonalDetails}
-                                            reportParticipantIDs={reportParticipantIDs}
-                                            isFullComposerAvailable={isFullComposerAvailable}
-                                            isComposerFullSize={isComposerFullSize}
-                                            isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={disabled}
-                                            setMenuVisibility={setMenuVisibility}
-                                            isMenuVisible={isMenuVisible}
-                                            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                                            onAddActionPressed={onAddActionPressed}
-                                            onItemSelected={onItemSelected}
-                                            onCanceledAttachmentPicker={() => {
-                                                if (!shouldFocusInputOnScreenFocus) {
-                                                    return;
-                                                }
-                                                focus();
-                                            }}
-                                            actionButtonRef={actionButtonRef}
-                                            shouldDisableAttachmentItem={!!exceededMaxLength}
-                                        />
-                                        <ComposerWithSuggestions
-                                            ref={(ref) => {
-                                                composerRef.current = ref ?? undefined;
-                                                composerRefShared.set({
-                                                    clear: ref?.clear,
-                                                });
-                                            }}
-                                            suggestionsRef={suggestionsRef}
-                                            isNextModalWillOpenRef={isNextModalWillOpenRef}
-                                            isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
-                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                                            reportID={reportID}
-                                            policyID={report?.policyID}
-                                            includeChronos={chatIncludesChronos(report)}
-                                            isGroupPolicyReport={isGroupPolicyReport}
-                                            lastReportAction={lastReportAction}
-                                            isMenuVisible={isMenuVisible}
-                                            inputPlaceholder={inputPlaceholder}
-                                            isComposerFullSize={isComposerFullSize}
-                                            setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                            displayFilesInModal={displayFilesInModal}
-                                            onCleared={submitForm}
-                                            isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={disabled}
-                                            setIsCommentEmpty={setIsCommentEmpty}
-                                            handleSendMessage={handleSendMessage}
-                                            shouldShowComposeInput={shouldShowComposeInput}
-                                            onFocus={onFocus}
-                                            onBlur={onBlur}
-                                            measureParentContainer={measureContainer}
-                                            onValueChange={onValueChange}
-                                            didHideComposerInput={didHideComposerInput}
-                                        />
-                                        {shouldDisplayDualDropZone && (
-                                            <DualDropZone
-                                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                                onAttachmentDrop={handleAttachmentDrop}
-                                                onReceiptDrop={handleAddingReceipt}
-                                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
-                                            />
-                                        )}
-                                        {!shouldDisplayDualDropZone && (
-                                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
-                                                <DropZoneUI
-                                                    icon={Expensicons.MessageInABottle}
-                                                    dropTitle={translate('dropzone.addAttachments')}
-                                                    dropStyles={styles.attachmentDropOverlay(true)}
-                                                    dropTextStyles={styles.attachmentDropText}
-                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
-                                                />
-                                            </DragAndDropConsumer>
-                                        )}
-                                    </>
-                                );
+                            currentUserPersonalDetails={currentUserPersonalDetails}
+                            reportParticipantIDs={reportParticipantIDs}
+                            isFullComposerAvailable={isFullComposerAvailable}
+                            isComposerFullSize={isComposerFullSize}
+                            isBlockedFromConcierge={isBlockedFromConcierge}
+                            disabled={disabled}
+                            setMenuVisibility={setMenuVisibility}
+                            isMenuVisible={isMenuVisible}
+                            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                            onAddActionPressed={onAddActionPressed}
+                            onItemSelected={onItemSelected}
+                            onCanceledAttachmentPicker={() => {
+                                if (!shouldFocusInputOnScreenFocus) {
+                                    return;
+                                }
+                                focus();
                             }}
-                        </AttachmentComposerModal>
+                            actionButtonRef={actionButtonRef}
+                            shouldDisableAttachmentItem={!!exceededMaxLength}
+                        />
+                        <ComposerWithSuggestions
+                            ref={(ref) => {
+                                composerRef.current = ref ?? undefined;
+                                composerRefShared.set({
+                                    clear: ref?.clear,
+                                });
+                            }}
+                            suggestionsRef={suggestionsRef}
+                            isNextModalWillOpenRef={isNextModalWillOpenRef}
+                            isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                            reportID={reportID}
+                            policyID={report?.policyID}
+                            includeChronos={chatIncludesChronos(report)}
+                            isGroupPolicyReport={isGroupPolicyReport}
+                            lastReportAction={lastReportAction}
+                            isMenuVisible={isMenuVisible}
+                            inputPlaceholder={inputPlaceholder}
+                            isComposerFullSize={isComposerFullSize}
+                            setIsFullComposerAvailable={setIsFullComposerAvailable}
+                            onFilePasted={showAttachmentModalScreen}
+                            onCleared={submitForm}
+                            isBlockedFromConcierge={isBlockedFromConcierge}
+                            disabled={disabled}
+                            setIsCommentEmpty={setIsCommentEmpty}
+                            handleSendMessage={handleSendMessage}
+                            shouldShowComposeInput={shouldShowComposeInput}
+                            onFocus={onFocus}
+                            onBlur={onBlur}
+                            measureParentContainer={measureContainer}
+                            onValueChange={onValueChange}
+                            didHideComposerInput={didHideComposerInput}
+                        />
+                        {shouldDisplayDualDropZone && (
+                            <DualDropZone
+                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
+                                onAttachmentDrop={handleAttachmentDrop}
+                                onReceiptDrop={handleAddingReceipt}
+                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
+                            />
+                        )}
+                        {!shouldDisplayDualDropZone && (
+                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
+                                <DropZoneUI
+                                    icon={Expensicons.MessageInABottle}
+                                    dropTitle={translate('dropzone.addAttachments')}
+                                    dropStyles={styles.attachmentDropOverlay(true)}
+                                    dropTextStyles={styles.attachmentDropText}
+                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
+                                />
+                            </DragAndDropConsumer>
+                        )}
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
