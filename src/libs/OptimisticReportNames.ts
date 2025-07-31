@@ -1,17 +1,16 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as CustomFormula from '@libs/CustomFormula';
-import Log from '@libs/Log';
-import * as Performance from '@libs/Performance';
-import Permissions from '@libs/Permissions';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Timing from '@libs/actions/Timing';
+import Timing from '@libs/actions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
+import * as CustomFormula from './CustomFormula';
+import Log from './Log';
+import Performance from './Performance';
+import Permissions from './Permissions';
+import * as ReportUtils from './ReportUtils';
 
 type UpdateContext = {
     betas: OnyxEntry<Beta[]>;
@@ -125,14 +124,14 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
 function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {reportName: string} | null {
     Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
     Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-    
+
     Log.info('[OptimisticReportNames] Computing name for new report', false, {
         updateKey: update.key,
         reportID: (update.value as Report)?.reportID,
     });
-    
+
     const {allPolicies} = context;
-    
+
     // Extract the new report data from the update
     const newReport = update.value as Report;
     if (!newReport?.policyID) {
@@ -140,29 +139,29 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {r
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         return null;
     }
-    
+
     const policy = getPolicyByID(newReport.policyID, allPolicies);
     if (!shouldComputeReportName(newReport, policy)) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         return null;
     }
-    
+
     const titleField = ReportUtils.getTitleReportField(policy?.fieldList ?? {});
     if (!titleField?.defaultValue) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         return null;
     }
-    
+
     // Build context for formula computation
     const formulaContext: CustomFormula.FormulaContext = {
         report: newReport,
         policy,
     };
-    
+
     const newName = CustomFormula.compute(titleField.defaultValue, formulaContext);
-    
+
     if (newName && newName !== newReport.reportName) {
         Log.info('[OptimisticReportNames] New report name computed successfully', false, {
             reportID: newReport.reportID,
@@ -170,12 +169,12 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {r
             newName,
             formula: titleField.defaultValue,
         });
-        
+
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         return {reportName: newName};
     }
-    
+
     Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
     Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
     return null;
@@ -184,7 +183,13 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {r
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report, incomingUpdate: OnyxUpdate, context: UpdateContext): {reportName: string} | null {
+function computeReportNameIfNeeded(
+    report: Report,
+    incomingUpdate: OnyxUpdate,
+    context: UpdateContext,
+): {
+    reportName: string;
+} | null {
     Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME);
     Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME);
 
@@ -248,7 +253,7 @@ function computeReportNameIfNeeded(report: Report, incomingUpdate: OnyxUpdate, c
             formula,
             updateType,
         });
-        
+
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
         return {reportName: newName};
@@ -292,7 +297,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'report': {
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
-                
+
                 // Special handling for new reports (SET method means new report creation)
                 if (!report && update.onyxMethod === Onyx.METHOD.SET) {
                     Log.info('[OptimisticReportNames] Detected new report creation', false, {
@@ -300,7 +305,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                         updateKey: update.key,
                     });
                     const reportNameUpdate = computeNameForNewReport(update, context);
-                    
+
                     if (reportNameUpdate) {
                         additionalUpdates.push({
                             key: getReportKey(reportID),
@@ -310,7 +315,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     }
                     continue; // Skip the normal processing for this update
                 }
-                
+
                 if (report) {
                     affectedReports = [report];
                 }
@@ -356,7 +361,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
     Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
     Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
-    
+
     return updates.concat(additionalUpdates);
 }
 
