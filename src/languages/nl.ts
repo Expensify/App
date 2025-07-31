@@ -97,6 +97,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -1075,6 +1077,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
+        removeFromReport: 'Verwijder uit rapport',
+        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
@@ -1831,7 +1835,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Stuur en ontvang geld met vrienden. Alleen Amerikaanse bankrekeningen.',
         enableWallet: 'Portemonnee inschakelen',
-        addBankAccountToSendAndReceive: 'Word terugbetaald voor uitgaven die je indient bij een werkruimte.',
+        addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
         expensifyCard: 'Expensify Card',
@@ -1842,6 +1846,8 @@ const translations = {
         chooseYourBankAccount: 'Kies uw bankrekening',
         chooseAccountBody: 'Zorg ervoor dat je de juiste selecteert.',
         confirmYourBankAccount: 'Bevestig uw bankrekening',
+        personalBankAccounts: 'Persoonlijke bankrekeningen',
+        businessBankAccounts: 'Zakelijke bankrekeningen',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4468,11 +4474,8 @@ const translations = {
             emptyCategories: {
                 title: 'Je hebt nog geen categorieën aangemaakt',
                 subtitle: 'Voeg een categorie toe om uw uitgaven te organiseren.',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: 'Je categorieën worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar',
-                subtitle2: 'boekhouding',
-                subtitle3: 'om wijzigingen aan te brengen.',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Je categorieën worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar de <a href="${accountingPageURL}">boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de categorie, probeer het alstublieft opnieuw.',
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het alstublieft opnieuw.',
@@ -4734,14 +4737,9 @@ const translations = {
                 title: 'Je hebt nog geen tags aangemaakt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Voeg een tag toe om projecten, locaties, afdelingen en meer bij te houden.',
-                subtitle1: 'Importeer een spreadsheet om tags toe te voegen voor het bijhouden van projecten, locaties, afdelingen en meer.',
-                subtitle2: 'Meer informatie',
-                subtitle3: 'over het formatteren van tagbestanden.',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: 'Uw tags worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar',
-                subtitle2: 'boekhouding',
-                subtitle3: 'om wijzigingen aan te brengen.',
+                subtitleHTML: `<muted-text><centered-text>Importeer een spreadsheet om tags toe te voegen voor het volgen van projecten, locaties, afdelingen en meer. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het opmaken van tagbestanden.</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Je tags worden momenteel geïmporteerd vanuit een boekhoudverbinding. Ga naar de <a href="${accountingPageURL}">boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
             },
             deleteTag: 'Verwijder tag',
             deleteTags: 'Verwijder tags',
@@ -5245,6 +5243,10 @@ const translations = {
                 one: 'Weet je zeker dat je dit tarief wilt verwijderen?',
                 other: 'Weet je zeker dat je deze tarieven wilt verwijderen?',
             }),
+            errors: {
+                rateNameRequired: 'Tariefnaam is vereist',
+                existingRateName: 'Er bestaat al een afstandstarief met deze naam.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -5962,7 +5964,7 @@ const translations = {
         },
         statements: 'Verklaringen',
         unapprovedCash: 'Niet goedgekeurd contant geld',
-        unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',
+        unapprovedCard: 'Niet-goedgekeurde kaart',
         saveSearch: 'Zoekopdracht opslaan',
         deleteSavedSearch: 'Verwijder opgeslagen zoekopdracht',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',

@@ -97,6 +97,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -1076,6 +1078,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'すべての領収書を一度に撮影し、自分で詳細を確認するか、SmartScanに任せましょう。',
         receiptScanInProgress: '領収書のスキャン中',
         receiptScanInProgressDescription: '領収書のスキャン中です。後で確認するか、今すぐ詳細を入力してください。',
+        removeFromReport: '領収書を削除',
+        moveToPersonalSpace: '領収書を個人スペースに移動',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? '重複の可能性がある経費が特定されました。提出を有効にするために重複を確認してください。'
@@ -1828,7 +1832,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet（ベータ版）',
         sendAndReceiveMoney: '友達とお金を送受信する。米国の銀行口座のみ。',
         enableWallet: 'ウォレットを有効にする',
-        addBankAccountToSendAndReceive: 'ワークスペースに提出した経費の払い戻しを受ける。',
+        addBankAccountToSendAndReceive: '支払いや受け取りを行うために銀行口座を追加してください。',
         assignedCards: '割り当てられたカード',
         assignedCardsDescription: 'これらは、会社の支出を管理するためにワークスペース管理者によって割り当てられたカードです。',
         expensifyCard: 'Expensify Card',
@@ -1839,6 +1843,8 @@ const translations = {
         chooseYourBankAccount: '銀行口座を選択してください',
         chooseAccountBody: '正しいものを選択してください。',
         confirmYourBankAccount: '銀行口座を確認してください',
+        personalBankAccounts: '個人銀行口座',
+        businessBankAccounts: 'ビジネス銀行口座',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4444,11 +4450,8 @@ const translations = {
             emptyCategories: {
                 title: 'カテゴリが作成されていません',
                 subtitle: '支出を整理するためにカテゴリーを追加してください。',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: 'あなたのカテゴリは現在、会計接続からインポートされています。こちらに移動してください',
-                subtitle2: '会計',
-                subtitle3: '変更を加えるために。',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>あなたのカテゴリーは現在、会計接続からインポートされています。<a href="${accountingPageURL}">会計</a>に移動して変更してください。</centered-text></muted-text>`,
             },
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
@@ -4711,14 +4714,9 @@ const translations = {
                 title: 'タグが作成されていません',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'プロジェクト、場所、部門などを追跡するためのタグを追加します。',
-                subtitle1: 'スプレッドシートをインポートして、プロジェクト、場所、部門などの追跡用タグを追加します。',
-                subtitle2: '詳細を確認',
-                subtitle3: 'フォーマットタグファイルについて。',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: 'あなたのタグは現在、会計接続からインポートされています。こちらに移動して',
-                subtitle2: '会計',
-                subtitle3: '変更を加えるために。',
+                subtitleHTML: `<muted-text><centered-text>スプレッドシートをインポートして、プロジェクト、場所、部署などを追跡するためのタグを追加できます。タグファイルのフォーマットについては<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">こちらをご覧</a>ください。</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>タグは現在、会計接続からインポートされています。<a href="${accountingPageURL}">アカウンティング</a>に移動して変更してください。</centered-text></muted-text>`,
             },
             deleteTag: 'タグを削除',
             deleteTags: 'タグを削除',
@@ -5219,6 +5217,10 @@ const translations = {
                 one: 'このレートを削除してもよろしいですか？',
                 other: 'これらのレートを削除してもよろしいですか？',
             }),
+            errors: {
+                rateNameRequired: 'レート名は必須です',
+                existingRateName: 'この名前の距離レートはすでに存在します',
+            },
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -5928,7 +5930,7 @@ const translations = {
         },
         statements: 'ステートメント',
         unapprovedCash: '未承認現金',
-        unapprovedCompanyCards: '未承認の社用カード',
+        unapprovedCard: '未承認のカード',
         saveSearch: '検索を保存',
         deleteSavedSearch: '保存された検索を削除',
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',

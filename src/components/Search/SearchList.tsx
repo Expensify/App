@@ -15,7 +15,14 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ExtendedTargetedEvent,
+    ReportActionListItemType,
+    SortableColumnName,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
@@ -79,6 +86,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
+    /** Columns to show */
+    columns: SortableColumnName[];
+
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 
@@ -123,6 +133,7 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
+        columns,
         onViewableItemsChanged,
         onLayout,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
@@ -332,6 +343,7 @@ function SearchList(
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={hash}
+                    columns={columns}
                     policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
@@ -348,6 +360,7 @@ function SearchList(
             onCheckboxPress,
             onSelectRow,
             policies,
+            columns,
             hash,
             groupBy,
             setFocusedIndex,
@@ -445,7 +458,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={[focusedIndex, isFocused]}
+                extraData={[focusedIndex, isFocused, columns]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
