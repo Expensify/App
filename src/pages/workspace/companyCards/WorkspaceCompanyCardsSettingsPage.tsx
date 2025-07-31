@@ -55,6 +55,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
+    const isPending = !!selectedFeedData?.pending;
 
     // s77rt remove DEV lock
     const shouldShowStatementCloseDate = isDevelopment;
@@ -134,6 +135,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                 switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
+                                disabled={isPending}
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>

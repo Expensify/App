@@ -39,7 +39,7 @@ function getExportMenuItem(
         policy?.connections?.quickbooksOnline?.config ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
-    const config = policy?.connections?.netsuite?.options.config;
+    const config = policy?.connections?.netsuite?.options?.config;
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const {creditCards, bankAccounts: quickbooksOnlineBankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {creditCardAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
