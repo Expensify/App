@@ -12204,20 +12204,15 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     }
 
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
-}
+    const transactionThreadReportID = iouActions.at(0)?.childReportID;
+    const trackTransactionThreadReport = Navigation.getReportRouteByID(transactionThreadReportID);
+    InteractionManager.runAfterInteractions(() => {
+        if (!trackTransactionThreadReport?.key) {
+            return;
+        }
 
-function getNavigationUrlOnAppReportDelete(reportID: string | undefined, chatReportID: string | undefined): Route | undefined {
-    if (!reportID || !chatReportID) {
-        return undefined;
-    }
-
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-
-    if (chatReport?.reportID) {
-        return ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID);
-    }
-
-    return undefined;
+        Navigation.removeScreenByKey(trackTransactionThreadReport.key);
+    });
 }
 
 export {
@@ -12326,6 +12321,5 @@ export {
     reopenReport,
     retractReport,
     startDistanceRequest,
-    getNavigationUrlOnAppReportDelete,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
