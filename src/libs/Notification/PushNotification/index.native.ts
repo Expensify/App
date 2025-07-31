@@ -1,7 +1,8 @@
 import type {PushPayload} from '@ua/react-native-airship';
-import Airship, {EventType} from '@ua/react-native-airship';
+import Airship, {EventType, PermissionStatus} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import ShortcutManager from '@libs/ShortcutManager';
+import CONFIG from '@src/CONFIG';
 import ForegroundNotifications from './ForegroundNotifications';
 import type {NotificationDataMap, NotificationTypes} from './NotificationType';
 import NotificationType from './NotificationType';
@@ -79,18 +80,28 @@ const register: Register = (notificationID) => {
     Airship.contact
         .getNamedUserId()
         .then((userID) => {
-            if (userID === notificationID.toString()) {
+            // In the HybridApp, the contact identity is set on the YAPL side after sign-in.
+            // Since the Airship instance is shared between NewDot and OldDot,
+            // NewDot users won't see the push notification permission prompt as we return early in this case.
+            // Therefore, we cannot handle the HybridApp scenario here.
+            if (!CONFIG.IS_HYBRID_APP && userID === notificationID.toString()) {
                 // No need to register again for this notificationID.
                 return;
             }
 
-            // Get permissions to display push notifications (prompts user on iOS, but not Android)
-            Airship.push.enableUserNotifications().then((isEnabled) => {
-                if (isEnabled) {
+            // Get permissions to display push notifications if not determined (prompts user on iOS, but not Android)
+            Airship.push.getNotificationStatus().then(({notificationPermissionStatus}) => {
+                if (notificationPermissionStatus !== PermissionStatus.NotDetermined) {
                     return;
                 }
 
-                Log.info('[PushNotification] User has disabled visible push notifications for this app.');
+                Airship.push.enableUserNotifications().then((isEnabled) => {
+                    if (isEnabled) {
+                        return;
+                    }
+
+                    Log.info('[PushNotification] User has disabled visible push notifications for this app.');
+                });
             });
 
             // Register this device as a named user in AirshipAPI.
