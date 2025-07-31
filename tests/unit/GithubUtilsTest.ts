@@ -112,6 +112,7 @@ describe('GithubUtils', () => {
                     isVerified: false,
                 },
             ],
+            PRListMobileExpensify: [],
             labels: [
                 {
                     color: '6FC269',
@@ -163,6 +164,7 @@ describe('GithubUtils', () => {
             const bareExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
                 ...baseExpectedResponse,
                 PRList: [],
+                PRListMobileExpensify: [],
             };
 
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]}) as unknown as ListForRepoMethod;
