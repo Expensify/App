@@ -58,7 +58,7 @@ type WorkspaceExpensifyCardListPageProps = {
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = route.params.policyID;
@@ -89,7 +89,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     }, [cardsList, policy?.employeeList]);
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {

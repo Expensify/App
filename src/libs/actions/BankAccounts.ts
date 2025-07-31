@@ -16,7 +16,7 @@ import type {
 } from '@libs/API/parameters';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -887,7 +887,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
  * Accept the ACH terms and conditions and verify the accuracy of the information provided
  * @param params - Verification step form params
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string | undefined) {
     API.write(
         WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT,
         {
@@ -1043,51 +1043,8 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         country: data.bankCountry,
         currency: data.bankCurrency,
     };
-
-    const parameters = {
-        isWithdrawal: false,
-        isSavings: true,
-        inputs: JSON.stringify(inputData),
-    };
-
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: true,
-                    isCreateCorpayBankAccount: true,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    isCreateCorpayBankAccount: false,
-                    errors: null,
-                    isSuccess: true,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    isCreateCorpayBankAccount: false,
-                    isSuccess: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
-                },
-            },
-        ],
-    };
-
-    return API.write(WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, parameters, onyxData);
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)});
 }
 
 export {

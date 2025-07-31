@@ -1322,8 +1322,8 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             paddingLeft: 0,
             borderWidth: 0,
         },
@@ -1334,7 +1334,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 15,
+            paddingTop: variables.inputPaddingTop,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1383,8 +1383,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             height: '100%',
         },
 
@@ -1395,8 +1395,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
         },
 
         textInputPrefix: {
@@ -4089,6 +4089,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
             color: theme.success,
             marginBottom: 16,
+        },
+
+        textSuccess: {
+            color: theme.success,
         },
 
         footerRow: {

@@ -6,8 +6,8 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import {connectBankAccountManually, connectBankAccountWithPlaid, setBankAccountSubStep} from '@userActions/BankAccounts';
-import {hideBankAccountErrors, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
+import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -47,7 +47,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
 
-    const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     if (shouldReinitializePlaidLink) {
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
@@ -107,23 +107,8 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            if (bankAccountID) {
-                onBackButtonPress();
-            } else {
-                const bankAccountData = {
-                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
-                    [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
-                };
-                updateReimbursementAccountDraft(bankAccountData);
-                hideBankAccountErrors();
-                setBankAccountSubStep(null);
-                setUSDBankAccountStep(null);
-            }
+            onBackButtonPress();
+            hideBankAccountErrors();
         } else {
             prevScreen();
         }
@@ -135,7 +120,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
             shouldEnablePickerAvoiding={false}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
-            startStepIndex={0}
+            startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

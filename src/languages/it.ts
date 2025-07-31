@@ -549,6 +549,7 @@ const translations = {
         type: 'Tipo',
         action: 'Azione',
         expenses: 'Spese',
+        totalSpend: 'Spesa totale',
         tax: 'Tassa',
         shared: 'Condiviso',
         drafts: 'Bozze',
@@ -931,9 +932,9 @@ const translations = {
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
         import: 'Importa foglio di calcolo',
-        dragAndDrop: 'Trascina e rilascia il tuo foglio di calcolo qui, oppure scegli un file qui sotto. Formati supportati: .csv, .txt, .xls e .xlsx.',
+        dragAndDrop: '<muted-link>Trascina e rilascia il tuo foglio di calcolo qui, oppure scegli un file qui sotto. Formati supportati: .csv, .txt, .xls e .xlsx.</muted-link>',
         dragAndDropMultiLevelTag: `<muted-link>Trascina e rilascia il tuo foglio di calcolo qui, oppure scegli un file qui sotto. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Scopri di più</a> sui formati di file supportati.</muted-link>`,
-        chooseSpreadsheet: 'Seleziona un file di foglio di calcolo da importare. Formati supportati: .csv, .txt, .xls e .xlsx.',
+        chooseSpreadsheet: '<muted-link>Seleziona un file di foglio di calcolo da importare. Formati supportati: .csv, .txt, .xls e .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Seleziona un file di foglio di calcolo da importare. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Scopri di più</a> sui formati di file supportati.</muted-link>`,
         fileContainsHeader: 'Il file contiene intestazioni di colonna',
         column: ({name}: SpreadSheetColumnParams) => `Colonna ${name}`,
@@ -1075,6 +1076,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta, poi conferma i dettagli tu stesso o lascia che SmartScan se ne occupi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Controlla più tardi o inserisci i dettagli ora.',
+        removeFromReport: 'Rimuovi dal rapporto',
+        moveToPersonalSpace: 'Sposta spese nello spazio personale',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? "Spese potenzialmente duplicate identificate. Rivedi i duplicati per consentire l'invio."
@@ -1843,8 +1846,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Invia e ricevi denaro con gli amici. Solo conti bancari statunitensi.',
         enableWallet: 'Abilita portafoglio',
-        addBankAccountToSendAndReceive: "Ricevi il rimborso per le spese che invii a un'area di lavoro.",
-        addBankAccount: 'Aggiungi conto bancario',
+        addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Queste sono carte assegnate da un amministratore del workspace per gestire le spese aziendali.',
@@ -1856,6 +1858,8 @@ const translations = {
         chooseYourBankAccount: 'Scegli il tuo conto bancario',
         chooseAccountBody: 'Assicurati di selezionare quello giusto.',
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
+        personalBankAccounts: 'Conti bancari personali',
+        businessBankAccounts: 'Conti bancari aziendali',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -1912,7 +1916,6 @@ const translations = {
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
         approver: 'Approvante',
-        connectBankAccount: 'Collega conto bancario',
         addApprovalsDescription: "Richiedi un'approvazione aggiuntiva prima di autorizzare un pagamento.",
         makeOrTrackPaymentsTitle: 'Effettua o traccia pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o traccia i pagamenti effettuati altrove.',
@@ -3154,7 +3157,6 @@ const translations = {
         termsAndConditions: 'termini e condizioni',
     },
     connectBankAccountStep: {
-        connectBankAccount: 'Collega conto bancario',
         finishButtonText: 'Completa la configurazione',
         validateYourBankAccount: 'Convalida il tuo conto bancario',
         validateButtonText: 'Convalida',
@@ -3246,7 +3248,6 @@ const translations = {
         pleaseUploadTheDirect: 'Carica l’accordo di addebito diretto e la pagina di firma Docusign.',
     },
     finishStep: {
-        connect: 'Collega conto bancario',
         letsFinish: 'Finisciamo in chat!',
         thanksFor:
             'Grazie per questi dettagli. Un agente di supporto dedicato esaminerà ora le tue informazioni. Ti ricontatteremo se avremo bisogno di ulteriori informazioni da parte tua, ma nel frattempo, non esitare a contattarci per qualsiasi domanda.',
@@ -3440,7 +3441,6 @@ const translations = {
             plan: 'Piano',
             profile: 'Panoramica',
             bankAccount: 'Conto bancario',
-            connectBankAccount: 'Collega conto bancario',
             testTransactions: 'Transazioni di prova',
             issueAndManageCards: 'Emetti e gestisci carte',
             reconcileCards: 'Riconcilia carte',
@@ -5204,7 +5204,6 @@ const translations = {
                 personal: 'Personale',
                 business: 'Business',
                 chooseInvoiceMethod: 'Scegli un metodo di pagamento qui sotto:',
-                addBankAccount: 'Aggiungi conto bancario',
                 payingAsIndividual: 'Pagare come individuo',
                 payingAsBusiness: "Pagare come un'azienda",
             },
@@ -5265,6 +5264,10 @@ const translations = {
                 one: 'Sei sicuro di voler eliminare questa tariffa?',
                 other: 'Sei sicuro di voler eliminare queste tariffe?',
             }),
+            errors: {
+                rateNameRequired: 'Il nome della tariffa è obbligatorio',
+                existingRateName: 'Esiste già una tariffa di distanza con questo nome',
+            },
         },
         editor: {
             descriptionInputLabel: 'Descrizione',
@@ -5989,9 +5992,8 @@ const translations = {
             },
         },
         statements: 'Dichiarazioni',
-        unapproved: 'Non approvato',
         unapprovedCash: 'Contanti non approvati',
-        unapprovedCompanyCards: 'Carte aziendali non approvate',
+        unapprovedCard: 'Carta non approvata',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
@@ -6340,9 +6342,8 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invita a inviare le spese',
-        inviteToChat: 'Invita solo a chattare',
-        nothing: 'Non fare nulla',
+        invite: 'Invitali',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
@@ -6426,14 +6427,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: 'Avvia una chat,',
-            buttonText2: 'consiglia un amico.',
+            buttonText: 'Avviare una chat, <success><strong>segnalare un amico</strong></success>.',
             header: 'Inizia una chat, invita un amico',
             body: 'Vuoi che i tuoi amici usino Expensify, anche loro? Inizia una chat con loro e ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Invia una spesa,',
-            buttonText2: 'riferisci il tuo capo.',
+            buttonText: 'Presentate una spesa, <success><strong>riferite al vostro capo</strong></success>.',
             header: 'Invia una spesa, riferisci al tuo capo',
             body: 'Vuoi che anche il tuo capo usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
         },
