@@ -1,5 +1,5 @@
 import {measureFunction} from 'reassure';
-import {extract, parse, compute} from '@libs/CustomFormula';
+import {compute, extract, parse} from '@libs/CustomFormula';
 import type {FormulaContext} from '@libs/CustomFormula';
 
 describe('[CustomFormula] Performance Tests', () => {
@@ -82,32 +82,26 @@ describe('[CustomFormula] Performance Tests', () => {
 
     describe('Batch Processing Performance', () => {
         test('[CustomFormula] parse() batch processing 100 formulas', async () => {
-            const formulas = Array.from({length: 100}, (_, i) => 
-                `{report:type} ${i} - {report:startdate} - {report:total} - {report:currency}`
-            );
-            
+            const formulas = Array.from({length: 100}, (_, i) => `{report:type} ${i} - {report:startdate} - {report:total} - {report:currency}`);
+
             await measureFunction(() => {
-                formulas.forEach(formula => parse(formula));
+                formulas.forEach((formula) => parse(formula));
             });
         });
 
         test('[CustomFormula] compute() batch processing 100 computations', async () => {
-            const formulas = Array.from({length: 100}, (_, i) => 
-                `{report:type} ${i} - {report:total} - {report:policyname}`
-            );
-            
+            const formulas = Array.from({length: 100}, (_, i) => `{report:type} ${i} - {report:total} - {report:policyname}`);
+
             await measureFunction(() => {
-                formulas.forEach(formula => compute(formula, mockContext));
+                formulas.forEach((formula) => compute(formula, mockContext));
             });
         });
 
         test('[CustomFormula] end-to-end batch processing (parse + compute)', async () => {
-            const formulas = Array.from({length: 50}, (_, i) => 
-                `Expense ${i}: {report:type} - {report:startdate} - {report:total} {report:currency} for {report:policyname}`
-            );
-            
+            const formulas = Array.from({length: 50}, (_, i) => `Expense ${i}: {report:type} - {report:startdate} - {report:total} {report:currency} for {report:policyname}`);
+
             await measureFunction(() => {
-                formulas.forEach(formula => {
+                formulas.forEach((formula) => {
                     const parts = parse(formula);
                     const result = compute(formula, mockContext);
                     return {parts, result};
@@ -120,7 +114,7 @@ describe('[CustomFormula] Performance Tests', () => {
         test('[CustomFormula] large formula with many parts', async () => {
             const largeParts = Array.from({length: 20}, (_, i) => `{report:field${i}}`).join(' - ');
             const formula = `Large Formula: ${largeParts}`;
-            
+
             await measureFunction(() => {
                 parse(formula);
                 compute(formula, mockContext);
@@ -129,7 +123,7 @@ describe('[CustomFormula] Performance Tests', () => {
 
         test('[CustomFormula] deeply nested functions', async () => {
             const formula = '{user:email|frontPart} - {field:description|substr:0:20} - {report:created:yyyy-MM-dd}';
-            
+
             await measureFunction(() => {
                 parse(formula);
                 compute(formula, mockContext);
@@ -138,7 +132,7 @@ describe('[CustomFormula] Performance Tests', () => {
 
         test('[CustomFormula] formula with escaped braces', async () => {
             const formula = '\\{not-formula} {report:type} \\{escaped} {report:total} \\{more-escapes}';
-            
+
             await measureFunction(() => {
                 parse(formula);
                 compute(formula, mockContext);

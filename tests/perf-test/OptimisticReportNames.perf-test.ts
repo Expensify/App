@@ -1,10 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {
-    updateOptimisticReportNamesFromUpdates,
-    computeNameForNewReport,
-    computeReportNameIfNeeded,
-} from '@libs/OptimisticReportNames';
+import {computeNameForNewReport, computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,7 +101,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const update = {
                 key: `report_${report.reportID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { total: -20000 },
+                value: {total: -20000},
             };
 
             await measureFunction(() => computeReportNameIfNeeded(report, update, mockContext));
@@ -134,7 +130,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const updates = reportKeys.map((key, i) => ({
                 key,
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { total: -(Math.random() * 100000) },
+                value: {total: -(Math.random() * 100000)},
             }));
 
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
@@ -153,11 +149,13 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
-            const existingReportUpdates = Object.keys(mockReports).slice(0, 50).map((key) => ({
-                key,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: { total: -(Math.random() * 125000) },
-            }));
+            const existingReportUpdates = Object.keys(mockReports)
+                .slice(0, 50)
+                .map((key) => ({
+                    key,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {total: -(Math.random() * 125000)},
+                }));
 
             const allUpdates = [...newReportUpdates, ...existingReportUpdates];
 
@@ -170,7 +168,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const policyUpdate = {
                 key: 'policy_policy1',
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { name: 'Updated Policy Name' },
+                value: {name: 'Updated Policy Name'},
             };
 
             // This should trigger name computation for all reports using policy1
@@ -181,7 +179,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const policyUpdates = Array.from({length: 10}, (_, i) => ({
                 key: `policy_policy${i}`,
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { name: `Bulk Updated Policy ${i}` },
+                value: {name: `Bulk Updated Policy ${i}`},
             }));
 
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, mockContext));
@@ -210,7 +208,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const irrelevantUpdates = Array.from({length: 100}, (_, i) => ({
                 key: `transaction_${i}`,
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { description: `Updated transaction ${i}` },
+                value: {description: `Updated transaction ${i}`},
             }));
 
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, mockContext));
@@ -228,7 +226,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                         id: `policy${index}`,
                         name: `Policy ${index}`,
                         fieldList: {
-                            text_title: { defaultValue: 'Static Title' }, // No formula
+                            text_title: {defaultValue: 'Static Title'}, // No formula
                         },
                     }),
                     50,

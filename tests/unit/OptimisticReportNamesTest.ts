@@ -1,10 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {
-    shouldComputeReportName,
-    computeNameForNewReport,
-    computeReportNameIfNeeded,
-    updateOptimisticReportNamesFromUpdates,
-} from '@libs/OptimisticReportNames';
+import {computeNameForNewReport, computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -37,10 +32,10 @@ describe('OptimisticReportNames', () => {
     const mockContext: UpdateContext = {
         betas: ['authAutoReportTitles'],
         allReports: {
-            'report_123': mockReport,
+            report_123: mockReport,
         },
         allPolicies: {
-            'policy_policy1': mockPolicy,
+            policy_policy1: mockPolicy,
         },
     };
 
@@ -77,7 +72,7 @@ describe('OptimisticReportNames', () => {
             const policyWithoutFormula = {
                 ...mockPolicy,
                 fieldList: {
-                    text_title: { defaultValue: 'Static Title' },
+                    text_title: {defaultValue: 'Static Title'},
                 },
             };
             mockReportUtils.getTitleReportField.mockReturnValue(policyWithoutFormula.fieldList.text_title);
@@ -101,14 +96,14 @@ describe('OptimisticReportNames', () => {
             };
 
             const result = computeNameForNewReport(update, mockContext);
-            expect(result).toEqual({ reportName: 'Expense Report - USD 100.00' });
+            expect(result).toEqual({reportName: 'Expense Report - USD 100.00'});
         });
 
         test('should return null for report without policy', () => {
             const update = {
                 key: 'report_123',
                 onyxMethod: Onyx.METHOD.SET,
-                value: { reportID: '123' },
+                value: {reportID: '123'},
             };
 
             const result = computeNameForNewReport(update, mockContext);
@@ -120,7 +115,7 @@ describe('OptimisticReportNames', () => {
             const update = {
                 key: 'report_123',
                 onyxMethod: Onyx.METHOD.SET,
-                value: { reportID: '123', policyID: 'policy1' },
+                value: {reportID: '123', policyID: 'policy1'},
             };
 
             const result = computeNameForNewReport(update, mockContext);
@@ -150,18 +145,18 @@ describe('OptimisticReportNames', () => {
             const update = {
                 key: 'report_123',
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { total: -20000 },
+                value: {total: -20000},
             };
 
             const result = computeReportNameIfNeeded(mockReport as any, update, mockContext);
-            expect(result).toEqual({ reportName: 'Expense Report - USD 200.00' });
+            expect(result).toEqual({reportName: 'Expense Report - USD 200.00'});
         });
 
         test('should return null when name would not change', () => {
             const update = {
                 key: 'report_456',
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { description: 'Updated description' },
+                value: {description: 'Updated description'},
             };
 
             const result = computeReportNameIfNeeded(mockReport as any, update, mockContext);
@@ -189,7 +184,7 @@ describe('OptimisticReportNames', () => {
             expect(result[1]).toEqual({
                 key: 'report_456',
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { reportName: 'Expense Report - USD 150.00' },
+                value: {reportName: 'Expense Report - USD 150.00'},
             });
         });
 
@@ -198,13 +193,13 @@ describe('OptimisticReportNames', () => {
                 {
                     key: 'report_123',
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: { total: -25000 },
+                    value: {total: -25000},
                 },
             ];
 
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
-            expect(result[1].value).toEqual({ reportName: 'Expense Report - USD 250.00' });
+            expect(result[1].value).toEqual({reportName: 'Expense Report - USD 250.00'});
         });
 
         test('should skip processing when no changes needed', () => {
@@ -212,7 +207,7 @@ describe('OptimisticReportNames', () => {
                 {
                     key: 'report_999',
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: { description: 'No formula impact' },
+                    value: {description: 'No formula impact'},
                 },
             ];
 
@@ -224,8 +219,8 @@ describe('OptimisticReportNames', () => {
             const contextWithMultipleReports = {
                 ...mockContext,
                 allReports: {
-                    'report_123': { ...mockReport, reportID: '123' },
-                    'report_456': { ...mockReport, reportID: '456' },
+                    report_123: {...mockReport, reportID: '123'},
+                    report_456: {...mockReport, reportID: '456'},
                 },
             };
 
@@ -233,7 +228,7 @@ describe('OptimisticReportNames', () => {
                 {
                     key: 'policy_policy1',
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: { name: 'Updated Policy Name' },
+                    value: {name: 'Updated Policy Name'},
                 },
             ];
 
@@ -246,7 +241,7 @@ describe('OptimisticReportNames', () => {
                 {
                     key: 'unknown_123',
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: { someData: 'value' },
+                    value: {someData: 'value'},
                 },
             ];
 
@@ -260,7 +255,7 @@ describe('OptimisticReportNames', () => {
             const update = {
                 key: 'report_999',
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: { total: -10000 },
+                value: {total: -10000},
             };
 
             const result = computeReportNameIfNeeded(null as any, update, mockContext);
@@ -277,7 +272,7 @@ describe('OptimisticReportNames', () => {
                 {
                     key: 'report_123',
                     onyxMethod: Onyx.METHOD.SET,
-                    value: { reportID: '123', policyID: 'missing' },
+                    value: {reportID: '123', policyID: 'missing'},
                 },
                 contextWithoutPolicy,
             );
@@ -288,7 +283,7 @@ describe('OptimisticReportNames', () => {
             const policyWithBadFormula = {
                 ...mockPolicy,
                 fieldList: {
-                    text_title: { defaultValue: '{invalid:formula}' },
+                    text_title: {defaultValue: '{invalid:formula}'},
                 },
             };
             mockReportUtils.getTitleReportField.mockReturnValue(policyWithBadFormula.fieldList.text_title);
@@ -296,12 +291,12 @@ describe('OptimisticReportNames', () => {
             const update = {
                 key: 'report_123',
                 onyxMethod: Onyx.METHOD.SET,
-                value: { reportID: '123', policyID: 'policy1' },
+                value: {reportID: '123', policyID: 'policy1'},
             };
 
             const result = computeNameForNewReport(update, {
                 ...mockContext,
-                allPolicies: { 'policy_policy1': policyWithBadFormula },
+                allPolicies: {policy_policy1: policyWithBadFormula},
             });
             // Should still return a result with the invalid formula as-is
             expect(result).toBeDefined();

@@ -98,7 +98,7 @@ function parse(formula: string): FormulaPart[] {
 
     formulaParts.forEach((part) => {
         const partIndex = remainingFormula.indexOf(part, lastIndex);
-        
+
         // Add any free text before this formula part
         if (partIndex > lastIndex) {
             const freeText = remainingFormula.substring(lastIndex, partIndex);
@@ -275,7 +275,7 @@ function applyFunctions(value: string, functions: string[]): string {
 
     for (const func of functions) {
         const [functionName, ...args] = func.split(':');
-        
+
         switch (functionName.toLowerCase()) {
             case 'frontpart':
                 result = getFrontPart(result);
@@ -297,12 +297,12 @@ function applyFunctions(value: string, functions: string[]): string {
  */
 function getFrontPart(value: string): string {
     const trimmed = value.trim();
-    
+
     // If it's an email, return the part before @
     if (trimmed.includes('@')) {
         return trimmed.split('@')[0];
     }
-    
+
     // Otherwise, return the first word
     return trimmed.split(' ')[0];
 }
@@ -313,11 +313,11 @@ function getFrontPart(value: string): string {
 function getSubstring(value: string, args: string[]): string {
     const start = parseInt(args[0], 10) || 0;
     const length = args[1] ? parseInt(args[1], 10) : undefined;
-    
+
     if (length !== undefined) {
         return value.substr(start, length);
     }
-    
+
     return value.substr(start);
 }
 
@@ -328,22 +328,22 @@ function formatDate(dateString: string | undefined, format = CONST.DATE.FNS_FORM
     if (!dateString) {
         return '';
     }
-    
+
     try {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) {
             return '';
         }
-        
+
         // Simple date formatting - this could be enhanced with a proper date library
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        
+
         if (format === CONST.DATE.FNS_FORMAT_STRING) {
             return `${month}/${day}/${year}`;
         }
-        
+
         return `${year}-${month}-${day}`;
     } catch {
         return '';
@@ -357,14 +357,14 @@ function formatAmount(amount: number | undefined, currency: string | undefined):
     if (amount === undefined) {
         return '';
     }
-    
+
     const absoluteAmount = Math.abs(amount);
     const formattedAmount = (absoluteAmount / 100).toFixed(2);
-    
+
     if (currency) {
         return `${currency} ${formattedAmount}`;
     }
-    
+
     return formattedAmount;
 }
 
@@ -375,15 +375,6 @@ function isFormula(str: string): boolean {
     return extract(str).length > 0;
 }
 
-export {
-    extract,
-    parse,
-    compute,
-    isFormula,
-    FORMULA_PART_TYPES,
-};
+export {extract, parse, compute, isFormula, FORMULA_PART_TYPES};
 
-export type {
-    FormulaPart,
-    FormulaContext,
-};
+export type {FormulaPart, FormulaContext};

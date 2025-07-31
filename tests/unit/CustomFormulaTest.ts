@@ -1,4 +1,4 @@
-import {extract, parse, compute, isFormula, FORMULA_PART_TYPES} from '@libs/CustomFormula';
+import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/CustomFormula';
 import type {FormulaContext} from '@libs/CustomFormula';
 
 describe('CustomFormula', () => {
@@ -152,7 +152,7 @@ describe('CustomFormula', () => {
 
         test('should handle invalid date', () => {
             const context: FormulaContext = {
-                report: { lastVisibleActionCreated: 'invalid-date' } as any,
+                report: {lastVisibleActionCreated: 'invalid-date'} as any,
                 policy: null,
             };
             const result = compute('{report:startdate}', context);
@@ -161,7 +161,7 @@ describe('CustomFormula', () => {
 
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
-                report: { total: undefined } as any,
+                report: {total: undefined} as any,
                 policy: null,
             };
             const result = compute('{report:total}', context);

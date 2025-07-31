@@ -75,14 +75,11 @@ function prepareRequest<TCommand extends ApiCommand>(
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
-        
+
         // Process optimistic data through report name middleware
         OptimisticReportNames.createUpdateContext()
             .then((context) => {
-                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(
-                    optimisticData,
-                    context,
-                );
+                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
                 Onyx.update(processedOptimisticData);
             })
             .catch((error) => {
