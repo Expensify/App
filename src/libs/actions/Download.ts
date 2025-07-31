@@ -9,7 +9,7 @@ function setDownload(sourceID: string, isDownloading: boolean): Promise<void | v
 }
 
 function clearDownloads() {
-    const connection = Onyx.connect({
+    const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.DOWNLOAD,
         waitForCollectionCallback: true,
         callback: (records) => {
