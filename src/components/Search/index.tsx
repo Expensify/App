@@ -42,7 +42,6 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -210,7 +209,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
         });
 
-        const isStatemenstLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
+        const isStatementstLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
         const isUnapprovedCashLikeQuery =
             queryJSON.flatFilters.length === 1 &&
             isReimbursable &&
@@ -222,7 +221,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
             queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
 
-        return isStatemenstLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
+        return isStatementstLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
     }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
 
     const previousReportActions = usePrevious(reportActions);
