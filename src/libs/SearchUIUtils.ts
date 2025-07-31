@@ -44,7 +44,6 @@ import type {
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
-import {TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid} from './actions/IOU';
 import {createNewReport, getCurrentUserAccountID} from './actions/Report';
@@ -1045,7 +1044,7 @@ function canSubmitReportInSearch(
 
     const baseCanSubmit =
         isOpenExpenseReport(report) &&
-        transactions.length === 0 &&
+        transactions.length === 1 &&
         (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
