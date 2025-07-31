@@ -7,7 +7,7 @@ import usePrevious from './usePrevious';
 
 function usePriorityMode() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
-    const [allReportsWithDraftComments] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true});
+    const [allReportsWithDraftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const prevPriorityMode = usePrevious(priorityMode);
 
     useEffect(() => {

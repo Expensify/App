@@ -1,5 +1,5 @@
-import {deepEqual} from 'fast-equals';
-import React, {useContext, useMemo, useState} from 'react';
+import {circularDeepEqual, deepEqual} from 'fast-equals';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
@@ -63,9 +63,12 @@ function PopoverWithMeasuredContentBase({
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
+    useEffect(() => {
+        if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
+            return;
+        }
         ComposerFocusManager.saveFocusState(modalId);
-    }
+    }, [isVisible, shouldEnableNewFocusManagement, prevIsVisible, modalId]);
 
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
