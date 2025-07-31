@@ -20,9 +20,9 @@ const TEXT_INPUT_EMPTY_STATE = '';
 /**
  * Trims whitespace from pasted magic codes
  */
-const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void, isActive: boolean) => {
+const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void) => {
     useEffect(() => {
-        if (!isActive || typeof document === 'undefined') {
+        if (typeof document === 'undefined') {
             return;
         }
 
@@ -52,7 +52,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
         return () => {
             document.removeEventListener('paste', handlePaste, true);
         };
-    }, [inputRef, onChangeText, isActive]);
+    }, [inputRef, onChangeText]);
 };
 
 type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
@@ -160,7 +160,7 @@ function MagicCodeInput(
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp, true);
+    useMagicCodePaste(inputRef, onChangeTextProp);
 
     useEffect(() => {
         lastValue.current = input.length;
