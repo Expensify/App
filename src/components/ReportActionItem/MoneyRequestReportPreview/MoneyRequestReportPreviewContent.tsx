@@ -185,8 +185,8 @@ function MoneyRequestReportPreviewContent({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
 
-    const hasReportBeenReopened = report.hasReportBeenReopened ?? false;
-    const hasReportBeenRetracted = report.hasReportBeenRetracted ?? false;
+    const hasReportBeenReopened = iouReport?.hasReportBeenReopened ?? false;
+    const hasReportBeenRetracted = iouReport?.hasReportBeenRetracted ?? false;
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
