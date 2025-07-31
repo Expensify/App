@@ -14,6 +14,7 @@ describe('localize', () => {
             keys: {
                 NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
                 ARE_TRANSLATIONS_LOADING: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+                SESSION: ONYXKEYS.SESSION,
             },
         });
         return waitForBatchedUpdates();
@@ -71,7 +72,7 @@ describe('localize', () => {
             await IntlStore.load(CONST.LOCALES.EN);
         });
 
-        it('should return MISSING_TRANSLATION for missing key with expensify email in production', () => {
+        it('should return MISSING_TRANSLATION for missing key with expensify email in production', async () => {
             // Mock production environment
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const CONFIG = require('@src/CONFIG');
@@ -82,7 +83,11 @@ describe('localize', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             CONFIG.default.IS_IN_STAGING = false;
 
-            const result = Localize.translate(CONST.LOCALES.EN, 'user@expensify.com', 'missing.translation.key' as TranslationPaths);
+            // Set up session with expensify email
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@expensify.com'});
+            await waitForBatchedUpdates();
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
             
             expect(result).toBe(CONST.MISSING_TRANSLATION);
             
@@ -91,7 +96,7 @@ describe('localize', () => {
             Object.assign(CONFIG.default, originalConfig);
         });
 
-        it('should return MISSING_TRANSLATION for missing key with expensify email in staging', () => {
+        it('should return MISSING_TRANSLATION for missing key with expensify email in staging', async () => {
             // Mock staging environment  
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const CONFIG = require('@src/CONFIG');
@@ -102,7 +107,11 @@ describe('localize', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             CONFIG.default.IS_IN_STAGING = true;
 
-            const result = Localize.translate(CONST.LOCALES.EN, 'test@expensify.com', 'missing.translation.key' as TranslationPaths);
+            // Set up session with expensify email
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@expensify.com'});
+            await waitForBatchedUpdates();
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
             
             expect(result).toBe(CONST.MISSING_TRANSLATION);
             
@@ -111,7 +120,7 @@ describe('localize', () => {
             Object.assign(CONFIG.default, originalConfig);
         });
 
-        it('should return key string for missing key with external email in production', () => {
+        it('should return key string for missing key with external email in production', async () => {
             // Mock production environment
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const CONFIG = require('@src/CONFIG');
@@ -122,7 +131,11 @@ describe('localize', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             CONFIG.default.IS_IN_STAGING = false;
 
-            const result = Localize.translate(CONST.LOCALES.EN, 'user@external.com', 'missing.translation.key' as TranslationPaths);
+            // Set up session with external email
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@external.com'});
+            await waitForBatchedUpdates();
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
             
             expect(result).toBe('missing.translation.key');
             
@@ -131,7 +144,7 @@ describe('localize', () => {
             Object.assign(CONFIG.default, originalConfig);
         });
 
-        it('should return key string for missing key with external email in staging', () => {
+        it('should return key string for missing key with external email in staging', async () => {
             // Mock staging environment
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const CONFIG = require('@src/CONFIG');
@@ -142,7 +155,11 @@ describe('localize', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             CONFIG.default.IS_IN_STAGING = true;
 
-            const result = Localize.translate(CONST.LOCALES.EN, 'user@external.com', 'missing.translation.key' as TranslationPaths);
+            // Set up session with external email
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@external.com'});
+            await waitForBatchedUpdates();
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
             
             expect(result).toBe('missing.translation.key');
             
@@ -151,7 +168,7 @@ describe('localize', () => {
             Object.assign(CONFIG.default, originalConfig);
         });
 
-        it('should return key string for missing key without email in production', () => {
+        it('should return key string for missing key without email in production', async () => {
             // Mock production environment
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const CONFIG = require('@src/CONFIG');
@@ -162,7 +179,11 @@ describe('localize', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             CONFIG.default.IS_IN_STAGING = false;
 
-            const result = Localize.translate(CONST.LOCALES.EN, undefined, 'missing.translation.key' as TranslationPaths);
+            // Clear session to have no email
+            await Onyx.merge(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+
+            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
             
             expect(result).toBe('missing.translation.key');
             
