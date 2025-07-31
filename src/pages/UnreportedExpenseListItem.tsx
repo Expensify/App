@@ -19,7 +19,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
     const [isSelected, setIsSelected] = useState<boolean>(false);
     const theme = useTheme();
 
-    const pressableStyle = [styles.transactionListItemStyle, item.isSelected && styles.activeComponentBG];
+    const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -40,17 +40,17 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     onSelectRow(item);
                     setIsSelected((val) => !val);
                 }}
-                disabled={isDisabled && !item.isSelected}
+                disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
