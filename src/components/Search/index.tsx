@@ -26,7 +26,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isExportIntegrationAction, isIntegrationMessageAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
     getSections,
@@ -207,7 +207,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useFocusEffect(
@@ -549,7 +549,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, data, sortBy, sortOrder, groupBy).map((item) => {
+            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -570,10 +570,21 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    useEffect(() => {
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+
+        if ((hasErrors || !searchResults) && currentRoute === '/') {
+            // Use requestAnimationFrame to safely update navigation params without overriding the current route
+            requestAnimationFrame(() => {
+                Navigation.setParams({q: buildCannedSearchQuery()});
+            });
+        }
+    }, [hasErrors, queryJSON, searchResults]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
