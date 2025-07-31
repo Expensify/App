@@ -48,10 +48,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
-                style={[
-                    pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                ]}
+                style={[pressableStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
