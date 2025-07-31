@@ -1,4 +1,4 @@
-import {circularDeepEqual, deepEqual} from 'fast-equals';
+import {deepEqual} from 'fast-equals';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
