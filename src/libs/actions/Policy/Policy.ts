@@ -2255,33 +2255,13 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
 }
 
 function createWorkspace(options: BuildPolicyDataOptions = {}): CreateWorkspaceParams {
-    const {
-        policyOwnerEmail = '',
-        makeMeAdmin = false,
-        policyName = '',
-        policyID = generatePolicyID(),
-        engagementChoice = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-        currency = '',
-        file,
-        shouldAddOnboardingTasks = true,
-        companySize,
-        userReportedIntegration,
-        featuresMap,
-    } = options;
+    // Set default engagement choice if not provided
+    const optionsWithDefaults = {
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        ...options,
+    };
 
-    const {optimisticData, failureData, successData, params} = buildPolicyData({
-        policyOwnerEmail,
-        makeMeAdmin,
-        policyName,
-        policyID,
-        engagementChoice,
-        currency,
-        file,
-        shouldAddOnboardingTasks,
-        companySize,
-        userReportedIntegration,
-        featuresMap,
-    });
+    const {optimisticData, failureData, successData, params} = buildPolicyData(optionsWithDefaults);
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
