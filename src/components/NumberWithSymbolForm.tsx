@@ -8,7 +8,7 @@ import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
@@ -56,6 +56,8 @@ type NumberWithSymbolFormRef = {
     getNumber: () => string;
 };
 
+const canUseTouchScreen = canUseTouchScreenUtil();
+
 /**
  * Returns the new selection object based on the updated number's length
  */
@@ -84,7 +86,7 @@ function NumberWithSymbolForm(
         onInputChange,
         onSymbolButtonPress,
         isSymbolPressable = true,
-        shouldShowBigNumberPad = canUseTouchScreen(),
+        shouldShowBigNumberPad = canUseTouchScreen,
         displayAsTextInput = false,
         footer,
         numberFormRef,
