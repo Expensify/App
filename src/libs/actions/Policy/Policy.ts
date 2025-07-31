@@ -1919,12 +1919,9 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
-    const isCorporateFeature = featuresMap?.some(
-        feature => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate
-    );
+    const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
     const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-        
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -2257,19 +2254,21 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(
-    policyOwnerEmail = '',
-    makeMeAdmin = false,
-    policyName = '',
-    policyID = generatePolicyID(),
-    engagementChoice: OnboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-    currency = '',
-    file?: File,
-    shouldAddOnboardingTasks = true,
-    companySize?: OnboardingCompanySize,
-    userReportedIntegration?: OnboardingAccounting,
-    featuresMap?: Feature[],
-): CreateWorkspaceParams {
+function createWorkspace(options: BuildPolicyDataOptions = {}): CreateWorkspaceParams {
+    const {
+        policyOwnerEmail = '',
+        makeMeAdmin = false,
+        policyName = '',
+        policyID = generatePolicyID(),
+        engagementChoice = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        currency = '',
+        file,
+        shouldAddOnboardingTasks = true,
+        companySize,
+        userReportedIntegration,
+        featuresMap,
+    } = options;
+
     const {optimisticData, failureData, successData, params} = buildPolicyData({
         policyOwnerEmail,
         makeMeAdmin,
@@ -5474,7 +5473,7 @@ function updateFeature(
     API.writeWithNoDuplicatesEnableFeatureConflicts(request.endpoint, request.parameters);
 }
 
-function updateInterestedFeatures(features: Feature[], policyID: string, type: string|undefined) {
+function updateInterestedFeatures(features: Feature[], policyID: string, type: string | undefined) {
     let shouldUpgradeToCorporate = false;
 
     const requests: Array<{
