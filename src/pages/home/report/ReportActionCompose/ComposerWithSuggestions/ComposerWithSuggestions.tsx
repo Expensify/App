@@ -34,18 +34,20 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import {getDraftComment} from '@libs/DraftCommentUtils';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -247,17 +249,13 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const [draftReportComment] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true, selector: (draftReportComments) => draftReportComments?.[reportID]});
+    const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
-        if (draftReportComment) {
-            emojisPresentBefore.current = extractEmojis(draftReportComment);
+        if (draftComment) {
+            emojisPresentBefore.current = extractEmojis(draftComment);
         }
-        return draftReportComment ?? '';
+        return draftComment;
     });
-
-    useEffect(() => {
-        setValue(draftReportComment ?? '');
-    }, [draftReportComment]);
 
     const commentRef = useRef(value);
 
@@ -378,7 +376,7 @@ function ComposerWithSuggestions(
      * Update the value of the comment in Onyx
      */
     const updateComment = useCallback(
-        (commentValue: string) => {
+        (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
@@ -420,9 +418,12 @@ function ComposerWithSuggestions(
             }
 
             commentRef.current = newCommentConverted;
-
-            isCommentPendingSaved.current = true;
-            debouncedSaveReportComment(reportID, newCommentConverted);
+            if (shouldDebounceSaveComment) {
+                isCommentPendingSaved.current = true;
+                debouncedSaveReportComment(reportID, newCommentConverted);
+            } else {
+                saveReportDraftComment(reportID, newCommentConverted);
+            }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
             }
@@ -437,7 +438,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(insertText(commentRef.current, selection, text));
+            updateComment(insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
@@ -495,7 +496,7 @@ function ComposerWithSuggestions(
                         positionX: prevSelection.positionX,
                         positionY: prevSelection.positionY,
                     }));
-                    updateComment(newText);
+                    updateComment(newText, true);
                 }
             }
         },
@@ -504,7 +505,7 @@ function ComposerWithSuggestions(
 
     const onChangeText = useCallback(
         (commentValue: string) => {
-            updateComment(commentValue);
+            updateComment(commentValue, true);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
                 const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
@@ -726,7 +727,7 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('');
+            updateComment('', true);
         },
         [onCleared, updateComment],
     );
@@ -843,6 +844,16 @@ function ComposerWithSuggestions(
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
             />
+
+            {isValidReportIDFromPath(reportID) && (
+                <SilentCommentUpdater
+                    reportID={reportID}
+                    value={value}
+                    updateComment={updateComment}
+                    commentRef={commentRef}
+                    isCommentPendingSaved={isCommentPendingSaved}
+                />
+            )}
 
             {/* Only used for testing so far */}
             {children}

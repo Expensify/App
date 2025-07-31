@@ -97,6 +97,7 @@ import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
@@ -200,6 +201,7 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
+    isTestTransactionReport,
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
@@ -365,6 +367,7 @@ type BuildOptimisticIOUReportActionParams = {
     comment: string;
     participants: Participant[];
     transactionID: string;
+    optimisticReportActionID?: string;
     paymentType?: PaymentMethodType;
     iouReportID?: string;
     isSettlingUp?: boolean;
@@ -632,7 +635,7 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type OptimisticMoneyRequestEntities = {
+type BaseOptimisticMoneyRequestEntities = {
     iouReport: Report;
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     amount: number;
@@ -650,6 +653,10 @@ type OptimisticMoneyRequestEntities = {
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
 };
+
+type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread?: boolean};
+type OptimisticMoneyRequestEntitiesWithTransactionThreadFlag = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread: boolean};
+type OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag = BaseOptimisticMoneyRequestEntities;
 
 type OptimisticTaskReport = SetRequired<
     Pick<
@@ -2393,8 +2400,12 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
+                // If there is a manager assigned, only allow payment if the user is both an admin and the manager.
+                // Otherwise, if there is no reimburser and no manager, only allow payment if the user is an admin.
+                if (iouReport?.managerID) {
+                    return isAdmin && isManager;
+                }
                 return isAdmin;
             }
 
@@ -4236,6 +4247,12 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
+        const isRequestIOU = isIOUReport(moneyRequestReport);
+        if (isRequestIOU) {
+            return false;
+        }
+        const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
+
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -4255,7 +4272,8 @@ function canEditFieldOfMoneyRequest(
               ).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1;
+              ).length > 1 ||
+                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
 
     return true;
@@ -4363,8 +4381,8 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
 
-    if (!transactionID || !reportAction.childReportID) {
-        Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
+    if (!transactionID) {
+        Log.warn('Missing transactionID during the change of the money request hold status');
         return;
     }
 
@@ -4372,7 +4390,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
-    if (isOnHold) {
+    if (isOnHold && reportAction.childReportID) {
         unholdRequest(transactionID, reportAction.childReportID);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
@@ -5292,6 +5310,10 @@ function getReportNameInternal({
         formattedName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetails});
     }
 
+    if (isConciergeChatReport(report)) {
+        formattedName = CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
     if (formattedName) {
         return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
     }
@@ -5299,7 +5321,9 @@ function getReportNameInternal({
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
-    return isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName;
+    const finalName = formattedName || (report?.reportName ?? '');
+
+    return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
 }
 
 /**
@@ -7705,6 +7729,7 @@ function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
+    optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
@@ -7727,6 +7752,7 @@ function buildTransactionThread(
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
+        optimisticReportID: optimisticTransactionThreadReportID,
     });
 }
 
@@ -7739,6 +7765,12 @@ function buildTransactionThread(
  * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
  * 5. CREATED action for the Transaction Thread
  */
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null];
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport | undefined, OptimisticCreatedReportAction | null];
 function buildOptimisticMoneyRequestEntities({
     iouReport,
     type,
@@ -7752,11 +7784,18 @@ function buildOptimisticMoneyRequestEntities({
     isSettlingUp = false,
     isSendMoneyFlow = false,
     isOwnPolicyExpenseChat = false,
+    shouldGenerateOptimisticTransactionThread = true,
     isPersonalTrackingExpense,
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
-}: OptimisticMoneyRequestEntities): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
+}: OptimisticMoneyRequestEntities): [
+    OptimisticCreatedReportAction,
+    OptimisticCreatedReportAction,
+    OptimisticIOUReportAction,
+    OptimisticChatReport | undefined,
+    OptimisticCreatedReportAction | null,
+] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, undefined, optimisticCreatedReportActionID);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
@@ -7781,11 +7820,11 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
-    const createdActionForTransactionThread = existingTransactionThreadReportID ? null : buildOptimisticCreatedReportAction(payeeEmail);
+    const transactionThread = shouldGenerateOptimisticTransactionThread ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
+    const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateOptimisticTransactionThread ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
@@ -9565,12 +9604,12 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 
 /**
  * Get optimistic data of parent report action
- * @param reportID The reportID of the report that is updated
+ * @param reportOrID The reportID of the report that is updated or the optimistic report on its own
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
-    const report = getReportOrDraftReport(reportID);
+function getOptimisticDataForParentReportAction(reportOrID: Report | string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
+    const report = typeof reportOrID === 'string' ? getReportOrDraftReport(reportOrID) : reportOrID;
 
     if (!report || isEmptyObject(report)) {
         return [];
@@ -9974,18 +10013,24 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+    allowSubmitted = true,
 ): boolean {
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
+    const currentRoute = navigationRef.getCurrentRoute();
+    const params = currentRoute?.params as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION] | ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID}`];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    const shouldAllowSubmittedReport = allowSubmitted || isInstantSubmitEnabled(policy) || isProcessingReport(activeReport);
     return (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&
         iouReport?.statusNum !== undefined &&
         iouReport?.policyID === policyID &&
-        iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-        iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
+        (shouldAllowSubmittedReport ? iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
+        (shouldAllowSubmittedReport ? iouReport?.statusNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.statusNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
         !hasForwardedAction(iouReport.reportID) &&
         !isArchivedReport(reportNameValuePair)
     );
@@ -10003,6 +10048,7 @@ function getOutstandingReportsForUser(
     reportOwnerAccountID: number | undefined,
     reports: OnyxCollection<Report> = allReports,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+    allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {
         return [];
@@ -10011,7 +10057,7 @@ function getOutstandingReportsForUser(
         .filter(
             (report) =>
                 report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                isReportOutstanding(report, policyID, reportNameValuePairs) &&
+                isReportOutstanding(report, policyID, reportNameValuePairs, allowSubmitted) &&
                 report?.ownerAccountID === reportOwnerAccountID,
         )
         .sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
@@ -11041,15 +11087,6 @@ function isSelectedManagerMcTest(email: string | null | undefined): boolean {
     return email === CONST.EMAIL.MANAGER_MCTEST;
 }
 
-/**
- *  Helper method to check if the report is a test transaction report
- */
-function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const personalDetails = allPersonalDetails?.[managerID];
-    return isSelectedManagerMcTest(personalDetails?.login);
-}
-
 function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
@@ -11564,7 +11601,6 @@ export {
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
     isSelectedManagerMcTest,
-    isTestTransactionReport,
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getMovedTransactionMessage,
