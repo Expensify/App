@@ -6304,8 +6304,9 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Zaproś ich',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
+        inviteToChat: 'Zaproś tylko do czatu',
+        nothing: 'Nie rób nic',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',

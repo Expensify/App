@@ -6324,7 +6324,8 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitez-les',
+        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
+        inviteToChat: 'Inviter uniquement à discuter',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {

@@ -6317,7 +6317,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
