@@ -161,7 +161,7 @@ function SplitListItem<TItem extends ListItem>({
                                 touchableInputWrapperStyle={[styles.ml3]}
                                 maxLength={formattedOriginalAmount.length + 1}
                                 shouldApplyPaddingToContainer
-                                sshouldUseDefaultLineHeightForPrefix={false}
+                                shouldUseDefaultLineHeightForPrefix={false}
                                 contentWidth={contentWidth}
                             />
                         )}
