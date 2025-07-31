@@ -11072,7 +11072,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         params.createdReportActionIDForThread = optimisticCreatedAction.reportActionID;
     }
 
-    API.write('HoldRequest', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST, params, {optimisticData, successData, failureData});
 
     const currentReportID = getDisplayedReportID(reportID);
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
@@ -11191,7 +11191,7 @@ function unholdRequest(transactionID: string, reportID: string) {
     ];
 
     API.write(
-        'UnHoldRequest',
+        WRITE_COMMANDS.UNHOLD_MONEY_REQUEST,
         {
             transactionID,
             reportActionID: createdReportAction.reportActionID,
