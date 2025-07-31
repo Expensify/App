@@ -91,10 +91,18 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return '' as TranslationPaths;
     }
 };
+const isManagerMcTestQuickActionReport = (report: Report | undefined) => {
+    return !!report?.participants?.[CONST.ACCOUNT_ID.MANAGER_MCTEST];
+};
 
 const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
+        // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
+        const isReportHasManagerMCTest = isManagerMcTestQuickActionReport(quickActionReport);
+        if (isReportHasManagerMCTest) {
+            return false;
+        }
         return canCreateRequest(quickActionReport, quickActionPolicy, iouType);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
