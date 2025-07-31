@@ -21,7 +21,6 @@ import {
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
     getPlaidInstitutionIconUrl,
-    hasCardListObject,
     hasOnlyOneCardToAssign,
     isCustomFeed,
     isExpensifyCardFullySetUp,
@@ -65,6 +64,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
@@ -74,7 +74,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[selectedFeed as CompanyCardFeed]);
 
     const [list] = useCardsList(policyID, selectedFeed as CompanyCardFeed);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed], workspaceCardFeeds);
 
     const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
 
@@ -122,7 +122,8 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const handleSelectFeed = (feed: CardFeedListItem) => {
         setSelectedFeed(feed.value);
-        const hasAllCardsData = hasCardListObject(workspaceAccountID, feed.value as CompanyCardFeed);
+        const workspaceCards = workspaceCardFeeds?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed.value as CompanyCardFeed}`] ?? {};
+        const hasAllCardsData = !!workspaceCards.cardList;
         if (isCustomFeed(feed.value as CompanyCardFeed) && !hasAllCardsData) {
             openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed, domainOrWorkspaceAccountID);
         }

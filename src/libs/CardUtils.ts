@@ -33,15 +33,6 @@ Onyx.connect({
     },
 });
 
-let allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allWorkspaceCards = value;
-    },
-});
-
 let customCardNames: OnyxEntry<Record<string, string>> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
@@ -518,7 +509,7 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
@@ -573,7 +564,7 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
 
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
-    allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards,
+    allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
@@ -663,14 +654,9 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
 /**
  * Checks if an Expensify Card was issued for a given workspace.
  */
-function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): boolean {
+function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList>): boolean {
     const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
     return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
-}
-
-function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
-    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
-    return !!workspaceCards.cardList;
 }
 
 /**
@@ -735,7 +721,6 @@ export {
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
-    hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
