@@ -4982,13 +4982,13 @@ describe('ReportUtils', () => {
     describe('buildOptimisticReportPreview', () => {
         it('should include childOwnerAccountID and childManagerAccountID that matches with iouReport data', () => {
             const chatReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(100),
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: undefined,
             };
 
             const iouReport: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(200),
                 parentReportID: '1',
                 type: CONST.REPORT.TYPE.IOU,
                 chatType: undefined,
