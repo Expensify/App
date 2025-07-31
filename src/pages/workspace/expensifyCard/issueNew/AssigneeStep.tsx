@@ -36,7 +36,7 @@ type AssigneeStepProps = {
 };
 
 function AssigneeStep({policy, stepNames, startFrom}: AssigneeStepProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
@@ -105,10 +105,10 @@ function AssigneeStep({policy, stepNames, startFrom}: AssigneeStepProps) {
             });
         });
 
-        membersList = sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, formatPhoneNumber]);
+    }, [isOffline, policy?.employeeList, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
