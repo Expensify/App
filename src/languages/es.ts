@@ -4809,7 +4809,7 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'No tienes espacios de trabajo',
-            subtitle: 'Organizar recibos, reembolsar gastos, gestionar viajes, envía facturas y mucho más.',
+            subtitle: 'Organiza recibos, reembolsa gastos, gestiona viajes, envía facturas y mucho más.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
