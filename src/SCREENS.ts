@@ -751,6 +751,7 @@ const SCREENS = {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
+    SIGNING_OUT: 'Signing_Out',
 
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
