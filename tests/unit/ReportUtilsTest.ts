@@ -31,6 +31,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canSeeDefaultRoom,
     canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -108,6 +109,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -226,6 +228,10 @@ const personalDetails: PersonalDetailsList = {
     '7': {
         accountID: 7,
         login: 'owner@test.com',
+    },
+    '8': {
+        accountID: 8,
+        login: CONST.EMAIL.GUIDES_DOMAIN,
     },
 };
 
@@ -385,7 +391,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title,
                             description: () => '',
                             autoCompleted: false,
@@ -414,7 +420,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title: () => '',
                             description,
                             autoCompleted: false,
@@ -530,13 +536,13 @@ describe('ReportUtils', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report1.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(-1);
         });
         it('should return 1 when report2 is selected and report1 is not', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report2.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(1);
         });
     });
 
@@ -820,6 +826,67 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
+        });
+    });
+
+    describe('Fallback scenarios', () => {
+        test('should fallback to report.reportName when primary name generation returns empty string', () => {
+            const reportWithFallbackName: Report = {
+                reportID: '3',
+                reportName: 'Custom Report Name',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithFallbackName);
+            expect(result).toBe('Custom Report Name');
+        });
+
+        test('should return empty string when both primary name generation and reportName are empty', () => {
+            const reportWithoutName: Report = {
+                reportID: '4',
+                reportName: '',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithoutName);
+            expect(result).toBe('');
+        });
+
+        test('should return empty string when reportName is undefined', () => {
+            const reportWithUndefinedName: Report = {
+                reportID: '5',
+                reportName: undefined,
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithUndefinedName);
+            expect(result).toBe('');
+        });
+
+        test('should return Concierge display name for concierge chat report', async () => {
+            const conciergeReportID = 'concierge-123';
+            await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
+
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                reportName: '',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(conciergeReport);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
 
@@ -2239,7 +2306,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[report.reportID]: 'fake draft'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
 
             expect(
                 shouldReportBeInOptionList({
@@ -4914,6 +4981,37 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation(undefined, undefined)).toBe('');
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
             expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+        });
+    });
+    describe('canSeeDefaultRoom', () => {
+        it('should return true if report is archived room ', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            expect(canSeeDefaultRoom(report, betas, true)).toBe(true);
+        });
+        it('should return true if the room has an assigned guide', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
+            };
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+            });
+        });
+        it('should return true if the report is admin room', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+            });
         });
     });
 });
