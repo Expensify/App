@@ -12202,8 +12202,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         Navigation.dismissModal();
         return;
     }
-
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
+
     const transactionThreadReportID = iouActions.at(0)?.childReportID;
     const trackTransactionThreadReport = Navigation.getReportRouteByID(transactionThreadReportID);
     InteractionManager.runAfterInteractions(() => {
