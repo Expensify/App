@@ -1918,7 +1918,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
-    // Determine workspace type based on user reported integration or selected features
+    // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = selectedFeatures?.some((featureId) => {
         return featureId === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias || featureId === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias;
     }) ?? false;
