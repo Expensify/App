@@ -1,3 +1,4 @@
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
@@ -31,6 +32,12 @@ type BankAccountAdditionalData = {
 
     /** ID of related policy */
     policyID?: string;
+
+    /** Corpay fields */
+    corpay?: {
+        /** Powerform files */
+        achAuthorizationForm?: FileObject[];
+    };
 };
 
 /** Model of bank account */

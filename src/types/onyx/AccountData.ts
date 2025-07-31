@@ -1,6 +1,5 @@
 import type {BankAccountAdditionalData} from './BankAccount';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Corpay} from './ReimbursementAccount';
 
 /** Model of bank account data */
 type AccountData = {
@@ -51,9 +50,6 @@ type AccountData = {
 
     /** The debit card ID */
     fundID?: number;
-
-    /** Corpay fields */
-    corpay?: Corpay;
 };
 
 export default AccountData;
