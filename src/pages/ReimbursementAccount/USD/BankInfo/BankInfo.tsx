@@ -87,7 +87,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 );
             }
         },
-        [setupType, bankAccountID, policyID],
+        [setupType, bankAccountID, policyID, lastPaymentMethod],
     );
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;

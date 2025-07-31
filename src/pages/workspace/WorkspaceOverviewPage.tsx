@@ -189,7 +189,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!shouldUseNarrowLayout) {
             goBackFromInvalidPolicy();
         }
-    }, [policy?.id, policyName, shouldUseNarrowLayout]);
+    }, [policy?.id, policyName, shouldUseNarrowLayout, lastPaymentMethod]);
 
     useEffect(() => {
         if (isLoadingBill) {
