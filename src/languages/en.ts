@@ -5233,6 +5233,10 @@ const translations = {
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
             }),
+            errors: {
+                rateNameRequired: 'Rate name is required',
+                existingRateName: 'A distance rate with this name already exists',
+            },
         },
         editor: {
             descriptionInputLabel: 'Description',

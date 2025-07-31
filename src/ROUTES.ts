@@ -1849,6 +1849,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
     },
+    WORKSPACE_DISTANCE_RATE_NAME_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/name/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/name/edit` as const,
+    },
     WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: {
         route: 'workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/tax-reclaimable/edit` as const,

@@ -5249,6 +5249,10 @@ const translations = {
                 one: 'Sei sicuro di voler eliminare questa tariffa?',
                 other: 'Sei sicuro di voler eliminare queste tariffe?',
             }),
+            errors: {
+                rateNameRequired: 'Il nome della tariffa è obbligatorio',
+                existingRateName: 'Esiste già una tariffa di distanza con questo nome',
+            },
         },
         editor: {
             descriptionInputLabel: 'Descrizione',
