@@ -13,7 +13,7 @@ type OnyxUpdatesMock = typeof OnyxUpdatesImport & {
 };
 
 let lastUpdateIDAppliedToClient: number | undefined = 0;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
