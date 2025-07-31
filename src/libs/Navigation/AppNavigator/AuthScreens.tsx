@@ -1,6 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -78,7 +77,6 @@ import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
-import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 type AuthScreensProps = {
@@ -244,20 +242,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
-    const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
-        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) && isOnboardingCompleted === true;
+        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
 
     const shouldRenderOnboardingExclusively = useMemo(() => {
         return (
             !CONFIG.IS_HYBRID_APP &&
-            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
             getPlatform() !== CONST.PLATFORM.DESKTOP &&
             onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
             isOnboardingCompleted === true &&
@@ -480,10 +477,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-            web: {
-                ...rootNavigatorScreenOptions.splitNavigator.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
-            },
         };
     };
 
@@ -550,16 +543,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
-            <RootStack.Navigator
-                persistentScreens={[
-                    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-                    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                    SCREENS.WORKSPACES_LIST,
-                    SCREENS.SEARCH.ROOT,
-                ]}
-            >
+            <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
