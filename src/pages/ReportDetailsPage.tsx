@@ -149,13 +149,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
-    // Get last accessed report for navigation after leaving
-    const {lastAccessReport} = useLastAccessedReport(
-        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-        false, // not opening admin room
-        undefined,
-        report.reportID, // exclude current report
-    );
+    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), undefined, undefined, report.reportID);
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});

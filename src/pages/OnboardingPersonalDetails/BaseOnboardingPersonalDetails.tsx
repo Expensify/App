@@ -53,13 +53,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isBetaEnabled} = usePermissions();
 
-    // Get last accessed report for navigation after onboarding
-    const {lastAccessReport} = useLastAccessedReport(
-        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-        false, // not opening admin room in this flow
-        undefined,
-        undefined,
-    );
+    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS));
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);

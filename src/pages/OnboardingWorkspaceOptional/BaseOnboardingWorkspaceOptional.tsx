@@ -49,13 +49,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
 
-    // Get last accessed report for navigation after onboarding
-    const {lastAccessReport} = useLastAccessedReport(
-        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-        false, // not opening admin room in this flow
-        undefined,
-        undefined,
-    );
+    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS));
     const ICON_SIZE = 48;
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;

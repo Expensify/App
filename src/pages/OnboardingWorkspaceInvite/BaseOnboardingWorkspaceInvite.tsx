@@ -63,13 +63,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
 
-    // Get last accessed report for navigation after onboarding
-    const {lastAccessReport} = useLastAccessedReport(
-        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-        false, // not opening admin room in this flow
-        undefined,
-        undefined,
-    );
+    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS));
 
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
