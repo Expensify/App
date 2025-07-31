@@ -2,12 +2,13 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Trashcan, UserPlus} from '@components/Icon/Expensicons';
+import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Transfer, Trashcan, UserPlus} from '@components/Icon/Expensicons';
 import {Building} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -21,7 +22,7 @@ import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearInviteDraft} from '@libs/actions/Policy/Member';
+import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
     clearAvatarErrors,
@@ -39,6 +40,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
@@ -70,6 +72,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -221,6 +224,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         Navigation.popToSidebar();
     };
 
+    const startChangeOwnershipFlow = useCallback(() => {
+        if (!policy?.id || !policy?.ownerAccountID) {
+            return;
+        }
+        clearWorkspaceOwnerChangeFlow(policy.id);
+        requestWorkspaceOwnerChange(policy.id);
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policy.id, policy.ownerAccountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+    }, [policy]);
+
     const getHeaderButtons = () => {
         if (readOnly) {
             return null;
@@ -256,6 +268,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
                 shouldCloseModalOnSelect: !shouldCalculateBillNewDot(),
+            });
+        }
+        if (isPolicyAdmin && !isOwner && shouldRenderTransferOwnerButton()) {
+            secondaryActions.push({
+                value: 'transferOwner',
+                text: translate('workspace.people.transferOwner'),
+                icon: Transfer,
+                onSelected: startChangeOwnershipFlow,
             });
         }
         return (

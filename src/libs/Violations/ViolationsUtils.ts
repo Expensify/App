@@ -239,7 +239,7 @@ const ViolationsUtils = {
 
         let newTransactionViolations = [...transactionViolations];
 
-        const shouldShowSmartScanFailedError = !isScanning && isScanRequest && isPartialTransaction;
+        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
             return {
