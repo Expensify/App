@@ -1031,10 +1031,10 @@ function getAction(
 function canSubmitReportInSearch(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
-    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
-    allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
-    reportActions: OnyxEntry<OnyxTypes.ReportActions> | OnyxTypes.ReportAction[],
-    isReportArchived: boolean = false,
+    transactions: SearchTransaction[],
+    allViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    reportActions: OnyxTypes.ReportAction[],
+    isReportArchived: boolean,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -1051,12 +1051,10 @@ function canSubmitReportInSearch(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived;
-
     const hasBeenReopened = hasReportBeenReopened(reportActions);
     if (baseCanSubmit && hasBeenReopened) {
         return true;
     }
-
     return baseCanSubmit && isManualSubmitEnabled;
 }
 
@@ -1803,6 +1801,7 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 export {
+    canSubmitReportInSearch,
     getSuggestedSearches,
     getListItem,
     getSections,
