@@ -128,10 +128,10 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             setValidateCode(text);
             setFormError({});
             if (validateLoginError) {
-                Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
+                Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole', account?.delegatedAccess);
             }
         },
-        [currentDelegate?.email, validateLoginError],
+        [currentDelegate?.email, validateLoginError, account?.delegatedAccess],
     );
 
     /**
@@ -150,8 +150,8 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
 
         setFormError({});
 
-        Delegate.updateDelegateRole(delegate, role, validateCode);
-    }, [delegate, role, validateCode]);
+        Delegate.updateDelegateRole(delegate, role, validateCode, account?.delegatedAccess);
+    }, [delegate, role, validateCode, account?.delegatedAccess]);
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, wrapperStyle]}>

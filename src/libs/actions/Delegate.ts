@@ -41,7 +41,14 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>, activePolicyID: string, isFromOldDot = false) {
+function connect(
+    email: string,
+    delegatedAccess: OnyxEntry<DelegatedAccess>,
+    credentials: OnyxEntry<Credentials>,
+    session: OnyxEntry<Session>,
+    activePolicyID: OnyxEntry<string>,
+    isFromOldDot = false,
+) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }

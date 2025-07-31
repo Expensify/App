@@ -45,6 +45,11 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => onyxSession?.accountID});
+    const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -136,7 +141,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        disconnect();
+                        disconnect(stashedCredentials, stashedSession);
                     },
                 }),
                 currentUserMenuItem,
@@ -156,7 +161,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        connect(email);
+                        connect(email, account?.delegatedAccess, credentials, session, activePolicyID);
                     },
                 });
             });
@@ -166,7 +171,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors();
+        clearDelegatorErrors(account?.delegatedAccess);
     };
 
     return (

@@ -239,6 +239,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
@@ -314,7 +316,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
             if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
                 if (delegatorEmail) {
-                    connect(delegatorEmail, true)
+                    connect(delegatorEmail, account?.delegatedAccess, credentials, session, activePolicyID, true)
                         ?.then((success) => {
                             App.setAppLoading(!!success);
                         })
