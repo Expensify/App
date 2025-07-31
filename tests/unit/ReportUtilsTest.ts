@@ -4935,10 +4935,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const report: Report = {
                 ...createRandomReport(40002),
-                participants: {
-                    '1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    '8': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
             };
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                 expect(canSeeDefaultRoom(report, betas, false)).toBe(true);

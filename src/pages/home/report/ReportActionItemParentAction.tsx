@@ -83,7 +83,7 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: (allPairs) => {
             const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
@@ -139,7 +139,8 @@ function ReportActionItemParentAction({
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
-                const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
+                const reportNameValuePair =
+                    ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
                 const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
                 return (
                     <OfflineWithFeedback
