@@ -1,4 +1,6 @@
 import React, {useMemo} from 'react';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -10,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getOutstandingReportsForUser, getPolicyName, isOpenReport, isReportOwner, reportsByPolicyIDSelector, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, reportsByPolicyIDSelector, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -29,9 +31,12 @@ type Props = {
     transactionsReports: Report[];
     policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
+    removeFromReport?: () => void;
+    isEditing?: boolean;
+    isUnreported?: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, removeFromReport, isEditing = false, isUnreported}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -49,6 +54,11 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
+    const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+    const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
+    const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
+
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
         if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
@@ -59,18 +69,16 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                 return [];
             }
-            const reports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, reportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs);
+            const reports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, reportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, isEditing);
 
             return reports;
         });
-    }, [reportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps]);
+    }, [reportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
             return [];
         }
-
-        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
 
         return expenseReports
             .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID))
@@ -88,7 +96,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [reportsByPolicyID, debouncedSearchValue, expenseReports, options.reports, transactionsReports]);
+    }, [reportsByPolicyID, debouncedSearchValue, expenseReports, options.reports, onlyReport]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -133,6 +141,16 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
+                listFooterContent={
+                    shouldShowRemoveFromReport ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={Expensicons.Close}
+                        />
+                    ) : undefined
+                }
             />
         </StepScreenWrapper>
     );
