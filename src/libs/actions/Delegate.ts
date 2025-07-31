@@ -20,14 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (newActivePolicyID) => {
-        activePolicyID = newActivePolicyID;
-    },
-});
-
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
@@ -49,7 +41,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>, isFromOldDot = false) {
+function connect(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>, activePolicyID: string, isFromOldDot = false) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
