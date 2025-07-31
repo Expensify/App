@@ -99,6 +99,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -4404,11 +4406,8 @@ const translations = {
             emptyCategories: {
                 title: '您尚未创建任何类别',
                 subtitle: '添加一个类别来组织您的支出。',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: '您的类别目前正在从会计连接中导入。前往',
-                subtitle2: '会计',
-                subtitle3: '进行任何更改。',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>您的类别目前是从会计连接导入的。请前往<a href="${accountingPageURL}">会计</a>部门进行更改。</centered-text></muted-text>`,
             },
             updateFailureMessage: '更新类别时发生错误，请重试。',
             createFailureMessage: '创建类别时发生错误，请重试。',
@@ -4668,14 +4667,9 @@ const translations = {
                 title: '您尚未创建任何标签',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: '添加标签以跟踪项目、地点、部门等。',
-                subtitle1: '导入电子表格以添加标签，用于跟踪项目、地点、部门等。',
-                subtitle2: '了解更多',
-                subtitle3: '关于格式化标签文件。',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: '您的标签目前正在从会计连接导入。前往',
-                subtitle2: '会计',
-                subtitle3: '进行任何更改。',
+                subtitleHTML: `<muted-text><centered-text>导入电子表格，为跟踪项目、地点、部门等添加标签。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解有关</a>标签文件格式的更多信息。</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>您的标签目前是从会计连接导入的。请前往<a href="${accountingPageURL}">会计</a>部门进行更改。</centered-text></muted-text>`,
             },
             deleteTag: '删除标签',
             deleteTags: '删除标签',

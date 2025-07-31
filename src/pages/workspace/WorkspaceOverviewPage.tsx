@@ -185,11 +185,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         deleteWorkspace(policy.id, policyName, lastPaymentMethod);
         setIsDeleteModalOpen(false);
-
-        if (!shouldUseNarrowLayout) {
-            goBackFromInvalidPolicy();
-        }
-    }, [policy?.id, policyName, shouldUseNarrowLayout, lastPaymentMethod]);
+        goBackFromInvalidPolicy();
+    }, [policy?.id, policyName, lastPaymentMethod]);
 
     useEffect(() => {
         if (isLoadingBill) {
