@@ -14,7 +14,7 @@ type AmountSelectorModalProps = {
     /** Function to call when the user closes the modal */
     onClose: () => void;
 } & Pick<MenuItemBaseProps, 'description'> &
-    NumberWithSymbolFormProps;
+    Pick<NumberWithSymbolFormProps, 'decimals' | 'maxLength' | 'symbol' | 'symbolPosition' | 'isSymbolPressable' | 'style' | 'containerStyle' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 type AmountPickerProps = {
     /** Item to display */
@@ -35,6 +35,6 @@ type AmountPickerProps = {
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
-    NumberWithSymbolFormProps;
+    Pick<NumberWithSymbolFormProps, 'decimals' | 'maxLength' | 'symbol' | 'symbolPosition' | 'isSymbolPressable' | 'style' | 'containerStyle' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 export type {AmountSelectorModalProps, AmountPickerProps};
