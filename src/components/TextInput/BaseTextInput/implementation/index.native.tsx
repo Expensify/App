@@ -80,6 +80,7 @@ function BaseTextInput(
         onClearInput,
         iconContainerStyle,
         shouldDelayFocus = false,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -278,6 +279,7 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
@@ -320,7 +322,7 @@ function BaseTextInput(
                                 variables.componentSizeLarge,
                                 typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
                             ),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                        isAutoGrowHeightMarkdown && {minHeight: variables.inputHeight},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -366,7 +368,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle, shouldApplyHeight && {height}]}>
                                     <Text
                                         onLayout={(event) => {
                                             if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
@@ -378,6 +380,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        shouldUseDefaultLineHeight={!!shouldUseDefaultLineHeightForPrefix && !shouldApplyHeight}
                                     >
                                         {prefixCharacter}
                                     </Text>
@@ -452,7 +455,7 @@ function BaseTextInput(
                             )}
                             {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
@@ -464,9 +467,8 @@ function BaseTextInput(
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
                                         styles.ml1,
-                                        styles.justifyContentStart,
                                         loadingSpinnerStyle,
                                         StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
                                     ]}
@@ -474,7 +476,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
@@ -488,7 +490,13 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                        iconContainerStyle,
+                                    ]}
+                                >
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}

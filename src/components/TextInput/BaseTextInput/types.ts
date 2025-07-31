@@ -189,6 +189,9 @@ type CustomBaseTextInputProps = {
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
+
+    /** Whether the input prefix should use the default `Text` line height fallback. Disable this if you intentionally want the prefix to have `lineHeight: undefined` */
+    shouldUseDefaultLineHeightForPrefix?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
