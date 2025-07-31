@@ -210,12 +210,18 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    useFocusEffect(
-        useCallback(() => {
-            clearSelectedTransactions(hash);
-            setCurrentSearchHashAndKey(hash, searchKey);
-        }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]),
-    );
+    const handleFocusOrMount = useCallback(() => {
+        clearSelectedTransactions(hash);
+        setCurrentSearchHashAndKey(hash, searchKey);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+
+    useFocusEffect(handleFocusOrMount);
+
+    // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
+    useEffect(() => {
+        handleFocusOrMount();
+        // eslint-disable-next-line
+    }, []);
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
