@@ -6,7 +6,7 @@ set -euo pipefail
 # -----------------------------
 # The PR branch comes from either the base repo or a fork.
 # We need the base repository's main branch for comparison.
-git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git 2>/dev/null || true
+git remote add upstream "https://github.com/${GITHUB_REPOSITORY}.git" 2>/dev/null || true
 
 # -----------------------------
 # 2. Attempt shallow fetch first
@@ -52,14 +52,14 @@ CHANGED_FILES=()
 for file in "${ALL_CHANGED_FILES[@]}"; do
   # Exclude directories
   if [[ "$file" =~ ^src/(CONST|languages|setup|stories|styles|types)/ ]]; then
-    echo "Skipping excluded directory: $file"
+    echo "Skipping excluded directory: \"$file\""
     continue
   fi
 
   # Exclude specific files in src root
-  filename=$(basename "$file")
+  filename="$(basename "$file")"
   if [[ "$filename" =~ ^(App\.tsx|CONFIG\.ts|Expensify\.tsx|HybridAppHandler\.tsx|NAICS\.ts|NAVIGATORS\.ts|ONYXKEYS\.ts|ROUTES\.ts|SCREENS\.ts|SplashScreenStateContext\.tsx|TIMEZONES\.ts)$ ]]; then
-    echo "Skipping excluded file: $file"
+    echo "Skipping excluded file: \"$file\""
     continue
   fi
   
