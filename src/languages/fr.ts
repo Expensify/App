@@ -97,6 +97,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -1079,6 +1081,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Prenez des photos de tous vos reçus en une seule fois, puis confirmez les détails vous-même ou laissez SmartScan s'en charger.",
         receiptScanInProgress: 'Numérisation du reçu en cours',
         receiptScanInProgressDescription: 'Numérisation du reçu en cours. Revenez plus tard ou saisissez les détails maintenant.',
+        removeFromReport: 'Supprimer du rapport',
+        moveToPersonalSpace: 'Déplacer les dépenses vers votre espace personnel',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Dépenses potentiellement en double identifiées. Vérifiez les doublons pour permettre la soumission.'
@@ -1839,7 +1843,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Bêta)',
         sendAndReceiveMoney: "Envoyez et recevez de l'argent avec des amis. Comptes bancaires américains uniquement.",
         enableWallet: 'Activer le portefeuille',
-        addBankAccountToSendAndReceive: 'Soyez remboursé pour les dépenses que vous soumettez à un espace de travail.',
+        addBankAccountToSendAndReceive: 'Ajoutez un compte bancaire pour effectuer ou recevoir des paiements.',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: "Ce sont des cartes attribuées par un administrateur d'espace de travail pour gérer les dépenses de l'entreprise.",
         expensifyCard: 'Expensify Card',
@@ -1850,6 +1854,8 @@ const translations = {
         chooseYourBankAccount: 'Choisissez votre compte bancaire',
         chooseAccountBody: 'Assurez-vous de sélectionner le bon.',
         confirmYourBankAccount: 'Confirmez votre compte bancaire',
+        personalBankAccounts: 'Comptes bancaires personnels',
+        businessBankAccounts: 'Comptes bancaires professionnels',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4460,11 +4466,8 @@ const translations = {
             emptyCategories: {
                 title: "Vous n'avez créé aucune catégorie",
                 subtitle: 'Ajoutez une catégorie pour organiser vos dépenses.',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: 'Vos catégories sont actuellement importées depuis une connexion comptable. Rendez-vous sur',
-                subtitle2: 'comptabilité',
-                subtitle3: 'pour apporter des modifications.',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Vos catégories sont actuellement importées à partir d'une connexion comptable. Allez dans la <a href="${accountingPageURL}">comptabilité</a> pour faire des changements.</centered-text></muted-text>`,
             },
             updateFailureMessage: "Une erreur s'est produite lors de la mise à jour de la catégorie, veuillez réessayer.",
             createFailureMessage: "Une erreur s'est produite lors de la création de la catégorie, veuillez réessayer.",
@@ -4732,14 +4735,9 @@ const translations = {
                 title: "Vous n'avez créé aucun tag",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Ajoutez une étiquette pour suivre les projets, les emplacements, les départements, et plus encore.',
-                subtitle1: 'Importez une feuille de calcul pour ajouter des étiquettes afin de suivre les projets, les emplacements, les départements, et plus encore.',
-                subtitle2: 'En savoir plus',
-                subtitle3: 'à propos des fichiers de balises de formatage.',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: "Vos balises sont actuellement importées à partir d'une connexion comptable. Rendez-vous sur",
-                subtitle2: 'comptabilité',
-                subtitle3: 'pour apporter des modifications.',
+                subtitleHTML: `<muted-text><centered-text>Importez une feuille de calcul pour ajouter des balises permettant de suivre les projets, les lieux, les services, etc. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de balises.</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Vos étiquettes sont actuellement importées à partir d'une connexion comptable. Allez dans la <a href="${accountingPageURL}">comptabilité</a> pour faire des changements.</centered-text></muted-text>`,
             },
             deleteTag: 'Supprimer le tag',
             deleteTags: 'Supprimer les balises',
@@ -5245,6 +5243,10 @@ const translations = {
                 one: 'Êtes-vous sûr de vouloir supprimer ce tarif ?',
                 other: 'Êtes-vous sûr de vouloir supprimer ces tarifs ?',
             }),
+            errors: {
+                rateNameRequired: 'Le nom du tarif est requis',
+                existingRateName: 'Un tarif de distance avec ce nom existe déjà.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -5967,7 +5969,7 @@ const translations = {
         },
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
-        unapprovedCompanyCards: "Cartes d'entreprise non approuvées",
+        unapprovedCard: 'Carte non approuvée',
         saveSearch: 'Enregistrer la recherche',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Êtes-vous sûr de vouloir supprimer cette recherche ?',
@@ -6316,8 +6318,7 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
-        inviteToChat: 'Inviter uniquement à discuter',
+        invite: 'Invitez-les',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
