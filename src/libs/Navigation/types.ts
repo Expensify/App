@@ -1267,6 +1267,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         reportID: string;
         backTo: Routes;
+        shouldTurnOffSelectionMode?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
@@ -1802,6 +1803,7 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
+        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
