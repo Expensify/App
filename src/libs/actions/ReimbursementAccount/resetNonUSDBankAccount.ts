@@ -1,28 +1,19 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
-let allPolicies: OnyxCollection<OnyxTypes.Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-function resetNonUSDBankAccount(policyID: string | undefined) {
-    if (!policyID) {
-        throw new Error('Missing Policy ID when attempting to reset');
+function resetNonUSDBankAccount(policy: OnyxEntry<Policy>) {
+    if (!policy) {
+        throw new Error('Missing policy when attempting to reset');
     }
-
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
 
     API.write(
         WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP,
-        {policyID},
+        {policyID: policy.id},
         {
             optimisticData: [
                 {
@@ -37,7 +28,7 @@ function resetNonUSDBankAccount(policyID: string | undefined) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     value: {
                         achAccount: null,
                     },
@@ -63,7 +54,7 @@ function resetNonUSDBankAccount(policyID: string | undefined) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     value: {
                         achAccount: policy?.achAccount,
                     },
