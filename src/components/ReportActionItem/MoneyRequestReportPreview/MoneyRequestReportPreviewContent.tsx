@@ -512,6 +512,7 @@ function MoneyRequestReportPreviewContent({
                 chatReportID={chatReportID}
                 policyID={policy?.id}
                 iouReport={iouReport}
+                currency={iouReport?.currency}
                 wrapperStyle={buttonMaxWidth}
                 onPress={confirmPayment}
                 onPaymentOptionsShow={onPaymentOptionsShow}

@@ -4,6 +4,7 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -38,6 +39,10 @@ type QueueItem = {
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
 };
+
+function formatPhoneNumber(phoneNumber: string) {
+    return formatPhoneNumberWithCountryCode(phoneNumber, 1);
+}
 
 function setupApp() {
     beforeAll(() => {
@@ -346,6 +351,16 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
+/**
+ * @private
+ * This is a custom collator only for testing purposes.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+function localeCompare(a: string, b: string): number {
+    return customCollator.compare(a, b);
+}
+
 export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
@@ -363,4 +378,6 @@ export {
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,
+    formatPhoneNumber,
+    localeCompare,
 };
